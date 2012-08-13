@@ -44,10 +44,10 @@ struct merge_sorter {
 	typedef boost::shared_ptr<merge_sorter> ptr;
 
 	inline merge_sorter(pred_t pred = pred_t())
-		: m_parametersSet(false)
+		: m_state(stParameters)
+		, m_parametersSet(false)
 		, m_merger(pred)
 		, m_runFiles(new array<temp_file>())
-		, pull_prepared(false)
 		, pred(pred)
 	{
 	}
@@ -57,6 +57,7 @@ struct merge_sorter {
 	/// purposes).
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_parameters(stream_size_type runLength, memory_size_type fanout) {
+		tp_assert(m_state == stParameters, "Merge sorting already begun");
 		p.runLength = p.internalReportThreshold = runLength;
 		p.fanout = p.finalFanout = fanout;
 		m_parametersSet = true;
@@ -87,19 +88,21 @@ struct merge_sorter {
 	/// \brief Initiate phase 1: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
+		tp_assert(m_state == stParameters, "Merge sorting already begun");
 		tp_assert(m_parametersSet, "Parameters not set");
 		log_debug() << "Start forming input runs" << std::endl;
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles->resize(p.fanout*2);
 		m_currentRunItemCount = 0;
 		m_finishedRuns = 0;
+		m_state = stRunFormation;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push item to merge sorter during phase 1.
 	///////////////////////////////////////////////////////////////////////////
 	inline void push(const T & item) {
-		tp_assert(m_parametersSet, "Parameters not set");
+		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
 			sort_current_run();
 			empty_current_run();
@@ -112,7 +115,7 @@ struct merge_sorter {
 	/// \brief End phase 1.
 	///////////////////////////////////////////////////////////////////////////
 	inline void end() {
-		tp_assert(m_parametersSet, "Parameters not set");
+		tp_assert(m_state == stRunFormation, "Wrong phase");
 		sort_current_run();
 		if (m_finishedRuns == 0 && m_currentRunItemCount <= p.internalReportThreshold) {
 			m_reportInternal = true;
@@ -124,6 +127,7 @@ struct merge_sorter {
 			m_currentRunItems.resize(0);
 			log_debug() << "Got " << m_finishedRuns << " runs. External reporting mode." << std::endl;
 		}
+		m_state = stMerge;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -131,12 +135,11 @@ struct merge_sorter {
 	/// the last one.
 	///////////////////////////////////////////////////////////////////////////
 	inline void calc() {
-		tp_assert(m_parametersSet, "Parameters not set");
+		tp_assert(m_state == stMerge, "Wrong phase");
 		if (!m_reportInternal) {
 			prepare_pull();
-		} else {
-			pull_prepared = true;
 		}
+		m_state = stReport;
 	}
 
 private:
@@ -263,7 +266,7 @@ private:
 		log_debug() << "Final merge level " << mergeLevel << " has " << runCount << " runs" << std::endl;
 		initialize_final_merger(mergeLevel, runCount);
 
-		pull_prepared = true;
+		m_state = stReport;
 	}
 
 public:
@@ -272,7 +275,7 @@ public:
 	/// phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline bool can_pull() {
-		tp_assert(pull_prepared, "Pull not prepared");
+		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal) return m_itemsPulled < m_currentRunItemCount;
 		else return m_merger.can_pull();
 	}
@@ -281,7 +284,7 @@ public:
 	/// In phase 3, fetch next item in the final merge phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline T pull() {
-		tp_assert(pull_prepared, "Pull not prepared");
+		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
 			T el = m_currentRunItems[m_itemsPulled++];
 			if (!can_pull()) m_currentRunItems.resize(0);
@@ -313,6 +316,8 @@ private:
 	/// \param m3 Memory available for phase 3
 	///////////////////////////////////////////////////////////////////////////
 	inline void calculate_parameters(const memory_size_type m1, const memory_size_type m2, const memory_size_type m3) {
+		tp_assert(m_state == stParameters, "Merge sorting already begun");
+
 		p.memoryPhase1 = m1;
 		p.memoryPhase2 = m2;
 		p.memoryPhase3 = m3;
@@ -454,6 +459,15 @@ private:
 		fs.seek(calculate_run_length(p.runLength, p.fanout, mergeLevel) * (runNumber / p.fanout), file_stream<T>::beginning);
 	}
 
+	enum state_type {
+		stParameters,
+		stRunFormation,
+		stMerge,
+		stReport
+	};
+
+	state_type m_state;
+
 	sort_parameters p;
 	bool m_parametersSet;
 
@@ -476,8 +490,6 @@ private:
 	// When doing internal reporting: the number of items already reported
 	// Used in comparison with m_currentRunItemCount
 	memory_size_type m_itemsPulled;
-
-	bool pull_prepared;
 
 	pred_t pred;
 };
