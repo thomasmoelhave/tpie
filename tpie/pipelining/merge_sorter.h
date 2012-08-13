@@ -47,7 +47,6 @@ struct merge_sorter {
 		: m_state(stParameters)
 		, m_parametersSet(false)
 		, m_merger(pred)
-		, m_runFiles(new array<temp_file>())
 		, pred(pred)
 	{
 	}
@@ -92,7 +91,7 @@ struct merge_sorter {
 		tp_assert(m_parametersSet, "Parameters not set");
 		log_debug() << "Start forming input runs" << std::endl;
 		m_currentRunItems.resize(p.runLength);
-		m_runFiles->resize(p.fanout*2);
+		m_runFiles.resize(p.fanout*2);
 		m_currentRunItemCount = 0;
 		m_finishedRuns = 0;
 		m_state = stRunFormation;
@@ -443,8 +442,8 @@ private:
 		// see run_file_index comment about runNumber
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
-		if (runNumber < p.fanout) m_runFiles->at(idx).free();
-		fs.open(m_runFiles->at(idx), file_stream_base::read_write);
+		if (runNumber < p.fanout) m_runFiles[idx].free();
+		fs.open(m_runFiles[idx], file_stream_base::read_write);
 		fs.seek(0, file_stream<T>::end);
 	}
 
@@ -455,7 +454,7 @@ private:
 		// see run_file_index comment about runNumber
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
-		fs.open(m_runFiles->at(idx), file_stream_base::read);
+		fs.open(m_runFiles[idx], file_stream_base::read);
 		fs.seek(calculate_run_length(p.runLength, p.fanout, mergeLevel) * (runNumber / p.fanout), file_stream<T>::beginning);
 	}
 
@@ -473,7 +472,7 @@ private:
 
 	merger<T, pred_t> m_merger;
 
-	boost::shared_ptr<array<temp_file> > m_runFiles;
+	array<temp_file> m_runFiles;
 
 	// number of runs already written to disk.
 	stream_size_type m_finishedRuns;
