@@ -182,6 +182,13 @@ struct phasegraph {
 		edges[depender].push_back(dependee);
 	}
 
+	inline bool is_depending(size_t depender, size_t dependee) {
+		for (size_t i = 0; i < edges[depender].size(); ++i) {
+			if (edges[depender][i] == dependee) return true;
+		}
+		return false;
+	}
+
 	std::vector<size_t> execution_order() {
 		dfs(*this);
 		std::vector<std::pair<int, size_t> > nodes;
@@ -231,14 +238,19 @@ struct graph_traits {
 	}
 
 	void go_all() {
-		for (phaseit i = m_phases.begin(); i != m_phases.end(); ++i) {
+		phaseit p;
+		std::vector<bool>::const_iterator j = m_evacuatePrevious.begin();
+		for (phaseit i = m_phases.begin(); i != m_phases.end(); ++i, ++j) {
+			if (*j) p->evacuate_all();
 			i->go();
+			p = i;
 		}
 	}
 
 private:
 	const segment_map & map;
 	phases_t m_phases;
+	std::vector<bool> m_evacuatePrevious;
 
 	void calc_phases() {
 		map.assert_authoritative();
@@ -271,12 +283,15 @@ private:
 		// toposort the phase graph and find the phase numbers in the execution order
 		std::vector<size_t> internalexec = g.execution_order();
 		m_phases.resize(internalexec.size());
+		m_evacuatePrevious.resize(internalexec.size(), false);
 
-		for (size_t i = 0; i < internalexec.size(); ++i) {
+		std::vector<bool>::iterator j = m_evacuatePrevious.begin();
+		for (size_t i = 0; i < internalexec.size(); ++i, ++j) {
 			// all segments with phase number internalexec[i] should be executed in phase i
 
 			// first, insert phase representatives
 			m_phases[i].add(map.get(ids_inv[internalexec[i]]));
+			*j = i > 0 && !g.is_depending(internalexec[i], internalexec[i-1]);
 		}
 		for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
 			pipe_segment * representative = map.get(ids_inv[phases.find_set(i->first)]);
