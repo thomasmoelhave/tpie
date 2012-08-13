@@ -28,16 +28,15 @@ namespace tpie {
 namespace pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Merge sorting consists of four phases.
+/// Merge sorting consists of three phases.
 ///
-/// 1. Calculating parameters
-/// 2. Sorting and forming runs
-/// 3. Merging runs
-/// 4. Final merge and report
+/// 1. Sorting and forming runs
+/// 2. Merging runs
+/// 3. Final merge and report
 ///
-/// If the number of elements received during phase 2 is less than the length
+/// If the number of elements received during phase 1 is less than the length
 /// of a single run, we are in "report internal" mode, meaning we do not write
-/// anything to disk. This causes phase 3 to be a no-op and phase 4 to be a
+/// anything to disk. This causes phase 2 to be a no-op and phase 3 to be a
 /// simple array traversal.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t = std::less<T> >
@@ -76,16 +75,16 @@ struct merge_sorter {
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate parameters from given memory amount.
+	/// \param m1 Memory available for phase 1
 	/// \param m2 Memory available for phase 2
 	/// \param m3 Memory available for phase 3
-	/// \param m4 Memory available for phase 4
 	///////////////////////////////////////////////////////////////////////////
-	inline void set_available_memory(memory_size_type m2, memory_size_type m3, memory_size_type m4) {
-		calculate_parameters(m2, m3, m4);
+	inline void set_available_memory(memory_size_type m1, memory_size_type m2, memory_size_type m3) {
+		calculate_parameters(m1, m2, m3);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Initiate phase 2: Formation of input runs.
+	/// \brief Initiate phase 1: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
 		tp_assert(m_parametersSet, "Parameters not set");
@@ -97,7 +96,7 @@ struct merge_sorter {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Push item to merge sorter during phase 2.
+	/// \brief Push item to merge sorter during phase 1.
 	///////////////////////////////////////////////////////////////////////////
 	inline void push(const T & item) {
 		tp_assert(m_parametersSet, "Parameters not set");
@@ -110,7 +109,7 @@ struct merge_sorter {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief End phase 2.
+	/// \brief End phase 1.
 	///////////////////////////////////////////////////////////////////////////
 	inline void end() {
 		tp_assert(m_parametersSet, "Parameters not set");
@@ -128,7 +127,7 @@ struct merge_sorter {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Perform phase 3: Performing all merges in the merge tree except
+	/// \brief Perform phase 2: Performing all merges in the merge tree except
 	/// the last one.
 	///////////////////////////////////////////////////////////////////////////
 	inline void calc() {
@@ -142,7 +141,7 @@ struct merge_sorter {
 
 private:
 	///////////////////////////////////////////////////////////////////////////
-	// Phase 2 helpers.
+	// Phase 1 helpers.
 	///////////////////////////////////////////////////////////////////////////
 
 	inline void sort_current_run() {
@@ -239,7 +238,7 @@ private:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// Phase 3: Merge all runs and initialize merger for public pulling.
+	/// Phase 2: Merge all runs and initialize merger for public pulling.
 	///////////////////////////////////////////////////////////////////////////
 	inline void prepare_pull() {
 		memory_size_type mergeLevel = 0;
@@ -269,7 +268,7 @@ private:
 
 public:
 	///////////////////////////////////////////////////////////////////////////
-	/// In phase 4, return true if there are more items in the final merge
+	/// In phase 3, return true if there are more items in the final merge
 	/// phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline bool can_pull() {
@@ -279,7 +278,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// In phase 4, fetch next item in the final merge phase.
+	/// In phase 3, fetch next item in the final merge phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline T pull() {
 		tp_assert(pull_prepared, "Pull not prepared");
@@ -292,77 +291,77 @@ public:
 		}
 	}
 
-	static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
+	static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
 		return params.runLength * sizeof(T)
 			+ file_stream<T>::memory_usage()
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
-	static memory_size_type memory_usage_phase_3(const sort_parameters & params) {
+	static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
 		return fanout_memory_usage(params.fanout);
 	}
 
-	static memory_size_type memory_usage_phase_4(const sort_parameters & params) {
+	static memory_size_type memory_usage_phase_3(const sort_parameters & params) {
 		return fanout_memory_usage(params.finalFanout);
 	}
 
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate parameters from given memory amount.
+	/// \param m1 Memory available for phase 1
 	/// \param m2 Memory available for phase 2
 	/// \param m3 Memory available for phase 3
-	/// \param m4 Memory available for phase 4
 	///////////////////////////////////////////////////////////////////////////
-	inline void calculate_parameters(const memory_size_type m2, const memory_size_type m3, const memory_size_type m4) {
+	inline void calculate_parameters(const memory_size_type m1, const memory_size_type m2, const memory_size_type m3) {
+		p.memoryPhase1 = m1;
 		p.memoryPhase2 = m2;
 		p.memoryPhase3 = m3;
-		p.memoryPhase4 = m4;
 
 		// We must set aside memory for temp_files in m_runFiles.
 		// m_runFiles contains fanout*2 temp_files, so calculate fanout before run length.
 
-		// Phase 3 (merge):
+		// Phase 2 (merge):
 		// Run length: unbounded
 		// Fanout: determined by the size of our merge heap and the stream memory usage.
-		log_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
-		p.fanout = calculate_fanout(p.memoryPhase3);
-		if (fanout_memory_usage(p.fanout) > p.memoryPhase3) {
-			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase3 << " < " << fanout_memory_usage(p.fanout) << ")\n";
-			p.memoryPhase3 = fanout_memory_usage(p.fanout);
+		log_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
+		p.fanout = calculate_fanout(p.memoryPhase2);
+		if (fanout_memory_usage(p.fanout) > p.memoryPhase2) {
+			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << fanout_memory_usage(p.fanout) << ")\n";
+			p.memoryPhase2 = fanout_memory_usage(p.fanout);
 		}
 
-		// Phase 4 (final merge & report):
+		// Phase 3 (final merge & report):
 		// Run length: unbounded
 		// Fanout: determined by the stream memory usage.
-		log_debug() << "Phase 4: " << p.memoryPhase4 << " b available memory\n";
-		p.finalFanout = calculate_fanout(p.memoryPhase4);
+		log_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
+		p.finalFanout = calculate_fanout(p.memoryPhase3);
 
 		if (p.finalFanout > p.fanout)
 			p.finalFanout = p.fanout;
 
-		if (fanout_memory_usage(p.finalFanout) > p.memoryPhase4) {
-			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase4 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
-			p.memoryPhase4 = fanout_memory_usage(p.finalFanout);
+		if (fanout_memory_usage(p.finalFanout) > p.memoryPhase3) {
+			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase3 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
+			p.memoryPhase3 = fanout_memory_usage(p.finalFanout);
 		}
 
-		// Phase 2 (run formation):
+		// Phase 1 (run formation):
 		// Run length: determined by the number of items we can hold in memory.
 		// Fanout: unbounded
 
 		memory_size_type streamMemory = file_stream<T>::memory_usage();
 		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 
-		log_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-		memory_size_type min_m2 = sizeof(T) + streamMemory + tempFileMemory;
-		if (p.memoryPhase2 < min_m2) {
-			log_warning() << "Not enough phase 2 memory for an item and an open stream! (" << p.memoryPhase2 << " < " << min_m2 << ")\n";
-			p.memoryPhase2 = min_m2;
+		log_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
+		memory_size_type min_m1 = sizeof(T) + streamMemory + tempFileMemory;
+		if (p.memoryPhase1 < min_m1) {
+			log_warning() << "Not enough phase 1 memory for an item and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
+			p.memoryPhase1 = min_m1;
 		}
-		p.runLength = (p.memoryPhase2 - streamMemory - tempFileMemory)/sizeof(T);
+		p.runLength = (p.memoryPhase1 - streamMemory - tempFileMemory)/sizeof(T);
 
-		p.internalReportThreshold = (std::min(p.memoryPhase2,
-											  std::min(p.memoryPhase3,
-													   p.memoryPhase4))
+		p.internalReportThreshold = (std::min(p.memoryPhase1,
+											  std::min(p.memoryPhase2,
+													   p.memoryPhase3))
 									 - tempFileMemory)/sizeof(T);
 		if (p.internalReportThreshold > p.runLength)
 			p.internalReportThreshold = p.runLength;
@@ -373,6 +372,12 @@ private:
 		p.dump(log_debug());
 		log_debug() << std::endl;
 
+		log_debug() << "Merge sort phase 1: "
+			<< m1 << " b available, " << memory_usage_phase_1(p) << " b expected" << std::endl;
+		if (memory_usage_phase_1(p) > m1) {
+			log_warning() << "Merge sort phase 1 exceeds the alloted memory usage: "
+				<< m1 << " b available, but " << memory_usage_phase_1(p) << " b expected" << std::endl;
+		}
 		log_debug() << "Merge sort phase 2: "
 			<< m2 << " b available, " << memory_usage_phase_2(p) << " b expected" << std::endl;
 		if (memory_usage_phase_2(p) > m2) {
@@ -384,12 +389,6 @@ private:
 		if (memory_usage_phase_3(p) > m3) {
 			log_warning() << "Merge sort phase 3 exceeds the alloted memory usage: "
 				<< m3 << " b available, but " << memory_usage_phase_3(p) << " b expected" << std::endl;
-		}
-		log_debug() << "Merge sort phase 4: "
-			<< m4 << " b available, " << memory_usage_phase_4(p) << " b expected" << std::endl;
-		if (memory_usage_phase_4(p) > m4) {
-			log_warning() << "Merge sort phase 4 exceeds the alloted memory usage: "
-				<< m4 << " b available, but " << memory_usage_phase_4(p) << " b expected" << std::endl;
 		}
 	}
 

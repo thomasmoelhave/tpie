@@ -26,11 +26,11 @@ namespace pipelining {
 
 struct sort_parameters {
 	/** Memory available while forming sorted runs. */
-	memory_size_type memoryPhase2;
+	memory_size_type memoryPhase1;
 	/** Memory available while merging runs. */
-	memory_size_type memoryPhase3;
+	memory_size_type memoryPhase2;
 	/** Memory available during output phase. */
-	memory_size_type memoryPhase4;
+	memory_size_type memoryPhase3;
 	/** Run length, subject to memory restrictions during phase 2.
 	 * Although we cannot sort more than 2^32 numbers internally on 32-bit
 	 * systems, we are still able to merge sorted streams of run lengths
@@ -47,11 +47,11 @@ struct sort_parameters {
 
 	void dump(std::ostream & out) const {
 		out << "Merge sort parameters\n"
-			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
+			<< "Phase 1 memory:              " << memoryPhase1 << '\n'
 			<< "Run length:                  " << runLength << '\n'
-			<< "Phase 3 memory:              " << memoryPhase3 << '\n'
+			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
 			<< "Fanout:                      " << fanout << '\n'
-			<< "Phase 4 memory:              " << memoryPhase4 << '\n'
+			<< "Phase 3 memory:              " << memoryPhase3 << '\n'
 			<< "Final merge level fanout:    " << finalFanout << '\n'
 			<< "Internal report threshold:   " << internalReportThreshold << '\n';
 	}
