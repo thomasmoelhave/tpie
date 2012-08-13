@@ -327,12 +327,34 @@ public:
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
+	static memory_size_type minimum_memory_phase_1() {
+		// Our *absolute minimum* memory requirements are a single item and
+		// twice as many temp_files as the fanout.
+		// However, our fanout calculation does not take the memory available
+		// in this phase (run formation) into account.
+		// Thus, we assume the largest fanout, meaning we might overshoot.
+		// If we do overshoot, we will just spend the extra bytes on a run length
+		// longer than 1, which is probably what the user wants anyway.
+		sort_parameters p((sort_parameters()));
+		p.runLength = 1;
+		p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max());
+		return memory_usage_phase_1(p);
+	}
+
 	static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
 		return fanout_memory_usage(params.fanout);
 	}
 
+	static memory_size_type minimum_memory_phase_2() {
+		return fanout_memory_usage(calculate_fanout(0));
+	}
+
 	static memory_size_type memory_usage_phase_3(const sort_parameters & params) {
 		return fanout_memory_usage(params.finalFanout);
+	}
+
+	static memory_size_type minimum_memory_phase_3() {
+		return fanout_memory_usage(calculate_fanout(0));
 	}
 
 private:
