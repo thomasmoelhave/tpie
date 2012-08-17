@@ -42,13 +42,16 @@ struct input_vector_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	void go() {
+	void go(progress_indicator_base & pi) {
 		typedef typename std::vector<item_type>::const_iterator IT;
+		pi.init(input.size());
 		dest.begin();
 		for (IT i = input.begin(); i != input.end(); ++i) {
 			dest.push(*i);
+			pi.step();
 		}
 		dest.end();
+		pi.done();
 	}
 private:
 	dest_t dest;

@@ -29,6 +29,7 @@
 #include <boost/weak_ptr.hpp>
 #include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/graph.h>
+#include <tpie/progress_indicator_null.h>
 
 namespace tpie {
 
@@ -42,7 +43,7 @@ struct pipeline_virtual {
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void operator()() = 0;
+	virtual void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) = 0;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz graph documenting the pipeline flow.
@@ -80,10 +81,7 @@ struct pipeline_impl : public pipeline_virtual {
 	///////////////////////////////////////////////////////////////////////////
 	~pipeline_impl() {}
 
-	void operator()() {
-		(*this)(get_memory_manager().available());
-	}
-	void operator()(const memory_size_type mem) {
+	void operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem) {
 		typedef std::vector<phase> phases_t;
 		typedef phases_t::const_iterator it;
 
@@ -94,7 +92,7 @@ struct pipeline_impl : public pipeline_virtual {
 		for (it i = phases.begin(); i != phases.end(); ++i) {
 			i->assign_memory(mem);
 		}
-		g.go_all();
+		g.go_all(items, pi);
 	}
 	inline operator gen_t() {
 		return r;
@@ -165,7 +163,14 @@ struct pipeline {
 		delete p;
 	}
 	inline void operator()() {
-		(*p)();
+		progress_indicator_null pi;
+		(*p)(1, pi, get_memory_manager().available());
+	}
+	inline void operator()(stream_size_type items, progress_indicator_base & pi) {
+		(*p)(items, pi, get_memory_manager().available());
+	}
+	inline void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) {
+		(*p)(items, pi, mem);
 	}
 	inline void plot(std::ostream & os = std::cout) {
 		p->plot(os);

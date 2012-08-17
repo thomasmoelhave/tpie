@@ -22,10 +22,18 @@
 
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/tokens.h>
+#include <tpie/progress_indicator_base.h>
 
 namespace tpie {
 
 namespace pipelining {
+
+// Name priorities
+typedef int priority_type;
+const priority_type PRIORITY_NO_NAME = 0;
+const priority_type PRIORITY_INSIGNIFICANT = 5;
+const priority_type PRIORITY_SIGNIFICANT = 10;
+const priority_type PRIORITY_USER = 20;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all segments. A segment should inherit from pipe_segment,
@@ -63,12 +71,24 @@ struct pipe_segment {
 		return token.id();
 	}
 
-	virtual void go() {
+	virtual void go(progress_indicator_base &) {
 		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl;
 		throw not_initiator_segment();
 	}
 
+	virtual bool can_evacuate() {
+		return false;
+	}
+
 	virtual void evacuate() {
+	}
+
+	inline priority_type get_name_priority() {
+		return m_namePriority;
+	}
+
+	inline const std::string & get_name() {
+		return m_name;
 	}
 
 protected:
@@ -77,6 +97,7 @@ protected:
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
 		, m_memoryFraction(1.0)
+		, m_namePriority(PRIORITY_NO_NAME)
 	{
 	}
 
@@ -85,6 +106,7 @@ protected:
 		, m_minimumMemory(other.m_minimumMemory)
 		, m_availableMemory(other.m_availableMemory)
 		, m_memoryFraction(other.m_memoryFraction)
+		, m_namePriority(PRIORITY_NO_NAME)
 	{
 	}
 
@@ -93,6 +115,7 @@ protected:
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
 		, m_memoryFraction(1.0)
+		, m_namePriority(PRIORITY_NO_NAME)
 	{
 	}
 
@@ -131,6 +154,11 @@ protected:
 		m_availableMemory = availableMemory;
 	}
 
+	inline void set_name(const std::string & name, priority_type priority = PRIORITY_USER) {
+		m_name = name;
+		m_namePriority = priority;
+	}
+
 	friend class phase;
 
 private:
@@ -139,6 +167,9 @@ private:
 	memory_size_type m_minimumMemory;
 	memory_size_type m_availableMemory;
 	double m_memoryFraction;
+
+	std::string m_name;
+	priority_type m_namePriority;
 };
 
 } // namespace pipelining

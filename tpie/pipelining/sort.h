@@ -38,7 +38,7 @@ namespace pipelining {
 template <typename T, typename pred_t>
 struct sort_input_t : public pipe_segment {
 	typedef T item_type;
-	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_input_t(sorterptr sorter, const segment_token & token)
@@ -60,6 +60,10 @@ struct sort_input_t : public pipe_segment {
 		sorter->end();
 	}
 
+	bool can_evacuate() {
+		return true;
+	}
+
 	void evacuate() {
 		sorter->evacuate_before_merging();
 	}
@@ -77,7 +81,7 @@ private:
 template <typename T, typename pred_t>
 struct sort_calc_t : public pipe_segment {
 	typedef T item_type;
-	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_calc_t(const segment_token & input, const sorterptr & sorter)
@@ -94,8 +98,12 @@ struct sort_calc_t : public pipe_segment {
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 	}
 
-	inline void go() {
-		sorter->calc();
+	inline void go(progress_indicator_base & pi) {
+		sorter->calc(pi);
+	}
+
+	bool can_evacuate() {
+		return true;
 	}
 
 	void evacuate() {
@@ -115,7 +123,7 @@ private:
 template <typename dest_t>
 struct sort_output_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
-	typedef merge_sorter<item_type> sorter_t;
+	typedef merge_sorter<item_type, true> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_output_t(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
@@ -127,12 +135,15 @@ struct sort_output_t : public pipe_segment {
 		set_minimum_memory(sorter_t::minimum_memory_phase_3());
 	}
 
-	void go() {
+	void go(progress_indicator_base & pi) {
+		pi.init(sorter->item_count());
 		dest.begin();
 		while (sorter->can_pull()) {
 			dest.push(sorter->pull());
+			pi.step();
 		}
 		dest.end();
+		pi.done();
 	}
 
 protected:
@@ -149,7 +160,7 @@ private:
 template <typename T, typename pred_t>
 struct sort_pull_output_t : public pipe_segment {
 	typedef T item_type;
-	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_pull_output_t(const pipe_segment & calc, const sorterptr & sorter)
@@ -187,7 +198,7 @@ template <typename dest_t>
 struct sort_t : public pipe_segment {
 
 	typedef typename dest_t::item_type item_type;
-	typedef merge_sorter<item_type> sorter_t;
+	typedef merge_sorter<item_type, true> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 	typedef sort_calc_t<item_type, std::less<item_type> > calc_t;
 	typedef sort_output_t<dest_t> output_t;
@@ -241,7 +252,7 @@ pipesort() {
 template <typename T, typename pred_t>
 struct passive_sorter {
 	typedef T item_type;
-	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 	typedef sort_input_t<item_type, pred_t> input_t;
 	typedef sort_calc_t<item_type, pred_t> calc_t;

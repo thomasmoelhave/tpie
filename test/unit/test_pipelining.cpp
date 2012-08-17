@@ -260,12 +260,15 @@ struct sequence_generator : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void go() {
+	inline void go(progress_indicator_base & pi) {
+		pi.init(elements);
 		dest.begin();
 		for (size_t i = elements; i > 0; --i) {
 			dest.push(i);
+			pi.step();
 		}
 		dest.end();
+		pi.done();
 	}
 private:
 	dest_t dest;

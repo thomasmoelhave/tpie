@@ -27,6 +27,7 @@
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/disjoint_sets.h>
+#include <tpie/dummy_progress.h>
 #include <vector>
 #include <stack>
 
@@ -93,13 +94,14 @@ struct phase {
 		return 0;
 	}
 
-	inline void go() const {
-		m_initiator->go();
+	inline void go(progress_indicator_base & pi) const {
+		m_initiator->go(pi);
 	}
 
 	inline void evacuate_all() const {
 		for (size_t i = 0; i < m_segments.size(); ++i) {
-			m_segments[i]->evacuate();
+			if (m_segments[i]->can_evacuate())
+				m_segments[i]->evacuate();
 		}
 	}
 
@@ -147,6 +149,26 @@ struct phase {
 			}
 			break;
 		}
+	}
+
+	inline const std::string & get_name() const {
+		priority_type highest = std::numeric_limits<priority_type>::min();
+		size_t highest_segment = 0;
+		for (size_t i = 0; i < m_segments.size(); ++i) {
+			if (m_segments[i]->get_name_priority() > highest) {
+				highest_segment = i;
+				highest = m_segments[i]->get_name_priority();
+			}
+		}
+		return m_segments[highest_segment]->get_name();
+	}
+
+	inline std::string get_unique_id() const {
+		std::stringstream uid;
+		for (size_t i = 0; i < m_segments.size(); ++i) {
+			uid << typeid(*m_segments[i]).name() << ':';
+		}
+		return uid.str();
 	}
 
 private:
@@ -209,6 +231,7 @@ struct graph_traits {
 	typedef segment_map::id_t id_t;
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::iterator phaseit;
+	typedef progress_types<true> Progress;
 
 	graph_traits(const segment_map & map)
 		: map(map)
@@ -237,14 +260,22 @@ struct graph_traits {
 		return m_phases;
 	}
 
-	void go_all() {
-		phaseit p;
-		std::vector<bool>::const_iterator j = m_evacuatePrevious.begin();
-		for (phaseit i = m_phases.begin(); i != m_phases.end(); ++i, ++j) {
-			if (*j) p->evacuate_all();
-			i->go();
-			p = i;
+	void go_all(stream_size_type n, Progress::base & pi) {
+		Progress::fp fp(&pi);
+		array<auto_ptr<Progress::sub> > subindicators(m_phases.size());
+		for (size_t i = 0; i < m_phases.size(); ++i) {
+			phase & curphase = m_phases[i];
+			std::string name = curphase.get_name();
+			std::string uid = curphase.get_unique_id();
+			subindicators[i].reset(tpie_new<Progress::sub>(fp, uid.c_str(), TPIE_FSI, n, name.c_str()));
 		}
+
+		fp.init();
+		for (size_t i = 0; i < m_phases.size(); ++i) {
+			if (m_evacuatePrevious[i]) m_phases[i-1].evacuate_all();
+			m_phases[i].go(*subindicators[i]);
+		}
+		fp.done();
 	}
 
 private:

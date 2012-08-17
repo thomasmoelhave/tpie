@@ -79,12 +79,15 @@ struct reverser {
 			add_dependency(sink);
 		}
 
-		inline void go() {
+		inline void go(progress_indicator_base & pi) {
+			pi.init(buffer.size());
 			dest.begin();
 			while (it != buffer.rend()) {
 				dest.push(*it++);
+				pi.step();
 			}
 			dest.end();
+			pi.done();
 		}
 
 	private:

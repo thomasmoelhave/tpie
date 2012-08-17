@@ -39,9 +39,10 @@ namespace pipelining {
 /// anything to disk. This causes phase 2 to be a no-op and phase 3 to be a
 /// simple array traversal.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t = std::less<T> >
+template <typename T, bool UseProgress, typename pred_t = std::less<T> >
 struct merge_sorter {
 	typedef boost::shared_ptr<merge_sorter> ptr;
+	typedef progress_types<UseProgress> Progress;
 
 	inline merge_sorter(pred_t pred = pred_t())
 		: m_state(stParameters)
@@ -125,6 +126,7 @@ public:
 		m_currentRunItemCount = 0;
 		m_finishedRuns = 0;
 		m_state = stRunFormation;
+		m_itemCount = 0;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -138,6 +140,7 @@ public:
 		}
 		m_currentRunItems[m_currentRunItemCount] = item;
 		++m_currentRunItemCount;
+		++m_itemCount;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -163,10 +166,14 @@ public:
 	/// \brief Perform phase 2: Performing all merges in the merge tree except
 	/// the last one.
 	///////////////////////////////////////////////////////////////////////////
-	inline void calc() {
+	inline void calc(typename Progress::base & pi) {
 		tp_assert(m_state == stMerge, "Wrong phase");
 		if (!m_reportInternal) {
-			prepare_pull();
+			prepare_pull(pi);
+		} else {
+			pi.init(1);
+			pi.step();
+			pi.done();
 		}
 		m_state = stReport;
 	}
@@ -256,7 +263,8 @@ private:
 			memory_size_type i = p.finalFanout-1;
 			memory_size_type n = runCount-i;
 			log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
-			m_finalMergeSpecialRunNumber = merge_runs(finalMergeLevel, i, n);
+			dummy_progress_indicator pi;
+			m_finalMergeSpecialRunNumber = merge_runs(finalMergeLevel, i, n, pi);
 		} else {
 			log_debug() << "Run count in final level (" << runCount << ") is less or equal to the final fanout (" << p.finalFanout << ")" << std::endl;
 			m_finalMergeSpecialRunNumber = std::numeric_limits<memory_size_type>::max();
@@ -301,12 +309,14 @@ private:
 	/// into mergeLevel+1.
 	/// \returns The run number in mergeLevel+1 that was written to.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type merge_runs(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount) {
+	template <typename ProgressIndicator>
+	inline memory_size_type merge_runs(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount, ProgressIndicator & pi) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<T> out;
 		memory_size_type nextRunNumber = runNumber/p.fanout;
 		open_run_file_write(out, mergeLevel+1, nextRunNumber);
 		while (m_merger.can_pull()) {
+			pi.step();
 			out.write(m_merger.pull());
 		}
 		return nextRunNumber;
@@ -315,7 +325,12 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Phase 2: Merge all runs and initialize merger for public pulling.
 	///////////////////////////////////////////////////////////////////////////
-	inline void prepare_pull() {
+	inline void prepare_pull(typename Progress::base & pi) {
+		// Compute merge depth (number of passes over data).
+		int treeHeight= static_cast<int>(ceil(log(static_cast<float>(m_finishedRuns)) /
+											  log(static_cast<float>(p.fanout))));
+		pi.init(treeHeight);
+
 		memory_size_type mergeLevel = 0;
 		memory_size_type runCount = m_finishedRuns;
 		while (runCount > p.fanout) {
@@ -329,7 +344,7 @@ private:
 				else if (newRunCount == 10)
 					log_debug() << "..." << std::endl;
 
-				merge_runs(mergeLevel, i, n);
+				merge_runs(mergeLevel, i, n, pi);
 				++newRunCount;
 			}
 			++mergeLevel;
@@ -339,6 +354,7 @@ private:
 		initialize_final_merger(mergeLevel, runCount);
 
 		m_state = stReport;
+		pi.done();
 	}
 
 public:
@@ -368,6 +384,10 @@ public:
 			if (m_evacuated) reinitialize_final_merger();
 			return m_merger.pull();
 		}
+	}
+
+	inline stream_size_type item_count() {
+		return m_itemCount;
 	}
 
 	static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
@@ -592,6 +612,8 @@ private:
 	// When doing internal reporting: the number of items already reported
 	// Used in comparison with m_currentRunItemCount
 	memory_size_type m_itemsPulled;
+
+	stream_size_type m_itemCount;
 
 	pred_t pred;
 

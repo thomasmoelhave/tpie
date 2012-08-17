@@ -47,12 +47,15 @@ struct input_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void go() {
+	inline void go(progress_indicator_base & pi) {
+		pi.init(fs.size());
 		dest.begin();
 		while (fs.can_read()) {
 			dest.push(fs.read());
+			pi.step();
 		}
 		dest.end();
+		pi.done();
 	}
 
 private:
@@ -147,7 +150,8 @@ struct pull_output_t : public pipe_segment {
 		add_pull_destination(source);
 	}
 
-	inline void go() {
+	inline void go(progress_indicator_base & /*pi*/) {
+		// TODO progress information
 		source.begin();
 		while (source.can_pull()) {
 			fs.write(source.pull());
