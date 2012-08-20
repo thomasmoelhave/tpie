@@ -68,6 +68,14 @@ namespace tpie {
 	    m_progress = 0;
 	}
 
+	void push_breadcrumb(const char * crumb, description_importance /*importance*/) {
+		m_crumbs.push_back(crumb);
+	}
+
+	void pop_breadcrumb() {
+		m_crumbs.pop_back();
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// Display the indicator.
 	///////////////////////////////////////////////////////////////////////////
@@ -103,6 +111,12 @@ namespace tpie {
 			
 			//  Print either a percentage sign or the maximum range.
 			display_percentage();
+
+			for (std::deque<std::string>::iterator i = m_crumbs.begin(); i != m_crumbs.end(); ++i) {
+				if (i == m_crumbs.begin()) m_os << ' ';
+				else m_os << " > ";
+				m_os << *i;
+			}
 			
 			m_os << ' ' << estimated_remaining_time();
 			m_os << std::flush;
@@ -120,6 +134,8 @@ namespace tpie {
 
 	/** ostream on which to display the progress indicator */
 	std::ostream & m_os;
+
+	std::deque<std::string> m_crumbs;
 
     private:
 
