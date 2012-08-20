@@ -90,7 +90,7 @@ void test(testparams & p) {
 
 		getTestRealtime(start);
 
-		merge_sorter<test_t> m;
+		merge_sorter<test_t, false> m;
 		m.set_available_memory(p.memoryLimit);
 		if (p.runLength) {
 			m.set_parameters(p.runLength, p.fanout);
@@ -113,8 +113,9 @@ void test(testparams & p) {
 		getTestRealtime(end);
 		stats(testRealtimeDiff(start, end));
 
+		dummy_progress_indicator pi;
 		getTestRealtime(start);
-		m.calc();
+		m.calc(pi);
 		getTestRealtime(end);
 		stats(testRealtimeDiff(start, end));
 
