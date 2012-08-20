@@ -23,6 +23,7 @@
 #include <tpie/file_stream.h>
 #include <iostream>
 #include <sstream>
+#include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -82,14 +83,17 @@ struct input_nodes_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void go() {
+	inline void go(progress_indicator_base & pi) {
 		static boost::mt19937 mt;
 		static boost::uniform_int<> dist(0, nodes-1);
+		pi.init(nodes);
 		dest.begin();
 		for (size_t i = 0; i < nodes; ++i) {
 			dest.push(node(i, dist(mt)));
+			pi.step();
 		}
 		dest.end();
+		pi.done();
 	}
 
 private:
@@ -114,7 +118,10 @@ struct count_t {
 			add_pull_destination(byparent);
 		}
 
-		inline void go() {
+		inline void go(progress_indicator_base & pi) {
+			// TODO progress information
+			log_warning() << "Useless progress information from count_t" << std::endl;
+			pi.init(1); // how many items? I don't know
 			dest.begin();
 			byid.begin();
 			byparent.begin();
@@ -147,6 +154,8 @@ seen_children:
 			byparent.end();
 			byid.end();
 			dest.end();
+			pi.step();
+			pi.done();
 		}
 
 		dest_t dest;
@@ -195,21 +204,28 @@ output_count() {
 
 int main(int argc, char ** argv) {
 	tpie_init(ALL & ~DEFAULT_LOGGING);
+	bool debug_log = false;
+	bool progress = true;
 
 	{
-		stderr_log_target stderr_target(LOG_DEBUG);
+		stderr_log_target stderr_target(debug_log ? LOG_DEBUG : LOG_ERROR);
 		get_log().add_target(&stderr_target);
 
 		get_memory_manager().set_limit(13*1024*1024);
 
-		size_t nodes = 1 << 20;
+		size_t nodes = 1 << 24;
 		if (argc > 1) std::stringstream(argv[1]) >> nodes;
 		passive_sorter<node, sort_by_id> byid;
 		passive_sorter<node, sort_by_parent> byparent;
 		pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
 		pipeline p2 = count(byid.output(), byparent.output()) | output_count();
 		p1.plot();
-		p1();
+		if (progress) {
+			progress_indicator_arrow pi("Test", nodes);
+			p1(nodes, pi);
+		} else {
+			p1();
+		}
 		get_log().remove_target(&stderr_target);
 	}
 	tpie_finish(ALL & ~DEFAULT_LOGGING);
