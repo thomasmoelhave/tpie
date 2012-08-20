@@ -329,7 +329,7 @@ private:
 		// Compute merge depth (number of passes over data).
 		int treeHeight= static_cast<int>(ceil(log(static_cast<float>(m_finishedRuns)) /
 											  log(static_cast<float>(p.fanout))));
-		pi.init(treeHeight);
+		pi.init(item_count()*treeHeight);
 
 		memory_size_type mergeLevel = 0;
 		memory_size_type runCount = m_finishedRuns;
