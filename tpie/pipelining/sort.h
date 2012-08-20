@@ -98,6 +98,7 @@ struct sort_calc_t : public pipe_segment {
 	{
 		add_dependency(input);
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
+		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 	}
 
 	inline void go(progress_indicator_base & pi) {
