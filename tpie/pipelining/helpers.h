@@ -40,6 +40,7 @@ struct ostream_logger_t : public pipe_segment {
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
 		add_push_destination(dest);
+		set_name("Log", PRIORITY_INSIGNIFICANT);
 	}
 	inline void begin() {
 		begun = true;
@@ -84,6 +85,7 @@ struct identity_t : public pipe_segment {
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
+		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() {
@@ -111,6 +113,7 @@ struct pull_identity_t : public pipe_segment {
 
 	inline pull_identity_t(const source_t & source) : source(source) {
 		add_pull_destination(source);
+		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() {
@@ -299,6 +302,7 @@ struct fork_t {
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
 			add_push_destination(dest);
 			add_push_destination(dest2);
+			set_name("Fork", PRIORITY_INSIGNIFICANT);
 		}
 
 		inline void begin() {

@@ -46,6 +46,7 @@ struct sort_input_t : public pipe_segment {
 		, sorter(sorter)
 	{
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
+		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 	}
 
 	inline void begin() {
@@ -89,6 +90,7 @@ struct sort_calc_t : public pipe_segment {
 	{
 		add_dependency(input);
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
+		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 	}
 
 	inline sort_calc_t(const pipe_segment & input, const sorterptr & sorter)
@@ -133,6 +135,7 @@ struct sort_output_t : public pipe_segment {
 		add_dependency(calc);
 		add_push_destination(dest);
 		set_minimum_memory(sorter_t::minimum_memory_phase_3());
+		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 	}
 
 	void go(progress_indicator_base & pi) {
@@ -168,6 +171,7 @@ struct sort_pull_output_t : public pipe_segment {
 	{
 		add_dependency(calc);
 		set_minimum_memory(sorter_t::minimum_memory_phase_3());
+		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() {
@@ -210,6 +214,7 @@ struct sort_t : public pipe_segment {
 		, output(other.output)
 	{
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
+		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 	}
 
 	inline sort_t(const dest_t & dest)

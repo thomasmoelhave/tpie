@@ -43,6 +43,7 @@ struct count_consecutive_t : public pipe_segment {
 		, current_count(0)
 	{
 		add_push_destination(dest);
+		set_name("Count consecutive", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() {

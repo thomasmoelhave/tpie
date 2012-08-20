@@ -45,6 +45,7 @@ struct input_t : public pipe_segment {
 
 	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
 		add_push_destination(dest);
+		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void go(progress_indicator_base & pi) {
@@ -78,6 +79,7 @@ struct pull_input_t : public pipe_segment {
 	typedef T item_type;
 
 	inline pull_input_t(file_stream<T> & fs) : fs(fs) {
+		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() {
@@ -117,6 +119,7 @@ struct output_t : public pipe_segment {
 	typedef T item_type;
 
 	inline output_t(file_stream<T> & fs) : fs(fs) {
+		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() {
@@ -148,6 +151,7 @@ struct pull_output_t : public pipe_segment {
 
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
 		add_pull_destination(source);
+		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void go(progress_indicator_base & pi) {

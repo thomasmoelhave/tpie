@@ -44,6 +44,7 @@ struct reverser {
 			, buffer(buffer)
 		{
 			it = buffer.begin();
+			set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
 		}
 
 		inline void begin() {
@@ -77,6 +78,7 @@ struct reverser {
 		{
 			add_push_destination(dest);
 			add_dependency(sink);
+			set_name("Output reversed items", PRIORITY_INSIGNIFICANT);
 		}
 
 		inline void go(progress_indicator_base & pi) {

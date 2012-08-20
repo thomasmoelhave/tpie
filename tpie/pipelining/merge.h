@@ -49,6 +49,7 @@ struct merge_t {
 		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {
 			add_push_destination(dest);
 			add_pull_destination(with);
+			set_name("Merge", PRIORITY_INSIGNIFICANT);
 		}
 
 		inline void begin() {

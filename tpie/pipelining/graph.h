@@ -266,6 +266,7 @@ struct graph_traits {
 		for (size_t i = 0; i < m_phases.size(); ++i) {
 			phase & curphase = m_phases[i];
 			std::string name = curphase.get_name();
+			if (0 == name.size()) log_error() << "Phase has no name" << std::endl;
 			std::string uid = curphase.get_unique_id();
 			subindicators[i].reset(tpie_new<Progress::sub>(fp, uid.c_str(), TPIE_FSI, n, name.c_str()));
 		}

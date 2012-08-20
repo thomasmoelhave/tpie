@@ -106,7 +106,8 @@ protected:
 		, m_minimumMemory(other.m_minimumMemory)
 		, m_availableMemory(other.m_availableMemory)
 		, m_memoryFraction(other.m_memoryFraction)
-		, m_namePriority(PRIORITY_NO_NAME)
+		, m_name(other.m_name)
+		, m_namePriority(other.m_namePriority)
 	{
 	}
 

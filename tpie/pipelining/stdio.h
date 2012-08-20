@@ -39,6 +39,7 @@ struct scanf_ints_t : public pipe_segment {
 
 	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
+		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void go(progress_indicator_base & pi) {
@@ -66,6 +67,7 @@ struct printf_ints_t : public pipe_segment {
 	typedef int item_type;
 
 	inline printf_ints_t() {
+		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void begin() { }

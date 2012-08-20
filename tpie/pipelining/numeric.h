@@ -39,6 +39,7 @@ struct linear_t : public pipe_segment {
 
 	inline linear_t(const dest_t & dest, item_type factor, item_type term) : dest(dest), factor(factor), term(term) {
 		add_push_destination(dest);
+		set_name("Linear transform", PRIORITY_INSIGNIFICANT);
 	}
 	inline void begin() { }
 	inline void end() { }
