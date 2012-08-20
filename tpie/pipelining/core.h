@@ -250,6 +250,11 @@ struct pipe_base {
 		return self().factory.memory();
 	}
 
+	inline child_t & name(const std::string & n, priority_type p = PRIORITY_USER) {
+		self().factory.name(n, p);
+		return self();
+	}
+
 private:
 	inline child_t & self() {return *static_cast<child_t*>(this);}
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}

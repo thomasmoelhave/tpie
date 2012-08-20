@@ -366,7 +366,7 @@ bool memory_test() {
 
 bool fork_test() {
 	expectvector = inputvector;
-	pipeline p = input_vector(inputvector) | fork(output_vector(outputvector)) | bitbucket<test_t>(0);
+	pipeline p = input_vector(inputvector).name("Input vector") | fork(output_vector(outputvector)) | bitbucket<test_t>(0);
 	p();
 	return check_test_vectors();
 }

@@ -91,6 +91,11 @@ struct pipe_segment {
 		return m_name;
 	}
 
+	inline void set_name(const std::string & name, priority_type priority = PRIORITY_USER) {
+		m_name = name;
+		m_namePriority = priority;
+	}
+
 protected:
 	inline pipe_segment()
 		: token(this)
@@ -153,11 +158,6 @@ protected:
 
 	virtual void set_available_memory(memory_size_type availableMemory) {
 		m_availableMemory = availableMemory;
-	}
-
-	inline void set_name(const std::string & name, priority_type priority = PRIORITY_USER) {
-		m_name = name;
-		m_namePriority = priority;
 	}
 
 	friend class phase;

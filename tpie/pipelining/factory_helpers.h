@@ -33,19 +33,27 @@ struct factory_base {
 		m_amount = amount;
 		m_set = true;
 	}
-	
+
 	inline double memory() const {
 		return m_amount;
 	}
 
 	template <typename R>
-	inline void set_memory_fraction(R & r) const {
+	inline void init_segment(R & r) const {
 		if (m_set) r.set_memory_fraction(memory());
+		if (!m_name.empty()) r.set_name(m_name, m_namePriority);
+	}
+
+	inline void name(const std::string & n, priority_type p) {
+		m_name = n;
+		m_namePriority = p;
 	}
 
 private:
 	double m_amount;
 	bool m_set;
+	std::string m_name;
+	priority_type m_namePriority;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,7 +74,7 @@ struct factory_0 : public factory_base<factory_0<R> > {
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest);
-		this->set_memory_fraction(r);
+		this->init_segment(r);
 		return r;
 	}
 };
@@ -87,7 +95,7 @@ struct factory_1 : public factory_base<factory_1<R, T1> > {
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1);
-		this->set_memory_fraction(r);
+		this->init_segment(r);
 		return r;
 	}
 private:
@@ -110,7 +118,7 @@ struct factory_2 : public factory_base<factory_2<R, T1, T2> > {
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2);
-		this->set_memory_fraction(r);
+		this->init_segment(r);
 		return r;
 	}
 private:
@@ -127,7 +135,7 @@ struct termfactory_0 : public factory_base<termfactory_0<R> > {
 	typedef R generated_type;
 	inline R construct() const {
 		R r;
-		this->set_memory_fraction(r);
+		this->init_segment(r);
 		return r;
 	}
 };
@@ -142,7 +150,7 @@ struct termfactory_1 : public factory_base<termfactory_1<R, T1> > {
 	inline termfactory_1(T1 t1) : t1(t1) {}
 	inline R construct() const {
 		R r(t1);
-		this->set_memory_fraction(r);
+		this->init_segment(r);
 		return r;
 	}
 private:
@@ -159,7 +167,7 @@ struct termfactory_2 : public factory_base<termfactory_2<R, T1, T2> > {
 	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 	inline R construct() const {
 		R r(t1, t2);
-		this->set_memory_fraction(r);
+		this->init_segment(r);
 		return r;
 	}
 private:
