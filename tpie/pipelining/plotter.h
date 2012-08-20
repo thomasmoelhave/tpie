@@ -29,8 +29,21 @@ namespace tpie {
 
 namespace pipelining {
 
-std::ostream & operator<<(std::ostream & s, const pipe_segment * p) {
-	return s << '(' << typeid(*p).name() << " *) " << static_cast<const void *>(p);
+namespace plotter {
+	struct name {
+		typedef segment_map S;
+		name(S::ptr segmap, S::id_t id) : segmap(segmap), id(id) {}
+		S::ptr segmap;
+		S::id_t id;
+	};
+	std::ostream & operator<<(std::ostream & out, const name & n) {
+		segment_map::val_t p = n.segmap->get(n.id);
+		std::string name = p->get_name();
+		if (name.size())
+			return out << name << " (" << n.id << ')';
+		else
+			return out << typeid(*p).name() << " (" << n.id << ')';
+	}
 }
 
 typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
@@ -40,19 +53,19 @@ void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
 	out << "digraph {\nrankdir=LR;\n";
 	segment_map::ptr segmap = r.get_segment_map()->find_authority();
 	for (segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
-		out << '"' << i->first << "\";\n";
+		out << '"' << plotter::name(segmap, i->first) << "\";\n";
 	}
 	const segment_map::relmap_t & relations = segmap->get_relations();
 	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		switch (i->second.second) {
 			case pushes:
-				out << '"' << i->first << "\" -> \"" << i->second.first << "\";\n";
+				out << '"' << plotter::name(segmap, i->first) << "\" -> \"" << plotter::name(segmap, i->second.first) << "\";\n";
 				break;
 			case pulls:
-				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
+				out << '"' << plotter::name(segmap, i->second.first) << "\" -> \"" << plotter::name(segmap, i->first) << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
 				break;
 			case depends:
-				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
+				out << '"' << plotter::name(segmap, i->second.first) << "\" -> \"" << plotter::name(segmap, i->first) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
 				break;
 		}
 	}
