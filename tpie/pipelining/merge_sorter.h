@@ -22,6 +22,7 @@
 
 #include <tpie/pipelining/sort_parameters.h>
 #include <tpie/pipelining/merger.h>
+#include <tpie/dummy_progress.h>
 
 namespace tpie {
 
