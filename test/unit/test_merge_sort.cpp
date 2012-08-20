@@ -82,7 +82,7 @@ bool sort_test(memory_size_type m2,
 	log_debug() << "sort_test with " << items << " items\n";
 	boost::rand48 rng;
 	relative_memory_usage m;
-	merge_sorter<test_t> s;
+	merge_sorter<test_t, false> s;
 	s.set_available_memory(m2, m3, m4);
 
 	log_debug() << "Begin phase 2" << std::endl;
@@ -105,7 +105,8 @@ bool sort_test(memory_size_type m2,
 	log_debug() << "Begin phase 3" << std::endl;
 	m.set_threshold(m3);
 	if (!m.below()) return false;
-	s.calc();
+	dummy_progress_indicator pi;
+	s.calc(pi);
 	if (!m.below()) return false;
 
 	if (evacuateBeforeReport) {
