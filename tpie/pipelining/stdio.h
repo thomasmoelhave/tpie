@@ -41,13 +41,16 @@ struct scanf_ints_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void go() {
+	inline void go(progress_indicator_base & pi) {
+		pi.init(1);
 		dest.begin();
 		int in;
 		while (scanf("%d", &in) == 1) {
 			dest.push(in);
 		}
 		dest.end();
+		pi.step();
+		pi.done();
 	}
 
 private:

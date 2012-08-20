@@ -150,13 +150,17 @@ struct pull_output_t : public pipe_segment {
 		add_pull_destination(source);
 	}
 
-	inline void go(progress_indicator_base & /*pi*/) {
+	inline void go(progress_indicator_base & pi) {
 		// TODO progress information
+		log_warning() << "Useless progress information in pull_output_t" << std::endl;
+		pi.init(1);
 		source.begin();
 		while (source.can_pull()) {
 			fs.write(source.pull());
 		}
 		source.end();
+		pi.step();
+		pi.done();
 	}
 
 	source_t source;
