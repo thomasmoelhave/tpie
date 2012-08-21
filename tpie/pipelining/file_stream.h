@@ -182,7 +182,9 @@ struct tee_t: public pipe_segment {
 	class type: public pipe_segment {
 	public:
 		typedef T item_type;
-		type(const dest_t & dest, file_stream<item_type> & fs): fs(fs), dest(dest) {}
+		type(const dest_t & dest, file_stream<item_type> & fs): fs(fs), dest(dest) {
+			add_push_destination(dest);
+		}
 
 		void begin() {dest.begin();}
 		void push(const item_type & i) {
