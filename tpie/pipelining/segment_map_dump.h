@@ -27,7 +27,7 @@ namespace tpie {
 
 namespace pipelining {
 
-void segment_map::dump(std::ostream & os) const {
+inline void segment_map::dump(std::ostream & os) const {
 	os << this << " segment_map\n";
 	if (m_authority)
 		os << "Non-authoritative" << std::endl;
