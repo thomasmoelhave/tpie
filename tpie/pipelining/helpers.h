@@ -332,6 +332,18 @@ fork(const pipe_end<fact_t> & to) {
 	return factory_1<fork_t<fact_t>::template type, const fact_t &>(to.factory);
 }
 
+template <typename T>
+struct null_sink_t: public pipe_segment {
+	typedef T item_type;
+	void begin() {}
+	void push(const T & x) {}
+	void end() {}
+};
+
+template <typename T>
+inline pipe_end<termfactory_0<null_sink_t<T> > >
+null_sink() {return termfactory_0<null_sink_t<T> >();}
+
 }
 
 }
