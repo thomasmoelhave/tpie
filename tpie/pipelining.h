@@ -36,6 +36,7 @@
 #include <tpie/pipelining/plotter.h>
 #include <tpie/pipelining/reverse.h>
 #include <tpie/pipelining/sort.h>
+#include <tpie/pipelining/buffer.h>
 #include <tpie/pipelining/uniq.h>
 #include <tpie/pipelining/segment_map_dump.h>
 
