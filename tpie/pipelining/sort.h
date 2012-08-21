@@ -123,42 +123,45 @@ private:
 	sorterptr sorter;
 };
 
-template <typename dest_t>
-struct sort_output_t : public pipe_segment {
-	typedef typename dest_t::item_type item_type;
-	typedef merge_sorter<item_type, true> sorter_t;
-	typedef typename sorter_t::ptr sorterptr;
+template <typename pred_t>
+struct sort_output_t {
+	template <typename dest_t>
+	struct type : public pipe_segment {
+		typedef typename dest_t::item_type item_type;
+		typedef merge_sorter<item_type, true, pred_t> sorter_t;
+		typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_output_t(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
-		: dest(dest)
-		, sorter(sorter)
-	{
-		add_dependency(calc);
-		add_push_destination(dest);
-		set_minimum_memory(sorter_t::minimum_memory_phase_3());
-		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
-	}
-
-	void go(progress_indicator_base & pi) {
-		pi.init(sorter->item_count());
-		dest.begin();
-		while (sorter->can_pull()) {
-			dest.push(sorter->pull());
-			pi.step();
+		inline type(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
+			: dest(dest)
+			, sorter(sorter)
+			{
+				add_dependency(calc);
+				add_push_destination(dest);
+				set_minimum_memory(sorter_t::minimum_memory_phase_3());
+				set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
+			}
+		
+		void go(progress_indicator_base & pi) {
+			pi.init(sorter->item_count());
+			dest.begin();
+			while (sorter->can_pull()) {
+				dest.push(sorter->pull());
+				pi.step();
+			}
+			dest.end();
+			pi.done();
 		}
-		dest.end();
-		pi.done();
-	}
-
-protected:
-	void set_available_memory(memory_size_type availableMemory) {
-		pipe_segment::set_available_memory(availableMemory);
-		sorter->set_phase_3_memory(availableMemory);
-	}
-
-private:
-	dest_t dest;
-	sorterptr sorter;
+		
+	protected:
+		void set_available_memory(memory_size_type availableMemory) {
+			pipe_segment::set_available_memory(availableMemory);
+			sorter->set_phase_3_memory(availableMemory);
+		}
+		
+	private:
+		dest_t dest;
+		sorterptr sorter;
+	};
 };
 
 template <typename T, typename pred_t>
@@ -199,60 +202,74 @@ private:
 	sorterptr sorter;
 };
 
-template <typename dest_t>
-struct sort_t : public pipe_segment {
-
-	typedef typename dest_t::item_type item_type;
-	typedef merge_sorter<item_type, true> sorter_t;
-	typedef typename sorter_t::ptr sorterptr;
-	typedef sort_calc_t<item_type, std::less<item_type> > calc_t;
-	typedef sort_output_t<dest_t> output_t;
-
-	inline sort_t(const sort_t<dest_t> & other)
-		: pipe_segment(other)
-		, sorter(other.sorter)
-		, calc(other.calc)
-		, output(other.output)
-	{
-		set_minimum_memory(sorter_t::minimum_memory_phase_1());
-		set_name("Form input runs", PRIORITY_SIGNIFICANT);
-	}
-
-	inline sort_t(const dest_t & dest)
-		: sorter(new sorter_t())
-		, calc(*this, sorter)
-		, output(dest, calc, sorter)
-	{
-		set_minimum_memory(sorter_t::minimum_memory_phase_1());
-	}
-
-	inline void begin() {
-		sorter->begin();
-	}
-
-	inline void push(const item_type & item) {
-		sorter->push(item);
-	}
-
-	inline void end() {
-		sorter->end();
-	}
-
-protected:
-	void set_available_memory(memory_size_type availableMemory) {
-		pipe_segment::set_available_memory(availableMemory);
-		sorter->set_phase_1_memory(availableMemory);
-	}
-
-private:
-	sorterptr sorter;
-	calc_t calc;
-	output_t output;
+template <typename pred_t>
+struct sort_t {
+	template <typename dest_t>
+	struct type : public pipe_segment {
+		
+		typedef typename dest_t::item_type item_type;
+		typedef merge_sorter<item_type, true, pred_t> sorter_t;
+		typedef typename sorter_t::ptr sorterptr;
+		typedef sort_calc_t<item_type, pred_t> calc_t;
+		typedef typename sort_output_t<pred_t>::template type<dest_t> output_t;
+		
+		inline type(const type<dest_t> & other)
+			: pipe_segment(other)
+			, sorter(other.sorter)
+			, calc(other.calc)
+			, output(other.output)
+			{
+				set_minimum_memory(sorter_t::minimum_memory_phase_1());
+				set_name("Form input runs", PRIORITY_SIGNIFICANT);
+			}
+		
+		inline type(const dest_t & dest, const pred_t & pred=pred_t())
+			: sorter(new sorter_t(pred))
+			, calc(*this, sorter)
+			, output(dest, calc, sorter)
+			{
+				set_minimum_memory(sorter_t::minimum_memory_phase_1());
+			}
+		
+		inline void begin() {
+			sorter->begin();
+		}
+		
+		inline void push(const item_type & item) {
+			sorter->push(item);
+		}
+		
+		inline void end() {
+			sorter->end();
+		}
+		
+	protected:
+		void set_available_memory(memory_size_type availableMemory) {
+			pipe_segment::set_available_memory(availableMemory);
+			sorter->set_phase_1_memory(availableMemory);
+		}
+	private:
+		sorterptr sorter;
+		calc_t calc;
+		output_t output;
+	};
 };
 
-inline pipe_middle<factory_0<sort_t> >
+template <typename dest_t>
+struct default_pred_sort_t: public sort_t<typename std::less<typename dest_t::item_type> >::template type<dest_t > {
+	default_pred_sort_t(const dest_t & d): sort_t<typename std::less<typename dest_t::item_type> >::template type<dest_t >(d) {}
+};
+
+inline pipe_middle<factory_0<default_pred_sort_t> >
 pipesort() {
-	return factory_0<sort_t>();
+	return factory_0<default_pred_sort_t>();
+}
+
+
+template <typename pred_t>
+inline pipe_middle<factory_1<sort_t<pred_t>::template type, const pred_t &> >
+pipesort(const pred_t & p) {
+	return factory_1<sort_t<pred_t>::template type, const pred_t &>(p);
 }
 
 template <typename T, typename pred_t>
