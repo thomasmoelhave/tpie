@@ -32,11 +32,11 @@ namespace pipelining {
 namespace plotter {
 	struct name {
 		typedef segment_map S;
-		name(S::ptr segmap, S::id_t id) : segmap(segmap), id(id) {}
+		inline name(S::ptr segmap, S::id_t id) : segmap(segmap), id(id) {}
 		S::ptr segmap;
 		S::id_t id;
 	};
-	std::ostream & operator<<(std::ostream & out, const name & n) {
+inline std::ostream & operator<<(std::ostream & out, const name & n) {
 		segment_map::val_t p = n.segmap->get(n.id);
 		std::string name = p->get_name();
 		if (name.size())
@@ -50,7 +50,7 @@ typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
 template <typename fact_t>
 void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
-	out << "digraph {\nrankdir=LR;\n";
+	out << "digraph {\n";
 	segment_map::ptr segmap = r.get_segment_map()->find_authority();
 	for (segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
 		out << '"' << plotter::name(segmap, i->first) << "\";\n";
