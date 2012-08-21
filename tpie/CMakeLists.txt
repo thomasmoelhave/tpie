@@ -99,6 +99,7 @@ set (HEADERS
 		pipelining/reverse.h
 		pipelining/segment_map_dump.h
 		pipelining/sort.h
+		pipelining/buffer.h
 		pipelining/std_glue.h
 		pipelining/stdio.h
 		pipelining/tokens.h
@@ -127,6 +128,7 @@ set (SOURCES
 	stats.cpp
 	util.cpp
 	unittest.cpp
+	pipelining/tokens.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 

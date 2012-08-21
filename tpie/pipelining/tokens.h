@@ -302,8 +302,6 @@ private:
 	bool m_free;
 };
 
-segment_map::id_t segment_map::nextId = 0;
-
 } // namespace pipelining
 
 } // namespace tpie
