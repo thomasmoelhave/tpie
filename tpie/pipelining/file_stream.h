@@ -176,8 +176,30 @@ inline pullpipe_end<factory_1<pull_output_t, file_stream<T> &> > pull_output(fil
 	return factory_1<pull_output_t, file_stream<T> &>(fs);
 }
 
-}
+template <typename T>
+struct tee_t: public pipe_segment {
+	template <typename dest_t>
+	class type: public pipe_segment {
+	public:
+		typedef T item_type;
+		type(const dest_t & dest, file_stream<item_type> & fs): fs(fs), dest(dest) {}
 
-}
+		void begin() {dest.begin();}
+		void push(const item_type & i) {
+			fs.write(i);
+			dest.push(i);
+		}
+		void end() {dest.end();}
+	private:
+		file_stream<item_type> & fs;
+		dest_t dest;
+	};
+};
 
+template <typename T>
+inline pipe_middle<factory_1<tee_t<typename T::item_type>::template type, T &> >
+tee(T & fs) {return factory_1<tee_t<typename T::item_type>::template type, T &>(fs);}
+
+} //namespace pipelining
+} //namespace tpie
 #endif
