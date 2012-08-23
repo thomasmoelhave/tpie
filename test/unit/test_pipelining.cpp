@@ -234,17 +234,17 @@ bool merge_test() {
 }
 
 bool reverse_test() {
-
-	reverser<test_t> r(inputvector.size());
-
-	pipeline p1 = input_vector(inputvector) | r.sink();
-	pipeline p2 = r.source() | output_vector(outputvector);
-	p1.plot(log_info());
-
+	pipeline p1 = input_vector(inputvector) | reverser() | output_vector(outputvector);
+	p1();
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
 
-	p1();
+	
+	//reverser<test_t> r(inputvector.size());
+	//pipeline p1 = input_vector(inputvector) | r.sink();
+	//pipeline p2 = r.source() | output_vector(outputvector);
+	//p1.plot(log_info());
+	//p1();
 
 	return check_test_vectors();
 }

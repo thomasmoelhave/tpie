@@ -22,13 +22,14 @@
 
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
+#include <tpie/stack.h>
 
 namespace tpie {
 
 namespace pipelining {
 
 template <typename T>
-struct reverser {
+struct passive_reverser {
 	typedef std::vector<T> buf_t;
 
 	struct sink_t : public pipe_segment {
@@ -100,7 +101,7 @@ struct reverser {
 		source_t & operator=(const source_t & other);
 	};
 
-	inline reverser(size_t buffer_size)
+	inline passive_reverser(size_t buffer_size)
 		: buffer(buffer_size)
 	{
 	}
@@ -120,8 +121,83 @@ private:
 	segment_token sink_token;
 };
 
+namespace bits {
+
+template <typename T>
+struct reverser_input_t: public pipe_segment {
+	typedef T item_type;
+
+	inline reverser_input_t(const segment_token & token, stack<T> & the_stack):
+		pipe_segment(token), the_stack(&the_stack) {
+		set_name("Store items", PRIORITY_SIGNIFICANT);
+	}
+
+	void begin() {}
+	void end() {}
+	void push(const T & t) {
+		the_stack->push(t);
+	}
+
+	stack<T> * the_stack;
+};
+
+template <typename dest_t>
+struct reverser_output_t: public  pipe_segment {
+	typedef typename dest_t::item_type item_type;
+	
+	reverser_output_t(const dest_t & dest, const segment_token & input_token, stack<item_type> & the_stack)
+		: dest(dest), the_stack(&the_stack) {
+		add_dependency(input_token);
+		add_push_destination(dest);
+	}
+				
+	void go(progress_indicator_base & pi) {
+		pi.init(the_stack->size());
+		dest.begin();
+		while (!the_stack->empty()) {
+			dest.push(the_stack->pop());
+		}
+		dest.end();
+		pi.done();
+	}
+
+	dest_t dest;
+	stack<item_type> * the_stack;
+};
+
+
+template <typename dest_t>
+struct reverser_t: public pipe_segment {
+	typedef typename dest_t::item_type item_type;
+	
+	typedef reverser_output_t<dest_t> output_t;
+	typedef reverser_input_t<item_type> input_t;
+	
+	inline reverser_t(const dest_t & dest):
+		input_token(), input(input_token, the_stack), output(dest, input_token, the_stack) {
+		add_push_destination(input);
+	}
+
+	inline reverser_t(const reverser_t & o):
+		pipe_segment(o), input_token(o.input_token), input(o.input), output(o.output) {
+		input.the_stack = &the_stack;
+		output.the_stack = &the_stack;
+	}
+
+	void begin() {input.begin();}
+	void push(const item_type & i) {input.push(i);}
+	void end() {input.end();}
+private:
+	segment_token input_token;
+	stack<item_type> the_stack;
+
+	input_t input;
+	output_t output;
+};
 }
 
-}
+inline pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
 
+}
+}
 #endif
