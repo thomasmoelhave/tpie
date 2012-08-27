@@ -293,6 +293,15 @@ bool frontback() {
 	return true;
 }
 
+bool swap_test() {
+	{
+		array<int> a(42, 42);
+		array<int> b(84);
+		a.swap(b);
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
@@ -315,5 +324,7 @@ int main(int argc, char **argv) {
 		.test(array_bool_memory_test(), "bit_memory")
 		.test(copyempty, "copyempty")
 		.test(arrayarray, "arrayarray")
-		.test(frontback, "frontback");
+		.test(frontback, "frontback")
+		.test(swap_test, "swap")
+		;
 }
