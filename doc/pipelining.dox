@@ -1,0 +1,53 @@
+/**
+\page pipelining Pipelining order of operations
+
+This overview is directed at pipe_segment implementers (that is, pipelining users).
+
+\section sec_noninitiator Non-initiator segments
+
+0. The following virtual methods may be overridden in the implementation:
+
+   - evacuate (in which case can_evacuate should be overridden to return true)
+   - set_available_memory
+
+1. Constructor is called. The constructor should call any of the following
+   pipe_segment protected methods as appropriate:
+
+   - set_name
+   - add_push_destination
+   - add_pull_destination
+   - add_dependency
+   - set_minimum_memory
+
+2. Virtual method set_available_memory is called. If overridden, the overriding
+   implementation must call pipe_segment::set_available_memory with the same
+   argument.
+
+3. begin() is called on all pipe_segments in the current phase in topological
+   order, beginning with the initiator segment.
+   At this point, the implementation may fetch<>() auxiliary data from its
+   predecessors and forward() auxiliary data to its successors.
+
+4. push() is called any number of times.
+
+5. end() is called on all pipe_segments in the current phase in the same order
+   as with begin().
+
+6. If appropriate, evacuate() is called, in which case the pipe_segment should
+   deallocate all internal buffers shared between this segment and a depending
+   segment.
+
+\section sec_initiators Initiator segments
+
+You will rarely need to implement initiators. For an initiator, instead of
+push(), the virtual go() method must be overridden, and this is called once.
+
+\section sec_troubleshooting Implementation troubleshooting
+
+Common faults in pipe_segment implementations include
+
+- Missing add_push_destination/add_pull_destination/add_dependency. If
+  pipeline::plot does not yield a graph containing all the nodes you expect,
+  this is probably the problem.
+
+*/
