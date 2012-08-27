@@ -49,7 +49,7 @@ inline std::ostream & operator<<(std::ostream & out, const name & n) {
 typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
 template <typename fact_t>
-void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
+void pipeline_impl<fact_t>::plot(std::ostream & out) {
 	out << "digraph {\n";
 	segment_map::ptr segmap = r.get_segment_map()->find_authority();
 	for (segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
@@ -71,27 +71,6 @@ void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
 	}
 	out << '}' << std::endl;
 }
-
-template <typename fact_t>
-void pipeline_impl<fact_t>::actual_plot_phases(std::ostream & /*out*/) {
-	/*
-	nodes_t n = nodes(r);
-	tpie::disjoint_sets<size_t> p = phases(n);
-	out << "digraph {\n";
-	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-		out << '"' << i->second << "\";\n";
-	}
-	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-		size_t cur = i->second;
-		size_t rep = p.find_set(cur);
-		if (rep != cur) {
-			out << '"' << cur << "\" -> \"" << rep << "\";\n";
-		}
-	}
-	out << '}' << std::endl;
-	*/
-}
-
 
 } // namespace pipelining
 

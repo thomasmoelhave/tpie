@@ -97,20 +97,9 @@ struct pipeline_impl : public pipeline_virtual {
 	inline operator gen_t() {
 		return r;
 	}
-	void plot(std::ostream & out) {
-		if (&pipeline_impl<fact_t>::actual_plot) {
-			return actual_plot(out);
-		} else {
-			out << "pipeline_impl::plot not linked" << std::endl;
-		}
-	}
+	void plot(std::ostream & out);
 
 	void plot_phases(std::ostream & out) {
-		if (&pipeline_impl<fact_t>::actual_plot_phases) {
-			return actual_plot_phases(out);
-		} else {
-			out << "pipeline_impl::plot not linked" << std::endl;
-		}
 	}
 
 	double memory() const {
@@ -122,27 +111,6 @@ struct pipeline_impl : public pipeline_virtual {
 	}
 
 private:
-
-// Weak linkage with GCC. This way, if actual_plot (declared below) is never
-// defined (i.e. pipelining/plotter.h is not included), actual_plot will get
-// the link-time address 0x0, which we handle in the plot() definition above.
-//
-// This way, we don't require boost/unordered_map.hpp or tpie/disjoint_sets.h
-// in the pipelining framework unless the user wants Graphviz output.
-// Consequently, the user won't have to link with Boost or libtpie.
-//
-// This way, tpie/pipelining/examples/ can contain standalone examples of the
-// pipelining framework.
-
-#ifdef __GNUC__
-#	define ATTRWEAK __attribute__ ((weak))
-#else
-#	define ATTRWEAK
-#endif
-
-	void actual_plot(std::ostream & out) ATTRWEAK;
-
-	void actual_plot_phases(std::ostream & out) ATTRWEAK;
 
 	gen_t r;
 	double _memory;
