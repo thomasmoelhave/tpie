@@ -22,6 +22,7 @@
 
 #include <tpie/pipelining/sort_parameters.h>
 #include <tpie/pipelining/merger.h>
+#include <tpie/pipelining/exception.h>
 #include <tpie/dummy_progress.h>
 
 namespace tpie {
@@ -120,7 +121,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
 		tp_assert(m_state == stParameters, "Merge sorting already begun");
-		tp_assert(m_parametersSet, "Parameters not set");
+		if (!m_parametersSet) throw merge_sort_not_ready();
 		log_debug() << "Start forming input runs" << std::endl;
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles.resize(p.fanout*2);
