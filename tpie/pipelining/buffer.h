@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2011, 2012, The TPIE development team
+// Copyright 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -16,6 +16,10 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+#ifndef __TPIE_PIPELINING_BUFFER_H__
+#define __TPIE_PIPELINING_BUFFER_H__
+
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/file_stream.h>
@@ -38,27 +42,27 @@ public:
 	void end() {}
 private:
 	file_stream<T> & queue;
-	
+
 };
 
 template <typename T>
 struct buffer_pull_output_t: public pipe_segment {
 	typedef T item_type;
 
-	buffer_pull_output_t(file_stream<T> & queue, const segment_token & input_token) 
+	buffer_pull_output_t(file_stream<T> & queue, const segment_token & input_token)
 		: queue(queue) {
 		add_dependency(input_token);
 		set_name("Fetching items", PRIORITY_SIGNIFICANT);
 	}
 
-	
+
 	file_stream<T> & queue;
 	void begin() {queue.seek(0);}
 	bool can_pull() const {return queue.can_read();}
 	T pull() {return queue.read();}
 	void end() {queue.close();}
 };
-  
+
 
 template <typename T>
 struct passive_buffer {
@@ -79,10 +83,12 @@ struct passive_buffer {
 private:
 	segment_token input_token;
 	file_stream<T> queue;
-	
+
 	passive_buffer(const passive_buffer &);
 	passive_buffer & operator=(const passive_buffer &);
 };
 
 }
 }
+
+#endif // __TPIE_PIPELINING_BUFFER_H__
