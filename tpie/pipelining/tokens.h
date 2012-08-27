@@ -73,7 +73,6 @@
 #define __TPIE_PIPELINING_TOKENS_H__
 
 #include <tpie/exception.h>
-#include <tpie/pipelining/pipe_segment.h>
 
 namespace tpie {
 
