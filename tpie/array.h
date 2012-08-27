@@ -405,6 +405,7 @@ public:
 	void swap(array_base & other) {
 		std::swap(m_elements, other.m_elements);
 		std::swap(m_size, other.m_size);
+		std::swap(m_tss_used, other.m_tss_used);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
