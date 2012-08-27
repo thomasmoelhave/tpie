@@ -36,7 +36,7 @@ namespace plotter {
 		S::ptr segmap;
 		S::id_t id;
 	};
-inline std::ostream & operator<<(std::ostream & out, const name & n) {
+	inline std::ostream & operator<<(std::ostream & out, const name & n) {
 		segment_map::val_t p = n.segmap->get(n.id);
 		std::string name = p->get_name();
 		if (name.size())
