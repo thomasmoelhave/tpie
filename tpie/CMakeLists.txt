@@ -86,6 +86,7 @@ set (HEADERS
 		tpie.h
 		pipelining/core.h
 		pipelining/exception.h
+		pipelining/execution.h
 		pipelining/factory_helpers.h
 		pipelining/file_stream.h
 		pipelining/graph.h

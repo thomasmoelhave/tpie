@@ -81,19 +81,8 @@ struct pipeline_impl : public pipeline_virtual {
 	///////////////////////////////////////////////////////////////////////////
 	~pipeline_impl() {}
 
-	void operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem) {
-		typedef std::vector<phase> phases_t;
-		typedef phases_t::const_iterator it;
+	void operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem);
 
-		segment_map::ptr map = r.get_segment_map()->find_authority();
-		graph_traits g(*map);
-		const phases_t & phases = g.phases();
-		if (mem == 0) log_warning() << "No memory for pipelining" << std::endl;
-		for (it i = phases.begin(); i != phases.end(); ++i) {
-			i->assign_memory(mem);
-		}
-		g.go_all(items, pi);
-	}
 	inline operator gen_t() {
 		return r;
 	}

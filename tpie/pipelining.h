@@ -39,5 +39,6 @@
 #include <tpie/pipelining/buffer.h>
 #include <tpie/pipelining/uniq.h>
 #include <tpie/pipelining/segment_map_dump.h>
+#include <tpie/pipelining/execution.h>
 
 #endif
