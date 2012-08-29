@@ -68,9 +68,7 @@ struct phase {
 		return 0;
 	}
 
-	inline void go(progress_indicator_base & pi) const {
-		m_initiator->go(pi);
-	}
+	void go(progress_indicator_base & pi) const;
 
 	inline void evacuate_all() const {
 		for (size_t i = 0; i < m_segments.size(); ++i) {

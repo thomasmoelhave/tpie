@@ -181,6 +181,10 @@ void graph_traits::calc_phases() {
 	}
 }
 
+void phase::go(progress_indicator_base & pi) const {
+	m_initiator->go(pi);
+}
+
 } // namespace pipelining
 
 } // namespace tpie
