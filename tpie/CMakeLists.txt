@@ -84,27 +84,6 @@ set (HEADERS
 		concepts.h
 		concept_doc.h
 		tpie.h
-		pipelining/core.h
-		pipelining/exception.h
-		pipelining/execution.h
-		pipelining/factory_helpers.h
-		pipelining/file_stream.h
-		pipelining/graph.h
-		pipelining/helpers.h
-		pipelining/merge.h
-		pipelining/merger.h
-		pipelining/merge_sorter.h
-		pipelining/numeric.h
-		pipelining/pipe_segment.h
-		pipelining/plotter.h
-		pipelining/reverse.h
-		pipelining/segment_map_dump.h
-		pipelining/sort.h
-		pipelining/buffer.h
-		pipelining/std_glue.h
-		pipelining/stdio.h
-		pipelining/tokens.h
-		pipelining/uniq.h
 		unittest.h
 		)
 
@@ -129,9 +108,10 @@ set (SOURCES
 	stats.cpp
 	util.cpp
 	unittest.cpp
-	pipelining/tokens.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
+
+add_subdirectory(pipelining)
 
 if (WIN32)
 set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
@@ -140,7 +120,7 @@ set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
 add_library(tpie ${HEADERS} ${SOURCES})
-target_link_libraries(tpie ${Boost_LIBRARIES})
+target_link_libraries(tpie ${Boost_LIBRARIES} pipelining)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 install(TARGETS tpie
