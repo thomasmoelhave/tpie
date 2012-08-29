@@ -35,32 +35,6 @@ namespace tpie {
 
 namespace pipelining {
 
-template <typename Graph>
-size_t dfs_from(Graph & g, size_t start, size_t time) {
-	g.finish_times[start] = time++; // discover time
-	std::vector<size_t> & neighbours = g.edges[start];
-	for (size_t i = 0; i < neighbours.size(); ++i) {
-		if (g.finish_times[neighbours[i]] != 0) continue;
-		time = dfs_from(g, neighbours[i], time);
-	}
-	g.finish_times[start] = time++; // finish time;
-	return time;
-}
-
-template <typename Graph>
-void dfs(Graph & g) {
-	// initialize finish times
-	for (typename Graph::nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
-		i->second = 0;
-	}
-	// dfs from all nodes
-	size_t time = 1;
-	for (typename Graph::nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
-		if (i->second != 0) continue;
-		time = dfs_from(g, i->first, time);
-	}
-}
-
 struct phase {
 	inline phase()
 		: m_memoryFraction(0.0)
