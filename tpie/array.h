@@ -285,6 +285,13 @@ public:
 			: elm(o.elm) {}
 };		
 
+#pragma pack(push, 1)
+template <typename C>
+struct trivial_same_size {
+	char c[sizeof(C)];
+};
+#pragma pack(pop)
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A generic array with a fixed size.
 ///
@@ -298,13 +305,51 @@ public:
 /// \tparam segmented Whether to use segmented arrays.
 /// \tparam alloc_t Allocator.
 ///////////////////////////////////////////////////////////////////////////////
-
-#pragma pack(push, 1)
-template <typename C>
-struct trivial_same_size {
-	char c[sizeof(C)];
-};
-#pragma pack(pop)
+// ASIDE about the C++ language: A type is said to be trivially constructible
+//     if it has no user-defined constructors and all its members are trivially
+//     constructible. `new T` will allocate memory for a T-element, and if T is
+//     trivially constructible, the memory will be left uninitialized. This
+//     goes for arrays (T[]) as well, meaning an array initialization of a
+//     trivially constructible type takes practically no time.
+//
+// IMPLEMENTATION NOTE. We have three cases for how we want the item buffer
+// `array_base::m_elements` to be initialized:
+//
+// 1. Default constructed. tpie_new_array<T> does this
+//    allocation+initialization.
+//
+// 2. Copy constructed from a single element. Cannot be done with
+//    tpie_new_array<T>.
+//
+// 3. Copy constructed from elements in another array. Cannot be done with
+//    tpie_new_array<T> either.
+//
+// For cases 2 and 3, we must keep `new`-allocation separate from item
+// initialization. Thus, for these cases we instead allocate an array of
+// trivial_same_size<T>. This is a struct that has the same size as T, but is
+// trivially constructible, meaning no memory initialization is done.
+//
+// Then, for case 2, we use std::uninitialized_fill, and for case 3 we use
+// std::uninitialized_copy.
+//
+// Unfortunately, although we have the choice in case 1 of allocating a
+// trivial_same_size<T> and then calling the default constructors afterwards,
+// this turns out in some cases to be around 10% slower than allocating a
+// T-array directly.
+//
+// Also, in order to have the same initialization semantics with regards to
+// trivially constructible types as C++ new[], we need to check if the type is
+// trivially constructible (using SFINAE/boost::enable_if/boost::type_traits)
+// to avoid zero-initializing those (a speed penalty we cannot afford).
+//
+// Now it is clear that we must sometimes use tpie_new_array<T>, other times
+// tpie_new_array<trivial_same_size<T> >. The TPIE memory manager checks that
+// buffers allocated as one type are not deallocated as another type, so when
+// the buffer is allocated as a trivial_same_size, we must remember this fact
+// for later destruction and deallocation.
+//
+// We remember this fact in array_base::m_tss_used.
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, bool segmented=false>
 class array_base: public array_facade<array_base<T, segmented>, T, array_iter_base> {
@@ -460,7 +505,8 @@ private:
 		tpie_delete_array(reinterpret_cast<trivial_same_size<T>*>(m_elements), m_size);
 	}
 
-	// did we allocate m_elements as a trivial_same_size<T> *?
+	/** Whether we allocated m_elements as a trivial_same_size<T> *.
+	 * See the implementation note in the source for an explanation. */
 	bool m_tss_used;
 };
 
