@@ -173,6 +173,20 @@ protected:
 		}
 	}
 
+	inline void forward_all() {
+		for (valuemap::iterator i = m_values.begin(); i != m_values.end(); ++i) {
+			forward(i->first, i->second);
+		}
+	}
+
+	inline bool can_fetch(std::string key) {
+		return m_values.count(key) != 0;
+	}
+
+	inline boost::any fetch_any(std::string key) {
+		return m_values[key];
+	}
+
 	template <typename T>
 	inline T fetch(std::string key) {
 		return boost::any_cast<T>(m_values[key]);
@@ -191,7 +205,8 @@ private:
 	priority_type m_namePriority;
 
 	std::vector<pipe_segment *> m_successors;
-	std::map<std::string, boost::any> m_values;
+	typedef std::map<std::string, boost::any> valuemap;
+	valuemap m_values;
 };
 
 } // namespace pipelining
