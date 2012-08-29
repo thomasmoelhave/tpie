@@ -455,6 +455,82 @@ bool merger_memory_test(size_t n) {
 	return m();
 }
 
+struct my_item {
+	my_item() : v1(42), v2(9001) {}
+	short v1;
+	int v2;
+};
+
+template <typename dest_t>
+struct FF1 : public pipe_segment {
+	dest_t dest;
+	FF1(const dest_t & dest) : dest(dest) {
+		add_push_destination(dest);
+		set_name("FF1");
+	}
+	void begin() {
+		my_item i;
+		i.v1 = 1;
+		forward("my_item", i);
+		dest.begin();
+	}
+	void go(progress_indicator_base &) {
+	}
+	void end() {
+		dest.end();
+	}
+};
+
+template <typename dest_t>
+struct FF2 : public pipe_segment {
+	dest_t dest;
+	FF2(const dest_t & dest) : dest(dest) {
+		add_push_destination(dest);
+		set_name("FF2");
+	}
+	void begin() {
+		forward_all();
+		dest.begin();
+	}
+	void end() {
+		dest.end();
+	}
+};
+
+bool fetch_forward_result;
+
+struct FF3 : public pipe_segment {
+	FF3() {
+		set_name("FF3");
+	}
+	void begin() {
+		if (!can_fetch("my_item")) {
+			log_error() << "Cannot fetch my_item" << std::endl;
+			fetch_forward_result = false;
+			return;
+		}
+		my_item i = fetch<my_item>("my_item");
+		if (i.v1 != 1) {
+			log_error() << "Wrong answer" << std::endl;
+			fetch_forward_result = false;
+			return;
+		}
+	}
+	void end() {
+	}
+};
+
+bool fetch_forward_test() {
+	fetch_forward_result = true;
+	pipeline p = make_pipe_begin_0<FF1>()
+		| make_pipe_middle_0<FF2>()
+		| make_pipe_end_0<FF3>()
+		;
+	p.plot(log_info());
+	p();
+	return fetch_forward_result;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -473,5 +549,6 @@ int main(int argc, char ** argv) {
 	.test(fork_test, "fork")
 	.test(execution_order, "execorder")
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
+	.test(fetch_forward_test, "fetch_forward")
 	;
 }
