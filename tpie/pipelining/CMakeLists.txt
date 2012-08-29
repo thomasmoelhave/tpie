@@ -23,6 +23,7 @@ set (PIPE_HEADERS
 	)
 
 set (PIPE_SOURCES
+	graph.cpp
 	tokens.cpp
 	)
 
