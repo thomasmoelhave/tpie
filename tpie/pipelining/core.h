@@ -99,7 +99,7 @@ struct pipeline_impl : public pipeline_virtual {
 	}
 	void plot(std::ostream & out);
 
-	void plot_phases(std::ostream & out) {
+	void plot_phases(std::ostream &) {
 	}
 
 	double memory() const {
