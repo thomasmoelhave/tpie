@@ -344,6 +344,21 @@ template <typename T>
 inline pipe_end<termfactory_0<null_sink_t<T> > >
 null_sink() {return termfactory_0<null_sink_t<T> >();}
 
+template <template <typename dest_t> class Fact>
+pipe_begin<factory_0<Fact> > make_pipe_begin_0() {
+	return pipe_begin<factory_0<Fact> >(factory_0<Fact>());
+}
+
+template <template <typename dest_t> class Fact>
+pipe_middle<factory_0<Fact> > make_pipe_middle_0() {
+	return pipe_middle<factory_0<Fact> >(factory_0<Fact>());
+}
+
+template <typename Fact>
+pipe_end<termfactory_0<Fact> > make_pipe_end_0() {
+	return pipe_end<termfactory_0<Fact> >(termfactory_0<Fact>());
+}
+
 }
 
 }
