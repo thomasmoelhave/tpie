@@ -49,7 +49,8 @@ struct sort_input_t : public pipe_segment {
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 	}
 
-	inline void begin() {
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
 		sorter->begin();
 	}
 
@@ -57,20 +58,21 @@ struct sort_input_t : public pipe_segment {
 		sorter->push(item);
 	}
 
-	inline void end() {
+	virtual void end() /*override*/ {
+		pipe_segment::end();
 		sorter->end();
 	}
 
-	bool can_evacuate() {
+	virtual bool can_evacuate() /*override*/ {
 		return true;
 	}
 
-	void evacuate() {
+	virtual void evacuate() /*override*/ {
 		sorter->evacuate_before_merging();
 	}
 
 protected:
-	void set_available_memory(memory_size_type availableMemory) {
+	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		pipe_segment::set_available_memory(availableMemory);
 		sorter->set_phase_1_memory(availableMemory);
 	}
@@ -101,20 +103,20 @@ struct sort_calc_t : public pipe_segment {
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 	}
 
-	inline void go(progress_indicator_base & pi) {
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		sorter->calc(pi);
 	}
 
-	bool can_evacuate() {
+	virtual bool can_evacuate() /*override*/ {
 		return true;
 	}
 
-	void evacuate() {
+	virtual void evacuate() /*override*/ {
 		sorter->evacuate_before_reporting();
 	}
 
 protected:
-	void set_available_memory(memory_size_type availableMemory) {
+	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		pipe_segment::set_available_memory(availableMemory);
 		sorter->set_phase_2_memory(availableMemory);
 	}
@@ -140,24 +142,22 @@ struct sort_output_t {
 				set_minimum_memory(sorter_t::minimum_memory_phase_3());
 				set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 			}
-		
-		void go(progress_indicator_base & pi) {
+
+		virtual void go(progress_indicator_base & pi) /*override*/ {
 			pi.init(sorter->item_count());
-			dest.begin();
 			while (sorter->can_pull()) {
 				dest.push(sorter->pull());
 				pi.step();
 			}
-			dest.end();
 			pi.done();
 		}
-		
+
 	protected:
-		void set_available_memory(memory_size_type availableMemory) {
+		virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 			pipe_segment::set_available_memory(availableMemory);
 			sorter->set_phase_3_memory(availableMemory);
 		}
-		
+
 	private:
 		dest_t dest;
 		sorterptr sorter;
@@ -178,9 +178,6 @@ struct sort_pull_output_t : public pipe_segment {
 		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void begin() {
-	}
-
 	inline bool can_pull() const {
 		return sorter->can_pull();
 	}
@@ -189,11 +186,8 @@ struct sort_pull_output_t : public pipe_segment {
 		return sorter->pull();
 	}
 
-	inline void end() {
-	}
-
 protected:
-	void set_available_memory(memory_size_type availableMemory) {
+	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		pipe_segment::set_available_memory(availableMemory);
 		sorter->set_phase_3_memory(availableMemory);
 	}
@@ -231,7 +225,8 @@ struct sort_t {
 				set_minimum_memory(sorter_t::minimum_memory_phase_1());
 			}
 		
-		inline void begin() {
+		virtual void begin() /*override*/ {
+			pipe_segment::begin();
 			sorter->begin();
 		}
 		
@@ -239,12 +234,13 @@ struct sort_t {
 			sorter->push(item);
 		}
 		
-		inline void end() {
+		virtual void end() /*override*/ {
+			pipe_segment::end();
 			sorter->end();
 		}
 		
 	protected:
-		void set_available_memory(memory_size_type availableMemory) {
+		virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 			pipe_segment::set_available_memory(availableMemory);
 			sorter->set_phase_1_memory(availableMemory);
 		}

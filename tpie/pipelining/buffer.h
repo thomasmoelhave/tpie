@@ -37,9 +37,11 @@ public:
 		set_name("Storing items", PRIORITY_SIGNIFICANT);
 	}
 
-	void begin() {queue.open();}
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		queue.open();
+	}
 	void push(const T & item) {queue.write(item);}
-	void end() {}
 private:
 	file_stream<T> & queue;
 
@@ -57,10 +59,17 @@ struct buffer_pull_output_t: public pipe_segment {
 
 
 	file_stream<T> & queue;
-	void begin() {queue.seek(0);}
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		queue.seek(0);
+		forward("items", queue.size());
+	}
 	bool can_pull() const {return queue.can_read();}
 	T pull() {return queue.read();}
-	void end() {queue.close();}
+	virtual void end() /*override*/ {
+		pipe_segment::end();
+		queue.close();
+	}
 };
 
 

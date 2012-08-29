@@ -42,13 +42,13 @@ struct ostream_logger_t : public pipe_segment {
 		add_push_destination(dest);
 		set_name("Log", PRIORITY_INSIGNIFICANT);
 	}
-	inline void begin() {
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
 		begun = true;
-		dest.begin();
 	}
-	inline void end() {
+	virtual void end() /*override*/ {
+		pipe_segment::end();
 		ended = true;
-		dest.end();
 	}
 	inline void push(const item_type & item) {
 		if (!begun) {
@@ -88,16 +88,8 @@ struct identity_t : public pipe_segment {
 		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void begin() {
-		dest.begin();
-	}
-
 	inline void push(const item_type & item) {
 		dest.push(item);
-	}
-
-	inline void end() {
-		dest.end();
 	}
 private:
 	dest_t dest;
@@ -116,20 +108,12 @@ struct pull_identity_t : public pipe_segment {
 		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void begin() {
-		source.begin();
-	}
-
 	inline item_type pull() {
 		return source.pull();
 	}
 
 	inline bool can_pull() {
 		return source.can_pull();
-	}
-
-	inline void end() {
-		source.end();
 	}
 
 private:
@@ -147,10 +131,6 @@ struct dummydest_t : public pipe_segment {
 
 	typedef T item_type;
 	boost::shared_ptr<T> buffer;
-	inline void begin() {
-	}
-	inline void end() {
-	}
 	inline void push(const T & el) {
 		*buffer = el;
 	}
@@ -178,16 +158,6 @@ struct push_to_pull {
 		{
 			add_pull_destination(source);
 			add_push_destination(pusher);
-		}
-
-		inline void begin() {
-			pusher.begin();
-			source.begin();
-		}
-
-		inline void end() {
-			source.end();
-			pusher.end();
 		}
 
 		inline item_type pull() {
@@ -227,16 +197,6 @@ struct pull_to_push {
 			add_pull_destination(puller);
 		}
 
-		inline void begin() {
-			puller.begin();
-			dest.begin();
-		}
-
-		inline void end() {
-			dest.end();
-			puller.end();
-		}
-
 		inline void push(const item_type & item) {
 			dummydest.push(item);
 			dest.push(puller.pull());
@@ -270,12 +230,6 @@ struct bitbucket_t : public pipe_segment {
 
 	typedef T item_type;
 
-	inline void begin() {
-	}
-
-	inline void end() {
-	}
-
 	inline void push(const T &) {
 	}
 };
@@ -305,19 +259,9 @@ struct fork_t {
 			set_name("Fork", PRIORITY_INSIGNIFICANT);
 		}
 
-		inline void begin() {
-			dest.begin();
-			dest2.begin();
-		}
-
 		inline void push(const item_type & item) {
 			dest.push(item);
 			dest2.push(item);
-		}
-
-		inline void end() {
-			dest.end();
-			dest2.end();
 		}
 
 	private:
@@ -335,9 +279,7 @@ fork(const pipe_end<fact_t> & to) {
 template <typename T>
 struct null_sink_t: public pipe_segment {
 	typedef T item_type;
-	void begin() {}
-	void push(const T & x) {}
-	void end() {}
+	void push(const T &) {}
 };
 
 template <typename T>

@@ -33,11 +33,6 @@ struct passive_reverser {
 	typedef std::vector<T> buf_t;
 
 	struct sink_t : public pipe_segment {
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Virtual dtor.
-		///////////////////////////////////////////////////////////////////////
-		~sink_t() {}
-
 		typedef T item_type;
 
 		inline sink_t(buf_t & buffer, const segment_token & token)
@@ -46,12 +41,6 @@ struct passive_reverser {
 		{
 			it = buffer.begin();
 			set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
-		}
-
-		inline void begin() {
-		}
-
-		inline void end() {
 		}
 
 		inline void push(const T & item) {
@@ -65,11 +54,6 @@ struct passive_reverser {
 
 	template <typename dest_t>
 	struct source_t : public pipe_segment {
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Virtual dtor.
-		///////////////////////////////////////////////////////////////////////
-		~source_t() {}
-
 		typedef T item_type;
 
 		inline source_t(const dest_t & dest, const buf_t & buffer, const segment_token & sink)
@@ -82,14 +66,16 @@ struct passive_reverser {
 			set_name("Output reversed items", PRIORITY_INSIGNIFICANT);
 		}
 
+		virtual void begin() /*override*/ {
+			forward("items", static_cast<stream_size_type>(buffer.size()));
+		}
+
 		inline void go(progress_indicator_base & pi) {
 			pi.init(buffer.size());
-			dest.begin();
 			while (it != buffer.rend()) {
 				dest.push(*it++);
 				pi.step();
 			}
-			dest.end();
 			pi.done();
 		}
 
@@ -132,8 +118,6 @@ struct reverser_input_t: public pipe_segment {
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 	}
 
-	void begin() {}
-	void end() {}
 	void push(const T & t) {
 		the_stack->push(t);
 	}
@@ -150,14 +134,17 @@ struct reverser_output_t: public  pipe_segment {
 		add_dependency(input_token);
 		add_push_destination(dest);
 	}
-				
-	void go(progress_indicator_base & pi) {
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		forward("items", the_stack->size());
+	}
+
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		pi.init(the_stack->size());
-		dest.begin();
 		while (!the_stack->empty()) {
 			dest.push(the_stack->pop());
 		}
-		dest.end();
 		pi.done();
 	}
 
@@ -184,9 +171,7 @@ struct reverser_t: public pipe_segment {
 		output.the_stack = &the_stack;
 	}
 
-	void begin() {input.begin();}
 	void push(const item_type & i) {input.push(i);}
-	void end() {input.end();}
 private:
 	segment_token input_token;
 	stack<item_type> the_stack;

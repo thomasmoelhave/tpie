@@ -48,14 +48,17 @@ struct input_t : public pipe_segment {
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void go(progress_indicator_base & pi) {
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		forward("items", fs.size());
+	}
+
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		pi.init(fs.size());
-		dest.begin();
 		while (fs.can_read()) {
 			dest.push(fs.read());
 			pi.step();
 		}
-		dest.end();
 		pi.done();
 	}
 
@@ -82,7 +85,8 @@ struct pull_input_t : public pipe_segment {
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void begin() {
+	virtual void begin() /*override*/ {
+		forward("items", fs.size());
 	}
 
 	inline T pull() {
@@ -91,9 +95,6 @@ struct pull_input_t : public pipe_segment {
 
 	inline bool can_pull() {
 		return fs.can_read();
-	}
-
-	inline void end() {
 	}
 
 	file_stream<T> & fs;
@@ -122,14 +123,8 @@ struct output_t : public pipe_segment {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void begin() {
-	}
-
 	inline void push(const T & item) {
 		fs.write(item);
-	}
-
-	inline void end() {
 	}
 private:
 	file_stream<T> & fs;
@@ -154,7 +149,7 @@ struct pull_output_t : public pipe_segment {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void go(progress_indicator_base & pi) {
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		// TODO progress information
 		log_warning() << "Useless progress information in pull_output_t" << std::endl;
 		pi.init(1);
@@ -177,7 +172,7 @@ inline pullpipe_end<factory_1<pull_output_t, file_stream<T> &> > pull_output(fil
 }
 
 template <typename T>
-struct tee_t: public pipe_segment {
+struct tee_t {
 	template <typename dest_t>
 	class type: public pipe_segment {
 	public:
@@ -186,12 +181,10 @@ struct tee_t: public pipe_segment {
 			add_push_destination(dest);
 		}
 
-		void begin() {dest.begin();}
 		void push(const item_type & i) {
 			fs.write(i);
 			dest.push(i);
 		}
-		void end() {dest.end();}
 	private:
 		file_stream<item_type> & fs;
 		dest_t dest;

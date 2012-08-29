@@ -46,13 +46,9 @@ struct count_consecutive_t : public pipe_segment {
 		set_name("Count consecutive", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void begin() {
-		dest.begin();
-	}
-
-	inline void end() {
+	virtual void end() /*override*/ {
+		pipe_segment::end();
 		flush();
-		dest.end();
 	}
 
 	inline void push(const item_type & item) {
@@ -97,14 +93,6 @@ struct extract_first_t : public pipe_segment {
 
 	inline extract_first_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
-	}
-
-	inline void begin() {
-		dest.begin();
-	}
-
-	inline void end() {
-		dest.end();
 	}
 
 	inline void push(const item_type & item) {

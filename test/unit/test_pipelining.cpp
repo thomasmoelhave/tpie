@@ -49,11 +49,10 @@ struct multiply_t : public pipe_segment {
 	{
 	}
 
-	void begin() {
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
 		log_debug() << "multiply begin with memory " << this->get_available_memory() << std::endl;
-		dest.begin();
 	}
-	void end() { dest.end(); }
 
 	void push(const test_t & item) {
 		dest.push(factor*item);
@@ -260,14 +259,12 @@ struct sequence_generator : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void go(progress_indicator_base & pi) {
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		pi.init(elements);
-		dest.begin();
 		for (size_t i = elements; i > 0; --i) {
 			dest.push(i);
 			pi.step();
 		}
-		dest.end();
 		pi.done();
 	}
 private:
@@ -287,7 +284,7 @@ struct sequence_verifier : public pipe_segment {
 		result = false;
 	}
 
-	inline void begin() {
+	virtual void begin() /*override*/ {
 		result = false;
 	}
 
@@ -296,7 +293,7 @@ struct sequence_verifier : public pipe_segment {
 		result = false;
 	}
 
-	inline void end() {
+	virtual void end() /*override*/ {
 		result = !bad;
 	}
 
@@ -381,16 +378,8 @@ struct buffer_node_t : public pipe_segment {
 		add_dependency(dest);
 	}
 
-	inline void begin() {
-		dest.begin();
-	}
-
 	inline void push(const item_type & item) {
 		dest.push(item);
-	}
-
-	inline void end() {
-		dest.end();
 	}
 
 	dest_t dest;
@@ -468,16 +457,16 @@ struct FF1 : public pipe_segment {
 		add_push_destination(dest);
 		set_name("FF1");
 	}
-	void begin() {
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
 		my_item i;
 		i.v1 = 1;
 		forward("my_item", i);
-		dest.begin();
 	}
-	void go(progress_indicator_base &) {
-	}
-	void end() {
-		dest.end();
+	virtual void go(progress_indicator_base & pi) /*override*/ {
+		pi.init(1);
+		pi.step();
+		pi.done();
 	}
 };
 
@@ -488,13 +477,6 @@ struct FF2 : public pipe_segment {
 		add_push_destination(dest);
 		set_name("FF2");
 	}
-	void begin() {
-		forward_all();
-		dest.begin();
-	}
-	void end() {
-		dest.end();
-	}
 };
 
 bool fetch_forward_result;
@@ -503,7 +485,7 @@ struct FF3 : public pipe_segment {
 	FF3() {
 		set_name("FF3");
 	}
-	void begin() {
+	virtual void begin() /*override*/ {
 		if (!can_fetch("my_item")) {
 			log_error() << "Cannot fetch my_item" << std::endl;
 			fetch_forward_result = false;
@@ -515,8 +497,6 @@ struct FF3 : public pipe_segment {
 			fetch_forward_result = false;
 			return;
 		}
-	}
-	void end() {
 	}
 };
 

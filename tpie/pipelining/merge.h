@@ -39,11 +39,6 @@ struct merge_t {
 
 	template <typename dest_t>
 	struct type : public pipe_segment {
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Virtual dtor.
-		///////////////////////////////////////////////////////////////////////
-		~type() {}
-
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {
@@ -52,19 +47,9 @@ struct merge_t {
 			set_name("Merge", PRIORITY_INSIGNIFICANT);
 		}
 
-		inline void begin() {
-			dest.begin();
-			with.begin();
-		}
-
 		inline void push(const item_type & item) {
 			dest.push(item);
 			dest.push(with.pull());
-		}
-
-		inline void end() {
-			with.end();
-			dest.end();
 		}
 
 		dest_t dest;

@@ -31,11 +31,6 @@ namespace pipelining {
 
 template <typename dest_t>
 struct input_vector_t : public pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~input_vector_t() {}
-
 	typedef typename dest_t::item_type item_type;
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
@@ -43,15 +38,18 @@ struct input_vector_t : public pipe_segment {
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	void go(progress_indicator_base & pi) {
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		forward("items", static_cast<stream_size_type>(input.size()));
+	}
+
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		typedef typename std::vector<item_type>::const_iterator IT;
 		pi.init(input.size());
-		dest.begin();
 		for (IT i = input.begin(); i != input.end(); ++i) {
 			dest.push(*i);
 			pi.step();
 		}
-		dest.end();
 		pi.done();
 	}
 private:
@@ -61,19 +59,11 @@ private:
 
 template <typename T>
 struct output_vector_t : public pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~output_vector_t() {}
-
 	typedef T item_type;
 
 	inline output_vector_t(std::vector<T> & output) : output(output) {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
-
-	inline void begin() {}
-	inline void end() {}
 
 	inline void push(const T & item) {
 		output.push_back(item);

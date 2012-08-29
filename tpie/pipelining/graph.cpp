@@ -22,30 +22,59 @@
 namespace {
 
 template <typename Graph>
-size_t dfs_from(Graph & g, size_t start, size_t time) {
-	g.finish_times[start] = time++; // discover time
-	std::vector<size_t> & neighbours = g.edges[start];
-	for (size_t i = 0; i < neighbours.size(); ++i) {
-		if (g.finish_times[neighbours[i]] != 0) continue;
-		time = dfs_from(g, neighbours[i], time);
-	}
-	g.finish_times[start] = time++; // finish time;
-	return time;
-}
+class dfs_traversal {
+	typedef typename Graph::node_t node_t;
+	typedef typename Graph::neighbours_t neighbours_t; // vector of node_t
+	typedef typename Graph::edgemap_t edgemap_t; // maps node_t to neighbours_t
+	typedef typename Graph::time_type time_type; // signed integral type
+	typedef typename Graph::nodemap_t nodemap_t; // maps node_t to time_type
 
-template <typename Graph>
-void dfs(Graph & g) {
-	// initialize finish times
-	for (typename Graph::nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
-		i->second = 0;
+	Graph & g;
+
+public:
+	dfs_traversal(Graph & g) : g(g) {}
+
+	void dfs() {
+		// initialize finish times
+		for (typename nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
+			i->second = 0;
+		}
+		// dfs from all nodes
+		time_type time = 1;
+		for (typename nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
+			if (i->second != 0) continue;
+			time = dfs_from(i->first, time);
+		}
 	}
-	// dfs from all nodes
-	size_t time = 1;
-	for (typename Graph::nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
-		if (i->second != 0) continue;
-		time = dfs_from(g, i->first, time);
+
+	std::vector<node_t> toposort() {
+		std::vector<std::pair<time_type, node_t> > nodes;
+		nodes.reserve(g.finish_times.size());
+		for (typename nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
+			nodes.push_back(std::make_pair(-i->second, i->first));
+		}
+		std::sort(nodes.begin(), nodes.end());
+		std::vector<node_t> result(nodes.size());
+		for (size_t i = 0; i < nodes.size(); ++i) {
+			result[i] = nodes[i].second;
+		}
+		return result;
 	}
-}
+
+private:
+
+	time_type dfs_from(node_t start, time_type time) {
+		g.finish_times[start] = time++; // discover time
+		neighbours_t & neighbours = g.edges[start];
+		for (typename neighbours_t::iterator i = neighbours.begin(); i != neighbours.end(); ++i) {
+			if (g.finish_times[*i] != 0) continue;
+			time = dfs_from(*i, time);
+		}
+		g.finish_times[start] = time++; // finish time;
+		return time;
+	}
+
+};
 
 }
 
@@ -92,17 +121,9 @@ void phase::assign_memory(memory_size_type m) const {
 }
 
 std::vector<size_t> phasegraph::execution_order() {
-	dfs(*this);
-	std::vector<std::pair<int, size_t> > nodes;
-	for (nodemap_t::iterator i = finish_times.begin(); i != finish_times.end(); ++i) {
-		nodes.push_back(std::make_pair(-i->second, i->first));
-	}
-	std::sort(nodes.begin(), nodes.end());
-	std::vector<size_t> result(nodes.size());
-	size_t j = 0;
-	for (size_t i = nodes.size(); i--;) {
-		result[j++] = nodes[i].second;
-	}
+	dfs_traversal<phasegraph> dfs(*this);
+	dfs.dfs();
+	std::vector<size_t> result = dfs.toposort();
 	return result;
 }
 
@@ -179,10 +200,32 @@ void graph_traits::calc_phases() {
 			}
 		}
 	}
+	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+		if (i->second.second == depends) continue;
+		pipe_segment * from = map.get(i->first);
+		pipe_segment * to = map.get(i->second.first);
+		if (i->second.second == pulls) std::swap(from, to);
+		pipe_segment * representative = map.get(ids_inv[phases.find_set(ids[i->first])]);
+		for (size_t i = 0; i < m_phases.size(); ++i) {
+			if (m_phases[i].count(representative)) {
+				m_phases[i].add_successor(from, to);
+				break;
+			}
+		}
+	}
 }
 
-void phase::go(progress_indicator_base & pi) const {
+void phase::go(progress_indicator_base & pi) {
+	dfs_traversal<phase::segment_graph> dfs(g);
+	dfs.dfs();
+	std::vector<pipe_segment *> order = dfs.toposort();
+	for (size_t i = 0; i < order.size(); ++i) {
+		order[i]->begin();
+	}
 	m_initiator->go(pi);
+	for (size_t i = 0; i < order.size(); ++i) {
+		order[i]->end();
+	}
 }
 
 } // namespace pipelining

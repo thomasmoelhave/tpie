@@ -36,6 +36,19 @@ namespace tpie {
 namespace pipelining {
 
 struct phase {
+	struct segment_graph {
+		typedef pipe_segment * node_t;
+		typedef std::vector<node_t> neighbours_t;
+		typedef std::map<node_t, neighbours_t> edgemap_t;
+		typedef int time_type;
+		typedef std::map<node_t, time_type> nodemap_t;
+
+		nodemap_t finish_times;
+		edgemap_t edges;
+	};
+
+	segment_graph g;
+
 	inline phase()
 		: m_memoryFraction(0.0)
 		, m_minimumMemory(0)
@@ -59,6 +72,11 @@ struct phase {
 		m_segments.push_back(s);
 		m_memoryFraction += s->get_memory_fraction();
 		m_minimumMemory += s->get_minimum_memory();
+		g.finish_times[s] = 0;
+	}
+
+	inline void add_successor(pipe_segment * from, pipe_segment * to) {
+		g.edges[from].push_back(to);
 	}
 
 	inline size_t count(pipe_segment * s) {
@@ -68,7 +86,7 @@ struct phase {
 		return 0;
 	}
 
-	void go(progress_indicator_base & pi) const;
+	void go(progress_indicator_base & pi);
 
 	inline void evacuate_all() const {
 		for (size_t i = 0; i < m_segments.size(); ++i) {
@@ -121,8 +139,11 @@ private:
 };
 
 struct phasegraph {
-	typedef std::map<size_t, int> nodemap_t;
-	typedef std::map<size_t, std::vector<size_t> > edgemap_t;
+	typedef size_t node_t;
+	typedef int time_type;
+	typedef std::map<node_t, time_type> nodemap_t;
+	typedef std::vector<node_t> neighbours_t;
+	typedef std::map<node_t, neighbours_t> edgemap_t;
 	nodemap_t finish_times;
 	edgemap_t edges;
 
@@ -137,7 +158,7 @@ struct phasegraph {
 	}
 
 	inline void depends(size_t depender, size_t dependee) {
-		edges[depender].push_back(dependee);
+		edges[dependee].push_back(depender);
 	}
 
 	inline bool is_depending(size_t depender, size_t dependee) {

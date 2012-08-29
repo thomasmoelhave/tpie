@@ -72,9 +72,16 @@ struct pipe_segment {
 		return token.id();
 	}
 
+	virtual void begin() {
+		forward_all();
+	}
+
 	virtual void go(progress_indicator_base &) {
 		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl;
 		throw not_initiator_segment();
+	}
+
+	virtual void end() {
 	}
 
 	virtual bool can_evacuate() {

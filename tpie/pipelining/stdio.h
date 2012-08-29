@@ -42,14 +42,12 @@ struct scanf_ints_t : public pipe_segment {
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void go(progress_indicator_base & pi) {
+	virtual void go(progress_indicator_base & pi) /*override*/ {
 		pi.init(1);
-		dest.begin();
 		int in;
 		while (scanf("%d", &in) == 1) {
 			dest.push(in);
 		}
-		dest.end();
 		pi.step();
 		pi.done();
 	}
@@ -69,9 +67,6 @@ struct printf_ints_t : public pipe_segment {
 	inline printf_ints_t() {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
-
-	inline void begin() { }
-	inline void end() { }
 
 	inline void push(item_type i) {
 		printf("%d\n", i);
