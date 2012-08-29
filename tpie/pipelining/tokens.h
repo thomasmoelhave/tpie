@@ -214,6 +214,9 @@ struct segment_map {
 
 	void dump(std::ostream & os = std::cout) const;
 
+	// Called by graph_traits
+	void send_successors() const;
+
 private:
 	map_t m_tokens;
 	relmap_t m_relations;
@@ -293,6 +296,10 @@ struct segment_token {
 
 	inline segment_map::ptr get_map() const {
 		return m_tokens;
+	}
+
+	inline val_t get() const {
+		return m_tokens->get(m_id);
 	}
 
 private:

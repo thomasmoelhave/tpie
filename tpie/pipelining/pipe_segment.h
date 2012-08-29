@@ -23,6 +23,7 @@
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_base.h>
+#include <boost/any.hpp>
 
 namespace tpie {
 
@@ -96,6 +97,11 @@ struct pipe_segment {
 		m_namePriority = priority;
 	}
 
+	// Called by segment_map
+	inline void add_successor(pipe_segment * succ) {
+		m_successors.push_back(succ);
+	}
+
 protected:
 	inline pipe_segment()
 		: token(this)
@@ -160,6 +166,18 @@ protected:
 		m_availableMemory = availableMemory;
 	}
 
+	template <typename T>
+	inline void forward(std::string key, T value) {
+		for (size_t i = 0; i < m_successors.size(); ++i) {
+			m_successors[i]->m_values[key] = value;
+		}
+	}
+
+	template <typename T>
+	inline T fetch(std::string key) {
+		return boost::any_cast<T>(m_values[key]);
+	}
+
 	friend class phase;
 
 private:
@@ -171,6 +189,9 @@ private:
 
 	std::string m_name;
 	priority_type m_namePriority;
+
+	std::vector<pipe_segment *> m_successors;
+	std::map<std::string, boost::any> m_values;
 };
 
 } // namespace pipelining

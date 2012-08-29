@@ -261,6 +261,8 @@ struct graph_traits {
 	}
 
 	void go_all(stream_size_type n, Progress::base & pi) {
+		map.assert_authoritative();
+		map.send_successors();
 		Progress::fp fp(&pi);
 		array<auto_ptr<Progress::sub> > subindicators(m_phases.size());
 		for (size_t i = 0; i < m_phases.size(); ++i) {
