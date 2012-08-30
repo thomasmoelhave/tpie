@@ -76,11 +76,6 @@ struct pipeline_impl : public pipeline_virtual {
 
 	inline pipeline_impl(const fact_t & factory) : r(factory.construct()), _memory(factory.memory()) {}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~pipeline_impl() {}
-
 	void operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem);
 
 	inline operator gen_t() {

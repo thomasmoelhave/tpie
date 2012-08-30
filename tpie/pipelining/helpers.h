@@ -31,11 +31,6 @@ namespace pipelining {
 
 template <typename dest_t>
 struct ostream_logger_t : public pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~ostream_logger_t() {}
-
 	typedef typename dest_t::item_type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
@@ -76,11 +71,6 @@ cout_logger() {
 
 template <typename dest_t>
 struct identity_t : public pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~identity_t() {}
-
 	typedef typename dest_t::item_type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
@@ -123,11 +113,6 @@ private:
 template <typename T>
 struct dummydest_t : public pipe_segment {
 	dummydest_t() : buffer(new T()) {}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~dummydest_t() {}
 
 	typedef T item_type;
 	boost::shared_ptr<T> buffer;
@@ -177,11 +162,6 @@ struct pull_to_push {
 
 	template <typename dest_t>
 	struct pusher_t : public pipe_segment {
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Virtual dtor.
-		///////////////////////////////////////////////////////////////////////
-		~pusher_t() {}
-
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
 
@@ -223,11 +203,6 @@ alt_identity() {
 
 template <typename T>
 struct bitbucket_t : public pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~bitbucket_t() {}
-
 	typedef T item_type;
 
 	inline void push(const T &) {
@@ -246,11 +221,6 @@ struct fork_t {
 
 	template <typename dest_t>
 	struct type : public pipe_segment {
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Virtual dtor.
-		///////////////////////////////////////////////////////////////////////
-		~type() {}
-
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
