@@ -7,6 +7,8 @@ This overview is directed at pipe_segment implementers (that is, pipelining user
 
 0. The following virtual methods may be overridden in the implementation:
 
+   - begin
+   - end
    - evacuate (in which case can_evacuate should be overridden to return true)
    - set_available_memory
 
@@ -27,11 +29,20 @@ This overview is directed at pipe_segment implementers (that is, pipelining user
    order, beginning with the initiator segment.
    At this point, the implementation may fetch<>() auxiliary data from its
    predecessors and forward() auxiliary data to its successors.
+   The default implementation of begin() forwards all auxiliary data that was
+   forwarded to this segment. If this behavior is wanted (and in most cases it
+   is), the implementation should first call the super method, that is,
+   pipe_segment::begin().
+   If the segment does not push as many items as are pushed into it, it should
+   check using can_fetch() whether "items" has been forwarded. "items" is a
+   stream_size_type, and the pipe_segment should forward the expected number of
+   items being pushed to the destination.
 
-4. push() is called any number of times.
+4. Either push() or pull() is called any number of times.
 
 5. end() is called on all pipe_segments in the current phase in the same order
-   as with begin().
+   as with begin(). Implementations overriding end() should call the super
+   method.
 
 6. If appropriate, evacuate() is called, in which case the pipe_segment should
    deallocate all internal buffers shared between this segment and a depending
@@ -41,6 +52,9 @@ This overview is directed at pipe_segment implementers (that is, pipelining user
 
 You will rarely need to implement initiators. For an initiator, instead of
 push(), the virtual go() method must be overridden, and this is called once.
+go() accepts a progress_indicator_base &, and if known, go() should forward()
+a piece of stream_size_type data named "items" indicating the expected number
+of items being pushed.
 
 \section sec_troubleshooting Implementation troubleshooting
 
