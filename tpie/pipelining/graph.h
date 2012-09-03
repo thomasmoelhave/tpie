@@ -79,7 +79,7 @@ struct phase {
 	std::string get_unique_id() const;
 
 private:
-	tpie::auto_ptr<segment_graph> g;
+	std::auto_ptr<segment_graph> g;
 
 	/** a pointer is a weak reference to something that isn't reference counted. */
 	std::vector<pipe_segment *> m_segments;
