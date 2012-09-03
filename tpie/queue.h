@@ -45,8 +45,10 @@ public:
 	/// \brief Constructor for Temporary Queue
 	////////////////////////////////////////////////////////////////////
 	queue(stream_size_type elements=std::numeric_limits<stream_size_type>::max(), 
-		  double block_factor=1.0): m_size(0), m_file(block_factor), m_back(m_file), m_front(m_file) {
+		  double block_factor=1.0): m_size(0), m_file(block_factor) {
 		m_file.open(m_temp, access_read_write, sizeof(stream_size_type) );
+		m_back.attach(m_file);
+		m_front.attach(m_file);
 		unused(elements);
 	}
 
