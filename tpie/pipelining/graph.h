@@ -36,48 +36,22 @@ namespace tpie {
 namespace pipelining {
 
 struct phase {
-	struct segment_graph {
-		typedef pipe_segment * node_t;
-		typedef std::vector<node_t> neighbours_t;
-		typedef std::map<node_t, neighbours_t> edgemap_t;
-		typedef int time_type;
-		typedef std::map<node_t, time_type> nodemap_t;
+	struct segment_graph;
 
-		nodemap_t finish_times;
-		edgemap_t edges;
-	};
-
-	segment_graph g;
-
-	inline phase()
-		: m_memoryFraction(0.0)
-		, m_minimumMemory(0)
-		, m_initiator(0)
-	{
-	}
+	phase();
+	phase(const phase &);
+	phase & operator=(const phase &);
+	~phase();
 
 	inline void set_initiator(pipe_segment * s) {
 		m_initiator = s;
 	}
 
-	inline bool is_initiator(pipe_segment * s) {
-		segment_map::ptr m = s->get_segment_map();
-		segment_map::id_t id = s->get_id();
-		return m->in_degree(id, pushes) == 0 && m->in_degree(id, pulls) == 0;
-	}
+	bool is_initiator(pipe_segment * s);
 
-	inline void add(pipe_segment * s) {
-		if (count(s)) return;
-		if (is_initiator(s)) set_initiator(s);
-		m_segments.push_back(s);
-		m_memoryFraction += s->get_memory_fraction();
-		m_minimumMemory += s->get_minimum_memory();
-		g.finish_times[s] = 0;
-	}
+	void add(pipe_segment * s);
 
-	inline void add_successor(pipe_segment * from, pipe_segment * to) {
-		g.edges[from].push_back(to);
-	}
+	void add_successor(pipe_segment * from, pipe_segment * to);
 
 	inline size_t count(pipe_segment * s) {
 		for (size_t i = 0; i < m_segments.size(); ++i) {
@@ -88,12 +62,7 @@ struct phase {
 
 	void go(progress_indicator_base & pi);
 
-	inline void evacuate_all() const {
-		for (size_t i = 0; i < m_segments.size(); ++i) {
-			if (m_segments[i]->can_evacuate())
-				m_segments[i]->evacuate();
-		}
-	}
+	void evacuate_all() const;
 
 	inline double memory_fraction() const {
 		return m_memoryFraction;
@@ -105,70 +74,21 @@ struct phase {
 
 	void assign_memory(memory_size_type m) const;
 
-	inline const std::string & get_name() const {
-		priority_type highest = std::numeric_limits<priority_type>::min();
-		size_t highest_segment = 0;
-		for (size_t i = 0; i < m_segments.size(); ++i) {
-			if (m_segments[i]->get_name_priority() > highest) {
-				highest_segment = i;
-				highest = m_segments[i]->get_name_priority();
-			}
-		}
-		return m_segments[highest_segment]->get_name();
-	}
+	const std::string & get_name() const;
 
-	inline std::string get_unique_id() const {
-		std::stringstream uid;
-		for (size_t i = 0; i < m_segments.size(); ++i) {
-			uid << typeid(*m_segments[i]).name() << ':';
-		}
-		return uid.str();
-	}
+	std::string get_unique_id() const;
 
 private:
+	tpie::auto_ptr<segment_graph> g;
+
+	/** a pointer is a weak reference to something that isn't reference counted. */
 	std::vector<pipe_segment *> m_segments;
+
 	double m_memoryFraction;
 	memory_size_type m_minimumMemory;
 	pipe_segment * m_initiator;
 
-	inline void assign_minimum_memory() const {
-		for (size_t i = 0; i < m_segments.size(); ++i) {
-			m_segments[i]->set_available_memory(m_segments[i]->get_minimum_memory());
-		}
-	}
-};
-
-struct phasegraph {
-	typedef size_t node_t;
-	typedef int time_type;
-	typedef std::map<node_t, time_type> nodemap_t;
-	typedef std::vector<node_t> neighbours_t;
-	typedef std::map<node_t, neighbours_t> edgemap_t;
-	nodemap_t finish_times;
-	edgemap_t edges;
-
-	phasegraph(tpie::disjoint_sets<size_t> & phases, size_t ids) {
-		for (size_t i = 0; i < ids; ++i) {
-			if (!phases.is_set(i)) continue;
-			size_t rep = phases.find_set(i);
-			if (edges.count(rep)) continue;
-			edges.insert(make_pair(rep, std::vector<size_t>()));
-			finish_times.insert(std::make_pair(rep, 0));
-		}
-	}
-
-	inline void depends(size_t depender, size_t dependee) {
-		edges[dependee].push_back(depender);
-	}
-
-	inline bool is_depending(size_t depender, size_t dependee) {
-		for (size_t i = 0; i < edges[depender].size(); ++i) {
-			if (edges[depender][i] == dependee) return true;
-		}
-		return false;
-	}
-
-	std::vector<size_t> execution_order();
+	void assign_minimum_memory() const;
 };
 
 struct graph_traits {

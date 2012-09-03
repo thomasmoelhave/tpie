@@ -76,11 +76,140 @@ private:
 
 };
 
+struct phasegraph {
+	typedef size_t node_t;
+	typedef int time_type;
+	typedef std::map<node_t, time_type> nodemap_t;
+	typedef std::vector<node_t> neighbours_t;
+	typedef std::map<node_t, neighbours_t> edgemap_t;
+	nodemap_t finish_times;
+	edgemap_t edges;
+
+	phasegraph(tpie::disjoint_sets<size_t> & phases, size_t ids) {
+		for (size_t i = 0; i < ids; ++i) {
+			if (!phases.is_set(i)) continue;
+			size_t rep = phases.find_set(i);
+			if (edges.count(rep)) continue;
+			edges.insert(make_pair(rep, std::vector<size_t>()));
+			finish_times.insert(std::make_pair(rep, 0));
+		}
+	}
+
+	inline void depends(size_t depender, size_t dependee) {
+		edges[dependee].push_back(depender);
+	}
+
+	inline bool is_depending(size_t depender, size_t dependee) {
+		for (size_t i = 0; i < edges[depender].size(); ++i) {
+			if (edges[depender][i] == dependee) return true;
+		}
+		return false;
+	}
+
+	std::vector<size_t> execution_order() {
+		dfs_traversal<phasegraph> dfs(*this);
+		dfs.dfs();
+		std::vector<size_t> result = dfs.toposort();
+		return result;
+	}
+};
+
 }
 
 namespace tpie {
 
 namespace pipelining {
+
+struct phase::segment_graph {
+	typedef pipe_segment * node_t;
+	typedef std::vector<node_t> neighbours_t;
+	typedef std::map<node_t, neighbours_t> edgemap_t;
+	typedef int time_type;
+	typedef std::map<node_t, time_type> nodemap_t;
+
+	nodemap_t finish_times;
+	edgemap_t edges;
+};
+
+phase::phase()
+	: g(new segment_graph)
+	, m_memoryFraction(0.0)
+	, m_minimumMemory(0)
+	, m_initiator(0)
+{
+}
+
+phase::~phase() {}
+
+phase::phase(const phase & other)
+	: g(new segment_graph(*other.g))
+	, m_segments(other.m_segments)
+	, m_memoryFraction(other.m_memoryFraction)
+	, m_minimumMemory(other.m_minimumMemory)
+	, m_initiator(other.m_initiator)
+{
+}
+
+phase & phase::operator=(const phase & other) {
+	g.reset(new segment_graph(*other.g));
+	m_segments = other.m_segments;
+	m_memoryFraction = other.m_memoryFraction;
+	m_minimumMemory = other.m_minimumMemory;
+	m_initiator = other.m_initiator;
+	return *this;
+}
+
+bool phase::is_initiator(pipe_segment * s) {
+	segment_map::ptr m = s->get_segment_map();
+	segment_map::id_t id = s->get_id();
+	return m->in_degree(id, pushes) == 0 && m->in_degree(id, pulls) == 0;
+}
+
+void phase::add(pipe_segment * s) {
+	if (count(s)) return;
+	if (is_initiator(s)) set_initiator(s);
+	m_segments.push_back(s);
+	m_memoryFraction += s->get_memory_fraction();
+	m_minimumMemory += s->get_minimum_memory();
+	g->finish_times[s] = 0;
+}
+
+void phase::add_successor(pipe_segment * from, pipe_segment * to) {
+	g->edges[from].push_back(to);
+}
+
+void phase::evacuate_all() const {
+	for (size_t i = 0; i < m_segments.size(); ++i) {
+		if (m_segments[i]->can_evacuate())
+			m_segments[i]->evacuate();
+	}
+}
+
+const std::string & phase::get_name() const {
+	priority_type highest = std::numeric_limits<priority_type>::min();
+	size_t highest_segment = 0;
+	for (size_t i = 0; i < m_segments.size(); ++i) {
+		if (m_segments[i]->get_name_priority() > highest) {
+			highest_segment = i;
+			highest = m_segments[i]->get_name_priority();
+		}
+	}
+	return m_segments[highest_segment]->get_name();
+}
+
+std::string phase::get_unique_id() const {
+	std::stringstream uid;
+	for (size_t i = 0; i < m_segments.size(); ++i) {
+		uid << typeid(*m_segments[i]).name() << ':';
+	}
+	return uid.str();
+}
+
+void phase::assign_minimum_memory() const {
+	for (size_t i = 0; i < m_segments.size(); ++i) {
+		m_segments[i]->set_available_memory(m_segments[i]->get_minimum_memory());
+	}
+}
 
 void phase::assign_memory(memory_size_type m) const {
 	if (m < minimum_memory()) {
@@ -118,13 +247,6 @@ void phase::assign_memory(memory_size_type m) const {
 		}
 		break;
 	}
-}
-
-std::vector<size_t> phasegraph::execution_order() {
-	dfs_traversal<phasegraph> dfs(*this);
-	dfs.dfs();
-	std::vector<size_t> result = dfs.toposort();
-	return result;
 }
 
 void graph_traits::go_all(stream_size_type n, Progress::base & pi) {
@@ -216,7 +338,7 @@ void graph_traits::calc_phases() {
 }
 
 void phase::go(progress_indicator_base & pi) {
-	dfs_traversal<phase::segment_graph> dfs(g);
+	dfs_traversal<phase::segment_graph> dfs(*g);
 	dfs.dfs();
 	std::vector<pipe_segment *> order = dfs.toposort();
 	for (size_t i = 0; i < order.size(); ++i) {
