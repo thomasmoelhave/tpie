@@ -391,13 +391,6 @@ buffer_node() {
 	return pipe_middle<factory_0<buffer_node_t> >();
 }
 
-bool execution_order() {
-	pipeline p = input_vector(inputvector) | pipesort() | output_vector(outputvector);
-	p.plot(log_info());
-	graph_traits g(*p.get_segment_map());
-	return false;
-}
-
 struct merger_memory : public memory_test {
 	typedef int test_t;
 	size_t n;
@@ -541,7 +534,6 @@ int main(int argc, char ** argv) {
 	.test(uniq_test, "uniq")
 	.test(memory_test, "memory")
 	.test(fork_test, "fork")
-	.test(execution_order, "execorder")
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
