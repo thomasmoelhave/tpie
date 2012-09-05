@@ -20,6 +20,7 @@ set (PIPE_HEADERS
 	stdio.h
 	tokens.h
 	uniq.h
+	virtual.h
 	)
 
 set (PIPE_SOURCES

@@ -199,6 +199,10 @@ protected:
 		return boost::any_cast<T>(m_values[key]);
 	}
 
+	const segment_token & get_token() {
+		return token;
+	}
+
 	friend class phase;
 
 private:

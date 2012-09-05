@@ -34,6 +34,22 @@ struct merge_sort_not_ready : tpie::exception {
 	inline merge_sort_not_ready() : tpie::exception("Merge sort did not have memory assigned") {}
 };
 
+struct virtual_phase_not_ready : tpie::exception {
+	inline virtual_phase_not_ready() : tpie::exception("Virtual receiver is missing a destination") {}
+};
+
+struct virtual_phase_missing_begin : tpie::exception {
+	inline virtual_phase_missing_begin() : tpie::exception("Virtual begin phase contains no pipes") {}
+};
+
+struct virtual_phase_missing_middle : tpie::exception {
+	inline virtual_phase_missing_middle() : tpie::exception("Virtual middle phase contains no pipes, and input type is not output type") {}
+};
+
+struct virtual_phase_missing_end : tpie::exception {
+	inline virtual_phase_missing_end() : tpie::exception("Virtual end phase contains no pipes") {}
+};
+
 } // namespace pipelining
 
 } // namespace tpie

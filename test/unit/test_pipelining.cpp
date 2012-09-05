@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <tpie/pipelining/graph.h>
 #include <tpie/sysinfo.h>
+#include <tpie/pipelining/virtual.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -511,6 +512,19 @@ bool fetch_forward_test() {
 	return fetch_forward_result;
 }
 
+bool virtual_test() {
+	virtual_phase_begin<test_t> p1(input_vector(inputvector));
+	virtual_phase<test_t, test_t> p2(multiply(3) | multiply(2));
+	virtual_phase<test_t, test_t> p_empty;
+	virtual_phase_end<test_t> p3(output_vector(outputvector));
+	p1
+		| p2
+		| p_empty
+		| p3;
+	p1();
+	return check_test_vectors();
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -530,5 +544,6 @@ int main(int argc, char ** argv) {
 	.test(execution_order, "execorder")
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
+	.test(virtual_test, "virtual")
 	;
 }
