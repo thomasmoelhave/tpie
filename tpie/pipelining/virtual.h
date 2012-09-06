@@ -47,6 +47,7 @@ public:
 		: dest(dest)
 	{
 		pipe_segment::add_push_destination(dest);
+		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
 	}
 
 	const segment_token & get_token() {
@@ -71,6 +72,7 @@ public:
 		, m_virtdest(0)
 	{
 		m_self = this;
+		set_name("Virtual destination", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtrecv(const virtrecv & other)
