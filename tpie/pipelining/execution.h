@@ -28,12 +28,11 @@ namespace tpie {
 
 namespace pipelining {
 
-template <typename fact_t>
-inline void pipeline_impl<fact_t>::operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem) {
+inline void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem) {
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::const_iterator it;
 
-	segment_map::ptr map = r.get_segment_map()->find_authority();
+	segment_map::ptr map = m_segmap->find_authority();
 	graph_traits g(*map);
 	const phases_t & phases = g.phases();
 	if (mem == 0) log_warning() << "No memory for pipelining" << std::endl;

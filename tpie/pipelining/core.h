@@ -36,68 +36,61 @@ namespace tpie {
 namespace pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class pipeline_virtual
+/// \class pipeline_base
 /// Virtual superclass for pipelines implementing the function call operator.
 ///////////////////////////////////////////////////////////////////////////////
-struct pipeline_virtual {
+class pipeline_base {
+public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) = 0;
+	inline void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz graph documenting the pipeline flow.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void plot(std::ostream & out) = 0;
+	inline void plot(std::ostream & out);
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Generate a GraphViz graph documenting the pipeline flow.
-	///////////////////////////////////////////////////////////////////////////
-	virtual void plot_phases(std::ostream & out) = 0;
-
-	virtual double memory() const = 0;
+	double memory() const {
+		return m_memory;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
-	virtual ~pipeline_virtual() {}
+	virtual ~pipeline_base() {}
 
-	virtual segment_map::ptr get_segment_map() const = 0;
+	segment_map::ptr get_segment_map() const {
+		return m_segmap;
+	}
+
+protected:
+	segment_map::ptr m_segmap;
+	double m_memory;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline_impl
 /// \tparam fact_t Factory type
-/// Templated subclass of pipeline_virtual for push pipelines.
+/// Templated subclass of pipeline_base for push pipelines.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-struct pipeline_impl : public pipeline_virtual {
+struct pipeline_impl : public pipeline_base {
 	typedef typename fact_t::generated_type gen_t;
 
-	inline pipeline_impl(const fact_t & factory) : r(factory.construct()), _memory(factory.memory()) {}
-
-	void operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type mem);
+	inline pipeline_impl(const fact_t & factory)
+		: r(factory.construct())
+	{
+		this->m_memory = factory.memory();
+		this->m_segmap = r.get_segment_map();
+	}
 
 	inline operator gen_t() {
 		return r;
 	}
-	void plot(std::ostream & out);
-
-	void plot_phases(std::ostream &) {
-	}
-
-	double memory() const {
-		return _memory;
-	}
-
-	segment_map::ptr get_segment_map() const {
-		return r.get_segment_map();
-	}
 
 private:
-
 	gen_t r;
-	double _memory;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -127,15 +120,14 @@ struct pipeline {
 	inline void plot(std::ostream & os = std::cout) {
 		p->plot(os);
 	}
-	inline void plot_phases() {
-		p->plot_phases(std::cout);
-	}
 	inline double memory() const {
 		return p->memory();
 	}
-	inline segment_map::ptr get_segment_map() const { return p->get_segment_map(); }
+	inline segment_map::ptr get_segment_map() const {
+		return p->get_segment_map();
+	}
 private:
-	pipeline_virtual * p;
+	pipeline_base * p;
 };
 
 namespace bits {

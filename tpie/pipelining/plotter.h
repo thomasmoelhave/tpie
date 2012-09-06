@@ -48,10 +48,9 @@ namespace plotter {
 
 typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
-template <typename fact_t>
-void pipeline_impl<fact_t>::plot(std::ostream & out) {
+inline void pipeline_base::plot(std::ostream & out) {
 	out << "digraph {\n";
-	segment_map::ptr segmap = r.get_segment_map()->find_authority();
+	segment_map::ptr segmap = m_segmap->find_authority();
 	for (segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
 		out << '"' << plotter::name(segmap, i->first) << "\";\n";
 	}
