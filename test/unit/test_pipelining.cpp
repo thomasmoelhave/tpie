@@ -508,11 +508,10 @@ bool fetch_forward_test() {
 bool virtual_test() {
 	virtual_phase_begin<test_t> p1(input_vector(inputvector));
 	virtual_phase<test_t, test_t> p2(multiply(3) | multiply(2));
-	virtual_phase<test_t, test_t> p_empty;
 	virtual_phase_end<test_t> p3(output_vector(outputvector));
 	p1
 		| p2
-		| p_empty
+		| virtual_phase<test_t, test_t>()
 		| p3;
 	p1();
 	return check_test_vectors();

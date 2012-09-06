@@ -103,10 +103,15 @@ public:
 
 } // namespace bits
 
-template <typename Input>
-class virtual_phase_end {
+class virtual_phase_base {
 public:
-	std::auto_ptr<bits::virtsrc<Input> > m_src;
+	virtual ~virtual_phase_base() {}
+};
+
+template <typename Input>
+class virtual_phase_end : public virtual_phase_base {
+public:
+	boost::shared_ptr<bits::virtsrc<Input> > m_src;
 
 	virtual_phase_end() {}
 
@@ -134,10 +139,10 @@ public:
 template <typename Input, typename Output>
 struct set_empty_pipe_if_equal;
 
-template <typename Output>
-struct set_empty_pipe_if_equal<Output, Output> {
-	typedef bits::virtrecv<Output> recv_type;
-	inline static void set(std::auto_ptr<bits::virtsrc<Output> > & m_src, recv_type *& m_recv) {
+template <typename Input>
+struct set_empty_pipe_if_equal<Input, Input> {
+	typedef bits::virtrecv<Input> recv_type;
+	inline static void set(std::auto_ptr<bits::virtsrc<Input> > & m_src, recv_type *& m_recv) {
 		recv_type temp(m_recv);
 		m_src.reset(new bits::virtsrc_impl<recv_type>(temp));
 	}
@@ -145,106 +150,136 @@ struct set_empty_pipe_if_equal<Output, Output> {
 
 template <typename Input, typename Output>
 struct set_empty_pipe_if_equal {
-	inline static void set(std::auto_ptr<bits::virtsrc<Input> > & m_src, void * m_recv) {
+	typedef bits::virtrecv<Input> recv_type;
+	inline static void set(std::auto_ptr<bits::virtsrc<Input> > & /*m_src*/, recv_type *& /*m_recv*/) {
 	}
 };
 
 template <typename Input, typename Output>
-class virtual_phase {
+class virtual_phase_impl {
 	typedef bits::virtrecv<Output> recv_type;
 public:
 	recv_type * m_recv;
 	std::auto_ptr<bits::virtsrc<Input> > m_src;
+	std::auto_ptr<virtual_phase_base> m_dest;
+
+	virtual_phase_impl()
+		: m_recv(0)
+	{
+	}
+};
+
+template <typename Input, typename Output>
+class virtual_phase : public virtual_phase_base {
+	typedef bits::virtrecv<Output> recv_type;
+public:
+	boost::shared_ptr<virtual_phase_impl<Input, Output> > impl;
 
 	virtual_phase()
-		: m_recv(0)
+		: impl(new virtual_phase_impl<Input, Output>())
 	{
 	}
 
 	template <typename fact_t>
 	virtual_phase(const pipe_middle<fact_t> & pipe)
-		: m_recv(0)
+		: impl(new virtual_phase_impl<Input, Output>())
 	{
 		*this = pipe;
 	}
 
 	template <typename fact_t>
 	virtual_phase & operator=(const pipe_middle<fact_t> & pipe) {
-		tp_assert(m_src.get() == 0, "Virtual phase assigned twice");
+		tp_assert(impl->m_src.get() == 0, "Virtual phase assigned twice");
 
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
-		recv_type temp(m_recv);
-		m_src.reset(new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp)));
+		recv_type temp(impl->m_recv);
+		impl->m_src.reset(new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp)));
 
 		return *this;
 	}
 
 	void set_empty_pipe() {
-		tp_assert(m_src.get() == 0, "Virtual phase assigned twice");
-		set_empty_pipe_if_equal<Input, Output>::set(m_src, m_recv);
-		if (m_src.get() == 0) throw virtual_phase_missing_middle();
+		tp_assert(impl->m_src.get() == 0, "Virtual phase assigned twice");
+		set_empty_pipe_if_equal<Input, Output>::set(impl->m_src, impl->m_recv);
+		if (impl->m_src.get() == 0) throw virtual_phase_missing_middle();
 	}
 
 	bits::virtsrc<Input> & get_src() {
-		if (m_src.get() == 0) set_empty_pipe();
-		return *m_src;
+		if (impl->m_src.get() == 0) set_empty_pipe();
+		return *impl->m_src;
 	}
 
 	template <typename NextOutput>
-	virtual_phase<Output, NextOutput> & operator|(virtual_phase<Output, NextOutput> & dest) {
-		if (m_recv == 0) set_empty_pipe();
-		m_recv->set_destination(dest.get_src());
-		return dest;
+	virtual_phase<Output, NextOutput> & operator|(virtual_phase<Output, NextOutput> dest) {
+		if (impl->m_recv == 0) set_empty_pipe();
+		impl->m_recv->set_destination(dest.get_src());
+		virtual_phase<Output, NextOutput> * res = new virtual_phase<Output, NextOutput>(dest);
+		impl->m_dest.reset(res);
+		return *res;
 	}
 
-	virtual_phase_end<Output> & operator|(virtual_phase_end<Output> & dest) {
-		if (m_recv == 0) set_empty_pipe();
-		m_recv->set_destination(dest.get_src());
-		return dest;
+	virtual_phase_end<Output> & operator|(virtual_phase_end<Output> dest) {
+		if (impl->m_recv == 0) set_empty_pipe();
+		impl->m_recv->set_destination(dest.get_src());
+		virtual_phase_end<Output> * res = new virtual_phase_end<Output>(dest);
+		impl->m_dest.reset(res);
+		return *res;
 	}
 };
 
 template <typename Output>
-class virtual_phase_begin {
+class virtual_phase_begin_impl {
 	typedef bits::virtrecv<Output> recv_type;
 public:
 	recv_type * m_recv;
 	std::auto_ptr<pipe_segment> m_src;
+	std::auto_ptr<virtual_phase_base> m_dest;
+};
+
+template <typename Output>
+class virtual_phase_begin : public virtual_phase_base {
+	typedef bits::virtrecv<Output> recv_type;
+public:
+	boost::shared_ptr<virtual_phase_begin_impl<Output> > impl;
 
 	virtual_phase_begin()
-		: m_recv(0)
+		: impl(new virtual_phase_begin_impl<Output>())
 	{
 	}
 
 	template <typename fact_t>
 	virtual_phase_begin(const pipe_begin<fact_t> & pipe)
-		: m_recv(0)
+		: impl(new virtual_phase_begin_impl<Output>())
 	{
 		*this = pipe;
 	}
 
 	template <typename fact_t>
 	virtual_phase_begin & operator=(const pipe_begin<fact_t> & pipe) {
-		tp_assert(m_src.get() == 0, "Virtual phase assigned twice");
+		tp_assert(impl->m_src.get() == 0, "Virtual phase assigned twice");
 
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
-		recv_type temp(m_recv);
-		m_src.reset(new generated_type(pipe.factory.construct(temp)));
+		recv_type temp(impl->m_recv);
+		impl->m_src.reset(new generated_type(pipe.factory.construct(temp)));
 
 		return *this;
 	}
 
 	template <typename NextOutput>
-	virtual_phase<Output, NextOutput> & operator|(virtual_phase<Output, NextOutput> & dest) {
-		if (m_recv == 0) throw virtual_phase_missing_begin();
-		m_recv->set_destination(dest.get_src());
-		return dest;
+	virtual_phase<Output, NextOutput> & operator|(virtual_phase<Output, NextOutput> dest) {
+		if (impl->m_recv == 0) throw virtual_phase_missing_begin();
+		impl->m_recv->set_destination(dest.get_src());
+		virtual_phase<Output, NextOutput> * res = new virtual_phase<Output, NextOutput>(dest);
+		impl->m_dest.reset(res);
+		return *res;
 	}
 
-	virtual_phase_end<Output> & operator|(virtual_phase_end<Output> & dest) {
-		if (m_recv == 0) throw virtual_phase_missing_begin();
-		m_recv->set_destination(dest.get_src());
-		return dest;
+	virtual_phase_end<Output> & operator|(virtual_phase_end<Output> dest) {
+		if (impl->m_recv == 0) throw virtual_phase_missing_begin();
+		impl->m_recv->set_destination(dest.get_src());
+		virtual_phase_end<Output> * res = new virtual_phase_end<Output>(dest);
+		impl->m_dest.reset(res);
+		return *res;
 	}
 
 	inline void operator()() {
@@ -253,8 +288,8 @@ public:
 	}
 
 	inline void operator()(progress_indicator_base & pi) {
-		if (m_src.get() == 0) throw virtual_phase_missing_begin();
-		m_src->go(pi);
+		if (impl->m_src.get() == 0) throw virtual_phase_missing_begin();
+		impl->m_src->go(pi);
 	}
 };
 
