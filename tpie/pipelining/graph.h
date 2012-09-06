@@ -44,6 +44,7 @@ struct phase {
 	~phase();
 
 	inline void set_initiator(pipe_segment * s) {
+		tp_assert(m_initiator == 0, "Initiator set twice");
 		m_initiator = s;
 	}
 
