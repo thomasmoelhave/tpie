@@ -2,7 +2,6 @@ set (PIPE_HEADERS
 	buffer.h
 	core.h
 	exception.h
-	execution.h
 	factory_helpers.h
 	file_stream.h
 	graph.h
@@ -12,7 +11,6 @@ set (PIPE_HEADERS
 	merger.h
 	numeric.h
 	pipe_segment.h
-	plotter.h
 	reverse.h
 	segment_map_dump.h
 	sort.h
@@ -25,6 +23,7 @@ set (PIPE_HEADERS
 
 set (PIPE_SOURCES
 	graph.cpp
+	pipeline.cpp
 	tokens.cpp
 	)
 

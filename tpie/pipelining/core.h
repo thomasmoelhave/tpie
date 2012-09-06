@@ -44,12 +44,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	inline void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
+	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz graph documenting the pipeline flow.
 	///////////////////////////////////////////////////////////////////////////
-	inline void plot(std::ostream & out);
+	void plot(std::ostream & out);
 
 	double memory() const {
 		return m_memory;
