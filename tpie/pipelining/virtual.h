@@ -103,14 +103,56 @@ public:
 	}
 };
 
-} // namespace bits
-
 class virtual_chunk_base : public pipeline_base {
 	// pipeline_base has virtual dtor and shared_ptr to m_segmap
 };
 
+template <typename Input, typename Output>
+struct set_empty_pipe_if_equal;
+
 template <typename Input>
-class virtual_chunk_end : public virtual_chunk_base {
+struct set_empty_pipe_if_equal<Input, Input> {
+	typedef virtrecv<Input> recv_type;
+	inline static void set(std::auto_ptr<virtsrc<Input> > & m_src, recv_type *& m_recv) {
+		recv_type temp(m_recv);
+		m_src.reset(new virtsrc_impl<recv_type>(temp));
+	}
+};
+
+template <typename Input, typename Output>
+struct set_empty_pipe_if_equal {
+	typedef virtrecv<Input> recv_type;
+	inline static void set(std::auto_ptr<virtsrc<Input> > & /*m_src*/, recv_type *& /*m_recv*/) {
+	}
+};
+
+template <typename Input, typename Output>
+class virtual_chunk_impl {
+	typedef virtrecv<Output> recv_type;
+public:
+	recv_type * m_recv;
+	std::auto_ptr<virtsrc<Input> > m_src;
+	std::auto_ptr<virtual_chunk_base> m_dest;
+
+	virtual_chunk_impl()
+		: m_recv(0)
+	{
+	}
+};
+
+template <typename Output>
+class virtual_chunk_begin_impl {
+	typedef virtrecv<Output> recv_type;
+public:
+	recv_type * m_recv;
+	std::auto_ptr<pipe_segment> m_src;
+	std::auto_ptr<virtual_chunk_base> m_dest;
+};
+
+} // namespace bits
+
+template <typename Input>
+class virtual_chunk_end : public bits::virtual_chunk_base {
 public:
 	boost::shared_ptr<bits::virtsrc<Input> > m_src;
 
@@ -139,52 +181,19 @@ public:
 };
 
 template <typename Input, typename Output>
-struct set_empty_pipe_if_equal;
-
-template <typename Input>
-struct set_empty_pipe_if_equal<Input, Input> {
-	typedef bits::virtrecv<Input> recv_type;
-	inline static void set(std::auto_ptr<bits::virtsrc<Input> > & m_src, recv_type *& m_recv) {
-		recv_type temp(m_recv);
-		m_src.reset(new bits::virtsrc_impl<recv_type>(temp));
-	}
-};
-
-template <typename Input, typename Output>
-struct set_empty_pipe_if_equal {
-	typedef bits::virtrecv<Input> recv_type;
-	inline static void set(std::auto_ptr<bits::virtsrc<Input> > & /*m_src*/, recv_type *& /*m_recv*/) {
-	}
-};
-
-template <typename Input, typename Output>
-class virtual_chunk_impl {
+class virtual_chunk : public bits::virtual_chunk_base {
 	typedef bits::virtrecv<Output> recv_type;
 public:
-	recv_type * m_recv;
-	std::auto_ptr<bits::virtsrc<Input> > m_src;
-	std::auto_ptr<virtual_chunk_base> m_dest;
-
-	virtual_chunk_impl()
-		: m_recv(0)
-	{
-	}
-};
-
-template <typename Input, typename Output>
-class virtual_chunk : public virtual_chunk_base {
-	typedef bits::virtrecv<Output> recv_type;
-public:
-	boost::shared_ptr<virtual_chunk_impl<Input, Output> > impl;
+	boost::shared_ptr<bits::virtual_chunk_impl<Input, Output> > impl;
 
 	virtual_chunk()
-		: impl(new virtual_chunk_impl<Input, Output>())
+		: impl(new bits::virtual_chunk_impl<Input, Output>())
 	{
 	}
 
 	template <typename fact_t>
 	virtual_chunk(const pipe_middle<fact_t> & pipe)
-		: impl(new virtual_chunk_impl<Input, Output>())
+		: impl(new bits::virtual_chunk_impl<Input, Output>())
 	{
 		*this = pipe;
 	}
@@ -203,7 +212,7 @@ public:
 
 	void set_empty_pipe() {
 		tp_assert(impl->m_src.get() == 0, "Virtual chunk assigned twice");
-		set_empty_pipe_if_equal<Input, Output>::set(impl->m_src, impl->m_recv);
+		bits::set_empty_pipe_if_equal<Input, Output>::set(impl->m_src, impl->m_recv);
 		if (impl->m_src.get() == 0) throw virtual_chunk_missing_middle();
 	}
 
@@ -231,28 +240,19 @@ public:
 };
 
 template <typename Output>
-class virtual_chunk_begin_impl {
+class virtual_chunk_begin : public bits::virtual_chunk_base {
 	typedef bits::virtrecv<Output> recv_type;
 public:
-	recv_type * m_recv;
-	std::auto_ptr<pipe_segment> m_src;
-	std::auto_ptr<virtual_chunk_base> m_dest;
-};
-
-template <typename Output>
-class virtual_chunk_begin : public virtual_chunk_base {
-	typedef bits::virtrecv<Output> recv_type;
-public:
-	boost::shared_ptr<virtual_chunk_begin_impl<Output> > impl;
+	boost::shared_ptr<bits::virtual_chunk_begin_impl<Output> > impl;
 
 	virtual_chunk_begin()
-		: impl(new virtual_chunk_begin_impl<Output>())
+		: impl(new bits::virtual_chunk_begin_impl<Output>())
 	{
 	}
 
 	template <typename fact_t>
 	virtual_chunk_begin(const pipe_begin<fact_t> & pipe)
-		: impl(new virtual_chunk_begin_impl<Output>())
+		: impl(new bits::virtual_chunk_begin_impl<Output>())
 	{
 		*this = pipe;
 	}
