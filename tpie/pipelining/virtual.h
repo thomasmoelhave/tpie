@@ -103,9 +103,8 @@ public:
 
 } // namespace bits
 
-class virtual_phase_base {
-public:
-	virtual ~virtual_phase_base() {}
+class virtual_phase_base : public pipeline_base {
+	// pipeline_base has virtual dtor and shared_ptr to m_segmap
 };
 
 template <typename Input>
@@ -131,6 +130,7 @@ public:
 
 		typedef typename fact_t::generated_type generated_type;
 		m_src.reset(new bits::virtsrc_impl<generated_type>(pipe.factory.construct()));
+		this->m_segmap = m_src->get_segment_map();
 
 		return *this;
 	}
@@ -194,6 +194,7 @@ public:
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
 		recv_type temp(impl->m_recv);
 		impl->m_src.reset(new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp)));
+		this->m_segmap = temp.get_segment_map();
 
 		return *this;
 	}
@@ -261,6 +262,7 @@ public:
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
 		recv_type temp(impl->m_recv);
 		impl->m_src.reset(new generated_type(pipe.factory.construct(temp)));
+		this->m_segmap = temp.get_segment_map();
 
 		return *this;
 	}
