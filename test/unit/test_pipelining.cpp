@@ -41,13 +41,7 @@ struct multiply_t : public pipe_segment {
 	{
 		set_minimum_memory(17000000);
 		add_push_destination(dest);
-	}
-
-	inline multiply_t(const multiply_t & other)
-		: pipe_segment(other)
-		, dest(other.dest)
-		, factor(other.factor)
-	{
+		set_name("Multiply");
 	}
 
 	virtual void begin() /*override*/ {
