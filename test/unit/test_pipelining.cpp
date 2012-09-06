@@ -500,12 +500,11 @@ bool fetch_forward_test() {
 }
 
 bool virtual_test() {
-	virtual_phase_begin<test_t> p1(input_vector(inputvector));
-	virtual_phase<test_t, test_t> p2(multiply(3) | multiply(2));
-	virtual_phase_end<test_t> p3(output_vector(outputvector));
+	virtual_chunk_begin<test_t> p1(input_vector(inputvector));
+	virtual_chunk_end<test_t> p3(output_vector(outputvector));
 	pipeline p = p1
-		| p2
-		| virtual_phase<test_t, test_t>()
+		| virtual_chunk<test_t, test_t>(multiply(3) | multiply(2))
+		| virtual_chunk<test_t, test_t>()
 		| p3;
 	p.plot(log_info());
 	p();
