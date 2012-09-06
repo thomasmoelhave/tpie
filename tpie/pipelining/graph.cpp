@@ -160,7 +160,7 @@ phase & phase::operator=(const phase & other) {
 }
 
 bool phase::is_initiator(pipe_segment * s) {
-	segment_map::ptr m = s->get_segment_map();
+	segment_map::ptr m = s->get_segment_map()->find_authority();
 	segment_map::id_t id = s->get_id();
 	return m->in_degree(id, pushes) == 0 && m->in_degree(id, pulls) == 0;
 }
