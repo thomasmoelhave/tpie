@@ -509,11 +509,12 @@ bool virtual_test() {
 	virtual_phase_begin<test_t> p1(input_vector(inputvector));
 	virtual_phase<test_t, test_t> p2(multiply(3) | multiply(2));
 	virtual_phase_end<test_t> p3(output_vector(outputvector));
-	p1
+	pipeline p = p1
 		| p2
 		| virtual_phase<test_t, test_t>()
 		| p3;
-	p1();
+	p.plot(log_info());
+	p();
 	return check_test_vectors();
 }
 
