@@ -50,6 +50,10 @@ struct virtual_chunk_missing_end : tpie::exception {
 	inline virtual_chunk_missing_end() : tpie::exception("Virtual end chunk contains no pipes") {}
 };
 
+struct non_authoritative_segment_map : public tpie::exception {
+	non_authoritative_segment_map() : tpie::exception("Non-authoritative segment map") {}
+};
+
 } // namespace pipelining
 
 } // namespace tpie

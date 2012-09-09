@@ -88,10 +88,6 @@ enum segment_relation {
 	depends
 };
 
-struct non_authoritative_segment_map : public tpie::exception {
-	non_authoritative_segment_map() : tpie::exception("Non-authoritative segment map") {}
-};
-
 struct segment_map {
 	typedef uint64_t id_t;
 	typedef pipe_segment * val_t;
