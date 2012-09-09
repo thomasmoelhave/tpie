@@ -40,6 +40,65 @@ void segment_map::send_successors() const {
 	}
 }
 
+void segment_map::link(segment_map::ptr target) {
+	if (target.get() == this) {
+		// self link attempted
+		// we must never have some_map->m_authority point to some_map,
+		// since it would create a reference cycle
+		return;
+	}
+	// union by rank
+	if (target->m_rank > m_rank)
+		return target->link(ptr(self));
+
+	for (mapit i = target->begin(); i != target->end(); ++i) {
+		set_token(i->first, i->second);
+	}
+	for (relmapit i = target->m_relations.begin(); i != target->m_relations.end(); ++i) {
+		m_relations.insert(*i);
+	}
+	for (relmapit i = target->m_relationsInv.begin(); i != target->m_relationsInv.end(); ++i) {
+		m_relationsInv.insert(*i);
+	}
+	target->m_tokens.clear();
+	target->m_authority = ptr(self);
+
+	// union by rank
+	if (target->m_rank == m_rank)
+		++m_rank;
+}
+
+segment_map::ptr segment_map::find_authority() {
+	if (!m_authority)
+		return ptr(self);
+
+	segment_map * i = m_authority.get();
+	while (i->m_authority) {
+		i = i->m_authority.get();
+	}
+	ptr result(i->self);
+
+	// path compression
+	segment_map * j = m_authority.get();
+	while (j->m_authority) {
+		segment_map * k = j->m_authority.get();
+		j->m_authority = result;
+		j = k;
+	}
+
+	return result;
+}
+
+size_t segment_map::out_degree(const relmap_t & map, id_t from, segment_relation rel) const {
+	size_t res = 0;
+	relmapit i = map.find(from);
+	while (i != map.end() && i->first == from) {
+		if (i->second.second == rel) ++res;
+		++i;
+	}
+	return res;
+}
+
 } // namespace pipelining
 
 } // namespace tpie

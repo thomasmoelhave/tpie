@@ -119,33 +119,7 @@ struct segment_map {
 	}
 
 	// union-find link
-	void link(ptr target) {
-		if (target.get() == this) {
-			// self link attempted
-			// we must never have some_map->m_authority point to some_map,
-			// since it would create a reference cycle
-			return;
-		}
-		// union by rank
-		if (target->m_rank > m_rank)
-			return target->link(ptr(self));
-
-		for (mapit i = target->begin(); i != target->end(); ++i) {
-			set_token(i->first, i->second);
-		}
-		for (relmapit i = target->m_relations.begin(); i != target->m_relations.end(); ++i) {
-			m_relations.insert(*i);
-		}
-		for (relmapit i = target->m_relationsInv.begin(); i != target->m_relationsInv.end(); ++i) {
-			m_relationsInv.insert(*i);
-		}
-		target->m_tokens.clear();
-		target->m_authority = ptr(self);
-
-		// union by rank
-		if (target->m_rank == m_rank)
-			++m_rank;
-	}
+	void link(ptr target);
 
 	inline void union_set(ptr target) {
 		find_authority()->link(target->find_authority());
@@ -166,26 +140,7 @@ struct segment_map {
 	}
 
 	// union-find
-	inline ptr find_authority() {
-		if (!m_authority)
-			return ptr(self);
-
-		segment_map * i = m_authority.get();
-		while (i->m_authority) {
-			i = i->m_authority.get();
-		}
-		ptr result(i->self);
-
-		// path compression
-		segment_map * j = m_authority.get();
-		while (j->m_authority) {
-			segment_map * k = j->m_authority.get();
-			j->m_authority = result;
-			j = k;
-		}
-
-		return result;
-	}
+	ptr find_authority();
 
 	inline void add_relation(id_t from, id_t to, segment_relation rel) {
 		m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
@@ -218,15 +173,7 @@ private:
 	relmap_t m_relations;
 	relmap_t m_relationsInv;
 
-	inline size_t out_degree(const relmap_t & map, id_t from, segment_relation rel) const {
-		size_t res = 0;
-		relmapit i = map.find(from);
-		while (i != map.end() && i->first == from) {
-			if (i->second.second == rel) ++res;
-			++i;
-		}
-		return res;
-	}
+	size_t out_degree(const relmap_t & map, id_t from, segment_relation rel) const;
 
 	wptr self;
 
