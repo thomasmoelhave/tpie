@@ -35,7 +35,8 @@ namespace tpie {
 
 namespace pipelining {
 
-struct phase {
+class phase {
+public:
 	struct segment_graph;
 
 	phase();
