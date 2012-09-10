@@ -206,25 +206,16 @@ struct sort_t {
 		typedef typename sorter_t::ptr sorterptr;
 		typedef sort_calc_t<item_type, pred_t> calc_t;
 		typedef typename sort_output_t<pred_t>::template type<dest_t> output_t;
-		
-		inline type(const type<dest_t> & other)
-			: pipe_segment(other)
-			, sorter(other.sorter)
-			, calc(other.calc)
-			, output(other.output)
-			{
-				set_minimum_memory(sorter_t::minimum_memory_phase_1());
-				set_name("Form input runs", PRIORITY_SIGNIFICANT);
-			}
-		
+
 		inline type(const dest_t & dest, const pred_t & pred=pred_t())
 			: sorter(new sorter_t(pred))
 			, calc(*this, sorter)
 			, output(dest, calc, sorter)
-			{
-				set_minimum_memory(sorter_t::minimum_memory_phase_1());
-			}
-		
+		{
+			set_minimum_memory(sorter_t::minimum_memory_phase_1());
+			set_name("Form input runs", PRIORITY_SIGNIFICANT);
+		}
+
 		virtual void begin() /*override*/ {
 			pipe_segment::begin();
 			sorter->begin();
