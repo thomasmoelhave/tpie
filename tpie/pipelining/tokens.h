@@ -73,6 +73,13 @@
 #define __TPIE_PIPELINING_TOKENS_H__
 
 #include <tpie/exception.h>
+#include <tpie/pipelining/exception.h>
+#include <tpie/types.h>
+#include <tpie/tpie_assert.h>
+#include <map>
+#include <iostream>
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 namespace tpie {
 
