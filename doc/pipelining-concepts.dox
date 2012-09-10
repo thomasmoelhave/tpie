@@ -1,0 +1,137 @@
+/**
+\page pipelining-concepts Pipelining concepts
+
+\section sec_pipe_segment Pipe segments
+
+A pipe segment is a class that derives from tpie::pipelining::pipe_segment and
+either overrides \c go(), implements \c push() or implements \c pull() and
+\c can_pull(). In the first case, the pipe segment is called an initiator; in
+the second case, it is called a push segment, and in the third case, it is
+called a pull segment.
+
+A pipe segment should aggregate the pipe segment(s) it pushes to or pulls from.
+At runtime, it must declare the pipe segment(s) it pushes to or pulls from by
+calling the methods \c pipe_segment::add_push_destination and
+\c pipe_segment::add_pull_destination.
+
+A push/pull segment must declare a public typedef \c item_type, the type of
+item accepted by \c push or returned by \c pull. This is used by built-in type
+generic segments such as the sorter or the reverser.
+
+Thus, a \c pipe_segment implementation of a push segment may look as follows:
+
+\code
+template <typename dest_t>
+class hello_world_type : public tpie::pipelining::pipe_segment {
+	dest_t dest;
+public:
+	typedef tpie::memory_size_type item_type;
+
+	hello_world_type(dest_t dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+	}
+
+	void push(const item_type & item) {
+		if ((item % 2) == 0) {
+			dest.push(item/2);
+		} else {
+			dest.push(3*item+1);
+		}
+	}
+};
+\endcode
+
+\section sec_pipelining_factory Factories
+
+In order to instantiate pipe_segment implementations, we need a factory.
+Usually, the built-in factories contained in \c factory_helpers.h will suffice:
+
+\code
+typedef tpie::pipelining::factory_0<hello_world_type> hello_world_factory;
+\endcode
+
+but in some cases it is helpful to implement one's own factory.
+
+We could implement a \c hello_world_factory as follows:
+
+\code
+class hello_world_factory : public tpie::pipelining::factory_base {
+public:
+	template <typename dest_t>
+	struct generated {
+		typedef hello_world_type<dest_t> type;
+	};
+
+	template <typename dest_t>
+	hello_world_type<dest_t> construct(const dest_t & dest) {
+		hello_world_type<dest_t> hw(dest);
+		this->init_segment(hw);
+		return hw;
+	}
+};
+\endcode
+
+For a terminating pipe_segment, which doesn't have a destination, we would
+implement a so called termfactory as follows:
+
+\code
+class goodbye_world_type : public tpie::pipelining::pipe_segment {
+public:
+	typedef tpie::memory_size_type item_type;
+	void push(item_type) {}
+};
+
+class goodbye_world_factory : public tpie::pipelining::factory_base {
+public:
+	typedef goodbye_world generated_type;
+
+	goodbye_world_type construct() {
+		goodbye_world_type gw;
+		this->init_segment(gw);
+		return gw;
+	}
+};
+\endcode
+
+\section sec_pipe_base Factory concatenation
+
+To use the above defined factories, we might write the following:
+
+\code
+using namespace tpie;
+using namespace tpie::pipelining;
+factory_1<input_t, file_stream<memory_size_type> &> fact0(inputstream);
+hello_world_factory fact1;
+goodbye_world_factory fact2;
+pipeline p = fact0.construct(fact1.construct(fact2.construct()));
+\endcode
+
+However, this is tedious, and so the pipelining framework provides several
+helper classes to ease the construction of pipelines.
+
+\code
+inline pipe_middle<factory_0<hello_world_type> >
+hello_world() {
+	return factory_0<hello_world_type>();
+}
+
+inline pipe_end<termfactory_0<goodbye_world_type> >
+goodbye_world() {
+	return termfactory_0<goodbye_world_type>();
+}
+\endcode
+
+which we would use as follows:
+\code
+using namespace tpie;
+using namespace tpie::pipelining;
+pipeline p = input(inputstream) | hello_world() | goodbye_world();
+\endcode
+
+The three terms that are piped together have types pipe_begin, pipe_middle and
+pipe_end respectively. As one might expect, piping together a pipe_begin and a
+pipe_middle yields a new pipe_begin, and piping together a pipe_begin and a
+pipe_end yields a pipeline object (actually a pipeline_impl object).
+*/
