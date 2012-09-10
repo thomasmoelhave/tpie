@@ -169,8 +169,8 @@ struct sort_input_t : public pipe_segment {
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_input_t(sort_calc_t<pred_t, Output> dest, const pred_t & pred)
-		: dest(dest)
-		, m_sorter(new sorter_t(pred))
+		: m_sorter(new sorter_t(pred))
+		, dest(dest)
 	{
 		this->dest.set_input_segment(*this, m_sorter);
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());

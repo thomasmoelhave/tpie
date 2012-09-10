@@ -138,7 +138,7 @@ struct pair_factory_base {
 		return self().fact1.memory() + self().fact2.memory();
 	}
 
-	inline void name(const std::string & n, priority_type p) {
+	inline void name(const std::string & n, priority_type) {
 		push_breadcrumb(n);
 	}
 
