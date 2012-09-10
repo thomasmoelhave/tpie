@@ -18,6 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/pipelining/graph.h>
+#include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/pipe_segment.h>
 
 namespace {
 
@@ -249,6 +251,13 @@ void phase::assign_memory(memory_size_type m) const {
 	}
 }
 
+graph_traits::graph_traits(const segment_map & map)
+	: map(map)
+{
+	map.assert_authoritative();
+	calc_phases();
+}
+
 void graph_traits::go_all(stream_size_type n, Progress::base & pi) {
 	map.assert_authoritative();
 	map.send_successors();
@@ -272,8 +281,8 @@ void graph_traits::go_all(stream_size_type n, Progress::base & pi) {
 
 void graph_traits::calc_phases() {
 	map.assert_authoritative();
-	typedef std::map<id_t, size_t> ids_t;
-	typedef std::map<size_t, id_t> ids_inv_t;
+	typedef std::map<segment_map::id_t, size_t> ids_t;
+	typedef std::map<size_t, segment_map::id_t> ids_inv_t;
 	ids_t ids;
 	ids_inv_t ids_inv;
 	size_t nextid = 0;

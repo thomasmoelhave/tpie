@@ -24,16 +24,17 @@
 #ifndef __TPIE_PIPELINING_GRAPH_H__
 #define __TPIE_PIPELINING_GRAPH_H__
 
-#include <tpie/pipelining/core.h>
-#include <tpie/pipelining/tokens.h>
 #include <tpie/disjoint_sets.h>
 #include <tpie/dummy_progress.h>
+#include <tpie/tpie_assert.h>
 #include <vector>
 #include <stack>
 
 namespace tpie {
 
 namespace pipelining {
+
+struct pipe_segment;
 
 class phase {
 public:
@@ -93,18 +94,14 @@ private:
 	void assign_minimum_memory() const;
 };
 
+struct segment_map;
+
 struct graph_traits {
-	typedef segment_map::id_t id_t;
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::iterator phaseit;
 	typedef progress_types<true> Progress;
 
-	graph_traits(const segment_map & map)
-		: map(map)
-	{
-		map.assert_authoritative();
-		calc_phases();
-	}
+	graph_traits(const segment_map & map);
 
 	double sum_memory() {
 		double sum = 0.0;
