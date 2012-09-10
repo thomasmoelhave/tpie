@@ -104,6 +104,10 @@ struct pipe_segment {
 		m_namePriority = priority;
 	}
 
+	inline void set_breadcrumb(const std::string & breadcrumb) {
+		m_name = m_name.empty() ? breadcrumb : (breadcrumb + " | " + m_name);
+	}
+
 	// Called by segment_map
 	inline void add_successor(pipe_segment * succ) {
 		m_successors.push_back(succ);

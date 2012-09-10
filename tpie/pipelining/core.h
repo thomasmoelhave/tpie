@@ -138,6 +138,15 @@ struct pair_factory_base {
 		return self().fact1.memory() + self().fact2.memory();
 	}
 
+	inline void name(const std::string & n, priority_type p) {
+		push_breadcrumb(n);
+	}
+
+	void push_breadcrumb(const std::string & n) {
+		self().fact1.push_breadcrumb(n);
+		self().fact2.push_breadcrumb(n);
+	}
+
 private:
 	inline child_t & self() {return *static_cast<child_t*>(this);}
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
@@ -196,6 +205,11 @@ struct pipe_base {
 
 	inline child_t & name(const std::string & n, priority_type p = PRIORITY_USER) {
 		self().factory.name(n, p);
+		return self();
+	}
+
+	inline child_t & breadcrumb(const std::string & n) {
+		self().factory.push_breadcrumb(n);
 		return self();
 	}
 

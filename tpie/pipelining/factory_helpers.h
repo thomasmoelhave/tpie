@@ -24,7 +24,6 @@ namespace tpie {
 
 namespace pipelining {
 
-template <typename child_t>
 struct factory_base {
 	factory_base() : m_amount(0), m_set(false) {
 	}
@@ -38,10 +37,14 @@ struct factory_base {
 		return m_amount;
 	}
 
-	template <typename R>
-	inline void init_segment(R & r) const {
+	inline void init_segment(pipe_segment & r) const {
 		if (m_set) r.set_memory_fraction(memory());
-		if (!m_name.empty()) r.set_name(m_name, m_namePriority);
+		if (!m_name.empty()) {
+			r.set_name(m_name, m_namePriority);
+		}
+		if (!m_breadcrumbs.empty()) {
+			r.set_breadcrumb(m_breadcrumbs);
+		}
 	}
 
 	inline void name(const std::string & n, priority_type p) {
@@ -49,10 +52,16 @@ struct factory_base {
 		m_namePriority = p;
 	}
 
+	inline void push_breadcrumb(const std::string & n) {
+		if (m_breadcrumbs.empty()) m_breadcrumbs = n;
+		else m_breadcrumbs = n + " | " + m_breadcrumbs;
+	}
+
 private:
 	double m_amount;
 	bool m_set;
 	std::string m_name;
+	std::string m_breadcrumbs;
 	priority_type m_namePriority;
 };
 
@@ -65,7 +74,7 @@ private:
 /// filter.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R>
-struct factory_0 : public factory_base<factory_0<R> > {
+struct factory_0 : public factory_base {
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -84,7 +93,7 @@ struct factory_0 : public factory_base<factory_0<R> > {
 /// Push segment factory for 1-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1>
-struct factory_1 : public factory_base<factory_1<R, T1> > {
+struct factory_1 : public factory_base {
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -107,7 +116,7 @@ private:
 /// Push segment factory for 2-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2>
-struct factory_2 : public factory_base<factory_2<R, T1, T2> > {
+struct factory_2 : public factory_base {
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -131,7 +140,7 @@ private:
 /// Final push segment factory for 0-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R>
-struct termfactory_0 : public factory_base<termfactory_0<R> > {
+struct termfactory_0 : public factory_base {
 	typedef R generated_type;
 	inline R construct() const {
 		R r;
@@ -145,7 +154,7 @@ struct termfactory_0 : public factory_base<termfactory_0<R> > {
 /// Final push segment factory for 1-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1>
-struct termfactory_1 : public factory_base<termfactory_1<R, T1> > {
+struct termfactory_1 : public factory_base {
 	typedef R generated_type;
 	inline termfactory_1(T1 t1) : t1(t1) {}
 	inline R construct() const {
@@ -162,7 +171,7 @@ private:
 /// Final push segment factory for 2-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2>
-struct termfactory_2 : public factory_base<termfactory_2<R, T1, T2> > {
+struct termfactory_2 : public factory_base {
 	typedef R generated_type;
 	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 	inline R construct() const {
