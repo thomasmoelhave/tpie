@@ -84,6 +84,7 @@ struct pipe_segment {
 		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " uses old go() interface" << std::endl;
 	}
 
+	// Overriding this method is deprecated
 	virtual void go(progress_indicator_base &) {
 		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl;
 		throw not_initiator_segment();
