@@ -5,18 +5,28 @@
 
 A pipe segment is a class that derives from tpie::pipelining::pipe_segment and
 either overrides \c go(), implements \c push() or implements \c pull() and
-\c can_pull(). In the first case, the pipe segment is called an initiator; in
-the second case, it is called a push segment, and in the third case, it is
-called a pull segment.
+\c can_pull(). In the first case, the pipe segment is called an
+<em>initiator</em>; in the second case, it is called a <em>push segment</em>,
+and in the third case, it is called a <em>pull segment</em>.
 
-A pipe segment should aggregate the pipe segment(s) it pushes to or pulls from.
-At runtime, it must declare the pipe segment(s) it pushes to or pulls from by
-calling the methods \c pipe_segment::add_push_destination and
-\c pipe_segment::add_pull_destination.
+- A pipe segment SHOULD aggregate the pipe segment(s) it pushes to or pulls from,
+  and thus a pipe segment is usually templated on its destination type.
 
-A push/pull segment must declare a public typedef \c item_type, the type of
-item accepted by \c push or returned by \c pull. This is used by built-in type
-generic segments such as the sorter or the reverser.
+- A pipe segment SHOULD be copyable such that any other copyable pipe segment
+  may aggregate it.
+
+- A push/pull segment MUST declare a public typedef \c item_type, the type of
+  item accepted by \c push or returned by \c pull. This is used by built-in type
+  generic segments such as the sorter or the reverser.
+
+- At runtime, it MUST declare the pipe segment(s) it pushes to or pulls from by
+  calling the methods \c pipe_segment::add_push_destination and
+  \c pipe_segment::add_pull_destination.
+
+- At runtime, it SHOULD declare a name by calling the methods
+  \c pipe_segment::set_name with \c tpie::pipelining::PRIORITY_INSIGNIFICANT or
+  \c PRIORITY_SIGNIFICANT as the second parameter (depending whether the
+  segment does significant or insignificant work; the lines are quite blurry).
 
 Thus, a \c pipe_segment implementation of a push segment may look as follows:
 
@@ -31,6 +41,8 @@ public:
 		: dest(dest)
 	{
 		add_push_destination(dest);
+		set_name("My first pipe segment",
+		         tpie::pipelining::PRIORITY_SIGNIFICANT);
 	}
 
 	void push(const item_type & item) {
@@ -106,10 +118,12 @@ factory_1<input_t, file_stream<memory_size_type> &> fact0(inputstream);
 hello_world_factory fact1;
 goodbye_world_factory fact2;
 pipeline p = fact0.construct(fact1.construct(fact2.construct()));
+p();
 \endcode
 
 However, this is tedious, and so the pipelining framework provides several
-helper classes to ease the construction of pipelines.
+helper classes to ease the construction of pipelines, namely the descendants of
+\c pipe_base which are called \c pipe_begin, \c pipe_middle and \c pipe_end.
 
 \code
 inline pipe_middle<factory_0<hello_world_type> >
@@ -128,10 +142,118 @@ which we would use as follows:
 using namespace tpie;
 using namespace tpie::pipelining;
 pipeline p = input(inputstream) | hello_world() | goodbye_world();
+p();
 \endcode
 
-The three terms that are piped together have types pipe_begin, pipe_middle and
-pipe_end respectively. As one might expect, piping together a pipe_begin and a
-pipe_middle yields a new pipe_begin, and piping together a pipe_begin and a
-pipe_end yields a pipeline object (actually a pipeline_impl object).
+The three terms that are piped together have types \c pipe_begin,
+\c pipe_middle and \c pipe_end respectively. As one might expect, piping
+together a \c pipe_begin and a \c pipe_middle yields a new \c pipe_begin, and
+piping together a \c pipe_begin and a \c pipe_end yields a pipeline object
+(actually a \c pipeline_impl object).
+
+\section sec_phases Pipeline phases
+
+Consider the following implementation of a reverser:
+
+\code
+template <typename dest_t>
+class reverser_type : public tpie::pipelining::pipe_segment {
+	tpie::stack<point3d> points;
+	dest_t dest;
+public:
+	typedef point3d item_type;
+
+	void push(point3d p) {
+		points.push(p);
+		set_name("Reverser",
+		         tpie::pipelining::PRIORITY_SIGNIFICANT);
+	}
+
+	void end() {
+		pipe_segment::end();
+		while (!points.empty()) {
+			dest.push(points.pop());
+		}
+	}
+};
+\endcode
+
+This implementation seems innocious at first, but it is in fact very wasteful.
+Note that the reverser needs to know the entire stream before it can push
+anything to its destination. This means that when all items have been pushed to
+it, we could as well deallocate all the item buffers that earlier pipe segments
+may have used while processing. As well, we could have waited until the stack
+was ready to push before initializing later pipe segments in the pipeline.
+
+This is what pipelining phases are for. Phases are collections of pipe segments
+that do not have to operate synchronously. Pipe segments may establish an
+ordering of pipelining phases by adding dependencies to pipe segments in other
+phases. Let us implement a reverser using phases.
+
+\code
+template <typename dest_t>
+class reverser_type_1 : public tpie::pipelining::pipe_segment {
+	tpie::temp_file tmpfile;
+	tpie::auto_ptr<tpie::stack<point3d> > points;
+	dest_t dest;
+public:
+	typedef point3d item_type;
+
+	reverser_type_1(dest_t dest) {
+		dest.set_first(*this);
+	}
+
+	void begin() {
+		pipe_segment::begin();
+		tmpfile.set_persistent(true);
+		points.reset(new tpie::stack<point3d>(tmpfile));
+		forward<std::string>("stack", tmpfile.path());
+	}
+
+	void push(point3d p) {
+		points->write(p);
+	}
+
+	void end() {
+		pipe_segment::end();
+		points.reset();
+	}
+};
+
+template <typename dest_t>
+class reverser_type_2 : public tpie::pipelining::pipe_segment {
+	tpie::temp_file tmpfile;
+	tpie::auto_ptr<tpie::stack<point3d> > points;
+	dest_t dest;
+public:
+	reverser_type_2(dest_t dest) {
+		add_push_destination(dest);
+	}
+
+	void set_first(pipe_segment & first) {
+		add_dependency(first);
+	}
+
+	void begin() {
+		pipe_segment::begin();
+		tmpfile.set_path(fetch<std::string>("stack"));
+		points.reset(new tpie::stack<point3d>(tmpfile));
+	}
+
+	void go(progress_indicator_base & pi) {
+		pi.init(points->size());
+		while (!points->empty()) {
+			dest.push(points->pop());
+			pi.step();
+		}
+		pi.done();
+	}
+
+	void end() {
+		pipe_segment::end();
+		points.reset();
+		tmpfile.free();
+	}
+};
+\endcode
 */
