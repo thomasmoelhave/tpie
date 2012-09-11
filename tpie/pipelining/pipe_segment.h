@@ -37,6 +37,25 @@ const priority_type PRIORITY_INSIGNIFICANT = 5;
 const priority_type PRIORITY_SIGNIFICANT = 10;
 const priority_type PRIORITY_USER = 20;
 
+struct pipe_segment;
+
+namespace bits {
+
+class proxy_progress_indicator : public tpie::progress_indicator_base {
+	pipe_segment & m_segment;
+
+public:
+	proxy_progress_indicator(pipe_segment & s)
+		: progress_indicator_base(1)
+		, m_segment(s)
+	{
+	}
+
+	inline void refresh();
+};
+
+} // namespace bits
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all segments. A segment should inherit from pipe_segment,
 /// have a single template parameter dest_t if it is not a terminus segment,
@@ -247,6 +266,13 @@ protected:
 		m_pi->step(steps);
 	}
 
+	progress_indicator_base * proxy_progress_indicator() {
+		if (m_piProxy.get() != 0) return m_piProxy.get();
+		progress_indicator_base * pi = new bits::proxy_progress_indicator(*this);
+		m_piProxy.reset(pi);
+		return pi;
+	}
+
 	friend class phase;
 
 private:
@@ -266,7 +292,26 @@ private:
 	stream_size_type m_stepsTotal;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
+	std::auto_ptr<progress_indicator_base> m_piProxy;
+
+	friend class bits::proxy_progress_indicator;
 };
+
+namespace bits {
+
+void proxy_progress_indicator::refresh() {
+	double proxyMax = static_cast<double>(get_range());
+	double proxyCur = static_cast<double>(get_current());
+	double parentMax = static_cast<double>(m_segment.m_stepsTotal);
+	double parentCur = static_cast<double>(m_segment.m_stepsTotal-m_segment.m_stepsLeft);
+	double missing = parentMax*proxyCur/proxyMax - parentCur;
+	if (missing < 1.0) return;
+	stream_size_type times = static_cast<stream_size_type>(1.0+missing);
+	times = std::min(m_segment.m_stepsLeft, times);
+	m_segment.step(times);
+}
+
+} // namespace bits
 
 } // namespace pipelining
 
