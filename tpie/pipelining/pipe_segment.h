@@ -237,12 +237,14 @@ protected:
 		m_stepsTotal = m_stepsLeft = steps;
 	}
 
-	void step() {
-		if (m_stepsLeft == 0) {
+	void step(stream_size_type steps = 1) {
+		if (m_stepsLeft < steps) {
 			log_warning() << typeid(*this).name() << " ==== Too many steps!" << std::endl;
+			m_stepsLeft = 0;
+		} else {
+			m_stepsLeft -= steps;
 		}
-		--m_stepsLeft;
-		m_pi->step();
+		m_pi->step(steps);
 	}
 
 	friend class phase;
