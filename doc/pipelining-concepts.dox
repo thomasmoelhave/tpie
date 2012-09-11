@@ -171,6 +171,7 @@ public:
 
 	void end() {
 		pipe_segment::end();
+		// Pushing items in end() is bad!
 		while (!points.empty()) {
 			dest.push(points.pop());
 		}
@@ -188,76 +189,14 @@ was ready to push before initializing later pipe segments in the pipeline.
 This is what pipelining phases are for. Phases are collections of pipe segments
 that do not have to operate synchronously. Pipe segments may establish an
 ordering of pipelining phases by adding dependencies to pipe segments in other
-phases. Let us implement a reverser using phases.
+phases.
 
-\code
-template <typename dest_t>
-class reverser_type_1 : public tpie::pipelining::pipe_segment {
-	tpie::temp_file tmpfile;
-	tpie::auto_ptr<tpie::stack<point3d> > points;
-	dest_t dest;
-public:
-	typedef point3d item_type;
+Common buffering operations that give rise to new phases are sorting and
+reversing, and these are already implemented in the pipelining framework.
 
-	reverser_type_1(dest_t dest) {
-		dest.set_first(*this);
-	}
-
-	void begin() {
-		pipe_segment::begin();
-		tmpfile.set_persistent(true);
-		points.reset(new tpie::stack<point3d>(tmpfile));
-		forward<std::string>("stack", tmpfile.path());
-	}
-
-	void push(point3d p) {
-		points->write(p);
-	}
-
-	void end() {
-		pipe_segment::end();
-		points.reset();
-	}
-};
-
-template <typename dest_t>
-class reverser_type_2 : public tpie::pipelining::pipe_segment {
-	tpie::temp_file tmpfile;
-	tpie::auto_ptr<tpie::stack<point3d> > points;
-	dest_t dest;
-public:
-	reverser_type_2(dest_t dest) {
-		add_push_destination(dest);
-	}
-
-	void set_first(pipe_segment & first) {
-		add_dependency(first);
-	}
-
-	void begin() {
-		pipe_segment::begin();
-		tmpfile.set_path(fetch<std::string>("stack"));
-		points.reset(new tpie::stack<point3d>(tmpfile));
-	}
-
-	void go(progress_indicator_base & pi) {
-		pi.init(points->size());
-		while (!points->empty()) {
-			dest.push(points->pop());
-			pi.step();
-		}
-		pi.done();
-	}
-
-	void end() {
-		pipe_segment::end();
-		points.reset();
-		tmpfile.free();
-	}
-};
-\endcode
-
-TODO: Fix the framework so this is easier!
+For an idea of how to properly implement a buffering pipe segment such as a
+reverser using \c pipe_segment::add_dependency, see
+\file tpie/pipelining/reverser.h.
 
 \section sec_chunks Virtual chunks
 
