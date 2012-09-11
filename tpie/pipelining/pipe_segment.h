@@ -23,6 +23,7 @@
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_base.h>
+#include <tpie/progress_indicator_null.h>
 #include <boost/any.hpp>
 
 namespace tpie {
@@ -76,6 +77,13 @@ struct pipe_segment {
 		forward_all();
 	}
 
+	virtual void go() {
+		progress_indicator_null pi;
+		go(pi);
+		// if go didn't throw, it was overridden - but it shouldn't be
+		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " uses old go() interface" << std::endl;
+	}
+
 	virtual void go(progress_indicator_base &) {
 		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl;
 		throw not_initiator_segment();
@@ -113,6 +121,14 @@ struct pipe_segment {
 		m_successors.push_back(succ);
 	}
 
+	inline stream_size_type get_steps() {
+		return m_stepsTotal;
+	}
+
+	inline void set_progress_indicator(progress_indicator_base * pi) {
+		m_pi = pi;
+	}
+
 protected:
 	inline pipe_segment()
 		: token(this)
@@ -120,6 +136,9 @@ protected:
 		, m_availableMemory(0)
 		, m_memoryFraction(1.0)
 		, m_namePriority(PRIORITY_NO_NAME)
+		, m_stepsTotal(0)
+		, m_stepsLeft(0)
+		, m_pi(0)
 	{
 	}
 
@@ -130,6 +149,9 @@ protected:
 		, m_memoryFraction(other.m_memoryFraction)
 		, m_name(other.m_name)
 		, m_namePriority(other.m_namePriority)
+		, m_stepsTotal(other.m_stepsTotal)
+		, m_stepsLeft(other.m_stepsLeft)
+		, m_pi(other.m_pi)
 	{
 	}
 
@@ -139,6 +161,9 @@ protected:
 		, m_availableMemory(0)
 		, m_memoryFraction(1.0)
 		, m_namePriority(PRIORITY_NO_NAME)
+		, m_stepsTotal(0)
+		, m_stepsLeft(0)
+		, m_pi(0)
 	{
 	}
 
@@ -207,6 +232,18 @@ protected:
 		return token;
 	}
 
+	void set_steps(stream_size_type steps) {
+		m_stepsTotal = m_stepsLeft = steps;
+	}
+
+	void step() {
+		if (m_stepsLeft == 0) {
+			log_warning() << typeid(*this).name() << " ==== Too many steps!" << std::endl;
+		}
+		--m_stepsLeft;
+		m_pi->step();
+	}
+
 	friend class phase;
 
 private:
@@ -222,6 +259,10 @@ private:
 	std::vector<pipe_segment *> m_successors;
 	typedef std::map<std::string, boost::any> valuemap;
 	valuemap m_values;
+
+	stream_size_type m_stepsTotal;
+	stream_size_type m_stepsLeft;
+	progress_indicator_base * m_pi;
 };
 
 } // namespace pipelining

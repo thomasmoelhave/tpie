@@ -350,13 +350,18 @@ void phase::go(progress_indicator_base & pi) {
 	dfs_traversal<phase::segment_graph> dfs(*g);
 	dfs.dfs();
 	std::vector<pipe_segment *> order = dfs.toposort();
+	stream_size_type totalSteps = 0;
 	for (size_t i = 0; i < order.size(); ++i) {
+		order[i]->set_progress_indicator(&pi);
+		totalSteps += order[i]->get_steps();
 		order[i]->begin();
 	}
-	m_initiator->go(pi);
+	pi.init(totalSteps);
+	m_initiator->go();
 	for (size_t i = 0; i < order.size(); ++i) {
 		order[i]->end();
 	}
+	pi.done();
 }
 
 } // namespace pipelining
