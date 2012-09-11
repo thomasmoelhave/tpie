@@ -41,16 +41,15 @@ struct input_vector_t : public pipe_segment {
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		forward("items", static_cast<stream_size_type>(input.size()));
+		set_steps(input.size());
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
+	virtual void go() /*override*/ {
 		typedef typename std::vector<item_type>::const_iterator IT;
-		pi.init(input.size());
 		for (IT i = input.begin(); i != input.end(); ++i) {
 			dest.push(*i);
-			pi.step();
+			step();
 		}
-		pi.done();
 	}
 private:
 	dest_t dest;

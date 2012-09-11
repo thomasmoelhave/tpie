@@ -138,14 +138,14 @@ struct reverser_output_t: public  pipe_segment {
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		forward("items", the_stack->size());
+		set_steps(the_stack->size());
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		pi.init(the_stack->size());
+	virtual void go() /*override*/ {
 		while (!the_stack->empty()) {
 			dest.push(the_stack->pop());
+			step();
 		}
-		pi.done();
 	}
 
 	dest_t dest;

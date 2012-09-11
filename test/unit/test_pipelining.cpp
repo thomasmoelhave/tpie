@@ -254,13 +254,16 @@ struct sequence_generator : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		pi.init(elements);
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		set_steps(elements);
+	}
+
+	virtual void go() /*override*/ {
 		for (size_t i = elements; i > 0; --i) {
 			dest.push(i);
-			pi.step();
+			step();
 		}
-		pi.done();
 	}
 private:
 	dest_t dest;
@@ -451,10 +454,7 @@ struct FF1 : public pipe_segment {
 		i.v1 = 1;
 		forward("my_item", i);
 	}
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		pi.init(1);
-		pi.step();
-		pi.done();
+	virtual void go() /*override*/ {
 	}
 };
 

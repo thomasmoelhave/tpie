@@ -46,15 +46,14 @@ struct input_t : public pipe_segment {
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		forward("items", fs.size());
+		set_steps(fs.size());
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		pi.init(fs.size());
+	virtual void go() /*override*/ {
 		while (fs.can_read()) {
 			dest.push(fs.read());
-			pi.step();
+			step();
 		}
-		pi.done();
 	}
 
 private:
@@ -82,9 +81,11 @@ struct pull_input_t : public pipe_segment {
 
 	virtual void begin() /*override*/ {
 		forward("items", fs.size());
+		set_steps(fs.size());
 	}
 
 	inline T pull() {
+		step();
 		return fs.read();
 	}
 
@@ -139,17 +140,12 @@ struct pull_output_t : public pipe_segment {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		// TODO progress information
-		log_warning() << "Useless progress information in pull_output_t" << std::endl;
-		pi.init(1);
+	virtual void go() /*override*/ {
 		source.begin();
 		while (source.can_pull()) {
 			fs.write(source.pull());
 		}
 		source.end();
-		pi.step();
-		pi.done();
 	}
 
 	source_t source;

@@ -52,11 +52,17 @@ struct sort_pull_output_t : public pipe_segment {
 		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 	}
 
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		set_steps(m_sorter->item_count());
+	}
+
 	inline bool can_pull() const {
 		return m_sorter->can_pull();
 	}
 
 	inline item_type pull() {
+		step();
 		return m_sorter->pull();
 	}
 
@@ -91,13 +97,16 @@ struct sort_output_t : public pipe_segment {
 		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		pi.init(m_sorter->item_count());
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		set_steps(m_sorter->item_count());
+	}
+
+	virtual void go() /*override*/ {
 		while (m_sorter->can_pull()) {
 			dest.push(m_sorter->pull());
-			pi.step();
+			step();
 		}
-		pi.done();
 	}
 
 protected:
@@ -131,7 +140,9 @@ struct sort_calc_t : public pipe_segment {
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
+	virtual void go() /*override*/ {
+		progress_indicator_null pi;
+		// TODO progress
 		m_sorter->calc(pi);
 	}
 
