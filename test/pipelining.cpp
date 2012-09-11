@@ -81,6 +81,7 @@ struct input_nodes_t : public pipe_segment {
 		, nodes(nodes)
 	{
 		add_push_destination(dest);
+		set_name("Input nodes");
 	}
 
 	inline void go(progress_indicator_base & pi) {
@@ -116,6 +117,7 @@ struct count_t {
 			add_push_destination(dest);
 			add_pull_destination(byid);
 			add_pull_destination(byparent);
+			set_name("Count items");
 		}
 
 		inline void go(progress_indicator_base & pi) {
@@ -178,6 +180,7 @@ struct output_count_t : public pipe_segment {
 		: children(0)
 		, nodes(0)
 	{
+		set_name("Output");
 	}
 
 	inline void begin() {
