@@ -35,10 +35,10 @@ namespace tpie {
 
 namespace pipelining {
 
-template <typename pred_t, typename Output>
+template <typename T, typename pred_t, typename Output>
 struct sort_calc_t;
 
-template <typename pred_t, typename Output>
+template <typename T, typename pred_t, typename Output>
 struct sort_input_t;
 
 template <typename T, typename pred_t>
@@ -80,7 +80,8 @@ private:
 		m_sorter = sorter;
 	}
 
-	friend struct sort_calc_t<pred_t, sort_pull_output_t>;
+	friend struct sort_calc_t<T, pred_t, sort_pull_output_t>;
+	friend struct sort_calc_t<T, pred_t, sort_pull_output_t &>;
 };
 
 template <typename pred_t, typename dest_t>
@@ -124,12 +125,12 @@ private:
 		m_sorter = sorter;
 	}
 
-	friend struct sort_calc_t<pred_t, sort_output_t>;
+	friend struct sort_calc_t<item_type, pred_t, sort_output_t>;
 };
 
-template <typename pred_t, typename Output>
+template <typename T, typename pred_t, typename Output>
 struct sort_calc_t : public pipe_segment {
-	typedef typename Output::item_type item_type;
+	typedef T item_type;
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
@@ -140,10 +141,13 @@ struct sort_calc_t : public pipe_segment {
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 	}
 
+	virtual void begin() /*override*/ {
+		set_steps(1000);
+	}
+
 	virtual void go() /*override*/ {
-		progress_indicator_null pi;
-		// TODO progress
-		m_sorter->calc(pi);
+		progress_indicator_base * pi = proxy_progress_indicator();
+		m_sorter->calc(*pi);
 	}
 
 	virtual bool can_evacuate() /*override*/ {
@@ -170,16 +174,16 @@ private:
 		dest.set_calc_segment(*this, sorter);
 	}
 
-	friend struct sort_input_t<pred_t, Output>;
+	friend struct sort_input_t<T, pred_t, Output>;
 };
 
-template <typename pred_t, typename Output>
+template <typename T, typename pred_t, typename Output>
 struct sort_input_t : public pipe_segment {
-	typedef typename Output::item_type item_type;
+	typedef T item_type;
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_input_t(sort_calc_t<pred_t, Output> dest, const pred_t & pred)
+	inline sort_input_t(sort_calc_t<T, pred_t, Output> dest, const pred_t & pred)
 		: m_sorter(new sorter_t(pred))
 		, dest(dest)
 	{
@@ -218,7 +222,7 @@ protected:
 
 private:
 	sorterptr m_sorter;
-	sort_calc_t<pred_t, Output> dest;
+	sort_calc_t<T, pred_t, Output> dest;
 };
 
 struct default_pred_sort_factory : public factory_base {
@@ -229,7 +233,7 @@ struct default_pred_sort_factory : public factory_base {
 		typedef std::less<item_type> pred_type;
 		typedef sort_output_t<pred_type, dest_t> Output;
 	public:
-		typedef sort_input_t<std::less<item_type>, Output> type;
+		typedef sort_input_t<item_type, std::less<item_type>, Output> type;
 	};
 
 	template <typename dest_t>
@@ -239,9 +243,9 @@ struct default_pred_sort_factory : public factory_base {
 		typedef sort_output_t<pred_type, dest_t> Output;
 		Output output(dest);
 		this->init_segment(output);
-		sort_calc_t<pred_type, Output> calc(output);
+		sort_calc_t<item_type, pred_type, Output> calc(output);
 		this->init_segment(calc);
-		sort_input_t<pred_type, Output> input(calc, pred_type());
+		sort_input_t<item_type, pred_type, Output> input(calc, pred_type());
 		this->init_segment(input);
 		return input;
 	}
@@ -255,7 +259,7 @@ struct sort_factory : public factory_base {
 		typedef typename dest_t::item_type item_type;
 		typedef sort_output_t<pred_t, dest_t> Output;
 	public:
-		typedef sort_input_t<std::less<item_type>, Output> type;
+		typedef sort_input_t<item_type, std::less<item_type>, Output> type;
 	};
 
 	template <typename dest_t>
@@ -264,9 +268,9 @@ struct sort_factory : public factory_base {
 		typedef sort_output_t<pred_t, dest_t> Output;
 		Output output(dest);
 		this->init_segment(output);
-		sort_calc_t<pred_t, Output> calc(output);
+		sort_calc_t<item_type, pred_t, Output> calc(output);
 		this->init_segment(calc);
-		sort_input_t<pred_t, Output> input(calc, pred);
+		sort_input_t<item_type, pred_t, Output> input(calc, pred);
 		this->init_segment(input);
 		return input;
 	}
@@ -296,11 +300,11 @@ pipesort(const pred_t & p) {
 template <typename T, typename pred_t>
 struct passive_sorter_factory : public factory_base {
 	typedef sort_pull_output_t<T, pred_t> output_t;
-	typedef sort_calc_t<pred_t, output_t> calc_t;
-	typedef sort_input_t<pred_t, output_t> input_t;
+	typedef sort_calc_t<T, pred_t, output_t &> calc_t;
+	typedef sort_input_t<T, pred_t, output_t &> input_t;
 	typedef input_t generated_type;
 
-	passive_sorter_factory(const output_t & output)
+	passive_sorter_factory(output_t & output)
 		: m_output(output)
 	{
 	}
@@ -314,7 +318,7 @@ struct passive_sorter_factory : public factory_base {
 	}
 
 private:
-	output_t m_output;
+	output_t & m_output;
 };
 
 template <typename T, typename pred_t>
@@ -323,8 +327,6 @@ struct passive_sorter {
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 	typedef sort_pull_output_t<item_type, pred_t> output_t;
-	typedef sort_calc_t<pred_t, output_t> calc_t;
-	typedef sort_input_t<pred_t, output_t> input_t;
 
 	inline passive_sorter()
 		: pred()
