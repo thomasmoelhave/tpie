@@ -1,6 +1,30 @@
 /**
 \page pipelining-concepts Pipelining concepts
 
+The pipelining framework is used to implement algorithms that process streams
+of items. The item streams may undergo certain standard operations (computing
+the moving average over a stream of numbers; sorting the entire stream
+according to some predicate; weeding out duplicate items in the stream) that
+are used in several algorithm implementations.
+
+According to the principles of software architecture, as developers we want to
+author these operations as individual components so they may unit tested and
+reused to reduce debugging and code duplication. However, streaming algorithms
+often turn out as monolithic implementation classes with multiple interdependent
+methods that do not facilitate individual development and testing.
+Using virtual polymorphism may enable unit testing of components, but the
+virtual method speed penalty paid per item per operation is too high a price to
+pay in our case.
+
+What we want instead is a kind of compile-time polymorphism: Implementations of
+operations that use C++ generic programming to let the programmer mix and match
+at code time, but have the methods inlined and fused together at compile time.
+Without an underlying framework, this kind of architecture will lead to a lot
+of typedefs that are overly verbose and somewhat unmaintainable.
+
+The pipelining framework provides compile-time polymorphism along with high
+maintainability, high testability and low verbosity.
+
 \section sec_pipe_segment Pipe segments
 
 A pipe segment is a class that derives from tpie::pipelining::pipe_segment and
@@ -40,7 +64,10 @@ public:
 	hello_world_type(dest_t dest)
 		: dest(dest)
 	{
-		add_push_destination(dest);
+		add_push_destination(dest); // dest refers to the parameter
+		                            // dest and not the member
+		                            // this->dest, but in this case
+		                            // the framework does not care
 		set_name("My first pipe segment",
 		         tpie::pipelining::PRIORITY_SIGNIFICANT);
 	}
