@@ -352,9 +352,9 @@ void phase::go(progress_indicator_base & pi) {
 	std::vector<pipe_segment *> order = dfs.toposort();
 	stream_size_type totalSteps = 0;
 	for (size_t i = 0; i < order.size(); ++i) {
+		order[i]->begin();
 		order[i]->set_progress_indicator(&pi);
 		totalSteps += order[i]->get_steps();
-		order[i]->begin();
 	}
 	pi.init(totalSteps);
 	m_initiator->go();
