@@ -82,19 +82,18 @@ struct input_nodes_t : public pipe_segment {
 	{
 		add_push_destination(dest);
 		set_name("Input nodes");
+		set_steps(nodes);
 	}
 
-	inline void go(progress_indicator_base & pi) {
+	inline void go() {
 		static boost::mt19937 mt;
 		static boost::uniform_int<> dist(0, nodes-1);
-		pi.init(nodes);
 		dest.begin();
 		for (size_t i = 0; i < nodes; ++i) {
 			dest.push(node(i, dist(mt)));
-			pi.step();
+			step();
 		}
 		dest.end();
-		pi.done();
 	}
 
 private:
@@ -120,10 +119,7 @@ struct count_t {
 			set_name("Count items");
 		}
 
-		inline void go(progress_indicator_base & pi) {
-			// TODO progress information
-			log_warning() << "Useless progress information from count_t" << std::endl;
-			pi.init(1); // how many items? I don't know
+		virtual void go() /*override*/ {
 			dest.begin();
 			byid.begin();
 			byparent.begin();
@@ -156,8 +152,6 @@ seen_children:
 			byparent.end();
 			byid.end();
 			dest.end();
-			pi.step();
-			pi.done();
 		}
 
 		dest_t dest;
