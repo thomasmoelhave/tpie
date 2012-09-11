@@ -13,10 +13,10 @@ the stream performing unnecessary block flushes and reads.
 
 \code
 tpie::file<T> queue;
+queue.open(); // open anonymous temporary file for reading and writing
 tpie::file<T>::stream front(queue);
 tpie::file<T>::stream back(queue);
 tpie::stream_size_type enqueued = 0;
-queue.open(); // open anonymous temporary file for reading and writing
 \endcode
 
 In the above code fragment, we associate two streams to one tpie::file. For
