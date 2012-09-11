@@ -223,7 +223,7 @@ reversing, and these are already implemented in the pipelining framework.
 
 For an idea of how to properly implement a buffering pipe segment such as a
 reverser using \c pipe_segment::add_dependency, see
-\file tpie/pipelining/reverser.h.
+\c tpie/pipelining/reverser.h.
 
 \section sec_chunks Virtual chunks
 
