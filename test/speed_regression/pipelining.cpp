@@ -36,8 +36,7 @@ const size_t count_default=1024*1024*1024/sizeof(test_t);
 static std::string prog;
 
 static inline void usage() {
-	std::cout << "Usage: " << prog << " [-N] [times [count]]\n"
-		<< "-N: Don't use virtual calls\n"
+	std::cout << "Usage: " << prog << " [times [count]]\n"
 		<< "times: Number of trials\n"
 		<< "count: Number of elements in each trial"
 		<< std::endl;
@@ -47,18 +46,21 @@ static inline void usage() {
 template <typename dest_t>
 struct number_generator_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
-	inline number_generator_t(const dest_t & dest, size_t count) : dest(dest), count(count) {}
-	inline void operator()() {
-		dest.begin();
-		for (size_t i = 1; i <= count; ++i) {
-			dest.push(i);
-		}
-		dest.end();
+	inline number_generator_t(const dest_t & dest, size_t count)
+		: dest(dest)
+		, count(count)
+	{
+		add_push_destination(dest);
+		set_steps(count);
 	}
 
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
+	inline void operator()() {
+		for (size_t i = 1; i <= count; ++i) {
+			dest.push(i);
+			step();
+		}
 	}
+
 private:
 	dest_t dest;
 	size_t count;
@@ -67,47 +69,29 @@ private:
 struct number_sink_t : public pipe_segment {
 	typedef test_t item_type;
 	inline number_sink_t(test_t & output) : output(output) {}
-	inline void begin() { }
-	inline void end() { }
 	inline void push(const test_t & item) {
 		output = output + item;
 	}
-	void push_successors(std::deque<const pipe_segment *> &) const { }
 private:
 	test_t & output;
 };
 
-template <bool virt>
 inline static void do_write(size_t count) {
 	file_stream<test_t> s;
 	s.open("tmp");
-	if (virt) {
-		pipeline p = pipe_begin<factory_1<number_generator_t, size_t> >(count) | output(s);
-		p();
-	} else {
-		number_generator_t<output_t<test_t> > p =
-			pipe_begin<factory_1<number_generator_t, size_t> >(count) | output(s);
-		p();
-	}
+	pipeline p = pipe_begin<factory_1<number_generator_t, size_t> >(count) | output(s);
+	p();
 }
 
-template <bool virt>
 inline static test_t do_read() {
 	test_t res = 0;
 	file_stream<test_t> s;
 	s.open("tmp");
-	if (virt) {
-		pipeline p = input(s) | pipe_end<termfactory_1<number_sink_t, test_t &> >(termfactory_1<number_sink_t, test_t &>(res));
-		p();
-	} else {
-		input_t<number_sink_t> p = input(s) | pipe_end<termfactory_1<number_sink_t, test_t &> >(termfactory_1<number_sink_t, test_t &>(res));
-		progress_indicator_null pi;
-		p.go(pi);
-	}
+	pipeline p = input(s) | pipe_end<termfactory_1<number_sink_t, test_t &> >(termfactory_1<number_sink_t, test_t &>(res));
+	p();
 	return res;
 }
 
-template <bool virt>
 static void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
@@ -115,12 +99,12 @@ static void test(size_t count) {
 	boost::filesystem::remove("tmp");
 
 	getTestRealtime(start);
-	do_write<virt>(count);
+	do_write(count);
 	getTestRealtime(end);
 	std::cout << testRealtimeDiff(start,end) << std::flush;
-	
+
 	getTestRealtime(start);
-	test_t res = do_read<virt>();
+	test_t res = do_read();
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << ' ' << res << std::endl;
 
@@ -130,16 +114,12 @@ static void test(size_t count) {
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t count = count_default;
-	bool virt = true;
 	prog = argv[0];
 
 	while (argc > 1) {
 		std::string arg(argv[1]);
 
-		if (arg == "-N")
-			virt = false;
-
-		else if (arg == "--help" || arg == "-h")
+		if (arg == "--help" || arg == "-h")
 			usage();
 
 		else break;
@@ -165,12 +145,9 @@ int main(int argc, char **argv) {
 	tpie::tpie_init();
 
 	for (size_t i = 0; i < times || !times; ++i) {
-		if (virt)
-			::test<true>(count);
-		else
-			::test<false>(count);
+		::test(count);
 	}
-	
+
 	tpie::tpie_finish();
 
 	return EXIT_SUCCESS;
