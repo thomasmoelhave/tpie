@@ -322,6 +322,25 @@ private:
 };
 
 template <typename T, typename pred_t>
+struct passive_sorter;
+
+template <typename T, typename pred_t>
+struct passive_sorter_factory_2 : public factory_base {
+	typedef sort_pull_output_t<T, pred_t> output_t;
+	typedef output_t generated_type;
+
+	passive_sorter_factory_2(const passive_sorter<T, pred_t> & sorter)
+		: m_sorter(sorter)
+	{
+	}
+
+	inline generated_type construct() const;
+
+private:
+	const passive_sorter<T, pred_t> & m_sorter;
+};
+
+template <typename T, typename pred_t>
 struct passive_sorter {
 	typedef T item_type;
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
@@ -338,8 +357,8 @@ struct passive_sorter {
 		return passive_sorter_factory<item_type, pred_t>(m_output);
 	}
 
-	inline output_t output() {
-		return m_output;
+	inline pullpipe_begin<passive_sorter_factory_2<item_type, pred_t> > output() {
+		return passive_sorter_factory_2<item_type, pred_t>(*this);
 	}
 
 private:
@@ -347,7 +366,15 @@ private:
 	output_t m_output;
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
+
+	friend struct passive_sorter_factory_2<T, pred_t>;
 };
+
+template <typename T, typename pred_t>
+typename passive_sorter_factory_2<T, pred_t>::generated_type
+passive_sorter_factory_2<T, pred_t>::construct() const {
+	return m_sorter.m_output;
+}
 
 }
 
