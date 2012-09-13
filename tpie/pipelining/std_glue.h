@@ -22,7 +22,8 @@
 
 #include <vector>
 
-#include <tpie/pipelining/core.h>
+#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 
 namespace tpie {

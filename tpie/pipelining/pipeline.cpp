@@ -17,8 +17,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <tpie/pipelining/core.h>
-#include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/pipeline.h>
+#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/graph.h>
 #include <boost/unordered_map.hpp>
 #include <iostream>
 #include <boost/unordered_set.hpp>

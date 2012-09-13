@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_MERGE_H__
 #define __TPIE_PIPELINING_MERGE_H__
 
-#include <tpie/pipelining/core.h>
+#include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 
 namespace tpie {

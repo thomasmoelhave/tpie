@@ -21,7 +21,7 @@
 #define __TPIE_PIPELINING_HELPERS_H__
 
 #include <iostream>
-#include <tpie/pipelining/core.h>
+#include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/memory.h>
 

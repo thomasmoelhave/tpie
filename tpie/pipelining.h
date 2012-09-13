@@ -30,7 +30,9 @@
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/graph.h>
-#include <tpie/pipelining/core.h>
+#include <tpie/pipelining/pipeline.h>
+#include <tpie/pipelining/pair_factory.h>
+#include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/virtual.h>
 

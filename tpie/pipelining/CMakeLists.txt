@@ -1,7 +1,7 @@
 set (PIPE_HEADERS
 	buffer.h
-	core.h
 	exception.h
+	factory_base.h
 	factory_helpers.h
 	file_stream.h
 	graph.h
@@ -10,7 +10,10 @@ set (PIPE_HEADERS
 	merge_sorter.h
 	merger.h
 	numeric.h
+	pair_factory.h
+	pipe_base.h
 	pipe_segment.h
+	pipeline.h
 	reverse.h
 	segment_map_dump.h
 	sort.h

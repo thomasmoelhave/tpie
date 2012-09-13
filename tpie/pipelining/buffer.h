@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_BUFFER_H__
 #define __TPIE_PIPELINING_BUFFER_H__
 
-#include <tpie/pipelining/core.h>
+#include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/file_stream.h>
 

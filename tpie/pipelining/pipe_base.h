@@ -17,180 +17,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_CORE_H__
-#define __TPIE_PIPELINING_CORE_H__
+#ifndef __TPIE_PIPELINING_PIPE_BASE_H__
+#define __TPIE_PIPELINING_PIPE_BASE_H__
 
-#include <tpie/tpie_assert.h>
 #include <tpie/types.h>
-#include <iostream>
-#include <deque>
-#include <map>
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 #include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/graph.h>
-#include <tpie/progress_indicator_null.h>
+#include <tpie/pipelining/pair_factory.h>
+#include <tpie/pipelining/pipeline.h>
 
 namespace tpie {
 
 namespace pipelining {
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class pipeline_base
-/// Virtual superclass for pipelines implementing the function call operator.
-///////////////////////////////////////////////////////////////////////////////
-class pipeline_base {
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Invoke the pipeline.
-	///////////////////////////////////////////////////////////////////////////
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Generate a GraphViz graph documenting the pipeline flow.
-	///////////////////////////////////////////////////////////////////////////
-	void plot(std::ostream & out);
-
-	double memory() const {
-		return m_memory;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	virtual ~pipeline_base() {}
-
-	segment_map::ptr get_segment_map() const {
-		return m_segmap;
-	}
-
-protected:
-	segment_map::ptr m_segmap;
-	double m_memory;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class pipeline_impl
-/// \tparam fact_t Factory type
-/// Templated subclass of pipeline_base for push pipelines.
-///////////////////////////////////////////////////////////////////////////////
-template <typename fact_t>
-struct pipeline_impl : public pipeline_base {
-	typedef typename fact_t::generated_type gen_t;
-
-	inline pipeline_impl(const fact_t & factory)
-		: r(factory.construct())
-	{
-		this->m_memory = factory.memory();
-		this->m_segmap = r.get_segment_map();
-	}
-
-	inline operator gen_t() {
-		return r;
-	}
-
-private:
-	gen_t r;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class pipeline
-///
-/// This class is used to avoid writing the template argument in the
-/// pipeline_impl type.
-///////////////////////////////////////////////////////////////////////////////
-struct pipeline {
-	template <typename T>
-	inline pipeline(const T & from) {
-		p = new T(from);
-	}
-	inline ~pipeline() {
-		delete p;
-	}
-	inline void operator()() {
-		progress_indicator_null pi;
-		(*p)(1, pi, get_memory_manager().available());
-	}
-	inline void operator()(stream_size_type items, progress_indicator_base & pi) {
-		(*p)(items, pi, get_memory_manager().available());
-	}
-	inline void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) {
-		(*p)(items, pi, mem);
-	}
-	inline void plot(std::ostream & os = std::cout) {
-		p->plot(os);
-	}
-	inline double memory() const {
-		return p->memory();
-	}
-	inline segment_map::ptr get_segment_map() const {
-		return p->get_segment_map();
-	}
-private:
-	pipeline_base * p;
-};
-
-namespace bits {
-
-template <typename child_t>
-struct pair_factory_base {
-	inline double memory() const {
-		return self().fact1.memory() + self().fact2.memory();
-	}
-
-	inline void name(const std::string & n, priority_type) {
-		push_breadcrumb(n);
-	}
-
-	void push_breadcrumb(const std::string & n) {
-		self().fact1.push_breadcrumb(n);
-		self().fact2.push_breadcrumb(n);
-	}
-
-private:
-	inline child_t & self() {return *static_cast<child_t*>(this);}
-	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
-};
-
-template <class fact1_t, class fact2_t>
-struct pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
-	template <typename dest_t>
-	struct generated {
-		typedef typename fact1_t::template generated<typename fact2_t::template generated<dest_t>::type>::type type;
-	};
-
-	inline pair_factory(const fact1_t & fact1, const fact2_t & fact2)
-		: fact1(fact1), fact2(fact2) {
-	}
-
-	template <typename dest_t>
-	inline typename generated<dest_t>::type
-	construct(const dest_t & dest) const {
-		return fact1.construct(fact2.construct(dest));
-	}
-
-	fact1_t fact1;
-	fact2_t fact2;
-};
-
-template <class fact1_t, class termfact2_t>
-struct termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
-	typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
-
-	inline termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
-		: fact1(fact1), fact2(fact2) {
-		}
-
-	fact1_t fact1;
-	termfact2_t fact2;
-
-	inline generated_type
-	construct() const {
-		return fact1.construct(fact2.construct());
-	}
-};
-
-} // namespace bits
 
 template <typename child_t>
 struct pipe_base {
@@ -359,8 +197,8 @@ struct pullpipe_begin : pipe_base<pullpipe_begin<fact_t> > {
 	fact_t factory;
 };
 
-}
+} // namespace pipelining
 
-}
+} // namespace tpie
 
-#endif
+#endif // __TPIE_PIPELINING_PIPE_BASE_H__

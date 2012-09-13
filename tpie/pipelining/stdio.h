@@ -20,7 +20,8 @@
 #ifndef __TPIE_PIPELINING_STDIO_H__
 #define __TPIE_PIPELINING_STDIO_H__
 
-#include <tpie/pipelining/core.h>
+#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <cstdio>
 

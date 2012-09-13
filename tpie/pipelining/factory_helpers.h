@@ -20,50 +20,11 @@
 #ifndef __TPIE_PIPELINING_FACTORY_HELPERS_H__
 #define __TPIE_PIPELINING_FACTORY_HELPERS_H__
 
+#include <tpie/pipelining/factory_base.h>
+
 namespace tpie {
 
 namespace pipelining {
-
-struct factory_base {
-	factory_base() : m_amount(0), m_set(false) {
-	}
-
-	inline void memory(double amount) {
-		m_amount = amount;
-		m_set = true;
-	}
-
-	inline double memory() const {
-		return m_amount;
-	}
-
-	inline void init_segment(pipe_segment & r) const {
-		if (m_set) r.set_memory_fraction(memory());
-		if (!m_name.empty()) {
-			r.set_name(m_name, m_namePriority);
-		}
-		if (!m_breadcrumbs.empty()) {
-			r.set_breadcrumb(m_breadcrumbs);
-		}
-	}
-
-	inline void name(const std::string & n, priority_type p) {
-		m_name = n;
-		m_namePriority = p;
-	}
-
-	inline void push_breadcrumb(const std::string & n) {
-		if (m_breadcrumbs.empty()) m_breadcrumbs = n;
-		else m_breadcrumbs = n + " | " + m_breadcrumbs;
-	}
-
-private:
-	double m_amount;
-	bool m_set;
-	std::string m_name;
-	std::string m_breadcrumbs;
-	priority_type m_namePriority;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_0
@@ -184,8 +145,8 @@ private:
 	T2 t2;
 };
 
-}
+} // namespace pipelining
 
-}
+} // namespace tpie
 
-#endif
+#endif // __TPIE_PIPELINING_FACTORY_HELPERS_H__

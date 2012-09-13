@@ -20,10 +20,10 @@
 #ifndef __TPIE_PIPELINING_SORT_H__
 #define __TPIE_PIPELINING_SORT_H__
 
-#include <tpie/pipelining/core.h>
-#include <tpie/pipelining/factory_helpers.h>
+#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/pipe_base.h>
+#include <tpie/pipelining/factory_base.h>
 #include <tpie/pipelining/merge_sorter.h>
-#include <tpie/sort.h>
 #include <tpie/parallel_sort.h>
 #include <tpie/file_stream.h>
 #include <tpie/tempname.h>
