@@ -106,64 +106,85 @@ input_nodes(size_t nodes) {
 	return factory_1<input_nodes_t, size_t>(nodes);
 }
 
-template <typename byid_t, typename byparent_t>
-struct count_t {
-	template <typename dest_t>
-	struct type : public pipe_segment {
-		type(const dest_t & dest, const byid_t & byid, const byparent_t & byparent)
-			: dest(dest), byid(byid), byparent(byparent)
-		{
-			add_push_destination(dest);
-			add_pull_destination(byid);
-			add_pull_destination(byparent);
-			set_name("Count items");
-		}
+template <typename dest_t, typename byid_t, typename byparent_t>
+struct count_t : public pipe_segment {
+	count_t(const dest_t & dest, const byid_t & byid, const byparent_t & byparent)
+		: dest(dest), byid(byid), byparent(byparent)
+	{
+		add_push_destination(dest);
+		add_pull_destination(byid);
+		add_pull_destination(byparent);
+		set_name("Count items");
+	}
 
-		virtual void go() /*override*/ {
-			dest.begin();
-			byid.begin();
-			byparent.begin();
-			tpie::auto_ptr<node> buf(0);
-			while (byid.can_pull()) {
-				node_output cur = byid.pull();
-				if (buf.get()) {
-					if (buf->parent != cur.id) {
-						goto seen_children;
-					} else {
-						++cur.children;
-					}
+	virtual void go() /*override*/ {
+		tpie::auto_ptr<node> buf(0);
+		while (byid.can_pull()) {
+			node_output cur = byid.pull();
+			if (buf.get()) {
+				if (buf->parent != cur.id) {
+					goto seen_children;
+				} else {
+					++cur.children;
 				}
-				while (byparent.can_pull()) {
-					node child = byparent.pull();
-					if (child.parent != cur.id) {
-						if (!buf.get()) {
-							buf.reset(tpie_new<node>(child));
-						} else {
-							*buf = child;
-						}
-						break;
-					} else {
-						++cur.children;
-					}
-				}
-seen_children:
-				dest.push(cur);
 			}
-			byparent.end();
-			byid.end();
-			dest.end();
+			while (byparent.can_pull()) {
+				node child = byparent.pull();
+				if (child.parent != cur.id) {
+					if (!buf.get()) {
+						buf.reset(tpie_new<node>(child));
+					} else {
+						*buf = child;
+					}
+					break;
+				} else {
+					++cur.children;
+				}
+			}
+seen_children:
+			dest.push(cur);
 		}
+	}
 
-		dest_t dest;
-		byid_t byid;
-		byparent_t byparent;
-	};
+	dest_t dest;
+	byid_t byid;
+	byparent_t byparent;
 };
 
 template <typename byid_t, typename byparent_t>
-inline pipe_begin<factory_2<count_t<byid_t, byparent_t>::template type, const byid_t &, const byparent_t &> >
+struct count_factory : public factory_base {
+	typedef typename byid_t::factory_type byid_fact_t;
+	typedef typename byparent_t::factory_type byparent_fact_t;
+	typedef typename byid_fact_t::generated_type byid_gen_t;
+	typedef typename byparent_fact_t::generated_type byparent_gen_t;
+
+	template <typename dest_t>
+	struct generated {
+		typedef count_t<dest_t, byid_gen_t, byparent_gen_t> type;
+	};
+
+	count_factory(byid_t byid, byparent_t byparent)
+		: m_byid(byid.factory)
+		, m_byparent(byparent.factory)
+	{
+	}
+
+	template <typename dest_t>
+	count_t<dest_t, byid_gen_t, byparent_gen_t>
+	construct(const dest_t & dest) const {
+		return count_t<dest_t, byid_gen_t, byparent_gen_t>
+			(dest, m_byid.construct(), m_byparent.construct());
+	}
+
+private:
+	byid_fact_t m_byid;
+	byparent_fact_t m_byparent;
+};
+
+template <typename byid_t, typename byparent_t>
+inline pipe_begin<count_factory<byid_t, byparent_t> >
 count(const byid_t & byid, const byparent_t & byparent) {
-	return factory_2<count_t<byid_t, byparent_t>::template type, const byid_t &, const byparent_t &>(byid, byparent);
+	return count_factory<byid_t, byparent_t>(byid, byparent);
 }
 
 struct output_count_t : public pipe_segment {
@@ -177,11 +198,11 @@ struct output_count_t : public pipe_segment {
 		set_name("Output");
 	}
 
-	inline void begin() {
+	virtual void begin() /*override*/ {
 		log_info() << "Begin output" << std::endl;
 	}
 
-	inline void end() {
+	virtual void end() /*override*/ {
 		log_info() << "End output" << std::endl;
 		log_info() << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
 	}
