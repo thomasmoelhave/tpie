@@ -25,18 +25,26 @@
  * \author Mathias Rav
  */
 
+// Core framework
+#include <tpie/pipelining/exception.h>
+#include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/graph.h>
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
-#include <tpie/pipelining/file_stream.h>
-#include <tpie/pipelining/std_glue.h>
-#include <tpie/pipelining/helpers.h>
-#include <tpie/pipelining/numeric.h>
-#include <tpie/pipelining/stdio.h>
-#include <tpie/pipelining/merge.h>
-#include <tpie/pipelining/reverse.h>
-#include <tpie/pipelining/sort.h>
+#include <tpie/pipelining/virtual.h>
+
+// Library
 #include <tpie/pipelining/buffer.h>
-#include <tpie/pipelining/uniq.h>
+#include <tpie/pipelining/file_stream.h>
+#include <tpie/pipelining/helpers.h>
+#include <tpie/pipelining/merge.h>
+#include <tpie/pipelining/numeric.h>
+#include <tpie/pipelining/reverse.h>
 #include <tpie/pipelining/segment_map_dump.h>
+#include <tpie/pipelining/sort.h>
+#include <tpie/pipelining/std_glue.h>
+#include <tpie/pipelining/stdio.h>
+#include <tpie/pipelining/uniq.h>
 
 #endif
