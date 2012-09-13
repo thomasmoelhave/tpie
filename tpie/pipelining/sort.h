@@ -340,8 +340,18 @@ private:
 	const passive_sorter<T, pred_t> & m_sorter;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \class passive_sorter
+/// \brief Pipelined sorter with push input and pull output.
+/// Get the input pipe with \c input() and the output pullpipe with \c output().
+/// input() must not be called after output().
+/// \tparam T The type of item to sort
+/// \tparam pred_t The predicate (e.g. std::less<T>) indicating the predicate
+/// on which to order an item before another.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct passive_sorter {
+class passive_sorter {
+public:
 	typedef T item_type;
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
