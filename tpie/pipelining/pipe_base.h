@@ -21,7 +21,7 @@
 #define __TPIE_PIPELINING_PIPE_BASE_H__
 
 #include <tpie/types.h>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/priority_type.h>
 #include <tpie/pipelining/graph.h>
 #include <tpie/pipelining/pair_factory.h>
 #include <tpie/pipelining/pipeline.h>

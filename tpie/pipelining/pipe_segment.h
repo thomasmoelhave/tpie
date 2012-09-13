@@ -25,17 +25,11 @@
 #include <tpie/progress_indicator_base.h>
 #include <tpie/progress_indicator_null.h>
 #include <boost/any.hpp>
+#include <tpie/pipelining/priority_type.h>
 
 namespace tpie {
 
 namespace pipelining {
-
-// Name priorities
-typedef int priority_type;
-const priority_type PRIORITY_NO_NAME = 0;
-const priority_type PRIORITY_INSIGNIFICANT = 5;
-const priority_type PRIORITY_SIGNIFICANT = 10;
-const priority_type PRIORITY_USER = 20;
 
 struct pipe_segment;
 

@@ -21,7 +21,7 @@
 #define __TPIE_PIPELINING_PAIR_FACTORY_H__
 
 #include <tpie/types.h>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/priority_type.h>
 
 namespace tpie {
 
