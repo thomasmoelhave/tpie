@@ -256,6 +256,7 @@ struct sequence_generator : public pipe_segment {
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
+		forward("items", static_cast<stream_size_type>(elements));
 		set_steps(elements);
 	}
 
@@ -283,6 +284,10 @@ struct sequence_verifier : public pipe_segment {
 	}
 
 	virtual void begin() /*override*/ {
+		if (!can_fetch("items")) {
+			log_error() << "Sorter did not forward number of items" << std::endl;
+			bad = true;
+		}
 		result = false;
 	}
 
@@ -292,6 +297,12 @@ struct sequence_verifier : public pipe_segment {
 	}
 
 	virtual void end() /*override*/ {
+		if (can_fetch("items")
+			&& static_cast<stream_size_type>(elements) != fetch<stream_size_type>("items")) {
+
+			log_error() << "Sorter did not send as many items as promised" << std::endl;
+			bad = true;
+		}
 		result = !bad;
 	}
 
