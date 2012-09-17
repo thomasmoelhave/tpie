@@ -271,6 +271,36 @@ pipe_end<termfactory_0<Fact> > make_pipe_end_0() {
 	return pipe_end<termfactory_0<Fact> >(termfactory_0<Fact>());
 }
 
+template <template <typename dest_t> class Fact, typename T1>
+pipe_begin<factory_1<Fact, T1> > make_pipe_begin_1(T1 e1) {
+	return pipe_begin<factory_1<Fact, T1> >(factory_1<Fact, T1>(e1));
+}
+
+template <template <typename dest_t> class Fact, typename T1>
+pipe_middle<factory_1<Fact, T1> > make_pipe_middle_1(T1 e1) {
+	return pipe_middle<factory_1<Fact, T1> >(factory_1<Fact, T1>(e1));
+}
+
+template <typename Fact, typename T1>
+pipe_end<termfactory_1<Fact, T1> > make_pipe_end_1(T1 e1) {
+	return pipe_end<termfactory_1<Fact, T1> >(termfactory_1<Fact, T1>(e1));
+}
+
+template <template <typename dest_t> class Fact, typename T1, typename T2>
+pipe_begin<factory_2<Fact, T1, T2> > make_pipe_begin_2(T1 e1, T2 e2) {
+	return pipe_begin<factory_2<Fact, T1, T2> >(factory_2<Fact, T1, T2>(e1, e2));
+}
+
+template <template <typename dest_t> class Fact, typename T1, typename T2>
+pipe_middle<factory_2<Fact, T1, T2> > make_pipe_middle_2(T1 e1, T2 e2) {
+	return pipe_middle<factory_2<Fact, T1, T2> >(factory_2<Fact, T1, T2>(e1, e2));
+}
+
+template <typename Fact, typename T1, typename T2>
+pipe_end<termfactory_2<Fact, T1, T2> > make_pipe_end_2(T1 e1, T2 e2) {
+	return pipe_end<termfactory_2<Fact, T1, T2> >(termfactory_2<Fact, T1, T2>(e1, e2));
+}
+
 }
 
 }
