@@ -315,7 +315,9 @@ private:
 
 bool sort_test(size_t elements) {
 	bool result = false;
-	pipeline p = pipe_begin<factory_1<sequence_generator, size_t> >(elements) | pipesort() | pipe_end<termfactory_2<sequence_verifier, size_t, bool &> >(termfactory_2<sequence_verifier, size_t, bool &>(elements, result));
+	pipeline p = make_pipe_begin_1<sequence_generator>(elements)
+		| pipesort()
+		| make_pipe_end_2<sequence_verifier, size_t, bool &>(elements, result);
 	p.plot(log_info());
 	p();
 	return result;
