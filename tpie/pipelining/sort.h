@@ -384,7 +384,9 @@ private:
 template <typename T, typename pred_t>
 typename passive_sorter_factory_2<T, pred_t>::generated_type
 passive_sorter_factory_2<T, pred_t>::construct() const {
-	return m_sorter.m_output;
+	generated_type res = m_sorter.m_output;
+	init_segment(res);
+	return res;
 }
 
 }
