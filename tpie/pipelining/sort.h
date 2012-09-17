@@ -142,6 +142,7 @@ struct sort_calc_t : public pipe_segment {
 	}
 
 	virtual void begin() /*override*/ {
+		pipe_segment::begin();
 		set_steps(1000);
 	}
 
