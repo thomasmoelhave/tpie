@@ -78,7 +78,13 @@ struct passive_buffer {
 	typedef T item_type;
 	typedef buffer_input_t<T> input_t;
 	typedef buffer_pull_output_t<T> output_t;
+private:
+	typedef termfactory_2<input_t,  file_stream<T> &, const segment_token &> inputfact_t;
+	typedef termfactory_2<output_t, file_stream<T> &, const segment_token &> outputfact_t;
+	typedef pipe_end      <inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
+public:
 	passive_buffer() {}
 
 	inline input_t raw_input() {
@@ -87,6 +93,14 @@ struct passive_buffer {
 
 	inline output_t raw_output() {
 		return output_t(queue, input_token);
+	}
+
+	inline inputpipe_t input() {
+		return inputfact_t(queue, input_token);
+	}
+
+	inline outputpipe_t output() {
+		return outputfact_t(queue, input_token);
 	}
 
 private:
