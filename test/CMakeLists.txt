@@ -26,6 +26,10 @@ add_executable(test_pipelining pipelining.cpp)
 set_target_properties(test_pipelining PROPERTIES FOLDER tpie/test)
 target_link_libraries(test_pipelining tpie )
 
+add_executable(pipelining2 pipelining2.cpp)
+set_target_properties(pipelining2 PROPERTIES FOLDER tpie/test)
+target_link_libraries(pipelining2 tpie )
+
 add_subdirectory(speed_regression)
 
 add_subdirectory(unit)
