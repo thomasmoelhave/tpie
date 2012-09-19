@@ -38,14 +38,11 @@ struct scanf_ints_t : public pipe_segment {
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void go(progress_indicator_base & pi) /*override*/ {
-		pi.init(1);
+	virtual void go() /*override*/ {
 		int in;
 		while (scanf("%d", &in) == 1) {
 			dest.push(in);
 		}
-		pi.step();
-		pi.done();
 	}
 
 private:
