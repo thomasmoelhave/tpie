@@ -134,6 +134,7 @@ struct reverser_output_t: public  pipe_segment {
 		: dest(dest), the_stack(&the_stack) {
 		add_dependency(input_token);
 		add_push_destination(dest);
+		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void begin() /*override*/ {
@@ -164,6 +165,7 @@ struct reverser_t: public pipe_segment {
 	inline reverser_t(const dest_t & dest):
 		input_token(), input(input_token, the_stack), output(dest, input_token, the_stack) {
 		add_push_destination(input);
+		set_name("Reverser", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline reverser_t(const reverser_t & o):
