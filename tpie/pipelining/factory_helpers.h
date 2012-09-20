@@ -73,6 +73,29 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \class tempfactory_1
+/// Push segment factory for 1-argument templated generator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename Holder, typename T1>
+struct tempfactory_1 : public factory_base {
+	template<typename dest_t>
+	struct generated {
+		typedef typename Holder::template type<dest_t> type;
+	};
+
+	inline tempfactory_1(T1 t1) : t1(t1) {}
+
+	template <typename dest_t>
+	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+		typename Holder::template type<dest_t> r(dest, t1);
+		this->init_segment(r);
+		return r;
+	}
+private:
+	T1 t1;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \class factory_2
 /// Push segment factory for 2-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
