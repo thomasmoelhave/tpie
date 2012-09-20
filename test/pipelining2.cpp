@@ -28,53 +28,38 @@
 using namespace tpie;
 using namespace tpie::pipelining;
 
-template <typename dest_t, typename src_t>
-class add_t : public pipe_segment {
-	dest_t dest;
-	src_t src;
-public:
-	typedef int item_type;
-
-	add_t(dest_t dest, src_t src)
-		: dest(dest)
-		, src(src)
-	{
-		add_push_destination(dest);
-		add_pull_destination(src);
-		set_name("Adder", PRIORITY_INSIGNIFICANT);
-	}
-
-	void push(int i) {
-		dest.push(i+src.pull());
-	}
-};
-
 template <typename src_pipe_t>
-class add_fact_t : public factory_base {
+class add_t {
 	typedef typename src_pipe_t::factory_type src_fact_t;
 	typedef typename src_fact_t::generated_type src_t;
 
-	src_fact_t srcfact;
 public:
 	template <typename dest_t>
-	struct generated {
-		typedef add_t<dest_t, src_t> type;
+	class type : public pipe_segment {
+		dest_t dest;
+		src_t src;
+	public:
+		typedef int item_type;
+
+		type(dest_t dest, src_pipe_t srcpipe)
+			: dest(dest)
+			, src(srcpipe.factory.construct())
+		{
+			add_push_destination(dest);
+			add_pull_destination(src);
+			this->set_name("Adder", PRIORITY_INSIGNIFICANT);
+		}
+
+		void push(int i) {
+			dest.push(i+src.pull());
+		}
 	};
-
-	add_fact_t(src_pipe_t srcpipe)
-		: srcfact(srcpipe.factory)
-	{
-	}
-
-	template <typename dest_t>
-	add_t<dest_t, src_t> construct(dest_t dest) const {
-		return add_t<dest_t, src_t>(dest, srcfact.construct());
-	}
 };
 
 template <typename src_pipe_t>
-pipe_middle<add_fact_t<src_pipe_t> > add(src_pipe_t srcpipe) {
-	return  add_fact_t<src_pipe_t>(srcpipe);
+inline pipe_middle<tempfactory_1<add_t<src_pipe_t>, src_pipe_t> >
+add(src_pipe_t srcpipe) {
+	return tempfactory_1<add_t<src_pipe_t>, src_pipe_t>(srcpipe);
 }
 
 void go() {
