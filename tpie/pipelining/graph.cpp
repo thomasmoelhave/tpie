@@ -43,7 +43,7 @@ public:
 		}
 		// dfs from all nodes
 		time_type time = 1;
-		for (typename nodemap_t::iterator i = g.finish_times.begin(); i != g.finish_times.end(); ++i) {
+		for (typename nodemap_t::reverse_iterator i = g.finish_times.rbegin(); i != g.finish_times.rend(); ++i) {
 			if (i->second != 0) continue;
 			time = dfs_from(i->first, time);
 		}
