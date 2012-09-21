@@ -241,9 +241,9 @@ struct fork_t {
 };
 
 template <typename fact_t>
-inline pipe_middle<factory_1<fork_t<fact_t>::template type, const fact_t &> >
+inline pipe_middle<tempfactory_1<fork_t<fact_t>, const fact_t &> >
 fork(const pipe_end<fact_t> & to) {
-	return factory_1<fork_t<fact_t>::template type, const fact_t &>(to.factory);
+	return tempfactory_1<fork_t<fact_t>, const fact_t &>(to.factory);
 }
 
 template <typename T>
