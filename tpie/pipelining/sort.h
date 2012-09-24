@@ -260,7 +260,7 @@ struct sort_factory : public factory_base {
 		typedef typename dest_t::item_type item_type;
 		typedef sort_output_t<pred_t, dest_t> Output;
 	public:
-		typedef sort_input_t<item_type, std::less<item_type>, Output> type;
+		typedef sort_input_t<item_type, pred_t, Output> type;
 	};
 
 	template <typename dest_t>
