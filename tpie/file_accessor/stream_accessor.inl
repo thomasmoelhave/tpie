@@ -38,8 +38,8 @@ void stream_accessor<file_accessor_t>::read_header() {
 	m_fileAccessor.read_i(&header, sizeof(header));
 	validate_header(header);
 	m_size = header.size;
-	m_userDataSize = header.userDataSize;
-	m_maxUserDataSize = header.maxUserDataSize;
+	m_userDataSize = (size_t)header.userDataSize;
+	m_maxUserDataSize = (size_t)header.maxUserDataSize;
 }
 
 template <typename file_accessor_t>

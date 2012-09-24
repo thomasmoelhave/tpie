@@ -49,6 +49,8 @@ protected:
 	/// This is the type of our block buffers. We have one per file::stream
 	/// distributed over two linked lists.
 	///////////////////////////////////////////////////////////////////////////
+#pragma warning( push )
+#pragma warning( disable : 4200 )
 	struct block_t : public boost::intrusive::list_base_hook<> {
 		memory_size_type size;
 		memory_size_type usage;
@@ -56,6 +58,7 @@ protected:
 		bool dirty;
 		char data[0];
 	};
+#pragma warning( pop )
 
 	inline void update_size(stream_size_type size) {
 		m_size = std::max(m_size, size);

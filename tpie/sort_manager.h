@@ -794,7 +794,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 	// mergeInputStreams is address( address (the first input stream) )
 	// N.B. nRuns is small, so it is safe to downcast.
 	single_merge(mergeInputStreams.begin(), 
-				 mergeInputStreams.find(nRuns),
+				 mergeInputStreams.find((size_t)nRuns),
 				 outStream, -1, indicator);
 
 	if (indicator) indicator->done();
