@@ -20,6 +20,8 @@
 import sys
 p = sys.stdout.write
 
+# Until variadic templates are supported everywhere,
+# this redefinition of infinity will suffice.
 infinity = 6
 
 def header():
