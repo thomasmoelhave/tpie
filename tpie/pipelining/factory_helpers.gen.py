@@ -124,5 +124,6 @@ if __name__ == "__main__":
 		gen(types=x, terminal=False, templated=True)
 	for x in xs:
 		gen(types=x, terminal=True, templated=False)
-		gen(types=x, terminal=True, templated=True)
+		#gen(types=x, terminal=True, templated=True)
+		# a templated terminal factory does not make sense
 	footer()

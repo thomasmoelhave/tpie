@@ -367,21 +367,6 @@ struct termfactory_0 : public factory_base {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_0
-/// Push segment factory for 0-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder>
-struct temptermfactory_0 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r;
-		this->init_segment(r);
-		return r;
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_1
 /// Push segment factory for 1-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
@@ -401,25 +386,6 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_1
-/// Push segment factory for 1-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename T1>
-struct temptermfactory_1 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline temptermfactory_1(T1 t1) : t1(t1) {}
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r(t1);
-		this->init_segment(r);
-		return r;
-	}
-private:
-	T1 t1;
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_2
 /// Push segment factory for 2-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
@@ -431,26 +397,6 @@ struct termfactory_2 : public factory_base {
 
 	inline R construct() const {
 		R r(t1, t2);
-		this->init_segment(r);
-		return r;
-	}
-private:
-	T1 t1;
-	T2 t2;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_2
-/// Push segment factory for 2-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename T1, typename T2>
-struct temptermfactory_2 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline temptermfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r(t1, t2);
 		this->init_segment(r);
 		return r;
 	}
@@ -481,27 +427,6 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_3
-/// Push segment factory for 3-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename T1, typename T2, typename T3>
-struct temptermfactory_3 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline temptermfactory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r(t1, t2, t3);
-		this->init_segment(r);
-		return r;
-	}
-private:
-	T1 t1;
-	T2 t2;
-	T3 t3;
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_4
 /// Push segment factory for 4-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
@@ -513,28 +438,6 @@ struct termfactory_4 : public factory_base {
 
 	inline R construct() const {
 		R r(t1, t2, t3, t4);
-		this->init_segment(r);
-		return r;
-	}
-private:
-	T1 t1;
-	T2 t2;
-	T3 t3;
-	T4 t4;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_4
-/// Push segment factory for 4-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename T1, typename T2, typename T3, typename T4>
-struct temptermfactory_4 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline temptermfactory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r(t1, t2, t3, t4);
 		this->init_segment(r);
 		return r;
 	}
@@ -569,29 +472,6 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_5
-/// Push segment factory for 5-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5>
-struct temptermfactory_5 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline temptermfactory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r(t1, t2, t3, t4, t5);
-		this->init_segment(r);
-		return r;
-	}
-private:
-	T1 t1;
-	T2 t2;
-	T3 t3;
-	T4 t4;
-	T5 t5;
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_6
 /// Push segment factory for 6-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
@@ -603,30 +483,6 @@ struct termfactory_6 : public factory_base {
 
 	inline R construct() const {
 		R r(t1, t2, t3, t4, t5, t6);
-		this->init_segment(r);
-		return r;
-	}
-private:
-	T1 t1;
-	T2 t2;
-	T3 t3;
-	T4 t4;
-	T5 t5;
-	T6 t6;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class temptermfactory_6
-/// Push segment factory for 6-argument templated terminator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-struct temptermfactory_6 : public factory_base {
-	typedef typename Holder::type generated_type;
-
-	inline temptermfactory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
-
-	inline typename Holder::type construct() const {
-		typename Holder::type r(t1, t2, t3, t4, t5, t6);
 		this->init_segment(r);
 		return r;
 	}
