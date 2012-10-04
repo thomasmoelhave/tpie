@@ -888,7 +888,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 
 	assert(group < setting_k);
 	array<T> arr(static_cast<size_t>(group_size(group)));
-	file_stream<T> data;
+	file_stream<T> data(block_factor);
 	data.open(group_data(group));
 	data.seek(group_start(group));
 	memory_size_type size = group_size(group);
