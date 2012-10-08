@@ -477,7 +477,7 @@ priority_queue<T, Comparator, OPQType>::free_slot(group_type group) {
 
 		empty_group(group);
 
-		if(group*setting_k != 0) {
+		if(slot_size(group*setting_k) != 0) {
 			return free_slot(group); // some group buffers might have been moved
 		}
 		return group*setting_k;
