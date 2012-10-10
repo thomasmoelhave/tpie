@@ -124,6 +124,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	unique_id_type & id();
 
+	void push_breadcrumb(const char * crumb, description_importance importance) {
+		if (m_pi) m_pi->push_breadcrumb(crumb, importance);
+	}
+
+	void pop_breadcrumb() {
+		if (m_pi) m_pi->pop_breadcrumb();
+	}
+
 private:
 	double get_fraction(fractional_subindicator & sub);
 
@@ -144,6 +152,8 @@ private:
 	void stat(std::string, time_type, stream_size_type);
 	std::vector< std::pair<std::string, std::pair<time_type, stream_size_type> > > m_stat;
 
+	std::string sub_indicators_ss();
+	
 	friend class fractional_subindicator;
 };
 

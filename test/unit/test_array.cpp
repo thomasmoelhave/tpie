@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -25,6 +25,28 @@
 #include <tpie/array.h>
 #include <tpie/concepts.h>
 using namespace tpie;
+
+// Method coverage of tpie::array
+//
+// Method           Covered by unit test
+//
+// ctor(sz)         basic
+// ctor(sz, el)     basic
+// operator[]       basic
+// at               TODO
+// back             frontback
+// begin            iterator
+// empty            basic
+// end              iterator
+// find             iterator
+// front            frontback
+// get              TODO
+// rbegin           iterator
+// rend             iterator
+// resize(sz)       basic
+// resize(sz, el)   basic
+// size             basic
+// swap             TODO
 
 bool basic_test() {
 	array<size_t> hat;
@@ -271,6 +293,15 @@ bool frontback() {
 	return true;
 }
 
+bool swap_test() {
+	{
+		array<int> a(42, 42);
+		array<int> b(84);
+		a.swap(b);
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
@@ -293,5 +324,7 @@ int main(int argc, char **argv) {
 		.test(array_bool_memory_test(), "bit_memory")
 		.test(copyempty, "copyempty")
 		.test(arrayarray, "arrayarray")
-		.test(frontback, "frontback");
+		.test(frontback, "frontback")
+		.test(swap_test, "swap")
+		;
 }

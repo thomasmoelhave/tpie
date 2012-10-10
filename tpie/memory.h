@@ -138,6 +138,7 @@ private:
 	size_t m_used;
 	size_t m_limit;
 	size_t m_maxExceeded;
+	size_t m_nextWarning;
 	enforce_t m_enforce;
 	boost::mutex m_mutex;
 #ifndef TPIE_NDEBUG

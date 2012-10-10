@@ -22,6 +22,17 @@
 #include <iostream>
 #include "test_timer.h"
 
+// Method coverage of tpie::disjoint_sets
+//
+// Method         Covered by unit test
+// ctor(n, u)     basic
+// count_sets     basic
+// find_set       basic
+// is_set         basic
+// link           TODO
+// make_set       basic
+// union_set      basic
+
 using namespace tpie;
 using namespace std;
 

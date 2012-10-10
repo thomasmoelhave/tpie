@@ -477,7 +477,7 @@ priority_queue<T, Comparator, OPQType>::free_slot(group_type group) {
 
 		empty_group(group);
 
-		if(group*setting_k != 0) {
+		if(slot_size(group*setting_k) != 0) {
 			return free_slot(group); // some group buffers might have been moved
 		}
 		return group*setting_k;
@@ -888,7 +888,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 
 	assert(group < setting_k);
 	array<T> arr(static_cast<size_t>(group_size(group)));
-	file_stream<T> data;
+	file_stream<T> data(block_factor);
 	data.open(group_data(group));
 	data.seek(group_start(group));
 	memory_size_type size = group_size(group);

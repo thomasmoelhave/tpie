@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -41,45 +41,94 @@ namespace tpie {
 	struct tempfile_error: public std::runtime_error {
 		explicit tempfile_error(const std::string & what): std::runtime_error(what) {}
 	};
-   
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Static methods for generating temporary file names and finding
 	/// temporary file directories.
 	///////////////////////////////////////////////////////////////////////////
 	class tempname {
-	public:	
-		static std::string tpie_name(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
+	public:
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Generate path for a new temporary file.
+		///
+		/// The temporary file name consists of a base name, set using
+		/// \ref set_default_base_name and defaulting to "TPIE"; an optional
+		/// post base name, given as parameter to tpie_name; and a random
+		/// string of characters.  The parts are joined with underscores, and a
+		/// file extension, either given as parameter to tpie_name or to \ref
+		/// set_default_extension.  If neither is used, "tpie" will be used as
+		/// the extension.
+		///
+		/// This file name is suffixed a temporary directory passed as a
+		/// parameter. If no temporary directory is passed, the directory
+		/// reported by \ref get_actual_path is used instead.
+		///
+		/// The path returned does not already exist on the filesystem.
+		///////////////////////////////////////////////////////////////////////
+		static std::string tpie_name(const std::string& post_base = "",
+									 const std::string& dir = "",
+									 const std::string& ext = "");
 
-		static std::string tpie_dir_name(const std::string& post_base = "", const std::string& dir = ""); 
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Generate path for a new temporary directory.
+		///
+		/// The rules for the generated path are the same as \ref tpie_name,
+		/// except no file extension is added.
+		///////////////////////////////////////////////////////////////////////
+		static std::string tpie_dir_name(const std::string& post_base = "",
+										 const std::string& dir = "");
 
-		/////////////////////////////////////////////////////////
-		/// \returns the default path for temporary files on the system
-		/////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Get the default path for temporary files on the system.
+		///////////////////////////////////////////////////////////////////////
 		static std::string get_system_path();
-		
-		/////////////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Sets the default temporary path.
 		///
-		/// sets the default temporary path.
-		///
-		/// \param path the default path to use, this path must exist in the system
-		/// \param subdir subdir of the temporary path, will be created if it does not exist
-		///
-		/////////////////////////////////////////////////////////
+		/// \param path The default path to use; this path must exist in the system.
+		/// \param subdir Subdirectory of the temporary path, will be created if it does not exist.
+		///////////////////////////////////////////////////////////////////////
 		static void set_default_path(const std::string& path, const std::string& subdir="");
 
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Set default base name for temporary files.
+		/// \sa tpie_name
+		///////////////////////////////////////////////////////////////////////
 		static void set_default_base_name(const std::string& name);
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Set default extension for temporary files.
+		/// \sa tpie_name
+		///////////////////////////////////////////////////////////////////////
 		static void set_default_extension(const std::string& ext);
 
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Get default path for directory containing temporary files if
+		/// one is set using \ref set_default_path.
+		/// \sa get_actual_path
+		///////////////////////////////////////////////////////////////////////
 		static const std::string& get_default_path();
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Get default base name for temporary files if one is set
+		/// using \ref set_default_base_name.
+		/// \sa set_default_base_name
+		///////////////////////////////////////////////////////////////////////
 		static const std::string& get_default_base_name();
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Get default extension for temporary files if one is set
+		/// using \ref set_default_extension.
+		/// \sa set_default_extension
+		///////////////////////////////////////////////////////////////////////
 		static const std::string& get_default_extension();
 
 
-		/////////////////////////////////////////////////////////
-		///
-		/// Return The actual path used for temporary files
-		///	taking environment variables into account. The path is 
-		/// the found by querying the following in order:
+		///////////////////////////////////////////////////////////////////////
+		/// Return The actual path used for temporary files taking environment
+		/// variables into account. The path is the found by querying the
+		/// following in order:
 		///
 		/// TPIE2
 		///    TPIE global temp dir as set using set_default_path from source:/trunk/tpie/tempname.h 
@@ -90,17 +139,9 @@ namespace tpie {
 		/// OS1
 		///    OS specific standard path (/tmp or /var/tmp on unices and some windows thing for windows) 
 		///
-		/// \returns a string containing the path
-		///
-		/////////////////////////////////////////////////////////
+		/// \return A string containing the path.
+		///////////////////////////////////////////////////////////////////////
 		static std::string get_actual_path();
-	
-	private:
-		static std::string default_path;
-		static std::string default_base_name; 
-		static std::string default_extension;
-
-		static std::string tpie_mktemp();
 	};
 
 	///////////////////////////////////////////////////////////////////////////

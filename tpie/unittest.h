@@ -317,7 +317,8 @@ T tests::get_arg(const std::string & name, T def) const {
 	
 template <typename T>
 std::string tests::arg_str(const std::string & name, T def) const {
-	return std::string(" [")+name+" = "+magic_cast<std::string>(def)+"]";
+	std::string dashes((name.size() == 1) ? 1 : 2, '-');
+	return std::string(" [")+dashes+name+" ARG (= "+magic_cast<std::string>(def)+")]";
 }
 
 template <typename T>
