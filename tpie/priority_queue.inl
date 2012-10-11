@@ -75,7 +75,8 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 			+ sizeof(T) //extra buffer for remove_group_buffer
 			+ 2*sizeof(T); //mergebuffer
 		const memory_size_type buffer_m_overhead = sizeof(T) + 2*sizeof(T); //buffer
-		const memory_size_type extra_overhead = 2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
+		const memory_size_type extra_overhead =
+			  2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
 			+ 2*(sizeof(T)+sizeof(group_type)); //mergeheap
 		const memory_size_type additional_overhead = 16*1024; //Just leave a bit unused
 		TP_LOG_DEBUG("fanout_overhead     " << fanout_overhead     << ",\n" <<
@@ -105,10 +106,18 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 			//compute setting_k
 			//some of these numbers get big which is the reason for all this
 			//careful casting.
-			stream_size_type squared_tmp = static_cast<stream_size_type>(fanout_overhead)*static_cast<stream_size_type>(fanout_overhead);
-			squared_tmp += static_cast<stream_size_type>(4*sq_fanout_overhead)*static_cast<stream_size_type>(setting_k);
+			stream_size_type squared_tmp =
+				static_cast<stream_size_type>(fanout_overhead)
+				*static_cast<stream_size_type>(fanout_overhead);
+
+			squared_tmp +=
+				static_cast<stream_size_type>(4*sq_fanout_overhead)
+				*static_cast<stream_size_type>(setting_k);
+
 			long double dsquared_tmp = static_cast<long double>(squared_tmp);
-			const stream_size_type root_discriminant = static_cast<stream_size_type>(std::floor(std::sqrt(dsquared_tmp)));
+
+			const stream_size_type root_discriminant =
+				static_cast<stream_size_type>(std::floor(std::sqrt(dsquared_tmp)));
 
 			const stream_size_type nominator = root_discriminant-fanout_overhead;
 			const stream_size_type denominator = 2*sq_fanout_overhead;
@@ -775,7 +784,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T read = stream.read();
 				if(comp_(read, last)) { // compare
 					dump();
-					TP_LOG_FATAL_ID("Error: Group buffer " << i << " order invalid (last: " << last << ", read: " << read << ")");
+					TP_LOG_FATAL_ID("Error: Group buffer " << i << " order invalid (last: " << last <<
+									", read: " << read << ")");
 					exit(-1);
 				} 
 			}
@@ -791,7 +801,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 			for(stream_size_type j = 1; j < slot_size(i); j++) {
 				T read = stream.read();
 				if(comp_(read, last)) { // compare
-					TP_LOG_FATAL_ID("Error: Slot " << i << " order invalid (last: " << last << ", read: " << read << ")");
+					TP_LOG_FATAL_ID("Error: Slot " << i << " order invalid (last: " << last <<
+									", read: " << read << ")");
 					exit(-1);
 				}
 			}
@@ -812,7 +823,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T first = stream.read();
 				if(comp_(first, buf_max)) { // compare
 					dump();
-					TP_LOG_FATAL_ID("Error: Heap property invalid, buffer -> group buffer " << i << "(buffer: " << buf_max << ", first: " << first << ")");
+					TP_LOG_FATAL_ID("Error: Heap property invalid, buffer -> group buffer " << i <<
+									"(buffer: " << buf_max << ", first: " << first << ")");
 					exit(-1);
 				}
 			}
@@ -837,7 +849,9 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 					
 					if(comp_(item_slot, item_group)) { // compare
 						dump();
-						TP_LOG_FATAL_ID("Error: Heap property invalid, group buffer " << i << " -> slot " << j << "(group: " << item_group << ", slot: " << item_slot << ")");
+						TP_LOG_FATAL_ID("Error: Heap property invalid, group buffer " << i <<
+										" -> slot " << j << "(group: " << item_group <<
+										", slot: " << item_slot << ")");
 						exit(-1);
 					}
 				}
@@ -866,7 +880,9 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 	slot_type slot = free_slot(0);
 	if(group_size(group) == 0) return;
 
-	TP_LOG_DEBUG_ID("Remove group buffer " << group << " of size " << group_size(group) << " with available memory " << get_memory_manager().available());
+	TP_LOG_DEBUG_ID("Remove group buffer " << group <<
+					" of size " << group_size(group) <<
+					" with available memory " << get_memory_manager().available());
 
 	assert(group < setting_k);
 	array<T> arr(static_cast<size_t>(group_size(group)));
@@ -968,7 +984,10 @@ temp_file & priority_queue<T, Comparator, OPQType>::group_data(group_type groupi
 
 template <typename T, typename Comparator, typename OPQType>
 memory_size_type priority_queue<T, Comparator, OPQType>::slot_max_size(slot_type slotid) {
-	return setting_m*static_cast<memory_size_type>(pow((long double)setting_k,(long double)(slotid/setting_k))); // todo, too many casts
+	// todo, too many casts
+	return setting_m
+		*static_cast<memory_size_type>(pow((long double)setting_k,
+										   (long double)(slotid/setting_k)));
 }
 
 template <typename T, typename Comparator, typename OPQType>
