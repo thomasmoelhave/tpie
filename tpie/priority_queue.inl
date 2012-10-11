@@ -488,8 +488,6 @@ priority_queue<T, Comparator, OPQType>::free_slot(group_type group) {
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::fill_buffer() {
-	//cout << "fill buffer" << "\n";
-	//dump();
 	if(buffer_size !=0) {
 		return;
 	}
@@ -498,22 +496,16 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	}
 
 	// refill group buffers, if needed
-	//cout << "refill group buffers" << "\n";
 	for(memory_size_type i=0;i<current_r;i++) {
 		if(group_size(i)<static_cast<stream_size_type>(setting_mmark)) {
-			//cout << "fill group buffer " << i << "\n";
 			fill_group_buffer(i);
-			//cout << "fill group buffer " << i << " done" << "\n";
-			//dump();
 		}
 		if(group_size(i) == 0 && i==current_r-1) {
 			current_r--;
 		}
 	}
 
-	//cout << "done filling groups" << "\n";
 	// merge to buffer
-	//cout << "current_r: " << current_r << "\n";
 	mergebuffer.resize(0);
 #ifndef TPIE_NDEBUG
 	std::cout << "memavail after mb free: "
@@ -529,20 +521,16 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			heap.push(gbuffer0[group_start(0)], 0);
 		} else if(group_size(i)>0) {
 			data[i]->open(group_data(i));
-			//      assert(slot_size(group*setting_k+i>0));
 			data[i]->seek(group_start(i));
 			heap.push(data[i]->read(), i);
 		} else if(i > 0) {
 			// dummy, well :o/
-			//cout << "create dummy " << i << "\n";
 		}
 	}
-	//cout << "init done" << "\n";
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
 		group_type current_group = heap.top_run();
 		if(current_group!= 0 && data[current_group]->offset() == setting_m) {
-			//cout << "fill group seeking to 0" << "\n";
 			data[current_group]->seek(0);
 		}
 		buffer[(buffer_size+buffer_start)%setting_m] = heap.top();
@@ -555,22 +543,17 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			heap.pop();
 		} else {
 			if(current_group == 0) {
-				//cout << "0 push: " << "\n";
-				//cout << gbuffer0[group_start(0)] << "\n";
 				heap.pop_and_push(gbuffer0[group_start(0)], 0);
 			} else {
 				heap.pop_and_push(data[current_group]->read(), current_group);
 			}
 		}
 	}
-	//cout << "while done" << "\n";
 #ifndef TPIE_NDEBUG
 	std::cout << "memavail before mb alloc: "
 			  << get_memory_manager().available() << "b" << std::endl;
 #endif
 	mergebuffer.resize(setting_m*2);
-
-	//cout << "end fill buffer" << "\n";
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -723,7 +706,6 @@ void priority_queue<T, Comparator, OPQType>::empty_group(group_type group) {
 			slot_type current_slot = heap.top_run();
 			newstream.write(heap.top());
 			slot_size_set(newslot,slot_size(newslot)+1);
-			//cout << heap.top() << " from slot " << current_slot << "\n";
 			slot_start_set(current_slot, slot_start(current_slot)+1);
 			slot_size_set(current_slot, slot_size(current_slot)-1);
 			if(slot_size(current_slot) == 0) {
@@ -939,7 +921,6 @@ memory_size_type priority_queue<T, Comparator, OPQType>::slot_start(slot_type sl
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::slot_size_set(slot_type slot, memory_size_type n) {
-	//cout << "change slot " << slot << " size" << "\n";
 	assert(slot<setting_k*setting_k);
 	slot_state[slot*3+1] = n;
 }
@@ -993,18 +974,14 @@ memory_size_type priority_queue<T, Comparator, OPQType>::slot_max_size(slot_type
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::write_slot(slot_type slotid, T* arr, memory_size_type len) {
 	assert(len > 0);
-	//cout << "write slot " << slotid << " " << len << "\n";
-	//cout << "write slot " << slot_data(slotid) << "\n";
 	file_stream<T> data(block_factor);
 	data.open(slot_data(slotid));
-	//cout << "write slot new done" << "\n";
 	data.write(arr+0, arr+len);
 	slot_start_set(slotid, 0);
 	slot_size_set(slotid, len);
 	if(current_r == 0 && slotid < setting_k) {
 		current_r = 1;
 	}
-	//cout << "write slot done" << std::endl;
 }
 
 /////////////////////
