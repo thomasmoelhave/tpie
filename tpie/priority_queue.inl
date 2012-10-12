@@ -736,6 +736,13 @@ void priority_queue<T, Comparator, OPQType>::empty_group(group_type group) {
 	mergebuffer.resize(setting_m*2);;
 
 	if(group_size(group+1) > 0 && !ret) {
+		// Maintain heap invariant:
+		//     group buffer i <= group i slots
+		// If the group buffer of the group in which we inserted runs
+		// was not empty before, we might now have violated a heap invariant
+		// by inserting elements in a [group+1] slot that are less than elements
+		// in group buffer [group+1].
+		// Just remove the group buffer to ensure the invariant.
 		remove_group_buffer(group+1); // todo, this might recurse?
 	}
 }
@@ -867,10 +874,10 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 #endif
 }
 
-// After emptying a group, we empty its group buffer
-// by merging it with group buffer 0.
-// Smaller elements go in gb0,
-// and larger elements go in a group 0 slot.
+// Empty a group buffer by inserting it into an empty group 0 slot.
+// To maintain the invariant
+//     group buffer 0 elements <= group 0 slot elements,
+// merge the given group buffer with group buffer 0 before writing the slot out.
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type group) {
 #ifndef NDEBUG
@@ -909,7 +916,6 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
 	if(group > 0 && group_size(0) != 0) {
-		// this code is also used in PQFishspear
 		memory_size_type j = 0;
 		for(memory_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
 			mergebuffer[j] = gbuffer0[i%setting_m];
