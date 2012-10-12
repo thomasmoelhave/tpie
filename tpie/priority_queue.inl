@@ -216,19 +216,22 @@ template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 
 	if(opq->full()) {
+		// When the overflow priority queue (aka. insertion buffer) is full,
+		// insert its contents into a new slot in group 0.
+		//
+		// To maintain the heap invariant
+		//     deletion buffer <= group buffer 0 <= group 0 slots
+		// we bubble lesser elements from insertion buffer down into
+		// deletion buffer and group buffer 0.
 
-		// Merge insertion buffer, deletion buffer and group buffer 0
-		// such that deletion buffer <= group buffer 0 <= insertion buffer.
-
-		// Afterwards, move insertion buffer to a free slot in group 0.
-
-		slot_type slot = free_slot(0); // if group 0 is full, we recursively empty group i
-		                               // by merging it into a slot in group i+1
+		slot_type slot = free_slot(0); // (if group 0 is full, we recursively empty group i
+		                               // by merging it into a slot in group i+1)
 
 		assert(opq->sorted_size() == setting_m);
 		T* arr = opq->sorted_array();
 
-		if(buffer_size > 0) { // maintain heap invariant for deletion buffer
+		// Bubble lesser elements down into deletion buffer
+		if(buffer_size > 0) {
 
 			// fetch insertion buffer
 			memcpy(&mergebuffer[0], &arr[0], sizeof(T)*opq->sorted_size());
@@ -246,7 +249,8 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 			memcpy(&arr[0], mergebuffer.get()+buffer_size, sizeof(T)*opq->sorted_size());
 		}
 
-		if(group_size(0)> 0) { // maintain heap invariant for gbuffer0
+		// Bubble lesser elements down into group buffer 0
+		if(group_size(0)> 0) {
 
 			// Merge insertion buffer and group buffer 0
 			assert(group_size(0)+opq->sorted_size() <= setting_m*2);
