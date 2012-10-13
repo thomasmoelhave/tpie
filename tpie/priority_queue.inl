@@ -565,6 +565,7 @@ void priority_queue<T, Comparator>::fill_buffer() {
 			}
 		}
 	}
+	heap.resize(0);
 #ifndef TPIE_NDEBUG
 	std::cout << "memavail before mb alloc: "
 			  << get_memory_manager().available() << "b" << std::endl;
