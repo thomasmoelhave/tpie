@@ -73,7 +73,7 @@ namespace tpie {
 /// integers.
 ///////////////////////////////////////////////////////////////////////////////
 
-template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
+template<typename T, typename Comparator = std::less<T> >
 class priority_queue {
 	typedef memory_size_type group_type;
 	typedef memory_size_type slot_type;
@@ -164,7 +164,7 @@ private:
     bool min_in_buffer;
 
 	/** Overflow priority queue (for buffering inserted elements). Capacity m. */
-	tpie::auto_ptr<OPQType> opq;
+	internal_priority_queue<T, Comparator> opq;
 
 	/** Deletion buffer containing the m' top elements in the entire structure. */
 	tpie::array<T> buffer;
@@ -222,7 +222,7 @@ private:
     void slot_data_set(slot_type slotid, memory_size_type n);
     temp_file & group_data(group_type groupid);
     memory_size_type slot_max_size(slot_type slotid);
-    void write_slot(slot_type slotid, T* arr, memory_size_type len);
+    void write_slot(slot_type slotid, array<T> & arr, memory_size_type len);
     slot_type free_slot(group_type group);
     void empty_group(group_type group);
     void fill_buffer();
