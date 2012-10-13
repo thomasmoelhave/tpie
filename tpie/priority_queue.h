@@ -179,9 +179,9 @@ private:
 	 * in memory. */
 	tpie::array<T> gbuffer0;
 
-	/** 3*(#slots) integers. Slot i contains its elements in cyclic ascending order,
-	 * starting at index slot_state[3*i]. Slot i contains slot_state[3*i+1] elements.
-	 * Its data is in data file index slot_state[3*i+2]. */
+	/** 2*(#slots) integers. Slot i contains its elements in cyclic ascending order,
+	 * starting at index slot_state[2*i]. Slot i contains slot_state[2*i+1] elements.
+	 * Its data is in data file i. */
 	tpie::array<memory_size_type> slot_state;
 
 	/** 2*(#groups) integers. Group buffer i has its elements in cyclic ascending order,
@@ -220,7 +220,6 @@ private:
     array<temp_file> groupdatafiles;
 
     temp_file & slot_data(slot_type slotid);
-    void slot_data_set(slot_type slotid, memory_size_type n);
     temp_file & group_data(group_type groupid);
     void write_slot(slot_type slotid, array<T> & arr, memory_size_type len);
     slot_type free_slot(group_type group);
