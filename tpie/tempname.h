@@ -152,6 +152,7 @@ namespace tpie {
 	class temp_file : boost::noncopyable {
 	private:
 		std::string m_path;
+		std::string m_postBase;
 		bool m_persist;
 		stream_size_type m_recordedSize;
 	public:
@@ -176,6 +177,10 @@ namespace tpie {
 		/// \brief Associate with a specific file.
 		///////////////////////////////////////////////////////////////////////
 		void set_path(const std::string & path, bool persist=false);
+
+		void set_post_base(const std::string & postBase) {
+			m_postBase = postBase;
+		}
 
 		void update_recorded_size(stream_size_type size) {
 			increment_temp_file_usage(static_cast<stream_offset_type>(size)-

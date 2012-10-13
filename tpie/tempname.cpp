@@ -197,7 +197,7 @@ temp_file::temp_file(const std::string & path, bool persist): m_path(path), m_pe
 
 const std::string & temp_file::path() {
 	if (m_path.empty())
-		m_path = tempname::tpie_name();
+		m_path = tempname::tpie_name(m_postBase);
 	return m_path;
 }
 
