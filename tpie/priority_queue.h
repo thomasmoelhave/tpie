@@ -163,7 +163,6 @@ public:
 
 private:
     Comparator comp_;
-    T dummy;
 
     T min;
     bool min_in_buffer;
@@ -197,8 +196,6 @@ private:
 	memory_size_type setting_m;
 	/** m', the size of the deletion buffer. */
 	memory_size_type setting_mmark;
-
-    memory_size_type slot_data_id;
 
     stream_size_type m_size;
     memory_size_type buffer_size;

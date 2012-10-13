@@ -189,7 +189,6 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		slot_state[i*2] = 0;
 		slot_state[i*2+1] = 0;
 	}
-	slot_data_id = setting_k*setting_k+1;
 
 	for(memory_size_type i = 0; i< setting_k*2; i++) {
 		group_state[i] = 0;
