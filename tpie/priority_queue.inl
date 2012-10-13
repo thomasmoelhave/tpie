@@ -219,7 +219,7 @@ void priority_queue<T, Comparator>::push(const T& x) {
 		                               // by merging it into a slot in group i+1)
 
 		array<T> & arr = opq.get_array();
-		std::sort(arr.begin(), arr.end(), comp_);
+		parallel_sort(arr.begin(), arr.end(), comp_);
 
 		array<T> mergebuffer(2*setting_m);
 
@@ -233,7 +233,7 @@ void priority_queue<T, Comparator>::push(const T& x) {
 			std::copy(buffer.find(buffer_start), buffer.find(buffer_start+buffer_size), mergebuffer.find(setting_m));
 
 			// sort buffer elements
-			std::sort(mergebuffer.begin(), mergebuffer.find(buffer_size+setting_m), comp_);
+			parallel_sort(mergebuffer.begin(), mergebuffer.find(buffer_size+setting_m), comp_);
 
 			// smaller elements go in deletion buffer
 			std::copy(mergebuffer.begin(), mergebuffer.find(buffer_size), buffer.find(buffer_start));
@@ -259,7 +259,7 @@ void priority_queue<T, Comparator>::push(const T& x) {
 			std::copy(arr.begin(), arr.find(setting_m), mergebuffer.find(j));
 
 			// sort
-			std::sort(mergebuffer.get(), mergebuffer.get()+(group_size(0)+setting_m), comp_);
+			parallel_sort(mergebuffer.get(), mergebuffer.get()+(group_size(0)+setting_m), comp_);
 
 			// smaller elements go in gbuffer0
 			std::copy(mergebuffer.begin(), mergebuffer.find(group_size(0)), gbuffer0.begin());
@@ -872,7 +872,7 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 			++j;
 		}
 		memcpy(&mergebuffer[j], &arr[0], static_cast<size_t>(sizeof(T)*group_size(group)));
-		std::sort(&mergebuffer[0], &mergebuffer[0]+(group_size(0)+group_size(group)), comp_);
+		parallel_sort(&mergebuffer[0], &mergebuffer[0]+(group_size(0)+group_size(group)), comp_);
 		memcpy(&gbuffer0[0], &mergebuffer[0], static_cast<size_t>(sizeof(T)*group_size(0)));
 		group_start_set(0,0);
 		memcpy(&arr[0], &mergebuffer[group_size(0)], static_cast<size_t>(sizeof(T)*group_size(group)));

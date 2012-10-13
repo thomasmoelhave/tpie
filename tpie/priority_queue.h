@@ -40,6 +40,7 @@
 #include <tpie/array.h>
 #include <tpie/internal_priority_queue.h>
 #include <boost/filesystem.hpp>
+#include <tpie/parallel_sort.h>
 
 namespace tpie {
 
