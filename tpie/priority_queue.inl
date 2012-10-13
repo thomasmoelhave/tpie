@@ -205,15 +205,6 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 }
 
 template <typename T, typename Comparator>
-priority_queue<T, Comparator>::~priority_queue() { // destructor
-	datafiles.resize(0); // unlink slots
-	groupdatafiles.resize(0); // unlink groups 
-
-	buffer.resize(0);
-	gbuffer0.resize(0);
-}
-
-template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::push(const T& x) {
 
 	if(opq.size() == setting_m) {
