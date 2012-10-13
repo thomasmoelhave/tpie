@@ -194,10 +194,20 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		group_state[i] = 0;
 	}
 
-	std::stringstream ss;
-	ss << tempname::tpie_name("pq_data");
 	datafiles.resize(setting_k*setting_k);
+	for (memory_size_type i = 0; i < setting_k; ++i) {
+		for (memory_size_type j = 0; j < setting_k; ++j) {
+			std::stringstream ss;
+			ss << "slot_" << i << "_" << j;
+			datafiles[i*setting_k+j].set_post_base(ss.str());
+		}
+	}
 	groupdatafiles.resize(setting_k);
+	for (memory_size_type i = 0; i < setting_k; ++i) {
+		std::stringstream ss;
+		ss << "gbuf_" << i;
+		groupdatafiles[i].set_post_base(ss.str());
+	}
 	log_debug() << "memory after alloc: "
 		<< get_memory_manager().available() << "b" << "\n";
 }
