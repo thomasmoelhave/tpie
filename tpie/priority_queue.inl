@@ -528,28 +528,28 @@ void priority_queue<T, Comparator>::fill_buffer() {
 			  << get_memory_manager().available() << "b" << std::endl;
 #endif
 
-	pq_merge_heap<T, Comparator> heap(current_r);
+	merge_heap heap(current_r, comp_);
 
 	tpie::array<tpie::auto_ptr<file_stream<T> > > data(current_r);
 	for(memory_size_type i = 0; i<current_r; i++) {
 		data[i].reset(tpie_new<file_stream<T> >(block_factor));
 		if(i == 0 && group_size(i)>0) {
-			heap.push(gbuffer0[group_start(0)], 0);
+			heap.push(std::make_pair(gbuffer0[group_start(0)], 0));
 		} else if(group_size(i)>0) {
 			data[i]->open(group_data(i));
 			data[i]->seek(group_start(i));
-			heap.push(data[i]->read(), i);
+			heap.push(std::make_pair(data[i]->read(), i));
 		} else if(i > 0) {
 			// dummy, well :o/
 		}
 	}
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
-		group_type current_group = heap.top_run();
+		group_type current_group = heap.top().second;
 		if(current_group!= 0 && data[current_group]->offset() == setting_m) {
 			data[current_group]->seek(0);
 		}
-		buffer[(buffer_size+buffer_start)%setting_m] = heap.top();
+		buffer[(buffer_size+buffer_start)%setting_m] = heap.top().first;
 		buffer_size++;
 
 		assert(group_size(current_group)-1 >= 0);
@@ -559,9 +559,9 @@ void priority_queue<T, Comparator>::fill_buffer() {
 			heap.pop();
 		} else {
 			if(current_group == 0) {
-				heap.pop_and_push(gbuffer0[group_start(0)], 0);
+				heap.pop_and_push(std::make_pair(gbuffer0[group_start(0)], 0));
 			} else {
-				heap.pop_and_push(data[current_group]->read(), current_group);
+				heap.pop_and_push(std::make_pair(data[current_group]->read(), current_group));
 			}
 		}
 	}
@@ -600,7 +600,7 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 		}
 
 		//merge heap for the setting_k slots
-		pq_merge_heap<T, Comparator> heap(setting_k);
+		merge_heap heap(setting_k, comp_);
 
 		//Create streams for the non-empty slots and initialize
 		//internal heap with one element per slot
@@ -618,25 +618,25 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 				data[i]->seek(slot_start(slotid));
 
 				//push first item of slot on the stream
-				heap.push(data[i]->read(), slotid);
+				heap.push(std::make_pair(data[i]->read(), slotid));
 			}
 		}
 
 		//perform actual reading until group if full or all 
 		//the slots are empty
 		while(!heap.empty() && group_size(group)!=static_cast<stream_size_type>(setting_m)) {
-			slot_type current_slot = heap.top_run();
+			slot_type current_slot = heap.top().second;
 
 			if(group == 0) {
 				//use in-memory array for group 0
-				gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top();
+				gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top().first;
 			} else {
 				//write to disk for group >0
 				if(out.offset() == setting_m) {
 					out.seek(0);
 				}
 
-				out.write(heap.top());
+				out.write(heap.top().first);
 			}
 
 			//increase group size
@@ -650,7 +650,7 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 			if(slot_size(current_slot) == 0) {
 				heap.pop();
 			} else {
-				heap.pop_and_push(data[current_slot-group*setting_k]->read(), current_slot);
+				heap.pop_and_push(std::make_pair(data[current_slot-group*setting_k]->read(), current_slot));
 			}
 		}
 
@@ -702,7 +702,7 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 
 		file_stream<T> newstream(block_factor);
 		newstream.open(slot_data(newslot));
-		pq_merge_heap<T, Comparator> heap(setting_k);
+		merge_heap heap(setting_k, comp_);
 
 		// Open streams to slots in group `group', push top element to merge heap
 		tpie::array<tpie::auto_ptr<file_stream<T> > > data(setting_k);
@@ -715,19 +715,19 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 			}
 			assert(slot_size(group*setting_k+i)>0);
 			data[i]->seek(slot_start(group*setting_k+i));
-			heap.push(data[i]->read(), group*setting_k+i);
+			heap.push(std::make_pair(data[i]->read(), group*setting_k+i));
 		}
 
 		while(!heap.empty() && !ret) {
-			slot_type current_slot = heap.top_run();
-			newstream.write(heap.top());
+			slot_type current_slot = heap.top().second;
+			newstream.write(heap.top().first);
 			slot_size_set(newslot,slot_size(newslot)+1);
 			slot_start_set(current_slot, slot_start(current_slot)+1);
 			slot_size_set(current_slot, slot_size(current_slot)-1);
 			if(slot_size(current_slot) == 0) {
 				heap.pop();
 			} else {
-				heap.pop_and_push(data[current_slot-group*setting_k]->read(), current_slot);
+				heap.pop_and_push(std::make_pair(data[current_slot-group*setting_k]->read(), current_slot));
 			}
 		}
 	}

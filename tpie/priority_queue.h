@@ -75,8 +75,21 @@ namespace tpie {
 
 template<typename T, typename Comparator = std::less<T> >
 class priority_queue {
-	typedef memory_size_type group_type;
-	typedef memory_size_type slot_type;
+	typedef memory_size_type run_type;
+	typedef run_type group_type;
+	typedef run_type slot_type;
+	struct merge_comp_type {
+		typedef std::pair<T, run_type> item_type;
+		typedef item_type first_argument_type;
+		typedef item_type second_argument_type;
+		typedef bool result_type;
+		Comparator comp_;
+		merge_comp_type(Comparator & c) : comp_(c) {}
+		bool operator()(const item_type & a, const item_type & b) {
+			return comp_(a.first, b.first);
+		}
+	};
+	typedef internal_priority_queue<typename merge_comp_type::item_type, merge_comp_type> merge_heap;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor.
