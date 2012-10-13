@@ -43,10 +43,6 @@ set (HEADERS
 		internal_priority_queue.h
 		priority_queue.inl
 		priority_queue.h
-		pq_overflow_heap.h
-		pq_overflow_heap.inl
-		pq_merge_heap.h
-		pq_merge_heap.inl
 		fractional_progress.h
 		parallel_sort.h
 		dummy_progress.h

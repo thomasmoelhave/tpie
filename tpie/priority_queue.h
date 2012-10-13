@@ -29,18 +29,16 @@
 #include "portability.h"
 #include "tpie_log.h"
 #include <cassert>
-#include "pq_overflow_heap.h"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <cmath>
 #include <string>
-#include <cstring> // for memcpy
 #include <sstream>
-#include "pq_merge_heap.h"
 #include <tpie/err.h>
 #include <tpie/stream.h>
 #include <tpie/array.h>
+#include <tpie/internal_priority_queue.h>
 #include <boost/filesystem.hpp>
 
 namespace tpie {
