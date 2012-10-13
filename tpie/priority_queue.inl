@@ -655,8 +655,6 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 		current_r = newslot/setting_k+1;
 	}
 
-	bool ret = false;
-
 	{
 
 		file_stream<T> newstream(block_factor);
@@ -669,15 +667,14 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 			data[i].reset(tpie_new<file_stream<T> >(block_factor));
 			data[i]->open(slot_data(group*setting_k+i));
 			if(slot_size(group*setting_k+i) == 0) {
-				ret = true;
-				break;
+				return;
 			}
 			assert(slot_size(group*setting_k+i)>0);
 			data[i]->seek(slot_start(group*setting_k+i));
 			heap.push(std::make_pair(data[i]->read(), group*setting_k+i));
 		}
 
-		while(!heap.empty() && !ret) {
+		while(!heap.empty()) {
 			slot_type current_slot = heap.top().second;
 			newstream.write(heap.top().first);
 			slot_size_set(newslot,slot_size(newslot)+1);
@@ -691,7 +688,7 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 		}
 	}
 
-	if(group_size(group+1) > 0 && !ret) {
+	if(group_size(group+1) > 0) {
 		// Maintain heap invariant:
 		//     group buffer i <= group i slots
 		// If the group buffer of the group in which we inserted runs
