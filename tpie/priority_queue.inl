@@ -25,9 +25,9 @@ priority_queue<T, Comparator>::priority_queue(double f, float b)
 	assert(f<= 1.0 && f > 0);
 	assert(b > 0.0);
 	memory_size_type mm_avail = consecutive_memory_available();
-	TP_LOG_DEBUG("priority_queue: Memory limit: " 
+	log_debug() << "priority_queue: Memory limit: "
 		<< mm_avail/1024/1024 << "mb("
-		<< mm_avail << "bytes)" << "\n");
+		<< mm_avail << "bytes)" << "\n";
 	mm_avail = static_cast<memory_size_type>(static_cast<double>(mm_avail)*f);
 	init(mm_avail);
 }
@@ -40,9 +40,9 @@ priority_queue<T, Comparator>::priority_queue(memory_size_type mm_avail, float b
 { // constructor absolute mem
 	assert(mm_avail <= get_memory_manager().limit() && mm_avail > 0);
 	assert(b > 0.0);
-	TP_LOG_DEBUG("priority_queue: Memory limit: " 
+	log_debug() << "priority_queue: Memory limit: "
 				 << mm_avail/1024/1024 << "mb("
-				 << mm_avail << "bytes)" << "\n");
+				 << mm_avail << "bytes)" << "\n";
 	init(mm_avail);
 }
 #endif
@@ -55,16 +55,16 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 #endif //_WIN64
 #endif //_WIN32
 
-	TP_LOG_DEBUG("m_for_queue: " 
-		<< mm_avail << "\n");
-	TP_LOG_DEBUG("memory before alloc: " 
-				 << get_memory_manager().available() << "b" << "\n");
+	log_debug() << "m_for_queue: "
+		<< mm_avail << "\n"
+		<< "memory before alloc: "
+		<< get_memory_manager().available() << "b" << "\n";
 	{
 		//Calculate M
 		setting_m = mm_avail/sizeof(T);
 		//Get stream memory usage
 		memory_size_type usage = file_stream<T>::memory_usage(block_factor);
-		TP_LOG_DEBUG("Memory used by file_stream: " << usage << "b\n");
+		log_debug() << "Memory used by file_stream: " << usage << "b\n";
 
 		memory_size_type alloc_overhead = 0;
 
@@ -83,12 +83,12 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 			  2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
 			+ 2*(sizeof(T)+sizeof(group_type)); //mergeheap
 		const memory_size_type additional_overhead = 16*1024; //Just leave a bit unused
-		TP_LOG_DEBUG("fanout_overhead     " << fanout_overhead     << ",\n" <<
-		             "sq_fanout_overhead  " << sq_fanout_overhead  << ",\n" <<
-		             "heap_m_overhead     " << heap_m_overhead     << ",\n" <<
-		             "buffer_m_overhead   " << buffer_m_overhead   << ",\n" <<
-		             "extra_overhead      " << extra_overhead      << ",\n" <<
-		             "additional_overhead " << additional_overhead << ".\n\n");
+		log_debug() << "fanout_overhead     " << fanout_overhead     << ",\n" <<
+		               "sq_fanout_overhead  " << sq_fanout_overhead  << ",\n" <<
+		               "heap_m_overhead     " << heap_m_overhead     << ",\n" <<
+		               "buffer_m_overhead   " << buffer_m_overhead   << ",\n" <<
+		               "extra_overhead      " << extra_overhead      << ",\n" <<
+		               "additional_overhead " << additional_overhead << ".\n\n";
 
 		//Check that there is enough space for the simple overhead
 		if(mm_avail < extra_overhead+additional_overhead){
@@ -98,13 +98,13 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		//Setup the fanout, heap_m and buffer_m
 		mm_avail-=additional_overhead+extra_overhead; //Subtract the extra space used
 		setting_mmark = (mm_avail/16)/buffer_m_overhead; //Set the buffer size
-		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
-		             "setting_mmark " << setting_mmark  << ".\n\n");
+		log_debug() << "mm_avail      " << mm_avail << ",\n" <<
+		               "setting_mmark " << setting_mmark  << ".\n\n";
 
 		mm_avail-=setting_mmark*buffer_m_overhead;
 		setting_k = (mm_avail/2); 
-		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
-		             "setting_k     " << setting_k  << ".\n\n");
+		log_debug() << "mm_avail      " << mm_avail << ",\n" <<
+		               "setting_k     " << setting_k  << ".\n\n";
 
 		{
 			//compute setting_k
@@ -136,16 +136,16 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 
 		mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
 		setting_m = (mm_avail)/heap_m_overhead;
-		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
-		             "setting_m     " << setting_m << ",\n" <<
-		             "setting_k     " << setting_k << ".\n\n");
+		log_debug() << "mm_avail      " << mm_avail << ",\n" <<
+		               "setting_m     " << setting_m << ",\n" <<
+		               "setting_k     " << setting_k << ".\n\n";
 
 		//Check that minimum requirements on fanout and buffersizes are met
 		const memory_size_type min_fanout=3;
 		const memory_size_type min_heap_m=4;
 		const memory_size_type min_buffer_m=2;
 		if(setting_k<min_fanout || setting_m<min_heap_m || setting_mmark<min_buffer_m){
-			TP_LOG_FATAL_ID("Priority queue: Not enough memory. Increase allowed memory.");
+			log_fatal() << "Priority queue: Not enough memory. Increase allowed memory." << std::endl;
 			throw exception("Priority queue: Not enough memory. Increase allowed memory.");
 		}
 
@@ -160,10 +160,10 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	buffer_size = 0;
 	buffer_start = 0;
 
-	TP_LOG_DEBUG("priority_queue" << "\n"
-			<< "\tsetting_k: " << setting_k << "\n"
-			<< "\tsetting_mmark: " << setting_mmark << "\n"
-			<< "\tsetting_m: " << setting_m << "\n");
+	log_debug() << "priority_queue" << "\n"
+		<< "\tsetting_k: " << setting_k << "\n"
+		<< "\tsetting_mmark: " << setting_mmark << "\n"
+		<< "\tsetting_m: " << setting_m << "\n";
 
 	assert(setting_k > 0);
 	assert(current_r == 0);
@@ -171,7 +171,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	assert(setting_mmark > 0);
 	assert(setting_m > setting_mmark);
 	if(setting_m < setting_mmark) {
-		TP_LOG_FATAL_ID("wrong settings");
+		log_fatal() << "wrong settings" << std::endl;
 		throw exception("Priority queue: m < m'");
 	}
 
@@ -199,8 +199,8 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	ss << tempname::tpie_name("pq_data");
 	datafiles.resize(setting_k*setting_k);
 	groupdatafiles.resize(setting_k);
-	TP_LOG_DEBUG("memory after alloc: " 
-				 << get_memory_manager().available() << "b" << "\n");
+	log_debug() << "memory after alloc: "
+		<< get_memory_manager().available() << "b" << "\n";
 }
 
 template <typename T, typename Comparator>
@@ -463,7 +463,7 @@ priority_queue<T, Comparator>::free_slot(group_type group) {
 		std::stringstream msg;
 		msg << "Error, queue is full no free slots in invalid group " 
 			<< group << ". Increase k.";
-		TP_LOG_FATAL_ID(msg.str());
+		log_fatal() << msg.str();
 		throw exception(msg.str());
 	}
 
@@ -634,7 +634,7 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::empty_group(group_type group) {
 	if(group > setting_k) {
-		TP_LOG_FATAL_ID("Error: Priority queue is full");
+		log_fatal() << "Error: Priority queue is full" << std::endl;
 		throw exception("Priority queue is full");
 	}
 
@@ -831,7 +831,7 @@ template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 #ifndef NDEBUG
 	if(group == 0) {
-		TP_LOG_FATAL_ID("Attempt to remove group buffer 0");
+		log_fatal() << "Attempt to remove group buffer 0" << std::endl;
 		throw exception("Attempt to remove group buffer 0");
 	}
 #endif
@@ -840,9 +840,9 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 	slot_type slot = free_slot(0);
 	if(group_size(group) == 0) return;
 
-	TP_LOG_DEBUG_ID("Remove group buffer " << group <<
-					" of size " << group_size(group) <<
-					" with available memory " << get_memory_manager().available());
+	log_debug() << "Remove group buffer " << group <<
+				   " of size " << group_size(group) <<
+				   " with available memory " << get_memory_manager().available() << std::endl;
 
 	assert(group < setting_k);
 	array<T> arr(static_cast<size_t>(group_size(group)));
