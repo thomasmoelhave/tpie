@@ -441,9 +441,6 @@ void priority_queue<T, Comparator>::dump() {
 						instream.read() <<
 						(k>=slot_start(j)?"":")") << " ");
 			}
-			for(stream_size_type l = k; l < slot_max_size(j); l++) {
-				TP_LOG_DEBUG("() ");
-			}
 
 			TP_LOG_DEBUG("\n");
 		}
@@ -944,14 +941,6 @@ void priority_queue<T, Comparator>::slot_data_set(slot_type slotid, memory_size_
 template <typename T, typename Comparator>
 temp_file & priority_queue<T, Comparator>::group_data(group_type groupid) {
 	return groupdatafiles[groupid];
-}
-
-template <typename T, typename Comparator>
-memory_size_type priority_queue<T, Comparator>::slot_max_size(slot_type slotid) {
-	// todo, too many casts
-	return setting_m
-		*static_cast<memory_size_type>(pow((long double)setting_k,
-										   (long double)(slotid/setting_k)));
 }
 
 template <typename T, typename Comparator>
