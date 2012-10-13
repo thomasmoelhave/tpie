@@ -188,9 +188,6 @@ private:
 	 * in memory. */
 	tpie::array<T> gbuffer0;
 
-	/** Merge buffer of size 2*m. */
-	tpie::array<T> mergebuffer;
-
 	/** 3*(#slots) integers. Slot i contains its elements in cyclic ascending order,
 	 * starting at index slot_state[3*i]. Slot i contains slot_state[3*i+1] elements.
 	 * Its data is in data file index slot_state[3*i+2]. */

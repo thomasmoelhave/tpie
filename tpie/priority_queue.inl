@@ -183,7 +183,6 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 
 	buffer.resize(setting_mmark);
 	gbuffer0.resize(setting_m);
-	mergebuffer.resize(setting_m*2);
 
 	// clear memory
 	for(memory_size_type i = 0; i<setting_k*setting_k; i++) {
@@ -212,7 +211,6 @@ priority_queue<T, Comparator>::~priority_queue() { // destructor
 
 	buffer.resize(0);
 	gbuffer0.resize(0);
-	mergebuffer.resize(0);
 }
 
 template <typename T, typename Comparator>
@@ -232,6 +230,8 @@ void priority_queue<T, Comparator>::push(const T& x) {
 
 		array<T> & arr = opq.get_array();
 		std::sort(arr.begin(), arr.end(), comp_);
+
+		array<T> mergebuffer(2*setting_m);
 
 		// Bubble lesser elements down into deletion buffer
 		if(buffer_size > 0) {
@@ -522,11 +522,6 @@ void priority_queue<T, Comparator>::fill_buffer() {
 	}
 
 	// merge to buffer
-	mergebuffer.resize(0);
-#ifndef TPIE_NDEBUG
-	std::cout << "memavail after mb free: "
-			  << get_memory_manager().available() << "b" << std::endl;
-#endif
 
 	merge_heap heap(current_r, comp_);
 
@@ -565,12 +560,6 @@ void priority_queue<T, Comparator>::fill_buffer() {
 			}
 		}
 	}
-	heap.resize(0);
-#ifndef TPIE_NDEBUG
-	std::cout << "memavail before mb alloc: "
-			  << get_memory_manager().available() << "b" << std::endl;
-#endif
-	mergebuffer.resize(setting_m*2);
 }
 
 template <typename T, typename Comparator>
@@ -579,15 +568,6 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 	// max k + 1 open streams
 	// 1 merge heap
 	// opq still in action
-
-	//get rid of mergebuffer so that we enough memory
-	//for the heap and misc structures below
-	//this array is reallocated below
-	mergebuffer.resize(0);
-#ifndef TPIE_NDEBUG
-	std::cout << "memavail after mb free: "
-			  << get_memory_manager().available() << "b" << std::endl;
-#endif
 
 	// merge
 	{
@@ -656,22 +636,14 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 		}
 
 	}
-
-	//restore mergebuffer
-#ifndef TPIE_NDEBUG
-	std::cout << "memavail before mb alloc: "
-			  << get_memory_manager().available() << "b" << std::endl;
-#endif
-	mergebuffer.resize(setting_m*2);;
 }
 
 // Memory usage:
-// Deallocates mergebuffer : -2*setting_m
 // Opens newstream         : sizeof(file_stream<T>)
 // PQ merge heap           : setting_k * (sizeof T + sizeof size_type)
 // Opens old streams       : setting_k * sizeof(file_stream<T>)
-// Reallocates mergebuffer : +2*setting_m
-// (no net heap usage since 2*setting_m > temporary heap usage)
+// As long as this is less than 2*setting_m, we are covered by the mergebuffer
+// which is not allocated at this point.
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::empty_group(group_type group) {
 	if(group > setting_k) {
@@ -694,11 +666,6 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 
 	bool ret = false;
 
-	mergebuffer.resize(0);
-#ifndef TPIE_NDEBUG
-	std::cout << "memavail after mb free: "
-			  << get_memory_manager().available() << "b" << std::endl;
-#endif
 	{
 
 		file_stream<T> newstream(block_factor);
@@ -732,12 +699,6 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 			}
 		}
 	}
-
-#ifndef TPIE_NDEBUG
-	std::cout << "memavail before mb alloc: "
-			  << get_memory_manager().available() << "b" << std::endl;
-#endif
-	mergebuffer.resize(setting_m*2);;
 
 	if(group_size(group+1) > 0 && !ret) {
 		// Maintain heap invariant:
@@ -919,6 +880,7 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 	assert(group_size(group) > 0);
 
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
+	array<T> mergebuffer(2*setting_m);
 	if(group > 0 && group_size(0) != 0) {
 		memory_size_type j = 0;
 		for(memory_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
