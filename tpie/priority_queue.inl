@@ -472,7 +472,7 @@ priority_queue<T, Comparator>::free_slot(group_type group) {
 		std::stringstream msg;
 		msg << "Error, queue is full no free slots in invalid group " 
 			<< group << ". Increase k.";
-		log_fatal() << msg.str();
+		log_fatal() << msg.str() << std::endl;
 		throw exception(msg.str());
 	}
 
