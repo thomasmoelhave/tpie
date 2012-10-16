@@ -231,7 +231,18 @@ void priority_queue<T, Comparator>::push(const T& x) {
 		array<T> & arr = opq.get_array();
 		parallel_sort(arr.begin(), arr.end(), comp_);
 
-		array<T> mergebuffer(2*setting_m);
+		// Only allocate a merge buffer if it is needed
+		memory_size_type mergebufferSize = 0;
+
+		// Needed for merging deletion buffer and insertion buffer
+		if (buffer_size > 0)
+			mergebufferSize = std::max(mergebufferSize, buffer_size + setting_m);
+
+		// Needed for merging group buffer 0 and insertion buffer
+		if (group_size(0) > 0)
+			mergebufferSize = std::max(mergebufferSize, group_size(0) + setting_m);
+
+		array<T> mergebuffer(mergebufferSize);
 
 		// Bubble lesser elements down into deletion buffer
 		if(buffer_size > 0) {
@@ -874,8 +885,10 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 	assert(group_size(group) > 0);
 
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
-	array<T> mergebuffer(2*setting_m);
 	if(group > 0 && group_size(0) != 0) {
+		// merge group buffer with group buffer 0
+		array<T> mergebuffer(group_size(0) + group_size(group));
+
 		memory_size_type j = 0;
 		for(memory_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
 			mergebuffer[j] = gbuffer0[i%setting_m];
