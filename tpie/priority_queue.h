@@ -162,6 +162,11 @@ public:
     template <typename F> F pop_equals(F f);
 
 private:
+	struct run_state_type {
+		stream_size_type start;
+		stream_size_type size;
+	};
+
     Comparator comp_;
 
     T min;
@@ -182,11 +187,11 @@ private:
 	/** 2*(#slots) integers. Slot i contains its elements in cyclic ascending order,
 	 * starting at index slot_state[2*i]. Slot i contains slot_state[2*i+1] elements.
 	 * Its data is in data file i. */
-	tpie::array<memory_size_type> slot_state;
+	tpie::array<run_state_type> slot_state;
 
 	/** 2*(#groups) integers. Group buffer i has its elements in cyclic ascending order,
 	 * starting at index group_state[2*i]. Gbuffer i contains group_state[2*i+1] elements. */
-	tpie::array<memory_size_type> group_state;
+	tpie::array<run_state_type> group_state;
 
 	/** k, the fanout of each group and the max fanout R. */
 	memory_size_type setting_k;

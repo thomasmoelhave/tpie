@@ -70,10 +70,10 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 
 
 		//Compute overhead of the parameters
-		const memory_size_type fanout_overhead = 2*sizeof(stream_size_type)// group state
+		const memory_size_type fanout_overhead = sizeof(run_state_type)// group state
 			+ (usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
 			+ (sizeof(T)+sizeof(group_type)); //mergeheap
-		const memory_size_type sq_fanout_overhead = 2*sizeof(stream_size_type); //slot_state
+		const memory_size_type sq_fanout_overhead = sizeof(run_state_type); //slot_state
 		const memory_size_type heap_m_overhead = sizeof(T) //opg
 			+ sizeof(T) //gbuffer0
 			+ sizeof(T) //extra buffer for remove_group_buffer
@@ -178,20 +178,21 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	opq.resize(setting_m);
 
 	// state arrays contain: start + size
-	slot_state.resize(setting_k*setting_k*2);
-	group_state.resize(setting_k*2);
+	slot_state.resize(setting_k*setting_k);
+	group_state.resize(setting_k);
 
 	buffer.resize(setting_mmark);
 	gbuffer0.resize(setting_m);
 
 	// clear memory
-	for(memory_size_type i = 0; i<setting_k*setting_k; i++) {
-		slot_state[i*2] = 0;
-		slot_state[i*2+1] = 0;
+	for(memory_size_type i = 0; i < setting_k*setting_k; i++) {
+		slot_state[i].start = 0;
+		slot_state[i].size = 0;
 	}
 
-	for(memory_size_type i = 0; i< setting_k*2; i++) {
-		group_state[i] = 0;
+	for(memory_size_type i = 0; i < setting_k; i++) {
+		group_state[i].start = 0;
+		group_state[i].size = 0;
 	}
 
 	datafiles.resize(setting_k*setting_k);
@@ -896,44 +897,44 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 // TPIE wrappers
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::slot_start_set(slot_type slot, memory_size_type n) {
-	slot_state[slot*2] = n;
+	slot_state[slot].start = n;
 }
 
 template <typename T, typename Comparator>
 memory_size_type priority_queue<T, Comparator>::slot_start(slot_type slot) const {
-	return slot_state[slot*2];
+	return slot_state[slot].start;
 }
 
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::slot_size_set(slot_type slot, memory_size_type n) {
 	assert(slot<setting_k*setting_k);
-	slot_state[slot*2+1] = n;
+	slot_state[slot].size = n;
 }
 
 template <typename T, typename Comparator>
 memory_size_type priority_queue<T, Comparator>::slot_size(slot_type slot) const {
-	return slot_state[slot*2+1];
+	return slot_state[slot].size;
 }
 
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::group_start_set(group_type group, memory_size_type n) {
-	group_state[group*2] = n;
+	group_state[group].start = n;
 }
 
 template <typename T, typename Comparator>
 memory_size_type priority_queue<T, Comparator>::group_start(group_type group) const {
-	return group_state[group*2];
+	return group_state[group].start;
 }
 
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::group_size_set(group_type group, memory_size_type n) {
 	assert(group<setting_k);
-	group_state[group*2+1] = n;
+	group_state[group].size = n;
 }
 
 template <typename T, typename Comparator>
 memory_size_type priority_queue<T, Comparator>::group_size(group_type group) const {
-	return group_state[group*2+1];
+	return group_state[group].size;
 }
 
 template <typename T, typename Comparator>
