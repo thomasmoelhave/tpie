@@ -224,20 +224,9 @@ private:
 
 	void init(memory_size_type mm_avail);
 
-    void             slot_start_set(slot_type slot, memory_size_type n);
-    memory_size_type slot_start(slot_type slot) const;
-    void             slot_size_set(slot_type slot, memory_size_type n);
-    memory_size_type slot_size(slot_type slot) const;
-    void             group_start_set(group_type group, memory_size_type n);
-    memory_size_type group_start(group_type group) const;
-    void             group_size_set(group_type group, memory_size_type n);
-    memory_size_type group_size(group_type group) const;
-
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
 
-    temp_file & slot_data(slot_type slotid);
-    temp_file & group_data(group_type groupid);
     void write_slot(slot_type slotid, array<T> & arr, memory_size_type len);
     slot_type free_slot(group_type group);
     void empty_group(group_type group);

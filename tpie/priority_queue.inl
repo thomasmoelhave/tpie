@@ -239,8 +239,8 @@ void priority_queue<T, Comparator>::push(const T& x) {
 			mergebufferSize = std::max(mergebufferSize, buffer_size + setting_m);
 
 		// Needed for merging group buffer 0 and insertion buffer
-		if (group_size(0) > 0)
-			mergebufferSize = std::max(mergebufferSize, group_size(0) + setting_m);
+		if (group_state[0].size > 0)
+			mergebufferSize = std::max(mergebufferSize, group_state[0].size + setting_m);
 
 		array<T> mergebuffer(mergebufferSize);
 
@@ -264,14 +264,14 @@ void priority_queue<T, Comparator>::push(const T& x) {
 		}
 
 		// Bubble lesser elements down into group buffer 0
-		if(group_size(0)> 0) {
+		if(group_state[0].size> 0) {
 
 			// Merge insertion buffer and group buffer 0
-			assert(group_size(0)+setting_m <= setting_m*2);
+			assert(group_state[0].size+setting_m <= setting_m*2);
 			memory_size_type j = 0;
 
 			// fetch gbuffer0
-			for(stream_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
+			for(stream_size_type i = group_state[0].start; i < group_state[0].start+group_state[0].size; i++) {
 				mergebuffer[j] = gbuffer0[static_cast<memory_size_type>(i%setting_m)];
 				++j;
 			}
@@ -280,14 +280,14 @@ void priority_queue<T, Comparator>::push(const T& x) {
 			std::copy(arr.begin(), arr.find(setting_m), mergebuffer.find(j));
 
 			// sort
-			parallel_sort(mergebuffer.get(), mergebuffer.get()+(group_size(0)+setting_m), comp_);
+			parallel_sort(mergebuffer.get(), mergebuffer.get()+(group_state[0].size+setting_m), comp_);
 
 			// smaller elements go in gbuffer0
-			std::copy(mergebuffer.begin(), mergebuffer.find(group_size(0)), gbuffer0.begin());
-			group_start_set(0,0);
+			std::copy(mergebuffer.begin(), mergebuffer.find(group_state[0].size), gbuffer0.begin());
+			group_state[0].start = 0;
 
 			// larger elements go in insertion buffer (actually a free group 0 slot)
-			std::copy(mergebuffer.find(group_size(0)), mergebuffer.find(group_size(0)+setting_m), arr.begin());
+			std::copy(mergebuffer.find(group_state[0].size), mergebuffer.find(group_state[0].size+setting_m), arr.begin());
 		}
 
 		// move insertion buffer (which has elements larger than all of
@@ -421,8 +421,8 @@ void priority_queue<T, Comparator>::dump() {
 	for(memory_size_type i =0; i<current_r; i++) {
 		TP_LOG_DEBUG("GROUP " << i << " ------------------------------------------------------" << "\n");
 		TP_LOG_DEBUG("\tGroup Buffer, size: "
-				<< group_size(i) << ", start: "
-				<< group_start(i) << "\n" << "\t\tBuffer(no ('s): ");
+				<< group_state[i].size << ", start: "
+				<< group_state[i].start << "\n" << "\t\tBuffer(no ('s): ");
 
 		if(i == 0) { // group buffer 0 is special
 			TP_LOG_DEBUG("internal: ");
@@ -434,9 +434,9 @@ void priority_queue<T, Comparator>::dump() {
 		} else {
 			// output group buffer contents
 			file_stream<T> instream(block_factor);
-			instream.open(group_data(i));
+			instream.open(groupdatafiles[i]);
 			memory_size_type k = 0;
-			if(group_size(i) > 0) {
+			if(group_state[i].size > 0) {
 				for(k = 0; k < setting_m; k++) {
 					TP_LOG_DEBUG(instream.read() << " ");
 				}
@@ -450,16 +450,16 @@ void priority_queue<T, Comparator>::dump() {
 		// output slots
 		for(memory_size_type j = i*setting_k; j<i*setting_k+setting_k; j++) {
 			TP_LOG_DEBUG("\t\tSlot " << j << "(size: "
-					<< slot_size(j)
-					<< " start: " << slot_start(j) << "):");
+					<< slot_state[j].size
+					<< " start: " << slot_state[j].start << "):");
 
 			file_stream<T> instream(block_factor);
-			instream.open(slot_data(j));
+			instream.open(datafiles[j]);
 			stream_size_type k;
-			for(k = 0; k < slot_start(j)+slot_size(j); k++) {
-				TP_LOG_DEBUG((k>=slot_start(j)?"":"(") <<
+			for(k = 0; k < slot_state[j].start+slot_state[j].size; k++) {
+				TP_LOG_DEBUG((k>=slot_state[j].start?"":"(") <<
 						instream.read() <<
-						(k>=slot_start(j)?"":")") << " ");
+						(k>=slot_state[j].start?"":")") << " ");
 			}
 
 			TP_LOG_DEBUG("\n");
@@ -489,7 +489,7 @@ priority_queue<T, Comparator>::free_slot(group_type group) {
 	}
 
 	for(i = group*setting_k; i < group*setting_k+setting_k; i++) {
-		if(slot_size(i) == 0) {
+		if(slot_state[i].size == 0) {
 			// This slot is good
 			break;
 		}
@@ -501,7 +501,7 @@ priority_queue<T, Comparator>::free_slot(group_type group) {
 
 		empty_group(group);
 
-		if(slot_size(group*setting_k) != 0) {
+		if(slot_state[group*setting_k].size != 0) {
 			return free_slot(group); // some group buffers might have been moved
 		}
 		return group*setting_k;
@@ -521,10 +521,10 @@ void priority_queue<T, Comparator>::fill_buffer() {
 
 	// refill group buffers, if needed
 	for(memory_size_type i=0;i<current_r;i++) {
-		if(group_size(i)<static_cast<stream_size_type>(setting_mmark)) {
+		if(group_state[i].size<static_cast<stream_size_type>(setting_mmark)) {
 			fill_group_buffer(i);
 		}
-		if(group_size(i) == 0 && i==current_r-1) {
+		if(group_state[i].size == 0 && i==current_r-1) {
 			current_r--;
 		}
 	}
@@ -536,11 +536,11 @@ void priority_queue<T, Comparator>::fill_buffer() {
 	array<auto_ptr<file_stream<T> > > data(current_r);
 	for(memory_size_type i = 0; i<current_r; i++) {
 		data[i].reset(tpie_new<file_stream<T> >(block_factor));
-		if(i == 0 && group_size(i)>0) {
-			heap.push(merge_heap_element(gbuffer0[group_start(0)], 0));
-		} else if(group_size(i)>0) {
-			data[i]->open(group_data(i));
-			data[i]->seek(group_start(i));
+		if(i == 0 && group_state[i].size>0) {
+			heap.push(merge_heap_element(gbuffer0[group_state[0].start], 0));
+		} else if(group_state[i].size>0) {
+			data[i]->open(groupdatafiles[i]);
+			data[i]->seek(group_state[i].start);
 			heap.push(merge_heap_element(data[i]->read(), i));
 		} else if(i > 0) {
 			// dummy, well :o/
@@ -555,14 +555,15 @@ void priority_queue<T, Comparator>::fill_buffer() {
 		buffer[(buffer_size+buffer_start)%setting_m] = heap.top().item;
 		buffer_size++;
 
-		assert(group_size(current_group)-1 >= 0);
-		group_size_set(current_group, group_size(current_group)-1);
-		group_start_set(current_group, (group_start(current_group)+1)%setting_m);
-		if(group_size(current_group) == 0) {
+		assert(group_state[current_group].size-1 >= 0);
+		--group_state[current_group].size;
+		group_state[current_group].start =
+			(group_state[current_group].start+1) % setting_m;
+		if(group_state[current_group].size == 0) {
 			heap.pop();
 		} else {
 			if(current_group == 0) {
-				heap.pop_and_push(merge_heap_element(gbuffer0[group_start(0)], 0));
+				heap.pop_and_push(merge_heap_element(gbuffer0[group_state[0].start], 0));
 			} else {
 				heap.pop_and_push(merge_heap_element(data[current_group]->read(), current_group));
 			}
@@ -572,7 +573,7 @@ void priority_queue<T, Comparator>::fill_buffer() {
 
 template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
-	assert(group_size(group) < static_cast<stream_size_type>(setting_mmark));
+	assert(group_state[group].size < static_cast<stream_size_type>(setting_mmark));
 	// max k + 1 open streams
 	// 1 merge heap
 	// opq still in action
@@ -583,9 +584,9 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 		//group output stream, not used if group==0 in this case 
 		//the in-memory gbuffer0 is used
 		file_stream<T> out(block_factor);
-		out.open(group_data(group));
+		out.open(groupdatafiles[group]);
 		if(group > 0) {
-			out.seek((group_start(group)+group_size(group))%setting_m);
+			out.seek((group_state[group].start+group_state[group].size)%setting_m);
 		}
 
 		//merge heap for the setting_k slots
@@ -598,13 +599,13 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 
 			data[i].reset(tpie_new<file_stream<T> >(block_factor));
 
-			if(slot_size(group*setting_k+i)>0) {
+			if(slot_state[group*setting_k+i].size>0) {
 				//slot is non-empry, opening stream
 				slot_type slotid = group*setting_k+i;
-				data[i]->open(slot_data(slotid));
+				data[i]->open(datafiles[slotid]);
 
 				//seek to start of slot
-				data[i]->seek(slot_start(slotid));
+				data[i]->seek(slot_state[slotid].start);
 
 				//push first item of slot on the stream
 				heap.push(merge_heap_element(data[i]->read(), slotid));
@@ -613,12 +614,12 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 
 		//perform actual reading until group if full or all 
 		//the slots are empty
-		while(!heap.empty() && group_size(group)!=static_cast<stream_size_type>(setting_m)) {
+		while(!heap.empty() && group_state[group].size!=static_cast<stream_size_type>(setting_m)) {
 			slot_type current_slot = heap.top().source;
 
 			if(group == 0) {
 				//use in-memory array for group 0
-				gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top().item;
+				gbuffer0[(group_state[0].start+group_state[0].size)%setting_m] = heap.top().item;
 			} else {
 				//write to disk for group >0
 				if(out.offset() == setting_m) {
@@ -629,14 +630,14 @@ void priority_queue<T, Comparator>::fill_group_buffer(group_type group) {
 			}
 
 			//increase group size
-			group_size_set(group, group_size(group) + 1);
+			++group_state[group].size;
 
 			//decrease slot size and increase starting index
-			slot_start_set(current_slot, slot_start(current_slot)+1);
-			slot_size_set(current_slot, slot_size(current_slot)-1);
+			++slot_state[current_slot].start;
+			--slot_state[current_slot].size;
 
 			//pop from heap and insert next element (if any) from the slot
-			if(slot_size(current_slot) == 0) {
+			if(slot_state[current_slot].size == 0) {
 				heap.pop();
 			} else {
 				heap.pop_and_push(merge_heap_element(data[current_slot-group*setting_k]->read(), current_slot));
@@ -664,8 +665,8 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 
 	slot_type newslot = free_slot(group+1);
 
-	assert(slot_size(newslot) == 0);
-	slot_start_set(newslot, 0);
+	assert(slot_state[newslot].size == 0);
+	slot_state[newslot].start = 0;
 	if(current_r < newslot/setting_k+1) {
 		// create a new group
 
@@ -675,29 +676,29 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 	{
 
 		file_stream<T> newstream(block_factor);
-		newstream.open(slot_data(newslot));
+		newstream.open(datafiles[newslot]);
 		merge_heap heap(setting_k, comp_);
 
 		// Open streams to slots in group `group', push top element to merge heap
 		array<auto_ptr<file_stream<T> > > data(setting_k);
 		for(memory_size_type i = 0; i<setting_k; i++) {
 			data[i].reset(tpie_new<file_stream<T> >(block_factor));
-			data[i]->open(slot_data(group*setting_k+i));
-			if(slot_size(group*setting_k+i) == 0) {
+			data[i]->open(datafiles[group*setting_k+i]);
+			if(slot_state[group*setting_k+i].size == 0) {
 				return;
 			}
-			assert(slot_size(group*setting_k+i)>0);
-			data[i]->seek(slot_start(group*setting_k+i));
+			assert(slot_state[group*setting_k+i].size>0);
+			data[i]->seek(slot_state[group*setting_k+i].start);
 			heap.push(merge_heap_element(data[i]->read(), group*setting_k+i));
 		}
 
 		while(!heap.empty()) {
 			slot_type current_slot = heap.top().source;
 			newstream.write(heap.top().item);
-			slot_size_set(newslot,slot_size(newslot)+1);
-			slot_start_set(current_slot, slot_start(current_slot)+1);
-			slot_size_set(current_slot, slot_size(current_slot)-1);
-			if(slot_size(current_slot) == 0) {
+			++slot_state[newslot].size;
+			++slot_state[current_slot].start;
+			--slot_state[current_slot].size;
+			if(slot_state[current_slot].size == 0) {
 				heap.pop();
 			} else {
 				heap.pop_and_push(merge_heap_element(data[current_slot-group*setting_k]->read(), current_slot));
@@ -705,7 +706,7 @@ void priority_queue<T, Comparator>::empty_group(group_type group) {
 		}
 	}
 
-	if(group_size(group+1) > 0) {
+	if(group_state[group+1].size > 0) {
 		// Maintain heap invariant:
 		//     group buffer i <= group i slots
 		// If the group buffer of the group in which we inserted runs
@@ -727,10 +728,10 @@ void priority_queue<T, Comparator>::validate() {
 	size = size + opq.size();
 	size = size + buffer_size;
 	for(stream_size_type i = 0; i<setting_k;i++) {
-		size = size + group_size(i);
+		size = size + group_state[i].size;
 	}
 	for(stream_size_type i = 0; i<setting_k*setting_k;i++) {
-		size = size + slot_size(i);
+		size = size + slot_state[i].size;
 	}
 	if(m_size != size) {
 		TP_LOG_FATAL_ID("Error: Validate: Size not ok");
@@ -750,15 +751,15 @@ void priority_queue<T, Comparator>::validate() {
 	}
 	// todo: validate gbuffer0
 	for(stream_size_type i = 1; i < setting_k; i++) { // groups, nb: cyclic
-		if(group_size(i) > 0) {
+		if(group_state[i].size > 0) {
 			file_stream<T> stream;
-			stream.open(group_data(i));
-			stream.seek(group_start(i));
+			stream.open(groupdatafiles[i]);
+			stream.seek(group_state[i].start);
 			if(stream.offset() == setting_m) {
 				stream.seek(0);
 			}
 			T last = stream.read();
-			for(stream_size_type j = 1; j < group_size(i); j++) {
+			for(stream_size_type j = 1; j < group_state[i].size; j++) {
 				if(stream.offset() == setting_m) {
 					stream.seek(0);
 				}
@@ -774,12 +775,12 @@ void priority_queue<T, Comparator>::validate() {
 		}
 	}
 	for(stream_size_type i = 0; i < setting_k*setting_k; i++) { // slots
-		if(slot_size(i) > 0){
+		if(slot_state[i].size > 0){
 			file_stream<T> stream;
-			stream.open(slot_data(i));
-			stream.seek(slot_start(i));
+			stream.open(datafiles[i]);
+			stream.seek(slot_state[i].start);
 			T last = stream.read();
-			for(stream_size_type j = 1; j < slot_size(i); j++) {
+			for(stream_size_type j = 1; j < slot_state[i].size; j++) {
 				T read = stream.read();
 				if(comp_(read, last)) { // compare
 					TP_LOG_FATAL_ID("Error: Slot " << i << " order invalid (last: " << last <<
@@ -794,10 +795,10 @@ void priority_queue<T, Comparator>::validate() {
 	if(buffer_size > 0) { // buffer --> group buffers
 		T buf_max = buffer[buffer_start+buffer_size-1];
 		for(stream_size_type i = 1; i < setting_k; i++) { // todo: gbuffer0
-			if(group_size(i) > 0) {
+			if(group_state[i].size > 0) {
 				file_stream<T> stream;
-				stream.open(group_data(i));
-				stream.seek(group_start(i));
+				stream.open(groupdatafiles[i]);
+				stream.seek(group_state[i].start);
 				if(stream->offset() == setting_m) {
 					stream.seek(0);
 				}
@@ -814,18 +815,18 @@ void priority_queue<T, Comparator>::validate() {
 
 	// todo: gbuffer0
 	for(stream_size_type i = 1; i < setting_k; i++) { // group buffers --> slots
-		if(group_size(i) > 0) {
+		if(group_state[i].size > 0) {
 			file_stream<T> stream;
-			stream.open(group_data(i));
-			stream.seek((group_start(i)+group_size(i)-1)%setting_m);
+			stream.open(groupdatafiles[i]);
+			stream.seek((group_state[i].start+group_state[i].size-1)%setting_m);
 			T item_group = stream.read();
 			//cout << "item_group: " << item_group << "\n";
 
 			for(stream_size_type j = i*setting_k; j<i*setting_k+setting_k;j++) {
-				if(slot_size(j) > 0) {
+				if(slot_state[j].size > 0) {
 					file_stream<T> stream;
-					stream.open(slot_data(j));
-					stream.seek(slot_start(j));
+					stream.open(datafiles[j]);
+					stream.seek(slot_state[j].start);
 					T item_slot = stream.read();
 					
 					if(comp_(item_slot, item_group)) { // compare
@@ -859,124 +860,72 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 
 	// this is the easiest thing to do
 	slot_type slot = free_slot(0);
-	if(group_size(group) == 0) return;
+	if(group_state[group].size == 0) return;
 
 	log_debug() << "Remove group buffer " << group <<
-				   " of size " << group_size(group) <<
+				   " of size " << group_state[group].size <<
 				   " with available memory " << get_memory_manager().available() << std::endl;
 
 	assert(group < setting_k);
-	array<T> arr(static_cast<size_t>(group_size(group)));
+	array<T> arr(static_cast<size_t>(group_state[group].size));
 	file_stream<T> data(block_factor);
-	data.open(group_data(group));
-	data.seek(group_start(group));
-	memory_size_type size = group_size(group);
-	if(group_start(group) + group_size(group) <= static_cast<stream_size_type>(setting_m)) {
+	data.open(groupdatafiles[group]);
+	data.seek(group_state[group].start);
+	memory_size_type size = group_state[group].size;
+	if(group_state[group].start + group_state[group].size <= static_cast<stream_size_type>(setting_m)) {
 		data.read(arr.begin(), arr.find(size));
 	} else {
 		// two reads
-		memory_size_type first_read = setting_m - group_start(group);
+		memory_size_type first_read = setting_m - group_state[group].start;
 		memory_size_type second_read = size - first_read;
 
 		data.read(arr.begin(), arr.find(first_read));
 		data.seek(0);
 		data.read(arr.find(first_read), arr.find(first_read+second_read));
 	}
-	assert(group_size(group) > 0);
+	assert(group_state[group].size > 0);
 
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
-	if(group > 0 && group_size(0) != 0) {
+	if(group > 0 && group_state[0].size != 0) {
 		// merge group buffer with group buffer 0
-		array<T> mergebuffer(group_size(0) + group_size(group));
+		array<T> mergebuffer(group_state[0].size + group_state[group].size);
 
-		if (group_start(0) + group_size(0) <= setting_m) {
-			std::copy(gbuffer0.find(group_start(0)),
-					  gbuffer0.find(group_start(0) + group_size(0)),
+		if (group_state[0].start + group_state[0].size <= setting_m) {
+			std::copy(gbuffer0.find(group_state[0].start),
+					  gbuffer0.find(group_state[0].start + group_state[0].size),
 					  mergebuffer.begin());
 		} else {
-			memory_size_type first_read = setting_m - group_start(0);
-			memory_size_type second_read = group_size(0) - first_read;
-			std::copy(gbuffer0.find(group_start(0)),
-					  gbuffer0.find(group_start(0) + first_read),
+			memory_size_type first_read = setting_m - group_state[0].start;
+			memory_size_type second_read = group_state[0].size - first_read;
+			std::copy(gbuffer0.find(group_state[0].start),
+					  gbuffer0.find(group_state[0].start + first_read),
 					  mergebuffer.begin());
 			std::copy(gbuffer0.begin(),
 					  gbuffer0.find(second_read),
 					  mergebuffer.find(first_read));
 		}
-		std::copy(arr.begin(), arr.find(group_size(group)), mergebuffer.find(group_size(0)));
-		parallel_sort(mergebuffer.begin(), mergebuffer.find(group_size(0) + group_size(group)), comp_);
-		std::copy(mergebuffer.begin(), mergebuffer.find(group_size(0)), gbuffer0.begin());
-		group_start_set(0,0);
-		std::copy(mergebuffer.find(group_size(0)), mergebuffer.find(group_size(0) + group_size(group)), arr.begin());
+		std::copy(arr.begin(), arr.find(group_state[group].size), mergebuffer.find(group_state[0].size));
+		parallel_sort(mergebuffer.begin(), mergebuffer.find(group_state[0].size + group_state[group].size), comp_);
+		std::copy(mergebuffer.begin(), mergebuffer.find(group_state[0].size), gbuffer0.begin());
+		group_state[0].start = 0;
+		std::copy(mergebuffer.find(group_state[0].size), mergebuffer.find(group_state[0].size + group_state[group].size), arr.begin());
 	}
 
-	write_slot(slot, arr, group_size(group));
-	group_start_set(group, 0);
-	group_size_set(group, 0);
+	write_slot(slot, arr, group_state[group].size);
+	group_state[group].start = 0;
+	group_state[group].size = 0;
 }
 
 //////////////////
 // TPIE wrappers
 template <typename T, typename Comparator>
-void priority_queue<T, Comparator>::slot_start_set(slot_type slot, memory_size_type n) {
-	slot_state[slot].start = n;
-}
-
-template <typename T, typename Comparator>
-memory_size_type priority_queue<T, Comparator>::slot_start(slot_type slot) const {
-	return slot_state[slot].start;
-}
-
-template <typename T, typename Comparator>
-void priority_queue<T, Comparator>::slot_size_set(slot_type slot, memory_size_type n) {
-	assert(slot<setting_k*setting_k);
-	slot_state[slot].size = n;
-}
-
-template <typename T, typename Comparator>
-memory_size_type priority_queue<T, Comparator>::slot_size(slot_type slot) const {
-	return slot_state[slot].size;
-}
-
-template <typename T, typename Comparator>
-void priority_queue<T, Comparator>::group_start_set(group_type group, memory_size_type n) {
-	group_state[group].start = n;
-}
-
-template <typename T, typename Comparator>
-memory_size_type priority_queue<T, Comparator>::group_start(group_type group) const {
-	return group_state[group].start;
-}
-
-template <typename T, typename Comparator>
-void priority_queue<T, Comparator>::group_size_set(group_type group, memory_size_type n) {
-	assert(group<setting_k);
-	group_state[group].size = n;
-}
-
-template <typename T, typename Comparator>
-memory_size_type priority_queue<T, Comparator>::group_size(group_type group) const {
-	return group_state[group].size;
-}
-
-template <typename T, typename Comparator>
-temp_file & priority_queue<T, Comparator>::slot_data(slot_type slotid) {
-	return datafiles[slotid];
-}
-
-template <typename T, typename Comparator>
-temp_file & priority_queue<T, Comparator>::group_data(group_type groupid) {
-	return groupdatafiles[groupid];
-}
-
-template <typename T, typename Comparator>
 void priority_queue<T, Comparator>::write_slot(slot_type slotid, array<T> & arr, memory_size_type len) {
 	assert(len > 0);
 	file_stream<T> data(block_factor);
-	data.open(slot_data(slotid));
+	data.open(datafiles[slotid]);
 	data.write(arr.begin(), arr.find(len));
-	slot_start_set(slotid, 0);
-	slot_size_set(slotid, len);
+	slot_state[slotid].start = 0;
+	slot_state[slotid].size = len;
 	if(current_r == 0 && slotid < setting_k) {
 		current_r = 1;
 	}
