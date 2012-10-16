@@ -889,16 +889,25 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 		// merge group buffer with group buffer 0
 		array<T> mergebuffer(group_size(0) + group_size(group));
 
-		memory_size_type j = 0;
-		for(memory_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
-			mergebuffer[j] = gbuffer0[i%setting_m];
-			++j;
+		if (group_start(0) + group_size(0) <= setting_m) {
+			std::copy(gbuffer0.find(group_start(0)),
+					  gbuffer0.find(group_start(0) + group_size(0)),
+					  mergebuffer.begin());
+		} else {
+			memory_size_type first_read = setting_m - group_start(0);
+			memory_size_type second_read = group_size(0) - first_read;
+			std::copy(gbuffer0.find(group_start(0)),
+					  gbuffer0.find(group_start(0) + first_read),
+					  mergebuffer.begin());
+			std::copy(gbuffer0.begin(),
+					  gbuffer0.find(second_read),
+					  mergebuffer.find(first_read));
 		}
-		memcpy(&mergebuffer[j], &arr[0], static_cast<size_t>(sizeof(T)*group_size(group)));
-		parallel_sort(&mergebuffer[0], &mergebuffer[0]+(group_size(0)+group_size(group)), comp_);
-		memcpy(&gbuffer0[0], &mergebuffer[0], static_cast<size_t>(sizeof(T)*group_size(0)));
+		std::copy(arr.begin(), arr.find(group_size(group)), mergebuffer.find(group_size(0)));
+		parallel_sort(mergebuffer.begin(), mergebuffer.find(group_size(0) + group_size(group)), comp_);
+		std::copy(mergebuffer.begin(), mergebuffer.find(group_size(0)), gbuffer0.begin());
 		group_start_set(0,0);
-		memcpy(&arr[0], &mergebuffer[group_size(0)], static_cast<size_t>(sizeof(T)*group_size(group)));
+		std::copy(mergebuffer.find(group_size(0)), mergebuffer.find(group_size(0) + group_size(group)), arr.begin());
 	}
 
 	write_slot(slot, arr, group_size(group));
