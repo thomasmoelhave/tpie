@@ -163,7 +163,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	log_debug() << "priority_queue" << "\n"
 		<< "\tsetting_k: " << setting_k << "\n"
 		<< "\tsetting_mmark: " << setting_mmark << "\n"
-		<< "\tsetting_m: " << setting_m << std::endl;
+		<< "\tsetting_m: " << setting_m << " = " << (setting_m*sizeof(T)/1024) << " KiB" << std::endl;
 
 	assert(setting_k > 0);
 	assert(current_r == 0);
