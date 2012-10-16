@@ -177,8 +177,8 @@ public:
 
 private:
 	struct run_state_type {
-		stream_size_type start;
-		stream_size_type size;
+		memory_size_type start;
+		memory_size_type size;
 	};
 
     Comparator comp_;
