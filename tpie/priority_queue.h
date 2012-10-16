@@ -77,18 +77,32 @@ class priority_queue {
 	typedef memory_size_type run_type;
 	typedef run_type group_type;
 	typedef run_type slot_type;
+
+	struct merge_heap_element {
+		T item;
+		run_type source;
+
+		merge_heap_element() {}
+
+		merge_heap_element(const T & item, run_type source)
+			: item(item)
+			, source(source)
+		{
+		}
+	};
+
 	struct merge_comp_type {
-		typedef std::pair<T, run_type> item_type;
-		typedef item_type first_argument_type;
-		typedef item_type second_argument_type;
+		typedef merge_heap_element first_argument_type;
+		typedef merge_heap_element second_argument_type;
 		typedef bool result_type;
 		Comparator comp_;
 		merge_comp_type(Comparator & c) : comp_(c) {}
-		bool operator()(const item_type & a, const item_type & b) {
-			return comp_(a.first, b.first);
+		bool operator()(const merge_heap_element & a, const merge_heap_element & b) {
+			return comp_(a.item, b.item);
 		}
 	};
-	typedef internal_priority_queue<typename merge_comp_type::item_type, merge_comp_type> merge_heap;
+
+	typedef internal_priority_queue<merge_heap_element, merge_comp_type> merge_heap;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor.
