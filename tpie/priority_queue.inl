@@ -27,7 +27,7 @@ priority_queue<T, Comparator>::priority_queue(double f, float b)
 	memory_size_type mm_avail = consecutive_memory_available();
 	log_debug() << "priority_queue: Memory limit: "
 		<< mm_avail/1024/1024 << "mb("
-		<< mm_avail << "bytes)" << "\n";
+		<< mm_avail << "bytes)" << std::endl;
 	mm_avail = static_cast<memory_size_type>(static_cast<double>(mm_avail)*f);
 	init(mm_avail);
 }
@@ -42,7 +42,7 @@ priority_queue<T, Comparator>::priority_queue(memory_size_type mm_avail, float b
 	assert(b > 0.0);
 	log_debug() << "priority_queue: Memory limit: "
 				 << mm_avail/1024/1024 << "mb("
-				 << mm_avail << "bytes)" << "\n";
+				 << mm_avail << "bytes)" << std::endl;
 	init(mm_avail);
 }
 #endif
@@ -58,13 +58,13 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	log_debug() << "m_for_queue: "
 		<< mm_avail << "\n"
 		<< "memory before alloc: "
-		<< get_memory_manager().available() << "b" << "\n";
+		<< get_memory_manager().available() << "b" << std::endl;
 	{
 		//Calculate M
 		setting_m = mm_avail/sizeof(T);
 		//Get stream memory usage
 		memory_size_type usage = file_stream<T>::memory_usage(block_factor);
-		log_debug() << "Memory used by file_stream: " << usage << "b\n";
+		log_debug() << "Memory used by file_stream: " << usage << "b" << std::endl;
 
 		memory_size_type alloc_overhead = 0;
 
@@ -88,7 +88,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		               "heap_m_overhead     " << heap_m_overhead     << ",\n" <<
 		               "buffer_m_overhead   " << buffer_m_overhead   << ",\n" <<
 		               "extra_overhead      " << extra_overhead      << ",\n" <<
-		               "additional_overhead " << additional_overhead << ".\n\n";
+		               "additional_overhead " << additional_overhead << ".\n" << std::endl;
 
 		//Check that there is enough space for the simple overhead
 		if(mm_avail < extra_overhead+additional_overhead){
@@ -104,7 +104,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		mm_avail-=setting_mmark*buffer_m_overhead;
 		setting_k = (mm_avail/2); 
 		log_debug() << "mm_avail      " << mm_avail << ",\n" <<
-		               "setting_k     " << setting_k  << ".\n\n";
+		               "setting_k     " << setting_k  << ".\n" << std::endl;
 
 		{
 			//compute setting_k
@@ -138,7 +138,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		setting_m = (mm_avail)/heap_m_overhead;
 		log_debug() << "mm_avail      " << mm_avail << ",\n" <<
 		               "setting_m     " << setting_m << ",\n" <<
-		               "setting_k     " << setting_k << ".\n\n";
+		               "setting_k     " << setting_k << ".\n" << std::endl;
 
 		//Check that minimum requirements on fanout and buffersizes are met
 		const memory_size_type min_fanout=3;
@@ -163,7 +163,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 	log_debug() << "priority_queue" << "\n"
 		<< "\tsetting_k: " << setting_k << "\n"
 		<< "\tsetting_mmark: " << setting_mmark << "\n"
-		<< "\tsetting_m: " << setting_m << "\n";
+		<< "\tsetting_m: " << setting_m << std::endl;
 
 	assert(setting_k > 0);
 	assert(current_r == 0);
@@ -210,7 +210,7 @@ void priority_queue<T, Comparator>::init(memory_size_type mm_avail) { // init
 		groupdatafiles[i].set_post_base(ss.str());
 	}
 	log_debug() << "memory after alloc: "
-		<< get_memory_manager().available() << "b" << "\n";
+		<< get_memory_manager().available() << "b" << std::endl;
 }
 
 template <typename T, typename Comparator>
