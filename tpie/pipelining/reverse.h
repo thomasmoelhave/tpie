@@ -117,6 +117,7 @@ struct reverser_input_t: public pipe_segment {
 	inline reverser_input_t(const segment_token & token, stack<T> & the_stack):
 		pipe_segment(token), the_stack(&the_stack) {
 		set_name("Store items", PRIORITY_SIGNIFICANT);
+		set_minimum_memory(this->the_stack->memory_usage());
 	}
 
 	void push(const T & t) {
@@ -135,6 +136,7 @@ struct reverser_output_t: public  pipe_segment {
 		add_dependency(input_token);
 		add_push_destination(dest);
 		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(this->the_stack->memory_usage());
 	}
 
 	virtual void begin() /*override*/ {

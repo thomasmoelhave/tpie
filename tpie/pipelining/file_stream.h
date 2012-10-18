@@ -41,6 +41,7 @@ struct input_t : public pipe_segment {
 	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
 		add_push_destination(dest);
 		set_name("Read", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(fs.memory_usage());
 	}
 
 	virtual void begin() /*override*/ {
@@ -77,6 +78,7 @@ struct pull_input_t : public pipe_segment {
 
 	inline pull_input_t(file_stream<T> & fs) : fs(fs) {
 		set_name("Read", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(fs.memory_usage());
 	}
 
 	virtual void begin() /*override*/ {
@@ -112,6 +114,7 @@ struct output_t : public pipe_segment {
 
 	inline output_t(file_stream<T> & fs) : fs(fs) {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(fs.memory_usage());
 	}
 
 	inline void push(const T & item) {
@@ -138,6 +141,7 @@ struct pull_output_t : public pipe_segment {
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
 		add_pull_destination(source);
 		set_name("Write", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(fs.memory_usage());
 	}
 
 	virtual void go() /*override*/ {
@@ -165,6 +169,7 @@ struct tee_t {
 		typedef T item_type;
 		type(const dest_t & dest, file_stream<item_type> & fs): fs(fs), dest(dest) {
 			add_push_destination(dest);
+			set_minimum_memory(fs.memory_usage());
 		}
 
 		void push(const item_type & i) {

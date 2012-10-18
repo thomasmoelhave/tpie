@@ -35,6 +35,7 @@ public:
 	buffer_input_t(file_stream<T> & queue, const segment_token & token):
 		pipe_segment(token), queue(queue) {
 		set_name("Storing items", PRIORITY_SIGNIFICANT);
+		set_minimum_memory(queue.memory_usage());
 	}
 
 	virtual void begin() /*override*/ {
@@ -55,6 +56,7 @@ struct buffer_pull_output_t: public pipe_segment {
 		: queue(queue) {
 		add_dependency(input_token);
 		set_name("Fetching items", PRIORITY_SIGNIFICANT);
+		set_minimum_memory(queue.memory_usage());
 	}
 
 
