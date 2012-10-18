@@ -47,6 +47,7 @@ using namespace tpie;
 // resize(sz, el)   basic
 // size             basic
 // swap             TODO
+// copy             copy
 
 bool basic_test() {
 	array<size_t> hat;
@@ -372,6 +373,64 @@ bool allocator_test() {
 	TEST_ENSURE_EQUALITY(alloc::allocated, sz3 + alloc::deallocated, "Wrong value after operator=");
 	return true;
 }
+template <typename T>
+class rangeit
+: public boost::iterator_facade<
+	rangeit<T>,
+	T,
+	boost::random_access_traversal_tag,
+	const T &> {
+	friend class boost::iterator_core_access;
+
+	T v;
+
+	const T & dereference() const { return v; }
+	template <typename U>
+	bool equal(const rangeit<U> & other) const { return v == other.v; }
+	void increment() { ++v; }
+	void decrement() { --v; }
+	void advance(size_t n) { v += n; }
+	ptrdiff_t distance_to(const rangeit & other) const { return other.v - v; }
+
+public:
+	rangeit(T v) : v(v) {}
+};
+
+bool copy_test() {
+	typedef tpie::array<int> A;
+	typedef A::iterator I;
+	typedef rangeit<int> R;
+	A a(1234, 0xC0FFEE);
+
+	I i1 = a.begin();
+
+	// fill 10 array entries with the integers from 0 to 9
+	I i2 = std::copy(R(0), R(10), i1);
+	TEST_ENSURE(i1 == a.begin(), "Iterator changed");
+	TEST_ENSURE(i2 == a.find(10), "Iterator did not advance");
+
+	std::vector<int> output(10);
+
+	// The following call to std::copy should be `simple` in the libstdc++ sense.
+	// If compiled with libstdc++ and running in GDB, set a breakpoint at
+	// std::__copy_move_a and verify that __simple == true.
+	std::copy(i1, i2, output.begin());
+	TEST_ENSURE(std::equal(i1, i2, output.begin()), "Did not copy correctly");
+	TEST_ENSURE(std::equal(R(0), R(10), output.begin()), "Did not copy correctly");
+
+	// fill 10 array entries with the integers from 20 to 29
+	std::copy(R(20), R(30), output.begin());
+
+	// The following call to std::copy should be `simple` in the libstdc++ sense.
+	I i3 = std::copy(output.begin(), output.end(), i1);
+	TEST_ENSURE(i2 == i3, "Output iterator did not advance properly");
+
+	A b(1234, 0xC0FFEE);
+	// The following call to std::copy should be `simple` in the libstdc++ sense.
+	std::copy(a.begin(), a.find(30), b.begin());
+
+	return true;
+}
 
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
@@ -396,5 +455,6 @@ int main(int argc, char **argv) {
 		.test(frontback, "frontback")
 		.test(swap_test, "swap")
 		.test(allocator_test, "allocator")
+		.test(copy_test, "copy")
 		;
 }
