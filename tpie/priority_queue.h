@@ -198,6 +198,65 @@ private:
 	 * in memory. */
 	tpie::array<T> gbuffer0;
 
+	class cyclic_array_iterator : public boost::iterator_facade<cyclic_array_iterator, T, boost::random_access_traversal_tag> {
+		tpie::array<T> & arr;
+		memory_size_type idx;
+		memory_size_type first;
+
+	public:
+		cyclic_array_iterator(tpie::array<T> & arr, memory_size_type idx, memory_size_type first)
+			: arr(arr), idx(idx % arr.size()), first(first)
+		{
+		}
+
+	private:
+		friend class boost::iterator_core_access;
+		T & dereference() const {
+			return arr[idx];
+		}
+		void increment() {
+			if (idx+1 == arr.size()) idx = 0;
+			else ++idx;
+		}
+		void decrement() {
+			if (idx == 0) idx = arr.size() - 1;
+			else --idx;
+		}
+		void advance(memory_size_type n) {
+			idx = (idx + n) % arr.size();
+		}
+		memory_size_type from_beginning() const {
+			return (idx < first) ? (idx + arr.size() - first) : (idx - first);
+		}
+		memory_offset_type distance_to(const cyclic_array_iterator & other) const {
+			return static_cast<memory_offset_type>(other.from_beginning())
+				-static_cast<memory_offset_type>(from_beginning());
+		}
+		bool equal(const cyclic_array_iterator & other) const {
+			return idx == other.idx;
+		}
+	};
+
+	template <typename IT>
+	void assert_sorted(IT i, IT j, memory_size_type n) {
+		if (j-i != n) {
+			log_error() << "Bad distance" << std::endl;
+		}
+		IT k = i;
+		++k;
+		--n;
+		while (k != j) {
+			if (comp_(*k, *i)) {
+				log_error() << "Not a sorted sequence" << std::endl;
+			}
+			++k, ++i;
+			--n;
+		}
+		if (n != 0) {
+			log_error() << "Bad steps" << std::endl;
+		}
+	}
+
 	/** 2*(#slots) integers. Slot i contains its elements in cyclic ascending order,
 	 * starting at index slot_state[2*i]. Slot i contains slot_state[2*i+1] elements.
 	 * Its data is in data file i. */

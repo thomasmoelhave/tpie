@@ -246,15 +246,10 @@ void priority_queue<T, Comparator>::push(const T& x) {
 
 		// Bubble lesser elements down into deletion buffer
 		if(buffer_size > 0) {
-
-			// fetch insertion buffer
-			std::copy(arr.begin(), arr.end(), mergebuffer.begin());
-
-			// fetch deletion buffer
-			std::copy(buffer.find(buffer_start), buffer.find(buffer_start+buffer_size), mergebuffer.find(setting_m));
-
-			// sort buffer elements
-			parallel_sort(mergebuffer.begin(), mergebuffer.find(buffer_size+setting_m), comp_);
+			// merge deletion and insertion buffer
+			std::merge(buffer.find(buffer_start), buffer.find(buffer_start + buffer_size),
+					   arr.begin(), arr.end(),
+					   mergebuffer.begin(), comp_);
 
 			// smaller elements go in deletion buffer
 			std::copy(mergebuffer.begin(), mergebuffer.find(buffer_size), buffer.find(buffer_start));
@@ -268,19 +263,11 @@ void priority_queue<T, Comparator>::push(const T& x) {
 
 			// Merge insertion buffer and group buffer 0
 			assert(group_state[0].size+setting_m <= setting_m*2);
-			memory_size_type j = 0;
 
-			// fetch gbuffer0
-			for(stream_size_type i = group_state[0].start; i < group_state[0].start+group_state[0].size; i++) {
-				mergebuffer[j] = gbuffer0[static_cast<memory_size_type>(i%setting_m)];
-				++j;
-			}
-
-			// fetch insertion buffer
-			std::copy(arr.begin(), arr.find(setting_m), mergebuffer.find(j));
-
-			// sort
-			parallel_sort(mergebuffer.get(), mergebuffer.get()+(group_state[0].size+setting_m), comp_);
+			std::merge(cyclic_array_iterator(gbuffer0, group_state[0].start, group_state[0].start),
+					   cyclic_array_iterator(gbuffer0, group_state[0].start + group_state[0].size, group_state[0].start),
+					   arr.begin(), arr.end(),
+					   mergebuffer.begin(), comp_);
 
 			// smaller elements go in gbuffer0
 			std::copy(mergebuffer.begin(), mergebuffer.find(group_state[0].size), gbuffer0.begin());
@@ -890,22 +877,11 @@ void priority_queue<T, Comparator>::remove_group_buffer(group_type group) {
 		// merge group buffer with group buffer 0
 		array<T> mergebuffer(group_state[0].size + group_state[group].size);
 
-		if (group_state[0].start + group_state[0].size <= setting_m) {
-			std::copy(gbuffer0.find(group_state[0].start),
-					  gbuffer0.find(group_state[0].start + group_state[0].size),
-					  mergebuffer.begin());
-		} else {
-			memory_size_type first_read = setting_m - group_state[0].start;
-			memory_size_type second_read = group_state[0].size - first_read;
-			std::copy(gbuffer0.find(group_state[0].start),
-					  gbuffer0.find(group_state[0].start + first_read),
-					  mergebuffer.begin());
-			std::copy(gbuffer0.begin(),
-					  gbuffer0.find(second_read),
-					  mergebuffer.find(first_read));
-		}
-		std::copy(arr.begin(), arr.find(group_state[group].size), mergebuffer.find(group_state[0].size));
-		parallel_sort(mergebuffer.begin(), mergebuffer.find(group_state[0].size + group_state[group].size), comp_);
+		std::merge(cyclic_array_iterator(gbuffer0, group_state[0].start, group_state[0].start),
+				   cyclic_array_iterator(gbuffer0, group_state[0].start + group_state[0].size, group_state[0].start),
+				   arr.begin(), arr.find(group_state[group].size),
+				   mergebuffer.begin(), comp_);
+
 		std::copy(mergebuffer.begin(), mergebuffer.find(group_state[0].size), gbuffer0.begin());
 		group_state[0].start = 0;
 		std::copy(mergebuffer.find(group_state[0].size), mergebuffer.find(group_state[0].size + group_state[group].size), arr.begin());
