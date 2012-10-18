@@ -114,10 +114,17 @@ template <typename T>
 struct reverser_input_t: public pipe_segment {
 	typedef T item_type;
 
-	inline reverser_input_t(const segment_token & token, stack<T> & the_stack):
-		pipe_segment(token), the_stack(&the_stack) {
+	inline reverser_input_t(const segment_token & token)
+		: pipe_segment(token)
+	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(this->the_stack->memory_usage());
+	}
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		the_stack = tpie_new<stack<item_type> >();
+		forward("stack", the_stack);
 	}
 
 	void push(const T & t) {
@@ -130,9 +137,10 @@ struct reverser_input_t: public pipe_segment {
 template <typename dest_t>
 struct reverser_output_t: public  pipe_segment {
 	typedef typename dest_t::item_type item_type;
-	
-	reverser_output_t(const dest_t & dest, const segment_token & input_token, stack<item_type> & the_stack)
-		: dest(dest), the_stack(&the_stack) {
+
+	reverser_output_t(const dest_t & dest, const segment_token & input_token)
+		: dest(dest)
+	{
 		add_dependency(input_token);
 		add_push_destination(dest);
 		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
@@ -140,7 +148,7 @@ struct reverser_output_t: public  pipe_segment {
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		the_stack = fetch<stack<item_type> *>("stack");
 		forward("items", the_stack->size());
 		set_steps(the_stack->size());
 	}
@@ -152,6 +160,10 @@ struct reverser_output_t: public  pipe_segment {
 		}
 	}
 
+	virtual void end() /*override*/ {
+		tpie_delete(the_stack);
+	}
+
 	dest_t dest;
 	stack<item_type> * the_stack;
 };
@@ -160,26 +172,26 @@ struct reverser_output_t: public  pipe_segment {
 template <typename dest_t>
 struct reverser_t: public pipe_segment {
 	typedef typename dest_t::item_type item_type;
-	
+
 	typedef reverser_output_t<dest_t> output_t;
 	typedef reverser_input_t<item_type> input_t;
-	
-	inline reverser_t(const dest_t & dest):
-		input_token(), input(input_token, the_stack), output(dest, input_token, the_stack) {
+
+	inline reverser_t(const dest_t & dest)
+		: input_token()
+		, input(input_token)
+		, output(dest, input_token)
+	{
 		add_push_destination(input);
 		set_name("Reverser", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline reverser_t(const reverser_t & o):
 		pipe_segment(o), input_token(o.input_token), input(o.input), output(o.output) {
-		input.the_stack = &the_stack;
-		output.the_stack = &the_stack;
 	}
 
 	void push(const item_type & i) {input.push(i);}
 private:
 	segment_token input_token;
-	stack<item_type> the_stack;
 
 	input_t input;
 	output_t output;
