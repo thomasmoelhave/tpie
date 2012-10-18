@@ -50,6 +50,7 @@ struct sort_pull_output_t : public pipe_segment {
 	inline sort_pull_output_t() {
 		set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
+		set_memory_fraction(1.0);
 	}
 
 	virtual void begin() /*override*/ {
@@ -96,6 +97,7 @@ struct sort_output_t : public pipe_segment {
 		add_push_destination(dest);
 		set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
+		set_memory_fraction(1.0);
 	}
 
 	virtual void begin() /*override*/ {
@@ -139,6 +141,7 @@ struct sort_calc_t : public pipe_segment {
 	{
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
+		set_memory_fraction(1.0);
 	}
 
 	virtual void begin() /*override*/ {
@@ -191,6 +194,7 @@ struct sort_input_t : public pipe_segment {
 		this->dest.set_input_segment(*this, m_sorter);
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
+		set_memory_fraction(1.0);
 	}
 
 	virtual void begin() /*override*/ {
