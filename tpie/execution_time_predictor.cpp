@@ -188,9 +188,7 @@ public:
 		if (l == e.end()) {
 			--l;
 			if (l->first == 0) {
-#ifdef TPIE_NDEBUG
-				log_warning() << "In time estimation first was 0, this should not happen!" << std::endl;
-#endif
+				log_debug() << "In time estimation, first was 0." << std::endl;
 				confidence=0.0;
 				return -1; 
 			}
