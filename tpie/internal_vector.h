@@ -80,6 +80,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Add an element to the end of the vector.
+	/// If size() is equal to the capacity (set in the constructor or in
+	/// resize()), effects are undefined. resize() is not called implicitly.
 	///
 	/// Iterators are invalidated by this call.
 	///

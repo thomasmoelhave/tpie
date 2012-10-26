@@ -54,6 +54,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Add an element to the top of the stack.
+	/// If size() is equal to the capacity (set in the constructor or in
+	/// resize()), effects are undefined. resize() is not called implicitly.
 	///
 	/// \param val The element to add.
 	///////////////////////////////////////////////////////////////////////////
