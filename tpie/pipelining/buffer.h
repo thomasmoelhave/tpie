@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file pipelining/buffer.h  Plain old file_stream buffer.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_PIPELINING_BUFFER_H__
 #define __TPIE_PIPELINING_BUFFER_H__
 
@@ -25,9 +29,14 @@
 #include <tpie/file_stream.h>
 
 namespace tpie {
+
 namespace pipelining {
 
+namespace bits {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Input segment for buffer.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct buffer_input_t: public pipe_segment {
 public:
@@ -42,7 +51,11 @@ public:
 		pipe_segment::begin();
 		queue.open();
 	}
-	void push(const T & item) {queue.write(item);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \copydoc pipe_segment::push
+	///////////////////////////////////////////////////////////////////////////
+	void push(const item_type & item) {queue.write(item);}
 private:
 	file_stream<T> & queue;
 
@@ -74,12 +87,17 @@ struct buffer_pull_output_t: public pipe_segment {
 	}
 };
 
+} // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Plain old file_stream buffer. Does nothing to the item stream, but
+/// it inserts a phase boundary.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct passive_buffer {
 	typedef T item_type;
-	typedef buffer_input_t<T> input_t;
-	typedef buffer_pull_output_t<T> output_t;
+	typedef bits::buffer_input_t<T> input_t;
+	typedef bits::buffer_pull_output_t<T> output_t;
 private:
 	typedef termfactory_2<input_t,  file_stream<T> &, const segment_token &> inputfact_t;
 	typedef termfactory_2<output_t, file_stream<T> &, const segment_token &> outputfact_t;
@@ -113,7 +131,8 @@ private:
 	passive_buffer & operator=(const passive_buffer &);
 };
 
-}
-}
+} // namespace pipelining
+
+} // namespace tpie
 
 #endif // __TPIE_PIPELINING_BUFFER_H__

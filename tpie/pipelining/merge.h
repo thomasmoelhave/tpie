@@ -28,7 +28,8 @@ namespace tpie {
 namespace pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class merge_t * Merge a pull pipeline into a push pipeline
+/// \class merge_t
+/// \brief Merge a pull pipeline into a push pipeline
 ///
 /// Currently, it is not very well defined what constitutes a merge.
 ///////////////////////////////////////////////////////////////////////////////

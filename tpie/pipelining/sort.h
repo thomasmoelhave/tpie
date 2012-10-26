@@ -35,16 +35,26 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 template <typename T, typename pred_t, typename Output>
 struct sort_calc_t;
 
 template <typename T, typename pred_t, typename Output>
 struct sort_input_t;
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipe sorter pull output segment.
+/// \tparam pred_t   The less-than predicate.
+/// \tparam dest_t   Destination segment type.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 struct sort_pull_output_t : public pipe_segment {
+	/** Type of items sorted. */
 	typedef T item_type;
+	/** Type of the merge sort implementation used. */
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_pull_output_t() {
@@ -85,10 +95,18 @@ private:
 	friend struct sort_calc_t<T, pred_t, sort_pull_output_t &>;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipe sorter push output segment.
+/// \tparam pred_t   The less-than predicate.
+/// \tparam dest_t   Destination segment type.
+///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename dest_t>
 struct sort_output_t : public pipe_segment {
+	/** Type of items sorted. */
 	typedef typename dest_t::item_type item_type;
+	/** Type of the merge sort implementation used. */
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_output_t(const dest_t & dest)
@@ -130,10 +148,19 @@ private:
 	friend struct sort_calc_t<item_type, pred_t, sort_output_t>;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipe sorter middle segment.
+/// \tparam T        The type of items sorted
+/// \tparam pred_t   The less-than predicate
+/// \tparam Output   The type of the pipe sorter output segment.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t, typename Output>
 struct sort_calc_t : public pipe_segment {
+	/** Type of items sorted. */
 	typedef T item_type;
+	/** Type of the merge sort implementation used. */
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_calc_t(Output dest)
@@ -181,10 +208,19 @@ private:
 	friend struct sort_input_t<T, pred_t, Output>;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipe sorter input segment.
+/// \tparam T        The type of items sorted
+/// \tparam pred_t   The less-than predicate
+/// \tparam Output   The type of the pipe sorter output segment.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t, typename Output>
 struct sort_input_t : public pipe_segment {
+	/** Type of items sorted. */
 	typedef T item_type;
+	/** Type of the merge sort implementation used. */
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
 	inline sort_input_t(sort_calc_t<T, pred_t, Output> dest, const pred_t & pred)
@@ -230,10 +266,18 @@ private:
 	sort_calc_t<T, pred_t, Output> dest;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort factory using std::less<T> as comparator.
+///////////////////////////////////////////////////////////////////////////////
 struct default_pred_sort_factory : public factory_base {
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Declare generated type based on destination type.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename dest_t>
 	struct generated {
 	private:
+		/** Type of items sorted. */
 		typedef typename dest_t::item_type item_type;
 		typedef std::less<item_type> pred_type;
 		typedef sort_output_t<pred_type, dest_t> Output;
@@ -256,11 +300,19 @@ struct default_pred_sort_factory : public factory_base {
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort factory using the given predicate as comparator.
+///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
 struct sort_factory : public factory_base {
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Declare generated type based on destination type.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename dest_t>
 	struct generated {
 	private:
+		/** Type of items sorted. */
 		typedef typename dest_t::item_type item_type;
 		typedef sort_output_t<pred_t, dest_t> Output;
 	public:
@@ -289,19 +341,35 @@ private:
 	pred_t pred;
 };
 
-inline pipe_middle<default_pred_sort_factory>
+} // namespace bits
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining sorter using std::less.
+///////////////////////////////////////////////////////////////////////////////
+inline pipe_middle<bits::default_pred_sort_factory>
 pipesort() {
-	typedef default_pred_sort_factory fact;
+	typedef bits::default_pred_sort_factory fact;
 	return pipe_middle<fact>(fact()).breadcrumb("Sort");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining sorter using the given predicate.
+///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
-inline pipe_middle<sort_factory<pred_t> >
+inline pipe_middle<bits::sort_factory<pred_t> >
 pipesort(const pred_t & p) {
-	typedef sort_factory<pred_t> fact;
+	typedef bits::sort_factory<pred_t> fact;
 	return pipe_middle<fact>(fact(p)).breadcrumb("Sort");
 }
 
+template <typename T, typename pred_t>
+struct passive_sorter;
+
+namespace bits {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Factory for the passive sorter input segment.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 struct passive_sorter_factory : public factory_base {
 	typedef sort_pull_output_t<T, pred_t> output_t;
@@ -326,9 +394,9 @@ private:
 	output_t & m_output;
 };
 
-template <typename T, typename pred_t>
-struct passive_sorter;
-
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Factory for the passive sorter output segment.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 struct passive_sorter_factory_2 : public factory_base {
 	typedef sort_pull_output_t<T, pred_t> output_t;
@@ -345,8 +413,9 @@ private:
 	const passive_sorter<T, pred_t> & m_sorter;
 };
 
+} // namespace bits
+
 ///////////////////////////////////////////////////////////////////////////////
-/// \class passive_sorter
 /// \brief Pipelined sorter with push input and pull output.
 /// Get the input pipe with \c input() and the output pullpipe with \c output().
 /// input() must not be called after output().
@@ -357,10 +426,14 @@ private:
 template <typename T, typename pred_t>
 class passive_sorter {
 public:
+	/** Type of items sorted. */
 	typedef T item_type;
+	/** Type of the merge sort implementation used. */
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
-	typedef sort_pull_output_t<item_type, pred_t> output_t;
+	/** Type of pipe sorter output. */
+	typedef bits::sort_pull_output_t<item_type, pred_t> output_t;
 
 	inline passive_sorter()
 		: pred()
@@ -368,12 +441,18 @@ public:
 	{
 	}
 
-	inline pipe_end<passive_sorter_factory<item_type, pred_t> > input() {
-		return passive_sorter_factory<item_type, pred_t>(m_output);
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the input push pipe segment.
+	///////////////////////////////////////////////////////////////////////////
+	inline pipe_end<bits::passive_sorter_factory<item_type, pred_t> > input() {
+		return bits::passive_sorter_factory<item_type, pred_t>(m_output);
 	}
 
-	inline pullpipe_begin<passive_sorter_factory_2<item_type, pred_t> > output() {
-		return passive_sorter_factory_2<item_type, pred_t>(*this);
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the output pull pipe segment.
+	///////////////////////////////////////////////////////////////////////////
+	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t> > output() {
+		return bits::passive_sorter_factory_2<item_type, pred_t>(*this);
 	}
 
 private:
@@ -382,8 +461,10 @@ private:
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 
-	friend struct passive_sorter_factory_2<T, pred_t>;
+	friend struct bits::passive_sorter_factory_2<T, pred_t>;
 };
+
+namespace bits {
 
 template <typename T, typename pred_t>
 typename passive_sorter_factory_2<T, pred_t>::generated_type
@@ -393,8 +474,10 @@ passive_sorter_factory_2<T, pred_t>::construct() const {
 	return res;
 }
 
-}
+} // namespace bits
 
-}
+} // namespace pipelining
+
+} // namespace tpie
 
 #endif
