@@ -37,6 +37,7 @@ namespace tpie {
 template <typename T, typename child_t>
 class internal_stack_vector_base: public linear_memory_base<child_t> {
 protected:
+	/** Element storage. */
 	array<T> m_elements;
 
 	/** Number of elements pushed to the structure. */
