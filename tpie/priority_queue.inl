@@ -525,6 +525,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			  << get_memory_manager().available() << "b" << std::endl;
 #endif
 
+	{
 	pq_merge_heap<T, Comparator> heap(current_r);
 
 	tpie::array<tpie::auto_ptr<file_stream<T> > > data(current_r);
@@ -562,7 +563,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			}
 		}
 	}
-	heap.resize(0);
+	} // destruct and deallocate `heap'
 #ifndef TPIE_NDEBUG
 	std::cout << "memavail before mb alloc: "
 			  << get_memory_manager().available() << "b" << std::endl;
