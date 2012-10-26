@@ -346,20 +346,20 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining sorter using std::less.
 ///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<bits::default_pred_sort_factory>
+inline bits::pipe_middle<bits::default_pred_sort_factory>
 pipesort() {
 	typedef bits::default_pred_sort_factory fact;
-	return pipe_middle<fact>(fact()).breadcrumb("Sort");
+	return bits::pipe_middle<fact>(fact()).breadcrumb("Sort");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining sorter using the given predicate.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
-inline pipe_middle<bits::sort_factory<pred_t> >
+inline bits::pipe_middle<bits::sort_factory<pred_t> >
 pipesort(const pred_t & p) {
 	typedef bits::sort_factory<pred_t> fact;
-	return pipe_middle<fact>(fact(p)).breadcrumb("Sort");
+	return bits::pipe_middle<fact>(fact(p)).breadcrumb("Sort");
 }
 
 template <typename T, typename pred_t>
@@ -444,14 +444,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the input push pipe segment.
 	///////////////////////////////////////////////////////////////////////////
-	inline pipe_end<bits::passive_sorter_factory<item_type, pred_t> > input() {
+	inline bits::pipe_end<bits::passive_sorter_factory<item_type, pred_t> > input() {
 		return bits::passive_sorter_factory<item_type, pred_t>(m_output);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull pipe segment.
 	///////////////////////////////////////////////////////////////////////////
-	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t> > output() {
+	inline bits::pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t> > output() {
 		return bits::passive_sorter_factory_2<item_type, pred_t>(*this);
 	}
 

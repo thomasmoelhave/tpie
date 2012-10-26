@@ -25,7 +25,7 @@
 #include <boost/unordered_set.hpp>
 
 namespace {
-	typedef tpie::pipelining::segment_map S;
+	typedef tpie::pipelining::bits::segment_map S;
 
 	struct name {
 		inline name(S::ptr segmap, S::id_t id) : segmap(segmap), id(id) {}
@@ -41,11 +41,13 @@ namespace {
 		else
 			return out << typeid(*p).name() << " (" << n.id << ')';
 	}
-}
+} // default namespace
 
 namespace tpie {
 
 namespace pipelining {
+
+namespace bits {
 
 typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
@@ -85,6 +87,8 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 	}
 	g.go_all(items, pi);
 }
+
+} // namespace bits
 
 } // namespace pipelining
 

@@ -24,6 +24,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 segment_map::id_t segment_map::nextId = 0;
 
 // Called by graph_traits
@@ -99,6 +101,8 @@ size_t segment_map::out_degree(const relmap_t & map, id_t from, segment_relation
 	}
 	return res;
 }
+
+} // namespace bits
 
 } // namespace pipelining
 

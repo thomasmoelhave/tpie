@@ -24,14 +24,14 @@
 
 namespace tpie {
 
+struct merge_sort_not_ready : exception {
+	inline merge_sort_not_ready() : tpie::exception("Merge sort did not have memory assigned") {}
+};
+
 namespace pipelining {
 
 struct not_initiator_segment : tpie::exception {
 	inline not_initiator_segment() : tpie::exception("Not an initiator segment") {}
-};
-
-struct merge_sort_not_ready : tpie::exception {
-	inline merge_sort_not_ready() : tpie::exception("Merge sort did not have memory assigned") {}
 };
 
 struct virtual_chunk_not_ready : tpie::exception {

@@ -48,6 +48,8 @@ public:
 	inline void refresh();
 };
 
+struct phase;
+
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -96,7 +98,7 @@ struct pipe_segment {
 	/// \brief Get the local segment map, mapping segment IDs to pipe_segment
 	/// pointers for all the pipe_segments reachable from this one.
 	///////////////////////////////////////////////////////////////////////////
-	inline segment_map::ptr get_segment_map() const {
+	inline bits::segment_map::ptr get_segment_map() const {
 		return token.get_map();
 	}
 
@@ -264,8 +266,8 @@ protected:
 	/// \brief Called by implementers to declare a push destination.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_push_destination(const segment_token & dest) {
-		segment_map::ptr m = token.map_union(dest);
-		m->add_relation(token.id(), dest.id(), pushes);
+		bits::segment_map::ptr m = token.map_union(dest);
+		m->add_relation(token.id(), dest.id(), bits::pushes);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -279,8 +281,8 @@ protected:
 	/// \brief Called by implementers to declare a pull destination.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_pull_destination(const segment_token & dest) {
-		segment_map::ptr m = token.map_union(dest);
-		m->add_relation(token.id(), dest.id(), pulls);
+		bits::segment_map::ptr m = token.map_union(dest);
+		m->add_relation(token.id(), dest.id(), bits::pulls);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -296,8 +298,8 @@ protected:
 	/// of this segment.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_dependency(const segment_token & dest) {
-		segment_map::ptr m = token.map_union(dest);
-		m->add_relation(token.id(), dest.id(), depends);
+		bits::segment_map::ptr m = token.map_union(dest);
+		m->add_relation(token.id(), dest.id(), bits::depends);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -431,7 +433,7 @@ protected:
 	inline void push(const item_type & item);
 #endif
 
-	friend class phase;
+	friend class bits::phase;
 
 private:
 	segment_token token;

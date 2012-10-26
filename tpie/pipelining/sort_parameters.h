@@ -22,8 +22,6 @@
 
 namespace tpie {
 
-namespace pipelining {
-
 struct sort_parameters {
 	/** Memory available while forming sorted runs. */
 	memory_size_type memoryPhase1;
@@ -56,8 +54,6 @@ struct sort_parameters {
 			<< "Internal report threshold:   " << internalReportThreshold << '\n';
 	}
 };
-
-} // namespace pipelining
 
 } // namespace tpie
 

@@ -36,6 +36,8 @@ namespace pipelining {
 
 struct pipe_segment;
 
+namespace bits {
+
 class phase {
 public:
 	struct segment_graph;
@@ -133,6 +135,8 @@ private:
 	void calc_phases();
 
 };
+
+} // namespace bits
 
 } // namespace pipelining
 

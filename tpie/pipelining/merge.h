@@ -27,6 +27,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class merge_t
 /// \brief Merge a pull pipeline into a push pipeline
@@ -58,14 +60,16 @@ struct merge_t {
 	};
 };
 
+} // namespace bits
+
 template <typename pull_t>
-inline pipe_middle<factory_1<merge_t<pull_t>::template type, pull_t> >
-merge(const pullpipe_begin<pull_t> & with) {
-	return factory_1<merge_t<pull_t>::template type, pull_t>(with.factory);
+inline bits::pipe_middle<factory_1<bits::merge_t<pull_t>::template type, pull_t> >
+merge(const bits::pullpipe_begin<pull_t> & with) {
+	return factory_1<bits::merge_t<pull_t>::template type, pull_t>(with.factory);
 }
 
-}
+} // namespace pipelining
 
-}
+} // namespace tpie
 
 #endif

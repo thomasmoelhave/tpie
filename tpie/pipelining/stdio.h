@@ -29,6 +29,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 template <typename dest_t>
 struct scanf_ints_t : public pipe_segment {
 	typedef int item_type;
@@ -61,18 +63,20 @@ struct printf_ints_t : public pipe_segment {
 	}
 };
 
-pipe_begin<factory_0<scanf_ints_t> >
+} // namespace bits
+
+bits::pipe_begin<factory_0<bits::scanf_ints_t> >
 inline scanf_ints() {
-	return factory_0<scanf_ints_t>();
+	return factory_0<bits::scanf_ints_t>();
 }
 
-pipe_end<termfactory_0<printf_ints_t> >
+bits::pipe_end<termfactory_0<bits::printf_ints_t> >
 inline printf_ints() {
-	return termfactory_0<printf_ints_t>();
+	return termfactory_0<bits::printf_ints_t>();
 }
 
-}
+} // namespace pipelining
 
-}
+} // namespace tpie
 
 #endif

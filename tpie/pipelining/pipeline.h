@@ -29,6 +29,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline_base
 /// Virtual superclass for pipelines implementing the function call operator.
@@ -87,6 +89,8 @@ private:
 	gen_t r;
 };
 
+} // namespace bits
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline
 ///
@@ -117,11 +121,11 @@ struct pipeline {
 	inline double memory() const {
 		return p->memory();
 	}
-	inline segment_map::ptr get_segment_map() const {
+	inline bits::segment_map::ptr get_segment_map() const {
 		return p->get_segment_map();
 	}
 private:
-	pipeline_base * p;
+	bits::pipeline_base * p;
 };
 
 } // namespace pipelining

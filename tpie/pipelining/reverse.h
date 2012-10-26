@@ -93,12 +93,12 @@ struct passive_reverser {
 	{
 	}
 
-	inline pipe_end<termfactory_2<sink_t, buf_t &, const segment_token &> >
+	inline bits::pipe_end<termfactory_2<sink_t, buf_t &, const segment_token &> >
 	sink() {
 		return termfactory_2<sink_t, buf_t &, const segment_token &>(buffer, sink_token);
 	}
 
-	inline pipe_begin<factory_2<source_t, const buf_t &, const segment_token &> >
+	inline bits::pipe_begin<factory_2<source_t, const buf_t &, const segment_token &> >
 	source() {
 		return factory_2<source_t, const buf_t &, const segment_token &>(buffer, sink_token);
 	}
@@ -196,10 +196,13 @@ private:
 	input_t input;
 	output_t output;
 };
-}
 
-inline pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
+} // namespace bits
 
-}
-}
-#endif
+inline bits::pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
+
+} // namespace pipelining
+
+} // namespace tpie
+
+#endif // __TPIE_PIPELINING_REVERSE_H__

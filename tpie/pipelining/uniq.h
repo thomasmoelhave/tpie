@@ -29,6 +29,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 template <typename dest_t>
 struct count_consecutive_t : public pipe_segment {
 	typedef uint64_t count_t;
@@ -67,8 +69,6 @@ private:
 	count_t current_count;
 };
 
-namespace bits {
-
 struct any_type {
 	template <typename T>
 	inline any_type(const T &) {}
@@ -76,11 +76,9 @@ struct any_type {
 	inline any_type & operator=(const T &) {return *this;}
 };
 
-}
-
 template <typename dest_t>
 struct extract_first_t : public pipe_segment {
-	typedef std::pair<typename dest_t::item_type, bits::any_type> item_type;
+	typedef std::pair<typename dest_t::item_type, any_type> item_type;
 
 	inline extract_first_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
@@ -93,10 +91,12 @@ private:
 	dest_t dest;
 };
 
-inline pipe_middle<bits::pair_factory<factory_0<count_consecutive_t>, factory_0<extract_first_t> > >
+} // namespace bits
+
+inline bits::pipe_middle<bits::pair_factory<factory_0<bits::count_consecutive_t>, factory_0<bits::extract_first_t> > >
 pipeuniq() {
-	return bits::pair_factory<factory_0<count_consecutive_t>, factory_0<extract_first_t> >
-		(factory_0<count_consecutive_t>(), factory_0<extract_first_t>());
+	return bits::pair_factory<factory_0<bits::count_consecutive_t>, factory_0<bits::extract_first_t> >
+		(factory_0<bits::count_consecutive_t>(), factory_0<bits::extract_first_t>());
 }
 
 }

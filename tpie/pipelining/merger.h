@@ -26,8 +26,6 @@
 
 namespace tpie {
 
-namespace pipelining {
-
 template <typename T, typename pred_t>
 struct merger {
 	inline merger(pred_t pred)
@@ -118,8 +116,6 @@ private:
 	size_t runLength;
 	size_t n;
 };
-
-} // namespace pipelining
 
 } // namespace tpie
 

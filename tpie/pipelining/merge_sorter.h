@@ -27,8 +27,6 @@
 
 namespace tpie {
 
-namespace pipelining {
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Merge sorting consists of three phases.
 ///
@@ -625,8 +623,6 @@ private:
 	memory_size_type m_finalRunCount;
 	memory_size_type m_finalMergeSpecialRunNumber;
 };
-
-} // namespace pipelining
 
 } // namespace tpie
 

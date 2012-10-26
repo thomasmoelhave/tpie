@@ -116,11 +116,13 @@ struct phasegraph {
 	}
 };
 
-}
+} // default namespace
 
 namespace tpie {
 
 namespace pipelining {
+
+namespace bits {
 
 struct phase::segment_graph {
 	typedef pipe_segment * node_t;
@@ -363,6 +365,8 @@ void phase::go(progress_indicator_base & pi) {
 	}
 	pi.done();
 }
+
+} // namespace bits
 
 } // namespace pipelining
 

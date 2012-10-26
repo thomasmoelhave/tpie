@@ -29,6 +29,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 template <typename dest_t>
 struct linear_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
@@ -46,14 +48,16 @@ private:
 	item_type term;
 };
 
+} // namespace bits
+
 template <typename T>
-inline pipe_middle<factory_2<linear_t, T, T> >
+inline bits::pipe_middle<factory_2<bits::linear_t, T, T> >
 linear(T factor, T term) {
-	return factory_2<linear_t, T, T>(factor, term);
+	return factory_2<bits::linear_t, T, T>(factor, term);
 }
 
-}
+} // namespace pipelining
 
-}
+} // namespace tpie
 
 #endif

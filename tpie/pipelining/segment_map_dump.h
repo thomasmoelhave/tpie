@@ -27,6 +27,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 inline void segment_map::dump(std::ostream & os) const {
 	os << this << " segment_map\n";
 	if (m_authority)
@@ -40,6 +42,8 @@ inline void segment_map::dump(std::ostream & os) const {
 		os << i->first << " -> " << i->second.first << " edge type " << i->second.second << std::endl;
 	}
 }
+
+} // namespace bits
 
 } // namespace pipelining
 

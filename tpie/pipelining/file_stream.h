@@ -29,6 +29,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class input_t
 ///
@@ -62,11 +64,6 @@ private:
 	file_stream<item_type> & fs;
 };
 
-template<typename T>
-inline pipe_begin<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
-	return factory_1<input_t, file_stream<T> &>(fs);
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pull_input_t
 ///
@@ -98,11 +95,6 @@ struct pull_input_t : public pipe_segment {
 	file_stream<T> & fs;
 };
 
-template<typename T>
-inline pullpipe_begin<termfactory_1<pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
-	return termfactory_1<pull_input_t<T>, file_stream<T> &>(fs);
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \class output_t
 ///
@@ -123,11 +115,6 @@ struct output_t : public pipe_segment {
 private:
 	file_stream<T> & fs;
 };
-
-template <typename T>
-inline pipe_end<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
-	return termfactory_1<output_t<T>, file_stream<T> &>(fs);
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pull_output_t
@@ -156,11 +143,6 @@ struct pull_output_t : public pipe_segment {
 	file_stream<item_type> & fs;
 };
 
-template<typename T>
-inline pullpipe_end<factory_1<pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
-	return factory_1<pull_output_t, file_stream<T> &>(fs);
-}
-
 template <typename T>
 struct tee_t {
 	template <typename dest_t>
@@ -182,10 +164,33 @@ struct tee_t {
 	};
 };
 
-template <typename T>
-inline pipe_middle<factory_1<tee_t<typename T::item_type>::template type, T &> >
-tee(T & fs) {return factory_1<tee_t<typename T::item_type>::template type, T &>(fs);}
+} // namespace bits
 
-} //namespace pipelining
-} //namespace tpie
+template<typename T>
+inline bits::pipe_begin<factory_1<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+	return factory_1<bits::input_t, file_stream<T> &>(fs);
+}
+
+template<typename T>
+inline bits::pullpipe_begin<termfactory_1<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
+	return termfactory_1<bits::pull_input_t<T>, file_stream<T> &>(fs);
+}
+
+template <typename T>
+inline bits::pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
+	return termfactory_1<bits::output_t<T>, file_stream<T> &>(fs);
+}
+
+template<typename T>
+inline bits::pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
+	return factory_1<bits::pull_output_t, file_stream<T> &>(fs);
+}
+
+template <typename T>
+inline bits::pipe_middle<factory_1<bits::tee_t<typename T::item_type>::template type, T &> >
+tee(T & fs) {return factory_1<bits::tee_t<typename T::item_type>::template type, T &>(fs);}
+
+} // namespace pipelining
+
+} // namespace tpie
 #endif

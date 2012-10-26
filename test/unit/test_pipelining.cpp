@@ -57,7 +57,7 @@ struct multiply_t : public pipe_segment {
 	uint64_t factor;
 };
 
-pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
+tpie::pipelining::bits::pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
 	return factory_1<multiply_t, uint64_t>(factor);
 }
 
@@ -364,7 +364,7 @@ bool uniq_test() {
 bool memory_test() {
 	pipeline p = input_vector(inputvector).memory(1.1) | multiply(3).memory(3.2) | multiply(2).memory(3.3) | output_vector(outputvector).memory(2.3);
 	p();
-	graph_traits g(*p.get_segment_map());
+	tpie::pipelining::bits::graph_traits g(*p.get_segment_map());
 	double fractions = g.sum_memory();
 	memory_size_type memory = g.sum_minimum_memory();
 	log_info() << fractions << std::endl << memory << std::endl;
@@ -396,9 +396,9 @@ struct buffer_node_t : public pipe_segment {
 	dest_t dest;
 };
 
-inline pipe_middle<factory_0<buffer_node_t> >
+inline tpie::pipelining::bits::pipe_middle<factory_0<buffer_node_t> >
 buffer_node() {
-	return pipe_middle<factory_0<buffer_node_t> >();
+	return tpie::pipelining::bits::pipe_middle<factory_0<buffer_node_t> >();
 }
 
 struct merger_memory : public memory_test {

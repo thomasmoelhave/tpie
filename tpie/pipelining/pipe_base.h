@@ -30,6 +30,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 template <typename child_t>
 struct pipe_base {
 	inline child_t & memory(double amount) {
@@ -196,6 +198,8 @@ struct pullpipe_begin : pipe_base<pullpipe_begin<fact_t> > {
 
 	fact_t factory;
 };
+
+} // namespace bits
 
 } // namespace pipelining
 

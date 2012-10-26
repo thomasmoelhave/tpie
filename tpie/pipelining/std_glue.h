@@ -30,6 +30,8 @@ namespace tpie {
 
 namespace pipelining {
 
+namespace bits {
+
 template <typename dest_t>
 struct input_vector_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
@@ -72,18 +74,20 @@ private:
 	std::vector<item_type> & output;
 };
 
+} // namespace bits
+
 template<typename T>
-inline pipe_begin<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
-	return factory_1<input_vector_t, const std::vector<T> &>(input);
+inline bits::pipe_begin<factory_1<bits::input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
+	return factory_1<bits::input_vector_t, const std::vector<T> &>(input);
 }
 
 template <typename T>
-inline pipe_end<termfactory_1<output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
-	return termfactory_1<output_vector_t<T>, std::vector<T> &>(output);
+inline bits::pipe_end<termfactory_1<bits::output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
+	return termfactory_1<bits::output_vector_t<T>, std::vector<T> &>(output);
 }
 
-}
+} // namespace pipelining
 
-}
+} // namespace tpie
 
 #endif

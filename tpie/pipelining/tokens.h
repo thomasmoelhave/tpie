@@ -89,6 +89,8 @@ struct pipe_segment;
 
 struct segment_token;
 
+namespace bits {
+
 enum segment_relation {
 	pushes,
 	pulls,
@@ -199,13 +201,15 @@ private:
 	static id_t nextId;
 };
 
+} // namespace bits
+
 struct segment_token {
-	typedef segment_map::id_t id_t;
-	typedef segment_map::val_t val_t;
+	typedef bits::segment_map::id_t id_t;
+	typedef bits::segment_map::val_t val_t;
 
 	// Use for the simple case in which a pipe_segment owns its own token
 	inline segment_token(val_t owner)
-		: m_tokens(segment_map::create())
+		: m_tokens(bits::segment_map::create())
 		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
 	{
@@ -230,7 +234,7 @@ struct segment_token {
 
 	// Use for the advanced case when a segment_token is allocated before the pipe_segment
 	inline segment_token()
-		: m_tokens(segment_map::create())
+		: m_tokens(bits::segment_map::create())
 		, m_id(m_tokens->add_token(0))
 		, m_free(true)
 	{
@@ -238,13 +242,13 @@ struct segment_token {
 
 	inline size_t id() const { return m_id; }
 
-	inline segment_map::ptr map_union(const segment_token & with) {
+	inline bits::segment_map::ptr map_union(const segment_token & with) {
 		if (m_tokens == with.m_tokens) return m_tokens;
 		m_tokens->union_set(with.m_tokens);
 		return m_tokens = m_tokens->find_authority();
 	}
 
-	inline segment_map::ptr get_map() const {
+	inline bits::segment_map::ptr get_map() const {
 		return m_tokens;
 	}
 
@@ -253,7 +257,7 @@ struct segment_token {
 	}
 
 private:
-	segment_map::ptr m_tokens;
+	bits::segment_map::ptr m_tokens;
 	size_t m_id;
 	bool m_free;
 };
