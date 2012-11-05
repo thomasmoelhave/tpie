@@ -90,6 +90,16 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 
 } // namespace bits
 
+void pipeline::output_memory(std::ostream & o) const {
+	bits::segment_map::ptr segmap = p->get_segment_map()->find_authority();
+	for (bits::segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
+		bits::segment_map::val_t p = segmap->get(i->first);
+		o << p->get_name() << ": min=" << p->get_minimum_memory() << "; max=" << p->get_available_memory() << "; prio=" << p->get_memory_fraction() << ";" << std::endl;
+
+	}
+}
+
+
 } // namespace pipelining
 
 } // namespace tpie

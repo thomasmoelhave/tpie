@@ -124,6 +124,8 @@ struct pipeline {
 	inline bits::segment_map::ptr get_segment_map() const {
 		return p->get_segment_map();
 	}
+
+	void output_memory(std::ostream & o) const;
 private:
 	bits::pipeline_base * p;
 };
