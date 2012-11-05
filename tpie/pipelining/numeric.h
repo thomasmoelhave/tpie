@@ -51,7 +51,7 @@ private:
 } // namespace bits
 
 template <typename T>
-inline bits::pipe_middle<factory_2<bits::linear_t, T, T> >
+inline pipe_middle<factory_2<bits::linear_t, T, T> >
 linear(T factor, T term) {
 	return factory_2<bits::linear_t, T, T>(factor, term);
 }

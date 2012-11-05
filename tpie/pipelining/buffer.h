@@ -101,8 +101,8 @@ struct passive_buffer {
 private:
 	typedef termfactory_2<input_t,  file_stream<T> &, const segment_token &> inputfact_t;
 	typedef termfactory_2<output_t, file_stream<T> &, const segment_token &> outputfact_t;
-	typedef bits::pipe_end      <inputfact_t>  inputpipe_t;
-	typedef bits::pullpipe_begin<outputfact_t> outputpipe_t;
+	typedef pipe_end      <inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
 public:
 	passive_buffer() {}

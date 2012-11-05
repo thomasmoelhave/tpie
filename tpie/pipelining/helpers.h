@@ -219,21 +219,21 @@ struct null_sink_t: public pipe_segment {
 
 } // namespace bits
 
-inline bits::pipe_middle<factory_1<bits::ostream_logger_t, std::ostream &> >
+inline pipe_middle<factory_1<bits::ostream_logger_t, std::ostream &> >
 cout_logger() {
 	return factory_1<bits::ostream_logger_t, std::ostream &>(std::cout);
 }
 
-inline bits::pipe_middle<factory_0<bits::identity_t> > identity() {
-	return bits::pipe_middle<factory_0<bits::identity_t> >();
+inline pipe_middle<factory_0<bits::identity_t> > identity() {
+	return pipe_middle<factory_0<bits::identity_t> >();
 }
 
-inline bits::pullpipe_middle<factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> > > pull_identity() {
+inline pullpipe_middle<factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> > > pull_identity() {
 	return factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> >(factory_0<bits::identity_t>());
 }
 
 inline
-bits::pipe_middle<factory_1<
+pipe_middle<factory_1<
 	bits::pull_to_push<factory_0<bits::pull_identity_t> >::pusher_t,
 	factory_0<bits::pull_identity_t>
 > >
@@ -245,64 +245,64 @@ alt_identity() {
 }
 
 template <typename T>
-inline bits::pipe_end<termfactory_0<bits::bitbucket_t<T> > >
+inline pipe_end<termfactory_0<bits::bitbucket_t<T> > >
 bitbucket(T) {
 	return termfactory_0<bits::bitbucket_t<T> >();
 }
 
 template <typename fact_t>
-inline bits::pipe_middle<tempfactory_1<bits::fork_t<fact_t>, const fact_t &> >
-fork(const bits::pipe_end<fact_t> & to) {
+inline pipe_middle<tempfactory_1<bits::fork_t<fact_t>, const fact_t &> >
+fork(const pipe_end<fact_t> & to) {
 	return tempfactory_1<bits::fork_t<fact_t>, const fact_t &>(to.factory);
 }
 
 template <typename T>
-inline bits::pipe_end<termfactory_0<bits::null_sink_t<T> > >
+inline pipe_end<termfactory_0<bits::null_sink_t<T> > >
 null_sink() {return termfactory_0<bits::null_sink_t<T> >();}
 
 template <template <typename dest_t> class Fact>
-bits::pipe_begin<factory_0<Fact> > make_pipe_begin_0() {
-	return bits::pipe_begin<factory_0<Fact> >(factory_0<Fact>());
+pipe_begin<factory_0<Fact> > make_pipe_begin_0() {
+	return pipe_begin<factory_0<Fact> >(factory_0<Fact>());
 }
 
 template <template <typename dest_t> class Fact>
-bits::pipe_middle<factory_0<Fact> > make_pipe_middle_0() {
-	return bits::pipe_middle<factory_0<Fact> >(factory_0<Fact>());
+pipe_middle<factory_0<Fact> > make_pipe_middle_0() {
+	return pipe_middle<factory_0<Fact> >(factory_0<Fact>());
 }
 
 template <typename Fact>
-bits::pipe_end<termfactory_0<Fact> > make_pipe_end_0() {
-	return bits::pipe_end<termfactory_0<Fact> >(termfactory_0<Fact>());
+pipe_end<termfactory_0<Fact> > make_pipe_end_0() {
+	return pipe_end<termfactory_0<Fact> >(termfactory_0<Fact>());
 }
 
 template <template <typename dest_t> class Fact, typename T1>
-bits::pipe_begin<factory_1<Fact, T1> > make_pipe_begin_1(T1 e1) {
-	return bits::pipe_begin<factory_1<Fact, T1> >(factory_1<Fact, T1>(e1));
+pipe_begin<factory_1<Fact, T1> > make_pipe_begin_1(T1 e1) {
+	return pipe_begin<factory_1<Fact, T1> >(factory_1<Fact, T1>(e1));
 }
 
 template <template <typename dest_t> class Fact, typename T1>
-bits::pipe_middle<factory_1<Fact, T1> > make_pipe_middle_1(T1 e1) {
-	return bits::pipe_middle<factory_1<Fact, T1> >(factory_1<Fact, T1>(e1));
+pipe_middle<factory_1<Fact, T1> > make_pipe_middle_1(T1 e1) {
+	return pipe_middle<factory_1<Fact, T1> >(factory_1<Fact, T1>(e1));
 }
 
 template <typename Fact, typename T1>
-bits::pipe_end<termfactory_1<Fact, T1> > make_pipe_end_1(T1 e1) {
-	return bits::pipe_end<termfactory_1<Fact, T1> >(termfactory_1<Fact, T1>(e1));
+pipe_end<termfactory_1<Fact, T1> > make_pipe_end_1(T1 e1) {
+	return pipe_end<termfactory_1<Fact, T1> >(termfactory_1<Fact, T1>(e1));
 }
 
 template <template <typename dest_t> class Fact, typename T1, typename T2>
-bits::pipe_begin<factory_2<Fact, T1, T2> > make_pipe_begin_2(T1 e1, T2 e2) {
-	return bits::pipe_begin<factory_2<Fact, T1, T2> >(factory_2<Fact, T1, T2>(e1, e2));
+pipe_begin<factory_2<Fact, T1, T2> > make_pipe_begin_2(T1 e1, T2 e2) {
+	return pipe_begin<factory_2<Fact, T1, T2> >(factory_2<Fact, T1, T2>(e1, e2));
 }
 
 template <template <typename dest_t> class Fact, typename T1, typename T2>
-bits::pipe_middle<factory_2<Fact, T1, T2> > make_pipe_middle_2(T1 e1, T2 e2) {
-	return bits::pipe_middle<factory_2<Fact, T1, T2> >(factory_2<Fact, T1, T2>(e1, e2));
+pipe_middle<factory_2<Fact, T1, T2> > make_pipe_middle_2(T1 e1, T2 e2) {
+	return pipe_middle<factory_2<Fact, T1, T2> >(factory_2<Fact, T1, T2>(e1, e2));
 }
 
 template <typename Fact, typename T1, typename T2>
-bits::pipe_end<termfactory_2<Fact, T1, T2> > make_pipe_end_2(T1 e1, T2 e2) {
-	return bits::pipe_end<termfactory_2<Fact, T1, T2> >(termfactory_2<Fact, T1, T2>(e1, e2));
+pipe_end<termfactory_2<Fact, T1, T2> > make_pipe_end_2(T1 e1, T2 e2) {
+	return pipe_end<termfactory_2<Fact, T1, T2> >(termfactory_2<Fact, T1, T2>(e1, e2));
 }
 
 }

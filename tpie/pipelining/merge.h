@@ -63,8 +63,8 @@ struct merge_t {
 } // namespace bits
 
 template <typename pull_t>
-inline bits::pipe_middle<factory_1<bits::merge_t<pull_t>::template type, pull_t> >
-merge(const bits::pullpipe_begin<pull_t> & with) {
+inline pipe_middle<factory_1<bits::merge_t<pull_t>::template type, pull_t> >
+merge(const pullpipe_begin<pull_t> & with) {
 	return factory_1<bits::merge_t<pull_t>::template type, pull_t>(with.factory);
 }
 

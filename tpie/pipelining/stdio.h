@@ -65,12 +65,12 @@ struct printf_ints_t : public pipe_segment {
 
 } // namespace bits
 
-bits::pipe_begin<factory_0<bits::scanf_ints_t> >
+pipe_begin<factory_0<bits::scanf_ints_t> >
 inline scanf_ints() {
 	return factory_0<bits::scanf_ints_t>();
 }
 
-bits::pipe_end<termfactory_0<bits::printf_ints_t> >
+pipe_end<termfactory_0<bits::printf_ints_t> >
 inline printf_ints() {
 	return termfactory_0<bits::printf_ints_t>();
 }

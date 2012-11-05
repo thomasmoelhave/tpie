@@ -159,7 +159,7 @@ public:
 	virtual_chunk_end() {}
 
 	template <typename fact_t>
-	virtual_chunk_end(const bits::pipe_end<fact_t> & pipe) {
+	virtual_chunk_end(const pipe_end<fact_t> & pipe) {
 		*this = pipe;
 	}
 
@@ -169,7 +169,7 @@ public:
 	}
 
 	template <typename fact_t>
-	virtual_chunk_end & operator=(const bits::pipe_end<fact_t> & pipe) {
+	virtual_chunk_end & operator=(const pipe_end<fact_t> & pipe) {
 		tp_assert(m_src.get() == 0, "Virtual chunk assigned twice");
 
 		typedef typename fact_t::generated_type generated_type;
@@ -192,14 +192,14 @@ public:
 	}
 
 	template <typename fact_t>
-	virtual_chunk(const bits::pipe_middle<fact_t> & pipe)
+	virtual_chunk(const pipe_middle<fact_t> & pipe)
 		: impl(new bits::virtual_chunk_impl<Input, Output>())
 	{
 		*this = pipe;
 	}
 
 	template <typename fact_t>
-	virtual_chunk & operator=(const bits::pipe_middle<fact_t> & pipe) {
+	virtual_chunk & operator=(const pipe_middle<fact_t> & pipe) {
 		tp_assert(impl->m_src.get() == 0, "Virtual chunk assigned twice");
 
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
@@ -251,14 +251,14 @@ public:
 	}
 
 	template <typename fact_t>
-	virtual_chunk_begin(const bits::pipe_begin<fact_t> & pipe)
+	virtual_chunk_begin(const pipe_begin<fact_t> & pipe)
 		: impl(new bits::virtual_chunk_begin_impl<Output>())
 	{
 		*this = pipe;
 	}
 
 	template <typename fact_t>
-	virtual_chunk_begin & operator=(const bits::pipe_begin<fact_t> & pipe) {
+	virtual_chunk_begin & operator=(const pipe_begin<fact_t> & pipe) {
 		tp_assert(impl->m_src.get() == 0, "Virtual chunk assigned twice");
 
 		typedef typename fact_t::template generated<recv_type>::type generated_type;

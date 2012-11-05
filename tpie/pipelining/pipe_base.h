@@ -58,8 +58,10 @@ private:
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 };
 
+} // namespace bits
+
 template <typename fact_t>
-struct pipe_end : pipe_base<pipe_end<fact_t> > {
+struct pipe_end : bits::pipe_base<pipe_end<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pipe_end() {
@@ -80,7 +82,7 @@ struct pipe_end : pipe_base<pipe_end<fact_t> > {
 ///                factory_1, etc. helpers.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-struct pipe_middle : pipe_base<pipe_middle<fact_t> > {
+struct pipe_middle : bits::pipe_base<pipe_middle<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pipe_middle() {
@@ -112,7 +114,7 @@ struct pipe_middle : pipe_base<pipe_middle<fact_t> > {
 };
 
 template <typename fact_t>
-struct pipe_begin : pipe_base<pipe_begin<fact_t> > {
+struct pipe_begin : bits::pipe_base<pipe_begin<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pipe_begin() {
@@ -128,7 +130,7 @@ struct pipe_begin : pipe_base<pipe_begin<fact_t> > {
 	}
 
 	template <typename fact2_t>
-	inline pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
+	inline bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
 	operator|(const pipe_end<fact2_t> & r) {
 		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
@@ -137,7 +139,7 @@ struct pipe_begin : pipe_base<pipe_begin<fact_t> > {
 };
 
 template <typename fact_t>
-struct pullpipe_end : pipe_base<pullpipe_end<fact_t> > {
+struct pullpipe_end : bits::pipe_base<pullpipe_end<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pullpipe_end() {
@@ -150,7 +152,7 @@ struct pullpipe_end : pipe_base<pullpipe_end<fact_t> > {
 };
 
 template <typename fact_t>
-struct pullpipe_middle : pipe_base<pullpipe_middle<fact_t> > {
+struct pullpipe_middle : bits::pipe_base<pullpipe_middle<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pullpipe_middle() {
@@ -175,7 +177,7 @@ struct pullpipe_middle : pipe_base<pullpipe_middle<fact_t> > {
 };
 
 template <typename fact_t>
-struct pullpipe_begin : pipe_base<pullpipe_begin<fact_t> > {
+struct pullpipe_begin : bits::pipe_base<pullpipe_begin<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pullpipe_begin() {
@@ -191,15 +193,13 @@ struct pullpipe_begin : pipe_base<pullpipe_begin<fact_t> > {
 	}
 
 	template <typename fact2_t>
-	inline pipeline_impl<bits::termpair_factory<fact2_t, fact_t> >
+	inline bits::pipeline_impl<bits::termpair_factory<fact2_t, fact_t> >
 	operator|(const pullpipe_end<fact2_t> & r) {
 		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory);
 	}
 
 	fact_t factory;
 };
-
-} // namespace bits
 
 } // namespace pipelining
 

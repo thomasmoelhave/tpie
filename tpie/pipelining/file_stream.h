@@ -167,27 +167,27 @@ struct tee_t {
 } // namespace bits
 
 template<typename T>
-inline bits::pipe_begin<factory_1<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+inline pipe_begin<factory_1<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory_1<bits::input_t, file_stream<T> &>(fs);
 }
 
 template<typename T>
-inline bits::pullpipe_begin<termfactory_1<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
+inline pullpipe_begin<termfactory_1<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
 	return termfactory_1<bits::pull_input_t<T>, file_stream<T> &>(fs);
 }
 
 template <typename T>
-inline bits::pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
+inline pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
 	return termfactory_1<bits::output_t<T>, file_stream<T> &>(fs);
 }
 
 template<typename T>
-inline bits::pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
+inline pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
 	return factory_1<bits::pull_output_t, file_stream<T> &>(fs);
 }
 
 template <typename T>
-inline bits::pipe_middle<factory_1<bits::tee_t<typename T::item_type>::template type, T &> >
+inline pipe_middle<factory_1<bits::tee_t<typename T::item_type>::template type, T &> >
 tee(T & fs) {return factory_1<bits::tee_t<typename T::item_type>::template type, T &>(fs);}
 
 } // namespace pipelining

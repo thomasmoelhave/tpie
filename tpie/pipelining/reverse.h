@@ -93,12 +93,12 @@ struct passive_reverser {
 	{
 	}
 
-	inline bits::pipe_end<termfactory_2<sink_t, buf_t &, const segment_token &> >
+	inline pipe_end<termfactory_2<sink_t, buf_t &, const segment_token &> >
 	sink() {
 		return termfactory_2<sink_t, buf_t &, const segment_token &>(buffer, sink_token);
 	}
 
-	inline bits::pipe_begin<factory_2<source_t, const buf_t &, const segment_token &> >
+	inline pipe_begin<factory_2<source_t, const buf_t &, const segment_token &> >
 	source() {
 		return factory_2<source_t, const buf_t &, const segment_token &>(buffer, sink_token);
 	}
@@ -199,7 +199,7 @@ private:
 
 } // namespace bits
 
-inline bits::pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
+inline pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
 
 } // namespace pipelining
 
