@@ -141,8 +141,6 @@ struct trivial_same_size {
 
 template <typename T>
 class array : public linear_memory_base<array<T> > {
-	array & self() { return *this; }
-	const array & self() const { return *this; }
 public:
 	/** \brief Iterator over a const array */
 	typedef array_iter_base<T const, true> const_iterator;
@@ -166,8 +164,8 @@ public:
 	/// \return An iterator to the i'th element.
 	///////////////////////////////////////////////////////////////////////////
 	iterator find(size_t idx) throw () {
-		assert(idx <= self().size());
-		return self().get_iter(idx);
+		assert(idx <= size());
+		return get_iter(idx);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -177,8 +175,8 @@ public:
 	/// \return A const iterator to the i'th element.
 	///////////////////////////////////////////////////////////////////////////
 	const_iterator find(size_t idx) const throw () {
-		assert(idx <= self().size());
-		return self().get_iter(idx);
+		assert(idx <= size());
+		return get_iter(idx);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -187,7 +185,7 @@ public:
 	/// \param i The index of the element returned.
 	///////////////////////////////////////////////////////////////////////////
 	T & at(size_t i) throw() {
-		assert(i < self().size());
+		assert(i < size());
 		return m_elements[i];
 	}
 
@@ -195,7 +193,7 @@ public:
 	/// \copydoc tpie::array_facade::at(size_t i)
 	///////////////////////////////////////////////////////////////////////////
 	const T & at(size_t i) const throw() {
-		assert(i < self().size());
+		assert(i < size());
 		return m_elements[i];
 	}
 	
@@ -208,9 +206,9 @@ public:
 	/// \return A reference to this array.
 	///////////////////////////////////////////////////////////////////////////
 	array & operator=(const array & other) {
-		self().resize(other.size());
-		for (size_t i=0; i < self().size(); ++i) *self().get_iter(i) = *other.get_iter(i);
-		return self();
+		resize(other.size());
+		for (size_t i=0; i < size(); ++i) *get_iter(i) = *other.get_iter(i);
+		return *this;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -218,7 +216,7 @@ public:
 	///
 	/// \return True if and only if size is 0.
 	///////////////////////////////////////////////////////////////////////////
-	inline bool empty() const {return self().size() == 0;}
+	inline bool empty() const {return size() == 0;}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return a const reference to an array entry.
@@ -227,8 +225,8 @@ public:
 	/// \return Const reference to the entry.
 	///////////////////////////////////////////////////////////////////////////
 	inline const T & operator[](size_t i) const {
-		assert(i < self().size());
-		return self().at(i);
+		assert(i < size());
+		return at(i);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -238,8 +236,8 @@ public:
 	/// \return Reference to the entry.
 	///////////////////////////////////////////////////////////////////////////
 	inline T & operator[](size_t i) {
-		assert(i < self().size());
-		return self().at(i);
+		assert(i < size());
+		return at(i);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -250,8 +248,8 @@ public:
 	/// \return True if they are equal otherwise false.
 	///////////////////////////////////////////////////////////////////////////
 	inline bool operator==(const array & other) const {
- 		if (self().size() != other.size()) return false;
-		for (size_t i=0;i<self().size();++i) if (*self().get_iter(i) != *other.get_iter(i)) return false;
+		if (size() != other.size()) return false;
+		for (size_t i=0;i<size();++i) if (*get_iter(i) != *other.get_iter(i)) return false;
 		return true;
 	}
 
@@ -262,8 +260,8 @@ public:
 	/// \return False if they are equal; otherwise true.
 	///////////////////////////////////////////////////////////////////////////
 	inline bool operator!=(const array & other) const {
- 		if (self().size() != other.size()) return true;
-		for (size_t i=0; i<self().size(); ++i) if (*self().get_iter(i) != *other.get_iter(i)) return true;
+		if (size() != other.size()) return true;
+		for (size_t i=0; i<size(); ++i) if (*get_iter(i) != *other.get_iter(i)) return true;
 		return false;
 	}
 
@@ -272,28 +270,28 @@ public:
 	///
 	/// \return An iterator to the beginning of the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline iterator begin() {return self().get_iter(0);}
+	inline iterator begin() {return get_iter(0);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return a const iterator to the beginning of the array.
 	///
 	/// \return A const iterator to the beginning of the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline const_iterator begin() const {return self().get_iter(0);}
+	inline const_iterator begin() const {return get_iter(0);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return an iterator to the end of the array.
 	///
 	/// \return An iterator to the end of the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline iterator end() {return self().get_iter(self().size());}
+	inline iterator end() {return get_iter(size());}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return a const iterator to the end of the array.
 	///
 	/// \return A const iterator to the end of the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline const_iterator end() const {return self().get_iter(self().size());}
+	inline const_iterator end() const {return get_iter(size());}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the first element in the array.
@@ -308,32 +306,32 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the last element in the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline const T & back() const {return at(self().size()-1);}
+	inline const T & back() const {return at(size()-1);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the last element in the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline T & back() {return at(self().size()-1);}
+	inline T & back() {return at(size()-1);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Reverse iterator to beginning of reverse sequence.
 	///////////////////////////////////////////////////////////////////////////
-	inline reverse_iterator rbegin() {return self().get_rev_iter(0);}
+	inline reverse_iterator rbegin() {return get_rev_iter(0);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Const reverse iterator to beginning of reverse sequence.
 	///////////////////////////////////////////////////////////////////////////
-	inline const_reverse_iterator rbegin() const {return self().get_rev_iter(0);}
+	inline const_reverse_iterator rbegin() const {return get_rev_iter(0);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Reverse iterator to end of reverse sequence.
 	///////////////////////////////////////////////////////////////////////////
-	inline reverse_iterator rend() {return self().get_rev_iter(self().size());}
+	inline reverse_iterator rend() {return get_rev_iter(size());}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Const reverse iterator to end of reverse sequence.
 	///////////////////////////////////////////////////////////////////////////
-	inline const_reverse_iterator rend() const {return self().get_rev_iter(self().size());}
+	inline const_reverse_iterator rend() const {return get_rev_iter(size());}
 
 private:
 	T * m_elements;
