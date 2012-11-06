@@ -141,8 +141,6 @@ struct trivial_same_size {
 
 template <typename T>
 class array : public linear_memory_base<array<T> > {
-	typedef array child_t;
-	typedef array p_t;
 	array & self() { return *this; }
 	const array & self() const { return *this; }
 public:
@@ -209,7 +207,7 @@ public:
 	/// \param other The array to copy from.
 	/// \return A reference to this array.
 	///////////////////////////////////////////////////////////////////////////
-	child_t & operator=(const child_t & other) {
+	array & operator=(const array & other) {
 		self().resize(other.size());
 		for (size_t i=0; i < self().size(); ++i) *self().get_iter(i) = *other.get_iter(i);
 		return self();
@@ -251,7 +249,7 @@ public:
 	/// \param other The array to compare against.
 	/// \return True if they are equal otherwise false.
 	///////////////////////////////////////////////////////////////////////////
-	inline bool operator==(const child_t & other) const {
+	inline bool operator==(const array & other) const {
  		if (self().size() != other.size()) return false;
 		for (size_t i=0;i<self().size();++i) if (*self().get_iter(i) != *other.get_iter(i)) return false;
 		return true;
@@ -263,7 +261,7 @@ public:
 	/// \param other The array to compare against.
 	/// \return False if they are equal; otherwise true.
 	///////////////////////////////////////////////////////////////////////////
-	inline bool operator!=(const child_t & other) const {
+	inline bool operator!=(const array & other) const {
  		if (self().size() != other.size()) return true;
 		for (size_t i=0; i<self().size(); ++i) if (*self().get_iter(i) != *other.get_iter(i)) return true;
 		return false;
@@ -341,20 +339,20 @@ private:
 	T * m_elements;
 	size_t m_size;
 
-	inline typename p_t::iterator get_iter(size_t idx) {
-		return typename p_t::iterator(m_elements+idx);
+	inline iterator get_iter(size_t idx) {
+		return iterator(m_elements+idx);
 	}
-	
-	inline typename p_t::const_iterator get_iter(size_t idx) const {
-		return typename p_t::const_iterator(m_elements+idx);
+
+	inline const_iterator get_iter(size_t idx) const {
+		return const_iterator(m_elements+idx);
 	}
-	
-	inline typename p_t::reverse_iterator get_rev_iter(size_t idx) {
-		return typename p_t::reverse_iterator(m_elements+m_size-idx-1);
+
+	inline reverse_iterator get_rev_iter(size_t idx) {
+		return reverse_iterator(m_elements+m_size-idx-1);
 	}
-	
-	inline typename p_t::const_reverse_iterator get_rev_iter(size_t idx) const {
-		return typename p_t::const_reverse_iterator(m_elements+m_size-idx-1);
+
+	inline const_reverse_iterator get_rev_iter(size_t idx) const {
+		return const_reverse_iterator(m_elements+m_size-idx-1);
 	}
 public:
 	///////////////////////////////////////////////////////////////////////////
