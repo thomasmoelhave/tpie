@@ -118,28 +118,6 @@ bool auto_ptr_test() {
 	return true;
 }
 
-bool segmented_array_test() {
-	array<int> h1;
-	array_base<int, true> h2;
-	size_t z=8388619;
-	h1.resize(z);
-	h2.resize(z);
-	for (size_type i=0; i < z; ++i)
-		h2[i] = h1[i] = static_cast<int>((i * 833547)%z);
-
-	array<int>::iterator i1=h1.begin();
-	array_base<int, true>::iterator i2=h2.begin();
-	
-	while (i1 != h1.end() || i2 != h2.end()) {
-		TEST_ENSURE(i1 != h1.end(), "Should not be end");
-		TEST_ENSURE(i2 != h2.end(), "Should not be end");
-		TEST_ENSURE_EQUALITY(*i1, *i2, "Wrong value");
-		i1++;
-		i2++;
-	}
-	return true;
-}
-
 bool basic_bool_test() {
 	tpie::bit_array hat;
   
@@ -317,7 +295,6 @@ int main(int argc, char **argv) {
 		.test(iterator_test, "iterators")
 		.test(auto_ptr_test, "auto_ptr")
 		.test(array_memory_test<false>(), "memory")
-		.test(segmented_array_test, "segmented")
 		.test(array_memory_test<true>(), "memory_segmented")
 		.test(basic_bool_test, "bit_basic")
 		.test(iterator_bool_test, "bit_iterators")
