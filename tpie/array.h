@@ -33,32 +33,130 @@
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief A CRTP base class implementing auxiliary array operations.
+/// \internal
+/// \brief Shared implementation of array iterators.
+///////////////////////////////////////////////////////////////////////////////
+template <typename TT, bool forward>
+class array_iter_base: public boost::iterator_facade<
+	array_iter_base<TT, forward>,
+	TT , boost::random_access_traversal_tag> {
+private:
+	template <typename> friend class array;
+	friend class boost::iterator_core_access;
+	template <typename, bool> friend class array_iter_base;
+
+	struct enabler {};
+	explicit array_iter_base(TT * e): elm(e) {}
+
+	inline TT & dereference() const {return * elm;}
+	template <class U>
+	inline bool equal(array_iter_base<U, forward> const& o) const {return elm == o.elm;}
+	inline void increment() {elm += forward?1:-1;}
+	inline void decrement() {elm += forward?-1:1;}
+	inline void advance(size_t n) {if (forward) elm += n; else elm -= n;}
+	inline ptrdiff_t distance_to(array_iter_base const & o) const {return o.elm - elm;}
+	TT * elm;
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Default constructor.
+	///////////////////////////////////////////////////////////////////////////
+	array_iter_base(): elm(0) {};
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Copy constructor.
+	/// We use boost::enable_if to allow copying an iterator with a more
+	/// specific item_type to an iterator with a more general item_type.
+	///////////////////////////////////////////////////////////////////////////
+	template <class U>
+	array_iter_base(array_iter_base<U, forward> const& o, typename boost::enable_if<
+			  boost::is_convertible<U*,TT*>, enabler>::type = enabler())
+			: elm(o.elm) {}
+};
+
+#pragma pack(push, 1)
+template <typename C>
+struct trivial_same_size {
+	char c[sizeof(C)];
+};
+#pragma pack(pop)
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A generic array with a fixed size.
 ///
-/// Operations include element lookup via at() or operator[],
-/// getting iterators begin() and end(),
-/// checking for element-by-element equality using operator==,
-/// the assignment operator.
+/// This is almost the same as a real C-style T array but the memory management
+/// is better.
 ///
-/// All these operations are implemented using get_iter() and friends, which
-/// are implemented in array_base<T, true> (segmented) and array_base<T, false>
-/// (non-segmented).
+/// Do not instantiate this class directly. Instead, use tpie::array or
+/// tpie::segmented_array.
+///
+/// \tparam T The type of element to contain.
+/// \tparam segmented Whether to use segmented arrays.
+/// \tparam alloc_t Allocator.
+///////////////////////////////////////////////////////////////////////////////
+// ASIDE about the C++ language: A type is said to be trivially constructible
+//     if it has no user-defined constructors and all its members are trivially
+//     constructible. `new T` will allocate memory for a T-element, and if T is
+//     trivially constructible, the memory will be left uninitialized. This
+//     goes for arrays (T[]) as well, meaning an array initialization of a
+//     trivially constructible type takes practically no time.
+//
+// IMPLEMENTATION NOTE. We have three cases for how we want the item buffer
+// `array::m_elements` to be initialized:
+//
+// 1. Default constructed. tpie_new_array<T> does this
+//    allocation+initialization.
+//
+// 2. Copy constructed from a single element. Cannot be done with
+//    tpie_new_array<T>.
+//
+// 3. Copy constructed from elements in another array. Cannot be done with
+//    tpie_new_array<T> either.
+//
+// For cases 2 and 3, we must keep `new`-allocation separate from item
+// initialization. Thus, for these cases we instead allocate an array of
+// trivial_same_size<T>. This is a struct that has the same size as T, but is
+// trivially constructible, meaning no memory initialization is done.
+//
+// Then, for case 2, we use std::uninitialized_fill, and for case 3 we use
+// std::uninitialized_copy.
+//
+// Unfortunately, although we have the choice in case 1 of allocating a
+// trivial_same_size<T> and then calling the default constructors afterwards,
+// this turns out in some cases to be around 10% slower than allocating a
+// T-array directly.
+//
+// Also, in order to have the same initialization semantics with regards to
+// trivially constructible types as C++ new[], we need to check if the type is
+// trivially constructible (using SFINAE/boost::enable_if/boost::type_traits)
+// to avoid zero-initializing those (a speed penalty we cannot afford).
+//
+// Now it is clear that we must sometimes use tpie_new_array<T>, other times
+// tpie_new_array<trivial_same_size<T> >. The TPIE memory manager checks that
+// buffers allocated as one type are not deallocated as another type, so when
+// the buffer is allocated as a trivial_same_size, we must remember this fact
+// for later destruction and deallocation.
+//
+// We remember this fact in array::m_tss_used.
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename child_t, typename T, template <typename, bool> class iter_base>
-class array_facade: public linear_memory_base<child_t> {
+template <typename T>
+class array : public linear_memory_base<array<T> > {
+	typedef array child_t;
+	typedef array p_t;
+	array & self() { return *this; }
+	const array & self() const { return *this; }
 public:
 	/** \brief Iterator over a const array */
-	typedef iter_base<T const, true> const_iterator;
+	typedef array_iter_base<T const, true> const_iterator;
 
 	/** \brief Reverse iterator over a const array */
-	typedef iter_base<T const, false> const_reverse_iterator;
+	typedef array_iter_base<T const, false> const_reverse_iterator;
 
 	/** \brief Iterator over an array */
-	typedef iter_base<T, true> iterator;
+	typedef array_iter_base<T, true> iterator;
 
 	/** \brief Reverse iterator over an array */
-	typedef iter_base<T, false> reverse_iterator;
+	typedef array_iter_base<T, false> reverse_iterator;
 
 	/** \brief Type of values containd in the array */
 	typedef T value_type;
@@ -92,7 +190,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	T & at(size_t i) throw() {
 		assert(i < self().size());
-		return *find(i);
+		return m_elements[i];
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -100,7 +198,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	const T & at(size_t i) const throw() {
 		assert(i < self().size());
-		return *find(i);
+		return m_elements[i];
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -240,123 +338,6 @@ public:
 	inline const_reverse_iterator rend() const {return self().get_rev_iter(self().size());}
 
 private:
-	inline child_t & self() {return *static_cast<child_t*>(this);}
-	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \internal
-/// \brief Shared implementation of array iterators.
-///////////////////////////////////////////////////////////////////////////////
-template <typename TT, bool forward>
-class array_iter_base: public boost::iterator_facade<
-	array_iter_base<TT, forward>,
-	TT , boost::random_access_traversal_tag> {
-private:
-	template <typename, bool> friend class array_base;
-	friend class boost::iterator_core_access;
-	template <class, bool> friend class array_iter_base;
-	
-	struct enabler {};
-	explicit array_iter_base(TT * e): elm(e) {}
-	
-	inline TT & dereference() const {return * elm;}
-	template <class U>
-	inline bool equal(array_iter_base<U, forward> const& o) const {return elm == o.elm;}
-	inline void increment() {elm += forward?1:-1;}
-	inline void decrement() {elm += forward?-1:1;}
-	inline void advance(size_t n) {if (forward) elm += n; else elm -= n;}
-	inline ptrdiff_t distance_to(array_iter_base const & o) const {return o.elm - elm;}
-	TT * elm;
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Default constructor.
-	///////////////////////////////////////////////////////////////////////////
-	array_iter_base(): elm(0) {};
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Copy constructor.
-	/// We use boost::enable_if to allow copying an iterator with a more
-	/// specific item_type to an iterator with a more general item_type.
-	///////////////////////////////////////////////////////////////////////////
-	template <class U>
-	array_iter_base(array_iter_base<U, forward> const& o, typename boost::enable_if<
-			  boost::is_convertible<U*,TT*>, enabler>::type = enabler())
-			: elm(o.elm) {}
-};		
-
-#pragma pack(push, 1)
-template <typename C>
-struct trivial_same_size {
-	char c[sizeof(C)];
-};
-#pragma pack(pop)
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief A generic array with a fixed size.
-///
-/// This is almost the same as a real C-style T array but the memory management
-/// is better.
-///
-/// Do not instantiate this class directly. Instead, use tpie::array or
-/// tpie::segmented_array.
-///
-/// \tparam T The type of element to contain.
-/// \tparam segmented Whether to use segmented arrays.
-/// \tparam alloc_t Allocator.
-///////////////////////////////////////////////////////////////////////////////
-// ASIDE about the C++ language: A type is said to be trivially constructible
-//     if it has no user-defined constructors and all its members are trivially
-//     constructible. `new T` will allocate memory for a T-element, and if T is
-//     trivially constructible, the memory will be left uninitialized. This
-//     goes for arrays (T[]) as well, meaning an array initialization of a
-//     trivially constructible type takes practically no time.
-//
-// IMPLEMENTATION NOTE. We have three cases for how we want the item buffer
-// `array_base::m_elements` to be initialized:
-//
-// 1. Default constructed. tpie_new_array<T> does this
-//    allocation+initialization.
-//
-// 2. Copy constructed from a single element. Cannot be done with
-//    tpie_new_array<T>.
-//
-// 3. Copy constructed from elements in another array. Cannot be done with
-//    tpie_new_array<T> either.
-//
-// For cases 2 and 3, we must keep `new`-allocation separate from item
-// initialization. Thus, for these cases we instead allocate an array of
-// trivial_same_size<T>. This is a struct that has the same size as T, but is
-// trivially constructible, meaning no memory initialization is done.
-//
-// Then, for case 2, we use std::uninitialized_fill, and for case 3 we use
-// std::uninitialized_copy.
-//
-// Unfortunately, although we have the choice in case 1 of allocating a
-// trivial_same_size<T> and then calling the default constructors afterwards,
-// this turns out in some cases to be around 10% slower than allocating a
-// T-array directly.
-//
-// Also, in order to have the same initialization semantics with regards to
-// trivially constructible types as C++ new[], we need to check if the type is
-// trivially constructible (using SFINAE/boost::enable_if/boost::type_traits)
-// to avoid zero-initializing those (a speed penalty we cannot afford).
-//
-// Now it is clear that we must sometimes use tpie_new_array<T>, other times
-// tpie_new_array<trivial_same_size<T> >. The TPIE memory manager checks that
-// buffers allocated as one type are not deallocated as another type, so when
-// the buffer is allocated as a trivial_same_size, we must remember this fact
-// for later destruction and deallocation.
-//
-// We remember this fact in array_base::m_tss_used.
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T, bool segmented=false>
-class array_base: public array_facade<array_base<T, segmented>, T, array_iter_base> {
-private:
-	typedef array_facade<array_base<T, segmented>, T, array_iter_base> p_t;
-	friend class array_facade<array_base<T, segmented>, T, array_iter_base>;
-
 	T * m_elements;
 	size_t m_size;
 
@@ -386,7 +367,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc tpie::linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
-	static double memory_overhead() {return sizeof(array_base);}
+	static double memory_overhead() {return sizeof(array);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -394,20 +375,20 @@ public:
 	/// \param s The number of elements in the array.
 	/// \param value Each entry of the array is initialized with this value.
 	///////////////////////////////////////////////////////////////////////////
-	array_base(size_type s, const T & value): m_elements(0), m_size(0), m_tss_used(false) {resize(s, value);}
+	array(size_type s, const T & value): m_elements(0), m_size(0), m_tss_used(false) {resize(s, value);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
 	///
 	/// \param s The number of elements in the array.
 	///////////////////////////////////////////////////////////////////////////
-	array_base(size_type s=0): m_elements(0), m_size(0), m_tss_used(false) {resize(s);}
+	array(size_type s=0): m_elements(0), m_size(0), m_tss_used(false) {resize(s);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array.
 	/// \param other The array to copy.
 	/////////////////////////////////////////////////////////
-	array_base(const array_base & other): m_elements(0), m_size(other.m_size) {
+	array(const array & other): m_elements(0), m_size(other.m_size) {
 		if (other.size() == 0) return;
 		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
 		m_tss_used = true;
@@ -417,7 +398,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Free up all memory used by the array.
 	///////////////////////////////////////////////////////////////////////////
-	~array_base() {resize(0);}
+	~array() {resize(0);}
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Change the size of the array.
@@ -447,7 +428,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Swap two arrays.
 	///////////////////////////////////////////////////////////////////////////
-	void swap(array_base & other) {
+	void swap(array & other) {
 		std::swap(m_elements, other.m_elements);
 		std::swap(m_size, other.m_size);
 		std::swap(m_tss_used, other.m_tss_used);
@@ -476,19 +457,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline size_type size() const {return m_size;}
 
-	inline T & at(size_t i) { return m_elements[i]; }
-	inline const T & at(size_t i) const { return m_elements[i]; }
-
-protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return a raw pointer to the array content.
 	///////////////////////////////////////////////////////////////////////////
-	inline T * __get() {return m_elements;}
+	inline T * get() {return m_elements;}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return a raw pointer to the array content.
 	///////////////////////////////////////////////////////////////////////////
-	inline const T * __get() const {return m_elements;}
+	inline const T * get() const {return m_elements;}
 
 private:
 	inline void destruct_and_dealloc() {
@@ -508,245 +485,11 @@ private:
 	/** Whether we allocated m_elements as a trivial_same_size<T> *.
 	 * See the implementation note in the source for an explanation. */
 	bool m_tss_used;
-};
 
-///////////////////////////////////////////////////////////////////////////////
-/// \internal
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename TT, bool forward>
-class segmented_array_iter_base: public boost::iterator_facade<
- 	segmented_array_iter_base<TT, forward>,
- 	TT , boost::random_access_traversal_tag> { 
-private:
-	static const size_t bits=22-template_log<sizeof(TT)>::v;
-	static const size_t mask = (1 << bits) -1;
-
-	template <typename, bool> friend class array_base;
-	friend class boost::iterator_core_access;
-	template <class, bool> friend class segmented_array_iter_base;
-
-	struct enabler {};	
-
-	inline TT & dereference() const {return m_a[m_i >> bits][m_i & mask];}
-	template <class U>
-	inline bool equal(segmented_array_iter_base<U, forward> const& o) const {return m_i == o.m_i;}
-	inline void increment() {m_i += forward?1:-1;}
-	inline void decrement() {m_i += forward?-1:1;}
-	inline void advance(size_t n) {if (forward) m_i += n; else m_i -= n;}
-	inline ptrdiff_t distance_to(segmented_array_iter_base const & o) const {return o.m_i - m_i;}
-	segmented_array_iter_base(TT ** a, size_t i): m_a(a), m_i(i) {}
-
-	TT **  m_a;
-	size_t m_i;
 public:
-	segmented_array_iter_base(): m_a(0), m_i(0) {};
-
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_iter_base::array_iter_base(array_iter_base<U, forward> const &o, typename boost::enable_if<boost::is_convertible<U *, TT *>, enabler>::type)
-	///////////////////////////////////////////////////////////////////////////
-	template <class U>
-	segmented_array_iter_base(segmented_array_iter_base<U, forward> const& o, typename boost::enable_if<
-							  boost::is_convertible<U*,TT*>, enabler>::type = enabler())
-		: m_a(o.m_a), m_i(o.m_i) {}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \internal
-/// \brief Segmented array implementation.
-///
-/// Specializes array_base for segmented == true.
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-class array_base<T, true>: public array_facade<array_base<T, true>, T, segmented_array_iter_base > {
-private:
-	friend class array_facade<array_base<T, true>, T, segmented_array_iter_base >;
-	typedef array_facade<array_base<T, true>, T, segmented_array_iter_base > p_t;
-	using p_t::at;
-	static const size_t bits=p_t::iterator::bits;
-	static const size_t mask=p_t::iterator::mask;
-
- 	T ** m_a;
- 	size_t m_size;
- 	allocator<T> m_allocator;
- 	allocator<T*> m_allocator2;
- 	static size_t outerSize(size_t s) {return (s + mask)>>bits;}
-	
-	inline typename p_t::iterator get_iter(size_t idx) {
-		return typename p_t::iterator(m_a, idx);
-	}
-	
-	inline typename p_t::const_iterator get_iter(size_t idx) const {
-		return typename p_t::const_iterator((const T **)m_a, idx);
-	}
-	
-	// inline typename p_t::reverse_iterator get_rev_iter(size_t idx) {
-	// 	return typename p_t::reverse_iterator(m_elements+m_size-idx-1);
-	// }
-	
-	// inline typename p_t::const_reverse_iterator get_rev_iter(size_t idx) const {
-	// 	return typename p_t::const_reverse_iterator(m_elements+m_size-idx-1);
-	// }
-public:
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::memory_coefficient()
-	///////////////////////////////////////////////////////////////////////////
-	static double memory_coefficient() {
-		return (double)sizeof(T) + (double)sizeof(T*)/(double)(1 << bits);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::memory_overhead()
-	///////////////////////////////////////////////////////////////////////////
-	static double memory_overhead() {
-		return sizeof(T*); //Overhead of one element in the outer table
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array_base(size_type, const T &)
-	///////////////////////////////////////////////////////////////////////////
-	array_base(size_type s=0, const T & value=T()): m_a(0), m_size(0) {resize(s, value);}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array_base(const array_base &)
-	///////////////////////////////////////////////////////////////////////////
-	array_base(const array_base & other): m_a(0), m_size(0) {
-		resize(other.size());
-		for (size_t i=0; i < m_size; ++i) 
-			at(i) = other.at(i);
-	}	
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::~array_base()
-	///////////////////////////////////////////////////////////////////////////
-	~array_base() {resize(0);}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::swap(array_base &)
-	///////////////////////////////////////////////////////////////////////////
-	void swap(array_base & other) {
-		std::swap(m_a, other.m_a);
-		std::swap(m_size, other.m_size);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::resize(size_t, const T &)
-	///////////////////////////////////////////////////////////////////////////
-	void resize(size_t size, const T & elm=T()) {
-		if (m_size) {
-			//Call the destructor on all the objects
-			for(size_t i=0; i < m_size; ++i)
-				m_allocator.destroy(&at(i));
-			//Deallocate all the inner arrayes
-			size_t o=outerSize(m_size);
-			size_t rem=m_size;
-			for(size_t i=0; rem; ++i) {
-				size_t c=std::min(rem, size_t(1 << bits));
-				m_allocator.deallocate(m_a[i], c);
-				rem -= c;
-			}
-			//Deallocate the outer array
-			m_allocator2.deallocate(m_a, o);
-			m_a=0;
-		}
-		m_size=size;
-		if (m_size) {
-			size_t o=outerSize(size);
-			//Allocate the outer array
-			m_a = m_allocator2.allocate(o);
-			//Allocate the innner arrayes
-			size_t rem=m_size;
-			for(size_t i=0; rem; ++i) {
-				size_t c=std::min(rem, size_t(1 << bits));
-				m_a[i] = m_allocator.allocate(c);
-				rem -= c;
-			}
-			for(size_t i=0; i < m_size; ++i)
-				m_allocator.construct(&at(i), elm);
-		}
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::size()
-	///////////////////////////////////////////////////////////////////////////
-	inline size_type size() const throw() {return m_size;}
-};
-
-/** Determine if we should use the segmented_array implementation. On 64-bit
- * systems the address space is large enough so that we don't need the
- * segmented array benefits. */
-static const bool __tpie_is_not_64bit = sizeof(size_t) < sizeof(uint64_t);
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief TPIE's segmented array.
-///
-/// On 32-bit machines, we have problems with address space fragmentation, so
-/// we allow segmented arrays that use several pieces of contiguous memory
-/// masked as one.
-///
-/// For this reason, we do not guarantee that pointer arithmetic yields
-/// anything meaningful for segmented_array elements.
-///
-/// Implementation note: In 64-bit address spaces, we only have a single
-/// segment.
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-class segmented_array: public array_base<T, __tpie_is_not_64bit> {
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::segmented_array(size_type, const T &)
-	///////////////////////////////////////////////////////////////////////////
-	segmented_array(size_type s, const T & value): array_base<T, __tpie_is_not_64bit>(s, value) {}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::segmented_array(size_type)
-	///////////////////////////////////////////////////////////////////////////
-	segmented_array(size_type s=0) : array_base<T, __tpie_is_not_64bit>(s) {}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::segmented_array(const array_base &)
-	///////////////////////////////////////////////////////////////////////////
-	segmented_array(const segmented_array & other): array_base<T, __tpie_is_not_64bit>(other) {}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Non-segmented TPIE array implementation.
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-class array: public array_base<T, false> {
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array_base(size_type, const T &)
-	///////////////////////////////////////////////////////////////////////////
-	array(size_type s, const T & value): array_base<T, false>(s, value) {}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array_base(size_type)
-	///////////////////////////////////////////////////////////////////////////
-	array(size_type s=0) : array_base<T, false>(s) {}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array_base(const array_base &)
-	///////////////////////////////////////////////////////////////////////////
-	array(const array & other): array_base<T, false>(other) {}
-
-	array(array_view_base<const T> & view): array_base<T, false>(view.size()) {
+	array(array_view_base<const T> & view) {
 		std::copy(view.begin(), view.end(), this->begin());
 	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Return a raw pointer to the array content
-	///////////////////////////////////////////////////////////////////////////
-	inline T * get() {return array_base<T, false>::__get();}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Return a raw pointer to the array content
-	///////////////////////////////////////////////////////////////////////////
-	inline const T * get() const {return array_base<T, false>::__get();}
 };
 
 template <typename T>

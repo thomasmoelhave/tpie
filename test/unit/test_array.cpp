@@ -220,14 +220,13 @@ bool iterator_bool_test() {
 	return true;
 }
 
-template <bool seg>
 class array_memory_test: public memory_test {
 public:
-	array_base<int, seg> a;
+	array<int> a;
 	virtual void alloc() {a.resize(1024*1024*32);}
 	virtual void free() {a.resize(0);}
 	virtual size_type claimed_size() {
-		return static_cast<size_type>(array_base<int, seg>::memory_usage(1024*1024*32));
+		return static_cast<size_type>(array<int>::memory_usage(1024*1024*32));
 	}
 };
 
@@ -294,8 +293,7 @@ int main(int argc, char **argv) {
 		.test(basic_test, "basic")
 		.test(iterator_test, "iterators")
 		.test(auto_ptr_test, "auto_ptr")
-		.test(array_memory_test<false>(), "memory")
-		.test(array_memory_test<true>(), "memory_segmented")
+		.test(array_memory_test(), "memory")
 		.test(basic_bool_test, "bit_basic")
 		.test(iterator_bool_test, "bit_iterators")
 		.test(array_bool_memory_test(), "bit_memory")
