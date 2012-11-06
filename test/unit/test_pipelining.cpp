@@ -57,7 +57,7 @@ struct multiply_t : public pipe_segment {
 	uint64_t factor;
 };
 
-tpie::pipelining::bits::pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
+pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
 	return factory_1<multiply_t, uint64_t>(factor);
 }
 
@@ -396,9 +396,9 @@ struct buffer_node_t : public pipe_segment {
 	dest_t dest;
 };
 
-inline tpie::pipelining::bits::pipe_middle<factory_0<buffer_node_t> >
+inline pipe_middle<factory_0<buffer_node_t> >
 buffer_node() {
-	return tpie::pipelining::bits::pipe_middle<factory_0<buffer_node_t> >();
+	return pipe_middle<factory_0<buffer_node_t> >();
 }
 
 struct merger_memory : public memory_test {
