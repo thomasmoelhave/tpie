@@ -131,6 +131,99 @@ private:
 	passive_buffer & operator=(const passive_buffer &);
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Input segment for delayed buffer 
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct delayed_buffer_input_t: public pipe_segment {
+public:
+	typedef T item_type;
+	delayed_buffer_input_t(const segment_token & token):
+		pipe_segment(token) {
+		set_name("Storing items", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
+	}
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		the_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
+		the_queue->open();
+		forward("queue", the_queue);
+	}
+	void push(const T & item) {the_queue -> write(item);}
+private:
+
+	tpie::file_stream<T> * the_queue;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output segment for delayed buffer 
+///////////////////////////////////////////////////////////////////////////////
+template <typename dest_t>
+struct delayed_buffer_output_t: public pipe_segment{
+	typedef typename dest_t::item_type item_type;
+
+	delayed_buffer_output_t(const dest_t &dest, const segment_token & input_token)
+		: dest(dest) {
+		add_dependency(input_token);
+		add_push_destination(dest);
+		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
+		set_name("Fetching items", PRIORITY_INSIGNIFICANT);
+	}
+
+	virtual void begin() /* override */ {
+		the_queue = fetch<tpie::file_stream<item_type> *>("queue");
+		forward("items", the_queue->size());
+		set_steps(the_queue->size());
+	}
+
+	virtual void go() /* override */ {
+		the_queue -> seek(0);
+		while (the_queue -> can_read()) {
+			dest.push(the_queue->read());
+			step();
+		}
+	}
+
+	virtual void end() /* override */ {
+		tpie::tpie_delete(the_queue);
+	}
+
+	dest_t dest;
+	tpie::file_stream<item_type> * the_queue;
+};
+
+template <typename dest_t>
+struct delayed_buffer_t: public pipe_segment {
+	typedef typename dest_t::item_type item_type;
+	typedef delayed_buffer_input_t<item_type> input_t;
+	typedef delayed_buffer_output_t<dest_t> output_t;
+
+	delayed_buffer_t(const dest_t &dest):
+		input_token(),
+		input(input_token), output(dest, input_token) {
+		add_push_destination(input);
+		set_name("DelayedBuffer", PRIORITY_INSIGNIFICANT);
+	}
+
+	delayed_buffer_t(const delayed_buffer_t &o):
+		pipe_segment(o), input_token(o.input_token), input(o.input), output(o.output) {
+	}
+
+	virtual void push(item_type item) {
+		input.push(item);
+	}
+
+	segment_token input_token;
+
+	input_t input;
+	output_t output;
+};
+
+pipe_middle<factory_0<delayed_buffer_t> > delayed_buffer() {
+	return factory_0<delayed_buffer_t>();
+}
+
 } // namespace pipelining
 
 } // namespace tpie
