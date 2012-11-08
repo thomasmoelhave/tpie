@@ -149,6 +149,12 @@ public:
 			const std::string & p2_name, T2 p2_default,
 			const std::string & p3_name, T3 p3_default);
 
+	template <typename T, typename T1, typename T2, typename T3, typename T4>
+	tests & multi_test(T fct, const std::string & name,
+			const std::string & p1_name, T1 p1_default,
+			const std::string & p2_name, T2 p2_default,
+			const std::string & p3_name, T3 p3_default,
+			const std::string & p4_name, T4 p4_default);
 
 	operator int();
 protected:
@@ -482,6 +488,31 @@ tests & tests::multi_test(T fct, const std::string & name,
 			get_arg(p2_name, p2_default),
 			get_arg(p3_name, p3_default));
 		end_test(ts.success()); 
+	}
+	return *this;
+}
+
+template <typename T, typename T1, typename T2, typename T3, typename T4>
+tests & tests::multi_test(T fct, const std::string & name,
+			const std::string & p1_name, T1 p1_default,
+			const std::string & p2_name, T2 p2_default,
+			const std::string & p3_name, T3 p3_default,
+			const std::string & p4_name, T4 p4_default) {
+	m_tests.push_back(name+
+		arg_str(p1_name, p1_default) +
+		arg_str(p2_name, p2_default) +
+		arg_str(p3_name, p3_default) +
+		arg_str(p4_name, p4_default));
+
+	if (testAll || name == test_name) {
+		start_test(name);
+		teststream ts;
+		fct(ts,
+			get_arg(p1_name, p1_default),
+			get_arg(p2_name, p2_default),
+			get_arg(p3_name, p3_default),
+			get_arg(p4_name, p4_default));
+		end_test(ts.success());
 	}
 	return *this;
 }

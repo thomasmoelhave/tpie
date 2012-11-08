@@ -33,7 +33,7 @@ inline void segfault() {
 
 memory_manager * mm = 0;
 
-memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_enforce(ENFORCE_WARN) {}
+memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_enforce(ENFORCE_WARN), m_nextWarning(0) {}
 
 size_t memory_manager::available() const throw() {
 	size_t used = m_used;
@@ -69,10 +69,13 @@ void memory_manager::register_allocation(size_t bytes) {
 		m_used += bytes;
 		if (m_used > m_limit && m_used - m_limit > m_maxExceeded && m_limit > 0) {
 			m_maxExceeded = m_used - m_limit;
-			lock.unlock();
-			log_warning() << "Memory limit exceeded by " << m_maxExceeded 
-						  << " bytes, while trying to allocate " << bytes << " bytes."
-						  << " Limit is " << m_limit << ", but " << m_used << " would be used. " << std::endl;
+			if (m_maxExceeded >= m_nextWarning) {
+				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
+				lock.unlock();
+				log_warning() << "Memory limit exceeded by " << m_maxExceeded 
+							  << " bytes, while trying to allocate " << bytes << " bytes."
+							  << " Limit is " << m_limit << ", but " << m_used << " would be used. " << std::endl;
+			}
 		}
 	};
 }

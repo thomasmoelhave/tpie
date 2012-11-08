@@ -152,6 +152,8 @@ private:
 	void stat(std::string, time_type, stream_size_type);
 	std::vector< std::pair<std::string, std::pair<time_type, stream_size_type> > > m_stat;
 
+	std::string sub_indicators_ss();
+	
 	friend class fractional_subindicator;
 };
 

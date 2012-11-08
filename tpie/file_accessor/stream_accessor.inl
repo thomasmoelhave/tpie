@@ -38,8 +38,8 @@ void stream_accessor<file_accessor_t>::read_header() {
 	m_fileAccessor.read_i(&header, sizeof(header));
 	validate_header(header);
 	m_size = header.size;
-	m_userDataSize = header.userDataSize;
-	m_maxUserDataSize = header.maxUserDataSize;
+	m_userDataSize = (size_t)header.userDataSize;
+	m_maxUserDataSize = (size_t)header.maxUserDataSize;
 }
 
 template <typename file_accessor_t>
@@ -107,7 +107,7 @@ void stream_accessor<file_accessor_t>::validate_header(const stream_header_t & h
 		throw invalid_file_exception("Invalid file, item size is wrong");
 
 	if (header.blockSize != m_blockSize)
-		throw invalid_file_exception("Invalid file, item size is wrong");
+		throw invalid_file_exception("Invalid file, block size is wrong");
 
 	if (header.userDataSize > header.maxUserDataSize)
 		throw invalid_file_exception("Invalid file, user data size is greater than max user data size");

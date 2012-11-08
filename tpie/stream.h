@@ -482,7 +482,7 @@ memory_size_type stream<T>::memory_usage(memory_size_type count) {
 
 	template<class T>
 	err stream<T>::read_array(T *mm_space, stream_offset_type *len) {
-		size_type l=*len;
+		size_type l=(size_t)*len;
 		err e = read_array(mm_space, l);
 		*len = l;
 		return e;
