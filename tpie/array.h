@@ -41,7 +41,7 @@ class array_iter_base: public boost::iterator_facade<
 	array_iter_base<TT, forward>,
 	TT , boost::random_access_traversal_tag> {
 private:
-	template <typename> friend class array;
+	template <typename, typename> friend class array;
 	friend class boost::iterator_core_access;
 	template <typename, bool> friend class array_iter_base;
 
@@ -79,6 +79,10 @@ struct trivial_same_size {
 	char c[sizeof(C)];
 };
 #pragma pack(pop)
+
+namespace bits {
+	template <typename T, typename Allocator> struct allocator_usage;
+} // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A generic array with a fixed size.
@@ -139,7 +143,7 @@ struct trivial_same_size {
 // We remember this fact in array::m_tss_used.
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
+template <typename T, typename Allocator = allocator<T> >
 class array : public linear_memory_base<array<T> > {
 public:
 	/** \brief Iterator over a const array */
@@ -205,9 +209,10 @@ public:
 	/// \param other The array to copy from.
 	/// \return A reference to this array.
 	///////////////////////////////////////////////////////////////////////////
-	array & operator=(const array & other) {
+	template <typename OtherAllocator>
+	array & operator=(const array<T, OtherAllocator> & other) {
 		resize(other.size());
-		for (size_t i=0; i < size(); ++i) *get_iter(i) = *other.get_iter(i);
+		for (size_t i=0; i < size(); ++i) m_elements[i] = other[i];
 		return *this;
 	}
 
@@ -457,6 +462,8 @@ public:
 	inline const T * get() const {return m_elements;}
 
 private:
+	friend struct bits::allocator_usage<T, Allocator>;
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Allocate m_size elements and copy construct contents with
 	/// elements from other array.
@@ -464,11 +471,7 @@ private:
 	/// Effect: Allocates the m_elements buffer.
 	/// \param copy_from  Source elements in [copy_from, copy_from+m_size)
 	///////////////////////////////////////////////////////////////////////////
-	inline void alloc_copy(T * copy_from) {
-		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
-		m_tss_used = true;
-		std::uninitialized_copy(copy_from+0, copy_from+m_size, m_elements+0);
-	}
+	inline void alloc_copy(T * copy_from) { bits::allocator_usage<T, Allocator>::alloc_copy(*this, copy_from); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Allocate m_size elements and copy construct contents with
@@ -477,52 +480,104 @@ private:
 	/// Effect: Allocates the m_elements buffer.
 	/// \param elm  Element to pass to the copy constructor
 	///////////////////////////////////////////////////////////////////////////
-	inline void alloc_fill(const T & elm) {
-		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
-		m_tss_used = true;
-
-		// call copy constructors manually
-		std::uninitialized_fill(m_elements+0, m_elements+m_size, elm);
-	}
+	inline void alloc_fill(const T & elm) { bits::allocator_usage<T, Allocator>::alloc_fill(*this, elm); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Allocate m_size elements and default construct contents.
 	/// Precondition: m_elements == null pointer; m_size == no. of elements;
 	/// Effect: Allocates the m_elements buffer.
 	///////////////////////////////////////////////////////////////////////////
-	inline void alloc_dfl() {
-		m_elements = m_size ? tpie_new_array<T>(m_size) : 0;
-		m_tss_used = false;
-	}
+	inline void alloc_dfl() { bits::allocator_usage<T, Allocator>::alloc_dfl(*this); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Destruct and deallocate elements.
 	/// Precondition: m_elements == pointer to buffer of m_size elements;
 	/// Effect: m_elements == null pointer; does not modify m_size
 	///////////////////////////////////////////////////////////////////////////
-	inline void destruct_and_dealloc() {
-		if (!m_tss_used) {
-			// calls destructors
-			tpie_delete_array(m_elements, m_size);
-			return;
-		}
-
-		// call destructors manually
-		for (size_t i = 0; i < m_size; ++i) {
-			m_elements[i].~T();
-		}
-		tpie_delete_array(reinterpret_cast<trivial_same_size<T>*>(m_elements), m_size);
-	}
+	inline void destruct_and_dealloc() { bits::allocator_usage<T, Allocator>::destruct_and_dealloc(*this); }
 
 	/** Whether we allocated m_elements as a trivial_same_size<T> *.
 	 * See the implementation note in the source for an explanation. */
 	bool m_tss_used;
+
+	Allocator m_allocator;
 
 public:
 	array(array_view_base<const T> & view) {
 		std::copy(view.begin(), view.end(), this->begin());
 	}
 };
+
+namespace bits {
+
+template <typename T>
+struct allocator_usage<T, allocator<T> > {
+	static void alloc_copy(array<T, allocator<T> > & host, T * copy_from) {
+		host.m_elements = host.m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(host.m_size)) : 0;
+		host.m_tss_used = true;
+		std::uninitialized_copy(copy_from+0, copy_from+host.m_size, host.m_elements+0);
+	}
+
+	static void alloc_fill(array<T, allocator<T> > & host, const T & elm) {
+		host.m_elements = host.m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(host.m_size)) : 0;
+		host.m_tss_used = true;
+
+		// call copy constructors manually
+		std::uninitialized_fill(host.m_elements+0, host.m_elements+host.m_size, elm);
+	}
+
+	static void alloc_dfl(array<T, allocator<T> > & host) {
+		host.m_elements = host.m_size ? tpie_new_array<T>(host.m_size) : 0;
+		host.m_tss_used = false;
+	}
+
+	static void destruct_and_dealloc(array<T, allocator<T> > & host) {
+		if (!host.m_tss_used) {
+			// calls destructors
+			tpie_delete_array(host.m_elements, host.m_size);
+			return;
+		}
+
+		// call destructors manually
+		for (size_t i = 0; i < host.m_size; ++i) {
+			host.m_elements[i].~T();
+		}
+		tpie_delete_array(reinterpret_cast<trivial_same_size<T>*>(host.m_elements), host.m_size);
+	}
+};
+
+template <typename T, typename Allocator>
+struct allocator_usage {
+	static void alloc_copy(array<T, Allocator> & host, T * copy_from) {
+		host.m_elements = host.m_size ? host.m_allocator.allocate(host.m_size) : 0;
+		for (size_t i = 0; i < host.m_size; ++i) {
+			host.m_allocator.construct(host.m_elements+i, copy_from[i]);
+		}
+	}
+
+	static void alloc_fill(array<T, Allocator> & host, const T & elm) {
+		host.m_elements = host.m_size ? host.m_allocator.allocate(host.m_size) : 0;
+		for (size_t i = 0; i < host.m_size; ++i) {
+			host.m_allocator.construct(host.m_elements+i, elm);
+		}
+	}
+
+	static void alloc_dfl(array<T, Allocator> & host) {
+		host.m_elements = host.m_size ? host.m_allocator.allocate(host.m_size) : 0;
+		for (size_t i = 0; i < host.m_size; ++i) {
+			host.m_allocator.construct(host.m_elements+i);
+		}
+	}
+
+	static void destruct_and_dealloc(array<T, Allocator> & host) {
+		for (size_t i = 0; i < host.m_size; ++i) {
+			host.m_allocator.destroy(host.m_elements+i);
+		}
+		host.m_allocator.deallocate(host.m_elements, host.m_size);
+	}
+};
+
+} // namespace bits
 
 template <typename T>
 std::ostream & operator<<(std::ostream & o, const array<T> & a) {
