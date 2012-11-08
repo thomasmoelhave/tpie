@@ -386,9 +386,7 @@ public:
 	/////////////////////////////////////////////////////////
 	array(const array & other): m_elements(0), m_size(other.m_size) {
 		if (other.size() == 0) return;
-		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
-		m_tss_used = true;
-		std::uninitialized_copy(other.m_elements+0, other.m_elements+m_size, m_elements+0);
+		alloc_copy(other.m_elements);
 	}	
 
 	///////////////////////////////////////////////////////////////////////////
@@ -411,11 +409,7 @@ public:
 			destruct_and_dealloc();
 			m_size = size;
 
-			m_elements = size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
-			m_tss_used = true;
-
-			// call copy constructors manually
-			std::uninitialized_fill(m_elements+0, m_elements+m_size, elm);
+			alloc_fill(elm);
 		} else {
 			std::fill(m_elements+0, m_elements+m_size, elm);
 		}
@@ -442,8 +436,7 @@ public:
 	void resize(size_t s) {
 		destruct_and_dealloc();
 		m_size = s;
-		m_elements = m_size ? tpie_new_array<T>(m_size) : 0;
-		m_tss_used = false;
+		alloc_dfl();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -464,6 +457,49 @@ public:
 	inline const T * get() const {return m_elements;}
 
 private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Allocate m_size elements and copy construct contents with
+	/// elements from other array.
+	/// Precondition: m_elements == null pointer; m_size == no. of elements;
+	/// Effect: Allocates the m_elements buffer.
+	/// \param copy_from  Source elements in [copy_from, copy_from+m_size)
+	///////////////////////////////////////////////////////////////////////////
+	inline void alloc_copy(T * copy_from) {
+		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
+		m_tss_used = true;
+		std::uninitialized_copy(copy_from+0, copy_from+m_size, m_elements+0);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Allocate m_size elements and copy construct contents with
+	/// element.
+	/// Precondition: m_elements == null pointer; m_size == no. of elements;
+	/// Effect: Allocates the m_elements buffer.
+	/// \param elm  Element to pass to the copy constructor
+	///////////////////////////////////////////////////////////////////////////
+	inline void alloc_fill(const T & elm) {
+		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
+		m_tss_used = true;
+
+		// call copy constructors manually
+		std::uninitialized_fill(m_elements+0, m_elements+m_size, elm);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Allocate m_size elements and default construct contents.
+	/// Precondition: m_elements == null pointer; m_size == no. of elements;
+	/// Effect: Allocates the m_elements buffer.
+	///////////////////////////////////////////////////////////////////////////
+	inline void alloc_dfl() {
+		m_elements = m_size ? tpie_new_array<T>(m_size) : 0;
+		m_tss_used = false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Destruct and deallocate elements.
+	/// Precondition: m_elements == pointer to buffer of m_size elements;
+	/// Effect: m_elements == null pointer; does not modify m_size
+	///////////////////////////////////////////////////////////////////////////
 	inline void destruct_and_dealloc() {
 		if (!m_tss_used) {
 			// calls destructors
