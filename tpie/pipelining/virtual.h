@@ -62,10 +62,10 @@ public:
 template <typename Output>
 class virtrecv : public pipe_segment {
 	virtrecv *& m_self;
+	virtsrc<Output> * m_virtdest;
+
 public:
 	typedef Output item_type;
-
-	virtsrc<Output> * m_virtdest;
 
 	virtrecv(virtrecv *& self)
 		: m_self(self)
@@ -95,85 +95,114 @@ public:
 		m_virtdest->push(v);
 	}
 
-	void set_destination(virtsrc<Output> & dest) {
+	void set_destination(virtsrc<Output> * dest) {
 		tp_assert(m_virtdest == 0, "Destination set twice");
 
-		m_virtdest = &dest;
-		add_push_destination(dest.get_token());
+		m_virtdest = dest;
+		add_push_destination(dest->get_token());
 	}
 };
 
-template <typename Input, typename Output>
-struct set_empty_pipe_if_equal;
+class virt_node {
+public:
+	typedef boost::shared_ptr<virt_node> ptr;
 
-template <typename Input>
-struct set_empty_pipe_if_equal<Input, Input> {
-	typedef virtrecv<Input> recv_type;
-	inline static void set(std::auto_ptr<virtsrc<Input> > & m_src, recv_type *& m_recv) {
-		recv_type temp(m_recv);
-		m_src.reset(new virtsrc_impl<recv_type>(temp));
+private:
+	std::auto_ptr<pipe_segment> m_pipeSegment;
+	ptr m_left;
+	ptr m_right;
+
+public:
+	// Take std::new-ownership of given pipe_segment
+	static ptr take_own(pipe_segment * pipe) {
+		virt_node * n = new virt_node();
+		n->m_pipeSegment.reset(pipe);
+		ptr res(n);
+		return res;
+	}
+
+	static ptr combine(ptr left, ptr right) {
+		virt_node * n = new virt_node();
+		n->m_left = left;
+		n->m_right = right;
+		ptr res(n);
+		return res;
 	}
 };
 
-template <typename Input, typename Output>
-struct set_empty_pipe_if_equal {
-	typedef virtrecv<Input> recv_type;
-	inline static void set(std::auto_ptr<virtsrc<Input> > & /*m_src*/, recv_type *& /*m_recv*/) {
+template <typename T, typename U, typename Result>
+struct assert_types_equal_and_return {
+	static Result go(...) {
+		throw virtual_chunk_missing_middle();
+	}
+};
+
+template <typename T, typename Result>
+struct assert_types_equal_and_return<T, T, Result> {
+	static Result go(Result r) {
+		return r;
 	}
 };
 
 class virtual_chunk_base : public pipeline_base {
 	// pipeline_base has virtual dtor and shared_ptr to m_segmap
-};
-
-template <typename Input, typename Output>
-class virtual_chunk_impl {
-	typedef virtrecv<Output> recv_type;
+	template <typename Any>
+	void operator|(Any);
+protected:
+	virt_node::ptr m_node;
 public:
-	recv_type * m_recv;
-	std::auto_ptr<virtsrc<Input> > m_src;
-	std::auto_ptr<virtual_chunk_base> m_dest;
+	virtual_chunk_base() {}
 
-	virtual_chunk_impl()
-		: m_recv(0)
+	virt_node::ptr get_node() const { return m_node; }
+	virtual_chunk_base(segment_map::ptr segmap, virt_node::ptr ptr)
+		: m_node(ptr)
 	{
+		this->m_segmap = segmap;
 	}
-};
 
-template <typename Output>
-class virtual_chunk_begin_impl {
-	typedef virtrecv<Output> recv_type;
-public:
-	recv_type * m_recv;
-	std::auto_ptr<pipe_segment> m_src;
-	std::auto_ptr<virtual_chunk_base> m_dest;
+	virtual_chunk_base(segment_map::ptr segmap) {
+		this->m_segmap = segmap;
+	}
+
+	operator bool() { return m_node; }
 };
 
 } // namespace bits
 
+template <typename Input, typename Output>
+class virtual_chunk;
+
 template <typename Input>
 class virtual_chunk_end : public bits::virtual_chunk_base {
-public:
-	boost::shared_ptr<bits::virtsrc<Input> > m_src;
+	typedef bits::virtsrc<Input> src_type;
+	src_type * m_src;
 
-	virtual_chunk_end() {}
+public:
+	src_type * get_source() const { return m_src; }
+
+	virtual_chunk_end()
+		: m_src(0)
+	{}
 
 	template <typename fact_t>
 	virtual_chunk_end(const pipe_end<fact_t> & pipe) {
 		*this = pipe;
 	}
 
-	bits::virtsrc<Input> & get_src() {
-		if (m_src.get() == 0) throw virtual_chunk_missing_end();
-		return *m_src;
-	}
+	template <typename Mid>
+	virtual_chunk_end(const virtual_chunk<Input, Mid> & left,
+					  const virtual_chunk_end<Mid> & right);
 
 	template <typename fact_t>
 	virtual_chunk_end & operator=(const pipe_end<fact_t> & pipe) {
-		tp_assert(m_src.get() == 0, "Virtual chunk assigned twice");
+		if (this->m_node) {
+			log_error() << "Virtual chunk assigned twice" << std::endl;
+			throw std::runtime_error("Virtual chunk assigned twice");
+		}
 
 		typedef typename fact_t::generated_type generated_type;
-		m_src.reset(new bits::virtsrc_impl<generated_type>(pipe.factory.construct()));
+		m_src = new bits::virtsrc_impl<generated_type>(pipe.factory.construct());
+		this->m_node = bits::virt_node::take_own(m_src);
 		this->m_segmap = m_src->get_segment_map();
 
 		return *this;
@@ -182,118 +211,133 @@ public:
 
 template <typename Input, typename Output>
 class virtual_chunk : public bits::virtual_chunk_base {
+	typedef bits::virtsrc<Input> src_type;
 	typedef bits::virtrecv<Output> recv_type;
+	src_type * m_src;
+	recv_type * m_recv;
 public:
-	boost::shared_ptr<bits::virtual_chunk_impl<Input, Output> > impl;
+	src_type * get_source() const { return m_src; }
+	recv_type * get_destination() const { return m_recv; }
 
 	virtual_chunk()
-		: impl(new bits::virtual_chunk_impl<Input, Output>())
-	{
-	}
+		: m_src(0)
+		, m_recv(0)
+	{}
 
 	template <typename fact_t>
-	virtual_chunk(const pipe_middle<fact_t> & pipe)
-		: impl(new bits::virtual_chunk_impl<Input, Output>())
-	{
+	virtual_chunk(const pipe_middle<fact_t> & pipe) {
 		*this = pipe;
+	}
+
+	template <typename Mid>
+	virtual_chunk(const virtual_chunk<Input, Mid> & left,
+				  const virtual_chunk<Mid, Output> & right)
+		: virtual_chunk_base(bits::virt_node::combine(left.get_node(), right.get_node()))
+	{
+		m_src = left.get_source();
+		m_recv = right.get_destination();
 	}
 
 	template <typename fact_t>
 	virtual_chunk & operator=(const pipe_middle<fact_t> & pipe) {
-		tp_assert(impl->m_src.get() == 0, "Virtual chunk assigned twice");
-
+		if (this->m_node) {
+			log_error() << "Virtual chunk assigned twice" << std::endl;
+			throw std::runtime_error("Virtual chunk assigned twice");
+		}
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
-		recv_type temp(impl->m_recv);
-		impl->m_src.reset(new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp)));
+		recv_type temp(m_recv);
+		m_src = new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp));
+		this->m_node = bits::virt_node::take_own(m_src);
 		this->m_segmap = temp.get_segment_map();
 
 		return *this;
 	}
 
-	void set_empty_pipe() {
-		tp_assert(impl->m_src.get() == 0, "Virtual chunk assigned twice");
-		bits::set_empty_pipe_if_equal<Input, Output>::set(impl->m_src, impl->m_recv);
-		if (impl->m_src.get() == 0) throw virtual_chunk_missing_middle();
-	}
-
-	bits::virtsrc<Input> & get_src() {
-		if (impl->m_src.get() == 0) set_empty_pipe();
-		return *impl->m_src;
-	}
-
 	template <typename NextOutput>
-	virtual_chunk<Output, NextOutput> & operator|(virtual_chunk<Output, NextOutput> dest) {
-		if (impl->m_recv == 0) set_empty_pipe();
-		impl->m_recv->set_destination(dest.get_src());
-		virtual_chunk<Output, NextOutput> * res = new virtual_chunk<Output, NextOutput>(dest);
-		impl->m_dest.reset(res);
-		return *res;
+	virtual_chunk<Input, NextOutput> operator|(virtual_chunk<Output, NextOutput> dest) {
+		if (!*this) {
+			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk<Input, NextOutput> *>
+				::go(&dest);
+		}
+		m_recv->set_destination(dest.get_source());
+		return virtual_chunk<Input, NextOutput>(*this, dest);
 	}
 
-	virtual_chunk_end<Output> & operator|(virtual_chunk_end<Output> dest) {
-		if (impl->m_recv == 0) set_empty_pipe();
-		impl->m_recv->set_destination(dest.get_src());
-		virtual_chunk_end<Output> * res = new virtual_chunk_end<Output>(dest);
-		impl->m_dest.reset(res);
-		return *res;
+	virtual_chunk_end<Input> operator|(virtual_chunk_end<Output> dest) {
+		if (!*this) {
+			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk_end<Input> *>
+				::go(&dest);
+		}
+		m_recv->set_destination(dest.get_source());
+		return virtual_chunk_end<Input>(*this, dest);
 	}
 };
+
+template <typename Input>
+template <typename Mid>
+virtual_chunk_end<Input>::virtual_chunk_end(const virtual_chunk<Input, Mid> & left,
+											const virtual_chunk_end<Mid> & right)
+	: virtual_chunk_base(left.get_segment_map(),
+						 bits::virt_node::combine(left.get_node(), right.get_node()))
+{
+	m_src = left.get_source();
+}
 
 template <typename Output>
 class virtual_chunk_begin : public bits::virtual_chunk_base {
 	typedef bits::virtrecv<Output> recv_type;
+	recv_type * m_recv;
 public:
-	boost::shared_ptr<bits::virtual_chunk_begin_impl<Output> > impl;
+	recv_type * get_destination() const { return m_recv; }
 
 	virtual_chunk_begin()
-		: impl(new bits::virtual_chunk_begin_impl<Output>())
-	{
-	}
+		: m_recv(0)
+	{}
 
 	template <typename fact_t>
-	virtual_chunk_begin(const pipe_begin<fact_t> & pipe)
-		: impl(new bits::virtual_chunk_begin_impl<Output>())
-	{
+	virtual_chunk_begin(const pipe_begin<fact_t> & pipe) {
 		*this = pipe;
+	}
+
+	template <typename Mid>
+	virtual_chunk_begin(const virtual_chunk_begin<Mid> & left,
+						const virtual_chunk<Mid, Output> & right)
+		: virtual_chunk_base(left.get_segment_map(),
+							 bits::virt_node::combine(left.get_node(), right.get_node()))
+	{
+		m_recv = right.get_destination();
 	}
 
 	template <typename fact_t>
 	virtual_chunk_begin & operator=(const pipe_begin<fact_t> & pipe) {
-		tp_assert(impl->m_src.get() == 0, "Virtual chunk assigned twice");
-
+		if (this->m_node) {
+			log_error() << "Virtual chunk assigned twice" << std::endl;
+			throw std::runtime_error("Virtual chunk assigned twice");
+		}
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
-		recv_type temp(impl->m_recv);
-		impl->m_src.reset(new generated_type(pipe.factory.construct(temp)));
-		this->m_segmap = temp.get_segment_map();
-
+		recv_type temp(m_recv);
+		this->m_node = bits::virt_node::take_own(new generated_type(pipe.factory.construct(temp)));
+		this->m_segmap = m_recv->get_segment_map();
 		return *this;
 	}
 
 	template <typename NextOutput>
-	virtual_chunk<Output, NextOutput> & operator|(virtual_chunk<Output, NextOutput> dest) {
-		if (impl->m_recv == 0) throw virtual_chunk_missing_begin();
-		impl->m_recv->set_destination(dest.get_src());
-		virtual_chunk<Output, NextOutput> * res = new virtual_chunk<Output, NextOutput>(dest);
-		impl->m_dest.reset(res);
-		return *res;
+	virtual_chunk_begin<NextOutput> operator|(virtual_chunk<Output, NextOutput> dest) {
+		if (!*this) throw virtual_chunk_missing_begin();
+		if (!dest) {
+			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk_begin<NextOutput> *>
+				::go(this);
+		}
+		m_recv->set_destination(dest.get_source());
+		return virtual_chunk_begin<NextOutput>(*this, dest);
 	}
 
-	virtual_chunk_end<Output> & operator|(virtual_chunk_end<Output> dest) {
-		if (impl->m_recv == 0) throw virtual_chunk_missing_begin();
-		impl->m_recv->set_destination(dest.get_src());
-		virtual_chunk_end<Output> * res = new virtual_chunk_end<Output>(dest);
-		impl->m_dest.reset(res);
-		return *res;
-	}
-
-	inline void operator()() {
-		progress_indicator_null pi;
-		(*this)(pi);
-	}
-
-	inline void operator()(progress_indicator_base & pi) {
-		if (impl->m_src.get() == 0) throw virtual_chunk_missing_begin();
-		impl->m_src->go(pi);
+	virtual_chunk_base operator|(virtual_chunk_end<Output> dest) {
+		if (!*this) throw virtual_chunk_missing_begin();
+		if (!dest) throw virtual_chunk_missing_end();
+		m_recv->set_destination(dest.get_source());
+		return virtual_chunk_base(this->m_segmap,
+								  bits::virt_node::combine(get_node(), dest.get_node()));
 	}
 };
 

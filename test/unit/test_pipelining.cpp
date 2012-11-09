@@ -513,12 +513,10 @@ bool fetch_forward_test() {
 }
 
 bool virtual_test() {
-	virtual_chunk_begin<test_t> p1(input_vector(inputvector));
-	virtual_chunk_end<test_t> p3(output_vector(outputvector));
-	pipeline p = p1
+	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
 		| virtual_chunk<test_t, test_t>(multiply(3) | multiply(2))
 		| virtual_chunk<test_t, test_t>()
-		| p3;
+		| virtual_chunk_end<test_t>(output_vector(outputvector));
 	p.plot(log_info());
 	p();
 	return check_test_vectors();
