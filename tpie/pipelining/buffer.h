@@ -87,50 +87,6 @@ struct buffer_pull_output_t: public pipe_segment {
 	}
 };
 
-} // namespace bits
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Plain old file_stream buffer. Does nothing to the item stream, but
-/// it inserts a phase boundary.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct passive_buffer {
-	typedef T item_type;
-	typedef bits::buffer_input_t<T> input_t;
-	typedef bits::buffer_pull_output_t<T> output_t;
-private:
-	typedef termfactory_2<input_t,  file_stream<T> &, const segment_token &> inputfact_t;
-	typedef termfactory_2<output_t, file_stream<T> &, const segment_token &> outputfact_t;
-	typedef pipe_end      <inputfact_t>  inputpipe_t;
-	typedef pullpipe_begin<outputfact_t> outputpipe_t;
-
-public:
-	passive_buffer() {}
-
-	inline input_t raw_input() {
-		return input_t(queue, input_token);
-	}
-
-	inline output_t raw_output() {
-		return output_t(queue, input_token);
-	}
-
-	inline inputpipe_t input() {
-		return inputfact_t(queue, input_token);
-	}
-
-	inline outputpipe_t output() {
-		return outputfact_t(queue, input_token);
-	}
-
-private:
-	segment_token input_token;
-	file_stream<T> queue;
-
-	passive_buffer(const passive_buffer &);
-	passive_buffer & operator=(const passive_buffer &);
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Input segment for delayed buffer 
 ///////////////////////////////////////////////////////////////////////////////
@@ -193,11 +149,57 @@ struct delayed_buffer_output_t: public pipe_segment{
 	tpie::file_stream<item_type> * the_queue;
 };
 
+
+
+} // namespace bits
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Plain old file_stream buffer. Does nothing to the item stream, but
+/// it inserts a phase boundary.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct passive_buffer {
+	typedef T item_type;
+	typedef bits::buffer_input_t<T> input_t;
+	typedef bits::buffer_pull_output_t<T> output_t;
+private:
+	typedef termfactory_2<input_t,  file_stream<T> &, const segment_token &> inputfact_t;
+	typedef termfactory_2<output_t, file_stream<T> &, const segment_token &> outputfact_t;
+	typedef pipe_end      <inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
+
+public:
+	passive_buffer() {}
+
+	inline input_t raw_input() {
+		return input_t(queue, input_token);
+	}
+
+	inline output_t raw_output() {
+		return output_t(queue, input_token);
+	}
+
+	inline inputpipe_t input() {
+		return inputfact_t(queue, input_token);
+	}
+
+	inline outputpipe_t output() {
+		return outputfact_t(queue, input_token);
+	}
+
+private:
+	segment_token input_token;
+	file_stream<T> queue;
+
+	passive_buffer(const passive_buffer &);
+	passive_buffer & operator=(const passive_buffer &);
+};
+
 template <typename dest_t>
 struct delayed_buffer_t: public pipe_segment {
 	typedef typename dest_t::item_type item_type;
-	typedef delayed_buffer_input_t<item_type> input_t;
-	typedef delayed_buffer_output_t<dest_t> output_t;
+	typedef bits::delayed_buffer_input_t<item_type> input_t;
+	typedef bits::delayed_buffer_output_t<dest_t> output_t;
 
 	delayed_buffer_t(const dest_t &dest):
 		input_token(),
