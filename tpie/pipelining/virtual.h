@@ -30,6 +30,10 @@ namespace pipelining {
 
 namespace bits {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual base pipe_segment that is injected into the beginning of a
+/// virtual chunk.
+///////////////////////////////////////////////////////////////////////////////
 template <typename Input>
 class virtsrc : public pipe_segment {
 public:
@@ -37,6 +41,9 @@ public:
 	virtual void push(Input v) = 0;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Concrete implementation of virtsrc.
+///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
 class virtsrc_impl : public virtsrc<typename dest_t::item_type> {
 public:
@@ -59,6 +66,11 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual pipe_segment that is injected into the end of a virtual
+/// chunk. May be dynamically connected to a virtsrc using the set_destination
+/// method.
+///////////////////////////////////////////////////////////////////////////////
 template <typename Output>
 class virtrecv : public pipe_segment {
 	virtrecv *& m_self;
@@ -103,6 +115,12 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Ownership of pipe_segments. This class can only be instantiated
+/// through static methods that return a virt_node::ptr, providing reference
+/// counting so that pipe_segments are only instantiated once each and are
+/// destroyed when the pipeline object goes out of scope.
+///////////////////////////////////////////////////////////////////////////////
 class virt_node {
 public:
 	typedef boost::shared_ptr<virt_node> ptr;
@@ -113,7 +131,9 @@ private:
 	ptr m_right;
 
 public:
-	// Take std::new-ownership of given pipe_segment
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Take std::new-ownership of given pipe_segment.
+	///////////////////////////////////////////////////////////////////////////
 	static ptr take_own(pipe_segment * pipe) {
 		virt_node * n = new virt_node();
 		n->m_pipeSegment.reset(pipe);
@@ -121,6 +141,9 @@ public:
 		return res;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Aggregate ownership of virt_nodes.
+	///////////////////////////////////////////////////////////////////////////
 	static ptr combine(ptr left, ptr right) {
 		virt_node * n = new virt_node();
 		n->m_left = left;
@@ -130,6 +153,11 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Helper class that throws an exception on behalf of virtual_chunks
+/// that have not been assigned a pipe_middle. When the input and output are
+/// different, a virtual_chunk_missing_middle is thrown.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename Result>
 struct assert_types_equal_and_return {
 	static Result go(...) {
@@ -137,6 +165,11 @@ struct assert_types_equal_and_return {
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Template partial specialization that just returns the parameter
+/// given when the input and output types of a virtual chunk are the same
+/// (implicit identity function).
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Result>
 struct assert_types_equal_and_return<T, T, Result> {
 	static Result go(Result r) {
@@ -144,10 +177,11 @@ struct assert_types_equal_and_return<T, T, Result> {
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Base class of virtual chunks. Owns a virt_node.
+///////////////////////////////////////////////////////////////////////////////
 class virtual_chunk_base : public pipeline_base {
 	// pipeline_base has virtual dtor and shared_ptr to m_segmap
-	template <typename Any>
-	void operator|(Any);
 protected:
 	virt_node::ptr m_node;
 public:
@@ -169,9 +203,13 @@ public:
 
 } // namespace bits
 
+// Predeclare
 template <typename Input, typename Output>
 class virtual_chunk;
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual chunk that has no output (that is, virtual consumer).
+///////////////////////////////////////////////////////////////////////////////
 template <typename Input>
 class virtual_chunk_end : public bits::virtual_chunk_base {
 	typedef bits::virtsrc<Input> src_type;
@@ -180,19 +218,34 @@ class virtual_chunk_end : public bits::virtual_chunk_base {
 public:
 	src_type * get_source() const { return m_src; }
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk_end()
 		: m_src(0)
 	{}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a pipe_segment and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk_end(const pipe_end<fact_t> & pipe) {
 		*this = pipe;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that combines two virtual chunks. Assumes that the
+	/// virtual pipe_segments are already connected. You should not use this
+	/// constructor directly; instead, use the pipe operator.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename Mid>
 	virtual_chunk_end(const virtual_chunk<Input, Mid> & left,
 					  const virtual_chunk_end<Mid> & right);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a pipe_segment and assign it to this virtual chunk.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk_end & operator=(const pipe_end<fact_t> & pipe) {
 		if (this->m_node) {
@@ -209,6 +262,9 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual chunk that has input and output.
+///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output>
 class virtual_chunk : public bits::virtual_chunk_base {
 	typedef bits::virtsrc<Input> src_type;
@@ -219,16 +275,28 @@ public:
 	src_type * get_source() const { return m_src; }
 	recv_type * get_destination() const { return m_recv; }
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk()
 		: m_src(0)
 		, m_recv(0)
 	{}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a pipe_segment and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk(const pipe_middle<fact_t> & pipe) {
 		*this = pipe;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that combines two virtual chunks. Assumes that the
+	/// virtual pipe_segments are already connected. You should not use this
+	/// constructor directly; instead, use the pipe operator.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename Mid>
 	virtual_chunk(const virtual_chunk<Input, Mid> & left,
 				  const virtual_chunk<Mid, Output> & right)
@@ -238,6 +306,9 @@ public:
 		m_recv = right.get_destination();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a pipe_segment and assign it to this virtual chunk.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk & operator=(const pipe_middle<fact_t> & pipe) {
 		if (this->m_node) {
@@ -253,6 +324,9 @@ public:
 		return *this;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename NextOutput>
 	virtual_chunk<Input, NextOutput> operator|(virtual_chunk<Output, NextOutput> dest) {
 		if (!*this) {
@@ -263,6 +337,9 @@ public:
 		return virtual_chunk<Input, NextOutput>(*this, dest);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk_end<Input> operator|(virtual_chunk_end<Output> dest) {
 		if (!*this) {
 			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk_end<Input> *>
@@ -283,6 +360,9 @@ virtual_chunk_end<Input>::virtual_chunk_end(const virtual_chunk<Input, Mid> & le
 	m_src = left.get_source();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual chunk that has no input (that is, virtual producer).
+///////////////////////////////////////////////////////////////////////////////
 template <typename Output>
 class virtual_chunk_begin : public bits::virtual_chunk_base {
 	typedef bits::virtrecv<Output> recv_type;
@@ -290,15 +370,27 @@ class virtual_chunk_begin : public bits::virtual_chunk_base {
 public:
 	recv_type * get_destination() const { return m_recv; }
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk_begin()
 		: m_recv(0)
 	{}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a pipe_segment and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk_begin(const pipe_begin<fact_t> & pipe) {
 		*this = pipe;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that combines two virtual chunks. Assumes that the
+	/// virtual pipe_segments are already connected. You should not use this
+	/// constructor directly; instead, use the pipe operator.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename Mid>
 	virtual_chunk_begin(const virtual_chunk_begin<Mid> & left,
 						const virtual_chunk<Mid, Output> & right)
@@ -308,6 +400,9 @@ public:
 		m_recv = right.get_destination();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a pipe_segment and assign it to this virtual chunk.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk_begin & operator=(const pipe_begin<fact_t> & pipe) {
 		if (this->m_node) {
@@ -321,6 +416,9 @@ public:
 		return *this;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename NextOutput>
 	virtual_chunk_begin<NextOutput> operator|(virtual_chunk<Output, NextOutput> dest) {
 		if (!*this) throw virtual_chunk_missing_begin();
@@ -332,6 +430,9 @@ public:
 		return virtual_chunk_begin<NextOutput>(*this, dest);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk_base operator|(virtual_chunk_end<Output> dest) {
 		if (!*this) throw virtual_chunk_missing_begin();
 		if (!dest) throw virtual_chunk_missing_end();
