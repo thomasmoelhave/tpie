@@ -265,7 +265,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Virtual chunk that has input and output.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename Input, typename Output>
+template <typename Input, typename Output=Input>
 class virtual_chunk : public bits::virtual_chunk_base {
 	typedef bits::virtsrc<Input> src_type;
 	typedef bits::virtrecv<Output> recv_type;
