@@ -171,7 +171,7 @@ int main(int argc, char ** argv) {
 		.test(internal_report_test, "internal_report")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
-		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.99707)
+		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.5)
 		.test(evacuate_before_merge_test, "evacuate_before_merge")
 		.test(evacuate_before_report_test, "evacuate_before_report")
 		;
