@@ -222,7 +222,7 @@ struct delayed_buffer_t: public pipe_segment {
 	output_t output;
 };
 
-pipe_middle<factory_0<delayed_buffer_t> > delayed_buffer() {
+inline pipe_middle<factory_0<delayed_buffer_t> > delayed_buffer() {
 	return factory_0<delayed_buffer_t>();
 }
 
