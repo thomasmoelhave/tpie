@@ -37,19 +37,16 @@ namespace pipelining {
 
 namespace bits {
 
-template <typename T, typename pred_t, typename Output>
+template <typename T, typename pred_t>
 struct sort_calc_t;
 
-template <typename T, typename pred_t, typename Output>
+template <typename T, typename pred_t>
 struct sort_input_t;
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipe sorter pull output segment.
-/// \tparam pred_t   The less-than predicate.
-/// \tparam dest_t   Destination segment type.
-///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct sort_pull_output_t : public pipe_segment {
+class sort_output_base : public pipe_segment {
+	// pipe_segment has virtual dtor
+public:
 	/** Type of items sorted. */
 	typedef T item_type;
 	/** Type of the merge sort implementation used. */
@@ -57,42 +54,64 @@ struct sort_pull_output_t : public pipe_segment {
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_pull_output_t() {
-		set_minimum_memory(sorter_t::minimum_memory_phase_3());
-		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
-		set_memory_fraction(1.0);
+	sorterptr get_sorter() const {
+		return m_sorter;
+	}
+
+	void set_calc_segment(pipe_segment & calc) {
+		add_dependency(calc);
+	}
+
+protected:
+	sort_output_base(pred_t pred)
+		: m_sorter(new sorter_t(pred))
+	{
+	}
+
+	sorterptr m_sorter;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipe sorter pull output segment.
+/// \tparam pred_t   The less-than predicate.
+/// \tparam dest_t   Destination segment type.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T, typename pred_t>
+struct sort_pull_output_t : public sort_output_base<T, pred_t> {
+	/** Type of items sorted. */
+	typedef T item_type;
+	/** Type of the merge sort implementation used. */
+	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	/** Smart pointer to sorter_t. */
+	typedef typename sorter_t::ptr sorterptr;
+
+	inline sort_pull_output_t(pred_t pred)
+		: sort_output_base<T, pred_t>(pred)
+	{
+		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
+		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
+		this->set_memory_fraction(1.0);
 	}
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		set_steps(m_sorter->item_count());
+		this->set_steps(this->m_sorter->item_count());
 	}
 
 	inline bool can_pull() const {
-		return m_sorter->can_pull();
+		return this->m_sorter->can_pull();
 	}
 
 	inline item_type pull() {
-		step();
-		return m_sorter->pull();
+		this->step();
+		return this->m_sorter->pull();
 	}
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		pipe_segment::set_available_memory(availableMemory);
-		m_sorter->set_phase_3_memory(availableMemory);
+		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
-
-private:
-	sorterptr m_sorter;
-
-	void set_calc_segment(pipe_segment & calc, sorterptr & sorter) {
-		add_dependency(calc);
-		m_sorter = sorter;
-	}
-
-	friend struct sort_calc_t<T, pred_t, sort_pull_output_t>;
-	friend struct sort_calc_t<T, pred_t, sort_pull_output_t &>;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,60 +120,54 @@ private:
 /// \tparam dest_t   Destination segment type.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename dest_t>
-struct sort_output_t : public pipe_segment {
+struct sort_output_t : public sort_output_base<typename dest_t::item_type, pred_t> {
 	/** Type of items sorted. */
 	typedef typename dest_t::item_type item_type;
+	/** Base class */
+	typedef sort_output_base<item_type, pred_t> p_t;
 	/** Type of the merge sort implementation used. */
 	typedef merge_sorter<item_type, true, pred_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_output_t(const dest_t & dest)
-		: dest(dest)
+	inline sort_output_t(const dest_t & dest, pred_t pred)
+		: p_t(pred)
+		, dest(dest)
 	{
-		add_push_destination(dest);
-		set_minimum_memory(sorter_t::minimum_memory_phase_3());
-		set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
-		set_memory_fraction(1.0);
+		this->add_push_destination(dest);
+		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
+		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
+		this->set_memory_fraction(1.0);
 	}
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		set_steps(m_sorter->item_count());
+		this->set_steps(this->m_sorter->item_count());
 	}
 
 	virtual void go() /*override*/ {
-		while (m_sorter->can_pull()) {
-			dest.push(m_sorter->pull());
-			step();
+		while (this->m_sorter->can_pull()) {
+			dest.push(this->m_sorter->pull());
+			this->step();
 		}
 	}
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		pipe_segment::set_available_memory(availableMemory);
-		m_sorter->set_phase_3_memory(availableMemory);
+		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
 
 private:
 	dest_t dest;
-	sorterptr m_sorter;
-
-	void set_calc_segment(pipe_segment & calc, sorterptr & sorter) {
-		add_dependency(calc);
-		m_sorter = sorter;
-	}
-
-	friend struct sort_calc_t<item_type, pred_t, sort_output_t>;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipe sorter middle segment.
 /// \tparam T        The type of items sorted
 /// \tparam pred_t   The less-than predicate
-/// \tparam Output   The type of the pipe sorter output segment.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t, typename Output>
+template <typename T, typename pred_t>
 struct sort_calc_t : public pipe_segment {
 	/** Type of items sorted. */
 	typedef T item_type;
@@ -163,9 +176,31 @@ struct sort_calc_t : public pipe_segment {
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_calc_t(Output dest)
-		: dest(dest)
+	typedef sort_output_base<T, pred_t> Output;
+
+	inline sort_calc_t(const sort_calc_t & other)
+		: pipe_segment(other)
+		, m_sorter(other.m_sorter)
+		, dest(other.dest)
 	{
+	}
+
+	template <typename dest_t>
+	inline sort_calc_t(dest_t dest)
+		: dest(new dest_t(dest))
+	{
+		m_sorter = this->dest->get_sorter();
+		this->dest->set_calc_segment(*this);
+		init();
+	}
+
+	inline sort_calc_t(sorterptr sorter)
+		: m_sorter(sorter)
+	{
+		init();
+	}
+
+	void init() {
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
@@ -189,6 +224,14 @@ struct sort_calc_t : public pipe_segment {
 		m_sorter->evacuate_before_reporting();
 	}
 
+	sorterptr get_sorter() const {
+		return m_sorter;
+	}
+
+	void set_input_segment(pipe_segment & input) {
+		add_dependency(input);
+	}
+
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		pipe_segment::set_available_memory(availableMemory);
@@ -197,24 +240,15 @@ protected:
 
 private:
 	sorterptr m_sorter;
-	Output dest;
-
-	void set_input_segment(pipe_segment & input, sorterptr & sorter) {
-		add_dependency(input);
-		m_sorter = sorter;
-		dest.set_calc_segment(*this, sorter);
-	}
-
-	friend struct sort_input_t<T, pred_t, Output>;
+	boost::shared_ptr<Output> dest;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipe sorter input segment.
 /// \tparam T        The type of items sorted
 /// \tparam pred_t   The less-than predicate
-/// \tparam Output   The type of the pipe sorter output segment.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t, typename Output>
+template <typename T, typename pred_t>
 struct sort_input_t : public pipe_segment {
 	/** Type of items sorted. */
 	typedef T item_type;
@@ -223,11 +257,11 @@ struct sort_input_t : public pipe_segment {
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_input_t(sort_calc_t<T, pred_t, Output> dest, const pred_t & pred)
-		: m_sorter(new sorter_t(pred))
+	inline sort_input_t(sort_calc_t<T, pred_t> dest)
+		: m_sorter(dest.get_sorter())
 		, dest(dest)
 	{
-		this->dest.set_input_segment(*this, m_sorter);
+		this->dest.set_input_segment(*this);
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
@@ -263,7 +297,7 @@ protected:
 
 private:
 	sorterptr m_sorter;
-	sort_calc_t<T, pred_t, Output> dest;
+	sort_calc_t<T, pred_t> dest;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -279,22 +313,19 @@ struct default_pred_sort_factory : public factory_base {
 	private:
 		/** Type of items sorted. */
 		typedef typename dest_t::item_type item_type;
-		typedef std::less<item_type> pred_type;
-		typedef sort_output_t<pred_type, dest_t> Output;
 	public:
-		typedef sort_input_t<item_type, std::less<item_type>, Output> type;
+		typedef sort_input_t<item_type, std::less<item_type> > type;
 	};
 
 	template <typename dest_t>
 	inline typename generated<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
 		typedef std::less<item_type> pred_type;
-		typedef sort_output_t<pred_type, dest_t> Output;
-		Output output(dest);
+		sort_output_t<pred_type, dest_t> output(dest, pred_type());
 		this->init_segment(output);
-		sort_calc_t<item_type, pred_type, Output> calc(output);
+		sort_calc_t<item_type, pred_type> calc(output);
 		this->init_segment(calc);
-		sort_input_t<item_type, pred_type, Output> input(calc, pred_type());
+		sort_input_t<item_type, pred_type> input(calc);
 		this->init_segment(input);
 		return input;
 	}
@@ -311,23 +342,17 @@ struct sort_factory : public factory_base {
 	///////////////////////////////////////////////////////////////////////////
 	template <typename dest_t>
 	struct generated {
-	private:
-		/** Type of items sorted. */
-		typedef typename dest_t::item_type item_type;
-		typedef sort_output_t<pred_t, dest_t> Output;
-	public:
-		typedef sort_input_t<item_type, pred_t, Output> type;
+		typedef sort_input_t<typename dest_t::item_type, pred_t> type;
 	};
 
 	template <typename dest_t>
 	inline typename generated<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
-		typedef sort_output_t<pred_t, dest_t> Output;
-		Output output(dest);
+		sort_output_t<pred_t, dest_t> output(dest);
 		this->init_segment(output);
-		sort_calc_t<item_type, pred_t, Output> calc(output);
+		sort_calc_t<item_type, pred_t> calc(output);
 		this->init_segment(calc);
-		sort_input_t<item_type, pred_t, Output> input(calc, pred);
+		sort_input_t<item_type, pred_t> input(calc, pred);
 		this->init_segment(input);
 		return input;
 	}
@@ -373,17 +398,20 @@ namespace bits {
 template <typename T, typename pred_t>
 struct passive_sorter_factory : public factory_base {
 	typedef sort_pull_output_t<T, pred_t> output_t;
-	typedef sort_calc_t<T, pred_t, output_t &> calc_t;
-	typedef sort_input_t<T, pred_t, output_t &> input_t;
+	typedef sort_calc_t<T, pred_t> calc_t;
+	typedef sort_input_t<T, pred_t> input_t;
 	typedef input_t generated_type;
+	typedef merge_sorter<T, true, pred_t> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
 
 	passive_sorter_factory(output_t & output)
-		: m_output(output)
+		: output(&output)
 	{
 	}
 
 	inline generated_type construct() const {
-		calc_t calc(m_output);
+		calc_t calc(output->get_sorter());
+		output->set_calc_segment(calc);
 		this->init_segment(calc);
 		input_t input(calc, pred_t());
 		this->init_segment(input);
@@ -391,7 +419,7 @@ struct passive_sorter_factory : public factory_base {
 	}
 
 private:
-	output_t & m_output;
+	output_t * output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -435,9 +463,9 @@ public:
 	/** Type of pipe sorter output. */
 	typedef bits::sort_pull_output_t<item_type, pred_t> output_t;
 
-	inline passive_sorter()
-		: pred()
-		, m_output()
+	inline passive_sorter(pred_t pred = pred_t())
+		: m_output(pred)
+		, m_sorter(new sorter_t())
 	{
 	}
 
@@ -456,6 +484,7 @@ public:
 	}
 
 private:
+	sorterptr m_sorter;
 	pred_t pred;
 	output_t m_output;
 	passive_sorter(const passive_sorter &);
