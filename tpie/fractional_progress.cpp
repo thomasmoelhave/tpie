@@ -245,8 +245,10 @@ fractional_subindicator::~fractional_subindicator() {
 		} else {
 			s << "A fractional_subindicator was assigned a non-zero fraction but never initialized." << std::endl;
 		}
-		tpie::backtrace(s, 5);
 		TP_LOG_FATAL(s.str());
+		s.str("");
+		tpie::backtrace(s, 5);
+		TP_LOG_DEBUG(s.str());
 		TP_LOG_FLUSH_LOG;
 	}
 #endif
@@ -267,8 +269,10 @@ void fractional_progress::init(stream_size_type range) {
 		std::stringstream s;
 		s << "init() was called on a fractional_progress for which init had already been called.  Subindicators were:" << std::endl;
 		s << sub_indicators_ss();
-		tpie::backtrace(s, 5);
 		TP_LOG_FATAL(s.str());
+		s.str("");
+		tpie::backtrace(s, 5);
+		TP_LOG_DEBUG(s.str());
 		TP_LOG_FLUSH_LOG;
 	}
 	m_init_called=true;
@@ -286,8 +290,10 @@ void fractional_progress::done() {
 			s << "done() was called on fractional_progress, but init has not been called.  Subindicators were:" << std::endl;
 		}
 		s << sub_indicators_ss();
-		tpie::backtrace(s, 5);
 		TP_LOG_FATAL(s.str());
+		s.str("");
+		tpie::backtrace(s, 5);
+		TP_LOG_DEBUG(s.str());
 		TP_LOG_FLUSH_LOG;
 	}
 	m_done_called=true;
@@ -299,10 +305,12 @@ fractional_progress::~fractional_progress() {
 #ifndef TPIE_NDEBUG
 	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
 		std::stringstream s;
-		s << "A fractional_progress was destructed without done being called.  Subindicators were:" << std::endl;
+		s << "A fractional_progress was destructed without done being called." << std::endl;
+		TP_LOG_FATAL(s.str());
+		s.str("Subindicators were:\n");
 		s << sub_indicators_ss();
 		tpie::backtrace(s, 5);
-		TP_LOG_FATAL(s.str());
+		TP_LOG_DEBUG(s.str());
 		TP_LOG_FLUSH_LOG;
 	}
 #endif

@@ -75,9 +75,11 @@ void progress_indicator_subindicator::setup(progress_indicator_base * parent,
 progress_indicator_subindicator::~progress_indicator_subindicator() {
 	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
 		std::stringstream s;
-		s << "A progress_indicator_subindicator was destructed without done being called" << std::endl;
-		tpie::backtrace(s, 5);
+		s << "A progress_indicator_subindicator was destructed without done being called." << std::endl;
 		TP_LOG_FATAL(s.str());
+		s.str("");
+		tpie::backtrace(s, 5);
+		TP_LOG_DEBUG(s.str());
 		TP_LOG_FLUSH_LOG;
 	}
 }
