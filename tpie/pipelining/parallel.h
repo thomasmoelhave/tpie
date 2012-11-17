@@ -35,11 +35,27 @@ namespace pipelining {
 
 namespace bits {
 
+// predeclare
+template <typename T>
+class parallel_before;
+template <typename dest_t>
+class parallel_before_impl;
+template <typename T>
+class parallel_after;
+template <typename T1, typename T2>
+class parallel_state;
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  User-supplied options to the parallelism framework.
+///////////////////////////////////////////////////////////////////////////////
 struct parallel_options {
 	size_t numJobs;
 	size_t bufSize;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  States of the parallel worker state machine.
+///////////////////////////////////////////////////////////////////////////////
 enum parallel_worker_state {
 	/** The input is being written by the producer. */
 	IDLE,
@@ -51,6 +67,10 @@ enum parallel_worker_state {
 	OUTPUTTING
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Buffer base class for item input buffer. Same as
+/// parallel_output_buffer, but with different method and field names.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T1>
 class parallel_input_buffer {
 protected:
@@ -74,6 +94,10 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Buffer base class for item output buffer. Same as
+/// parallel_input_buffer, but with different method and field names.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T2>
 class parallel_output_buffer {
 protected:
@@ -97,6 +121,12 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Class containing input and output buffers.
+/// We use multiple inheritance so that the input pipe_segment does not need to
+/// have the output type as a template argument, and such that the output
+/// pipe_segment does not need to have the input type as a template argument.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
 class parallel_buffer : public parallel_input_buffer<T1>, public parallel_output_buffer<T2> {
 private:
@@ -123,17 +153,11 @@ public:
 	}
 };
 
-template <typename T>
-class parallel_before;
-template <typename dest_t>
-class parallel_before_impl;
-template <typename T>
-class parallel_after;
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Class containing an array of pipe_segment instances. We cannot use
 /// tpie::array or similar, since we need to construct the elements in a
-/// special way.
+/// special way. This class is non-copyable since it resides in the refcounted
+/// parallel_state class.
 /// \tparam fact_t  Type of factory constructing the worker
 /// \tparam Output  Type of output items
 ///////////////////////////////////////////////////////////////////////////////
@@ -152,9 +176,9 @@ public:
 	virtual ~parallel_pipes() {}
 };
 
-template <typename T1, typename T2>
-class parallel_state;
-
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Subclass of parallel_pipes instantiating and managing the pipelines.
+///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output, typename fact_t>
 class parallel_pipes_impl : public parallel_pipes<Input, Output> {
 private:
@@ -200,6 +224,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Common state in parallel pipelining library.
+/// This class is instantiated once and kept in a boost::shared_ptr, and it is
+/// not copy constructible.
 ///
 /// Unless noted otherwise, a thread must own the state mutex to access other
 /// parts of this instance.
@@ -287,6 +313,10 @@ protected:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief State subclass containing the item type specific state, i.e. the
+/// input/output buffers and the concrete pipes.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
 class parallel_state : public parallel_state_base {
 public:
@@ -309,6 +339,9 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Accepts output items and sends them to the main thread.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class parallel_after : public pipe_segment {
 protected:
@@ -390,6 +423,10 @@ private:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Accepts input items from the main thread and sends them down the
+/// pipeline.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class parallel_before : public pipe_segment {
 	class worker_job : public tpie::job {
@@ -411,6 +448,9 @@ protected:
 	array_view<T> buffer;
 	worker_job job;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Overridden in subclass to push a buffer of items.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void push_all(array_view<T> items, memory_size_type n) = 0;
 
 	template <typename Output>
@@ -478,6 +518,9 @@ private:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Concrete parallel_before class.
+///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
 class parallel_before_impl : public parallel_before<typename dest_t::item_type> {
 	typedef typename dest_t::item_type item_type;
@@ -502,6 +545,13 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Pipe segment running in main thread, accepting an output buffer
+/// from the managing producer and forwards them down the pipe. The overhead
+/// concerned with switching threads dominates the overhead of a virtual method
+/// call, so this class only depends on the output type and leaves the pushing
+/// of items to a virtual subclass.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class parallel_consumer : public pipe_segment {
 public:
@@ -511,6 +561,9 @@ public:
 	// pipe_segment has virtual dtor
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Concrete consumer implementation.
+///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output, typename dest_t>
 class parallel_consumer_impl : public parallel_consumer<typename dest_t::item_type> {
 	typedef parallel_state<Input, Output> state_t;
@@ -542,6 +595,9 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Producer, running in main thread, managing the parallel execution.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
 class parallel_producer : public pipe_segment {
 public:
@@ -695,6 +751,9 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Factory instantiating a parallel multithreaded pipeline.
+///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 class parallel_factory : public factory_base {
 	fact_t fact;
@@ -755,6 +814,13 @@ public:
 
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Runs a pipeline in multiple threads.
+/// \param numJobs  The number of threads (TPIE jobs) to utilize for parallel
+/// execution.
+/// \param bufSize  The number of items to store in the buffer sent between
+/// threads.
+///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<bits::parallel_factory<fact_t> >
 parallel(const pipe_middle<fact_t> & fact, size_t numJobs = 2, size_t bufSize = 1) {
