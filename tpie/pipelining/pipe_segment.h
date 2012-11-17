@@ -48,7 +48,7 @@ public:
 	inline void refresh();
 };
 
-struct phase;
+class phase;
 
 } // namespace bits
 
