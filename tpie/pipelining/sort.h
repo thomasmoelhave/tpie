@@ -388,7 +388,7 @@ pipesort(const pred_t & p) {
 }
 
 template <typename T, typename pred_t>
-struct passive_sorter;
+class passive_sorter;
 
 namespace bits {
 
