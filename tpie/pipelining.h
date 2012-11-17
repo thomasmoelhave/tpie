@@ -48,5 +48,6 @@
 #include <tpie/pipelining/std_glue.h>
 #include <tpie/pipelining/stdio.h>
 #include <tpie/pipelining/uniq.h>
+#include <tpie/pipelining/parallel.h>
 
 #endif

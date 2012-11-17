@@ -522,6 +522,16 @@ bool virtual_test() {
 	return check_test_vectors();
 }
 
+bool parallel_test() {
+	pipeline p = input_vector(inputvector)
+		| parallel(multiply(3) | multiply(2))
+		| pipesort()
+		| output_vector(outputvector);
+	p.plot(log_info());
+	p();
+	return check_test_vectors();
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -541,5 +551,6 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
+	.test(parallel_test, "parallel")
 	;
 }
