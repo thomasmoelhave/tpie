@@ -323,6 +323,13 @@ bool sort_test(size_t elements) {
 	return result;
 }
 
+bool sort_test_trivial() {
+	TEST_ENSURE(sort_test(0), "Cannot sort 0 elements");
+	TEST_ENSURE(sort_test(1), "Cannot sort 1 element");
+	TEST_ENSURE(sort_test(2), "Cannot sort 2 elements");
+	return true;
+}
+
 bool sort_test_small() {
 	return sort_test(20);
 }
@@ -532,6 +539,7 @@ int main(int argc, char ** argv) {
 	.test(file_stream_alt_push_test, "fsaltpush")
 	.test(merge_test, "merge")
 	.test(reverse_test, "reverse")
+	.test(sort_test_trivial, "sorttrivial")
 	.test(sort_test_small, "sort")
 	.test(sort_test_large, "sortbig")
 	.test(operator_test, "operators")
