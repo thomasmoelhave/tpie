@@ -260,6 +260,10 @@ graph_traits::graph_traits(const segment_map & map)
 	calc_phases();
 }
 
+memory_size_type graph_traits::memory_usage(size_t phases) {
+	return phases * (sizeof(auto_ptr<Progress::sub>) + sizeof(Progress::sub));
+}
+
 void graph_traits::go_all(stream_size_type n, Progress::base & pi) {
 	map.assert_authoritative();
 	map.send_successors();

@@ -103,6 +103,8 @@ struct graph_traits {
 	typedef phases_t::iterator phaseit;
 	typedef progress_types<true> Progress;
 
+	static memory_size_type memory_usage(size_t phases);
+
 	graph_traits(const segment_map & map);
 
 	double sum_memory() {
