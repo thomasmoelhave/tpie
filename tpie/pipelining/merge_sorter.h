@@ -183,9 +183,10 @@ public:
 		if (m_reportInternal) {
 			log_debug() << "Evacuate merge_sorter (" << this << ") in internal reporting mode" << std::endl;
 			m_reportInternal = false;
+			memory_size_type runCount = (m_currentRunItemCount > 0) ? 1 : 0;
 			empty_current_run();
 			m_currentRunItems.resize(0);
-			initialize_final_merger(0, 1);
+			initialize_final_merger(0, runCount);
 		} else if (m_state == stMerge) {
 			log_debug() << "Evacuate merge_sorter (" << this << ") before merge in external reporting mode (noop)" << std::endl;
 			return;
