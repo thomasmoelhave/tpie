@@ -23,7 +23,8 @@
 #include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/array_view.h>
-#include <boost/shared_array.hpp>
+#include <tpie/job.h>
+#include <boost/shared_ptr.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \file parallel.h  Parallel execution of pipe segments
@@ -110,7 +111,10 @@ protected:
 	}
 
 public:
-	array_view<T2> get_output_buffer(const parallel_options & opts, size_t job) {
+	array_view<T2> get_output_buffer_read(const parallel_options & opts, size_t job) {
+		return array_view<T2>(&outputBuffer[opts.bufSize * job], items[job]);
+	}
+	array_view<T2> get_output_buffer_write(const parallel_options & opts, size_t job) {
 		return array_view<T2>(&outputBuffer[opts.bufSize * job], opts.bufSize);
 	}
 	memory_size_type get_output_size(size_t job) {
@@ -308,7 +312,7 @@ protected:
 		workerCond = new cond_t[opts.numJobs];
 	}
 
-	~parallel_state_base() {
+	virtual ~parallel_state_base() {
 		delete[] workerCond;
 	}
 };
@@ -380,7 +384,8 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		m_buffer = m_bufferProvider.get_output_buffer(st.opts, parId);
+		pipe_segment::begin();
+		m_buffer = m_bufferProvider.get_output_buffer_write(st.opts, parId);
 	}
 
 	void push(const T & item) {
@@ -388,6 +393,7 @@ public:
 			throw std::runtime_error("Buffer overrun in parallel_after");
 
 		m_buffer[m_bufferPosition++] = item;
+		m_bufferProvider.set_output_size(parId, m_bufferPosition);
 
 		if (m_bufferPosition >= m_buffer.size()) flush_buffer();
 	}
@@ -407,6 +413,7 @@ private:
 				log_debug() << parId << " is still outputting" << std::endl;
 				return false;
 		}
+		throw std::runtime_error("Unknown state");
 	}
 
 	void flush_buffer() {
@@ -445,20 +452,18 @@ protected:
 	parallel_state_base & st;
 	size_t parId;
 	parallel_input_buffer<T> & m_bufferProvider;
-	array_view<T> buffer;
 	worker_job job;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Overridden in subclass to push a buffer of items.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void push_all(array_view<T> items, memory_size_type n) = 0;
+	virtual void push_all(array_view<T> items) = 0;
 
 	template <typename Output>
 	parallel_before(parallel_state<T, Output> & st, size_t parId)
 		: st(st)
 		, parId(parId)
 		, m_bufferProvider(st.buffer)
-		, buffer(0, (size_t) 0)
 	{
 		job.self = this;
 		set_name("Parallel before", PRIORITY_INSIGNIFICANT);
@@ -469,7 +474,6 @@ protected:
 		: st(other.st)
 		, parId(other.parId)
 		, m_bufferProvider(other.m_bufferProvider)
-		, buffer(other.buffer)
 	{
 		job.self = this;
 	}
@@ -478,7 +482,7 @@ public:
 	typedef T item_type;
 
 	virtual void begin() /*override*/ {
-		buffer = m_bufferProvider.get_input_buffer(st.opts, parId);
+		pipe_segment::begin();
 		log_debug() << "Enqueue job" << std::endl;
 		job.enqueue();
 	}
@@ -495,6 +499,7 @@ private:
 			case OUTPUTTING:
 				throw std::runtime_error("State 'outputting' was not expected at this point");
 		}
+		throw std::runtime_error("Unknown state");
 	}
 
 	void worker() {
@@ -512,7 +517,7 @@ private:
 				st.workerCond[parId].wait(lock);
 			}
 			lock.unlock();
-			push_all(buffer, m_bufferProvider.get_input_size(parId));
+			push_all(m_bufferProvider.get_input_buffer(st.opts, parId));
 			lock.lock();
 		}
 	}
@@ -538,8 +543,8 @@ public:
 		st.set_input_ptr(parId, this);
 	}
 
-	virtual void push_all(array_view<item_type> items, memory_size_type n) {
-		for (size_t i = 0; i < n; ++i) {
+	virtual void push_all(array_view<item_type> items) {
+		for (size_t i = 0; i < items.size(); ++i) {
 			dest.push(items[i]);
 		}
 	}
@@ -676,6 +681,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
+		pipe_segment::begin();
 		st->buffer.alloc();
 		inputBuffer.resize(st->opts.bufSize);
 		if (!can_fetch("items"))
@@ -698,12 +704,16 @@ public:
 				log_debug() << "Producer: Has no ready pipe; producerCond.wait" << std::endl;
 				st->producerCond.wait(lock);
 			}
+			item_type * first;
+			item_type * last;
 			switch (st->get_state(readyIdx)) {
 				case IDLE:
-					std::copy(&inputBuffer[0],
-							&inputBuffer[written],
-							&st->buffer.get_input_buffer(st->opts, readyIdx)[0]);
+					first = &inputBuffer[0];
+					last = first + written;
 					st->buffer.set_input_size(readyIdx, written);
+					std::copy(first,
+							last,
+							&st->buffer.get_input_buffer(st->opts, readyIdx)[0]);
 					log_debug() << "Producer: Send buffer to readyIdx " << readyIdx << std::endl;
 					st->set_state(readyIdx, PROCESSING);
 					st->workerCond[readyIdx].notify_one();
@@ -713,7 +723,7 @@ public:
 					throw std::runtime_error("State 'processing' not expected at this point");
 				case OUTPUTTING:
 					log_debug() << "Producer: Receive buffer from readyIdx " << readyIdx << std::endl;
-					cons->consume(st->buffer.get_output_buffer(st->opts, readyIdx));
+					cons->consume(st->buffer.get_output_buffer_read(st->opts, readyIdx));
 					st->set_state(readyIdx, IDLE);
 					st->workerCond[readyIdx].notify_one();
 			}
@@ -731,7 +741,7 @@ public:
 				st->producerCond.wait(lock);
 			}
 			if (done) break;
-			cons->consume(st->buffer.get_output_buffer(st->opts, readyIdx));
+			cons->consume(st->buffer.get_output_buffer_read(st->opts, readyIdx));
 			st->set_state(readyIdx, IDLE);
 		}
 		log_debug() << "Producer: Set done = true and notify all workers" << std::endl;
@@ -823,7 +833,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<bits::parallel_factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, size_t numJobs = 2, size_t bufSize = 1) {
+parallel(const pipe_middle<fact_t> & fact, size_t numJobs = 4, size_t bufSize = 64) {
 	bits::parallel_options opts;
 	opts.numJobs = numJobs;
 	opts.bufSize = bufSize;

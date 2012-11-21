@@ -528,14 +528,42 @@ bool virtual_test() {
 	return check_test_vectors();
 }
 
-bool parallel_test() {
-	pipeline p = input_vector(inputvector)
-		| parallel(multiply(3) | multiply(2))
+template <typename dest_t>
+class multiplicative_inverter_type : public pipe_segment {
+	dest_t dest;
+	const size_t p;
+
+public:
+	typedef size_t item_type;
+
+	multiplicative_inverter_type(const dest_t & dest, size_t p)
+		: dest(dest)
+		, p(p)
+	{
+		add_push_destination(dest);
+	}
+
+	void push(size_t n) {
+		size_t i;
+		for (i = 0; (i*n) % p != 1; ++i);
+		dest.push(i);
+	}
+};
+
+inline pipe_middle<factory_1<multiplicative_inverter_type, size_t> >
+multiplicative_inverter(size_t p) {
+	return factory_1<multiplicative_inverter_type, size_t>(p);
+}
+
+bool parallel_test(size_t modulo) {
+	bool result = false;
+	pipeline p = make_pipe_begin_1<sequence_generator>(modulo-1)
+		| parallel(multiplicative_inverter(modulo))
 		| pipesort()
-		| output_vector(outputvector);
+		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
 	p.plot(log_info());
 	p();
-	return check_test_vectors();
+	return result;
 }
 
 int main(int argc, char ** argv) {
@@ -557,6 +585,6 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
-	.test(parallel_test, "parallel")
+	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(524287))
 	;
 }
