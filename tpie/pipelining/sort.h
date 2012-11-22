@@ -464,8 +464,9 @@ public:
 	typedef bits::sort_pull_output_t<item_type, pred_t> output_t;
 
 	inline passive_sorter(pred_t pred = pred_t())
-		: m_output(pred)
-		, m_sorter(new sorter_t())
+		: m_sorter(new sorter_t())
+		, pred(pred)
+		, m_output(pred)
 	{
 	}
 
