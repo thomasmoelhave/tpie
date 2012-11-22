@@ -25,6 +25,7 @@
 #include <tpie/pipelining/graph.h>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
+#include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -541,6 +542,7 @@ public:
 		, p(p)
 	{
 		add_push_destination(dest);
+		set_name("Multiplicative inverter");
 	}
 
 	void push(size_t n) {
@@ -562,7 +564,8 @@ bool parallel_test(size_t modulo) {
 		| pipesort()
 		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
 	p.plot(log_info());
-	p();
+	tpie::progress_indicator_arrow pi("Parallel", 1);
+	p(modulo-1, pi);
 	return result;
 }
 
@@ -585,6 +588,6 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
-	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(524287))
+	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(131071))
 	;
 }
