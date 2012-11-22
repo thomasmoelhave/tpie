@@ -252,6 +252,7 @@ struct sequence_generator : public pipe_segment {
 		, elements(elements)
 	{
 		add_push_destination(dest);
+		set_name("Generate integers", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void begin() /*override*/ {
@@ -281,6 +282,7 @@ struct sequence_verifier : public pipe_segment {
 		, bad(false)
 	{
 		result = false;
+		set_name("Verify integers", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void begin() /*override*/ {
@@ -292,8 +294,12 @@ struct sequence_verifier : public pipe_segment {
 	}
 
 	inline void push(size_t element) {
-		if (element != expect++) bad = true;
+		if (element != expect) {
+			(bad ? log_debug() : log_error()) << "Got " << element << ", expected " << expect << std::endl;
+			bad = true;
+		}
 		result = false;
+		++expect;
 	}
 
 	virtual void end() /*override*/ {
