@@ -99,7 +99,7 @@ public:
 		tpie::log_info() << this << " begin " << m_virtdest << std::endl;
 		pipe_segment::begin();
 		if (m_virtdest == 0) {
-			throw false;
+			throw tpie::exception("No virtual destination");
 		}
 	}
 
@@ -108,7 +108,9 @@ public:
 	}
 
 	void set_destination(virtsrc<Output> * dest) {
-		tp_assert(m_virtdest == 0, "Destination set twice");
+		if (m_virtdest != 0) {
+			throw tpie::exception("Virtual destination set twice");
+		}
 
 		m_virtdest = dest;
 		add_push_destination(dest->get_token());
@@ -286,7 +288,7 @@ public:
 	virtual_chunk_end & operator=(const pipe_end<fact_t> & pipe) {
 		if (this->m_node) {
 			log_error() << "Virtual chunk assigned twice" << std::endl;
-			throw std::runtime_error("Virtual chunk assigned twice");
+			throw tpie::exception("Virtual chunk assigned twice");
 		}
 
 		typedef typename fact_t::generated_type generated_type;
@@ -351,7 +353,7 @@ public:
 	virtual_chunk & operator=(const pipe_middle<fact_t> & pipe) {
 		if (this->m_node) {
 			log_error() << "Virtual chunk assigned twice" << std::endl;
-			throw std::runtime_error("Virtual chunk assigned twice");
+			throw tpie::exception("Virtual chunk assigned twice");
 		}
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
 		recv_type temp(m_recv);
@@ -447,7 +449,7 @@ public:
 	virtual_chunk_begin & operator=(const pipe_begin<fact_t> & pipe) {
 		if (this->m_node) {
 			log_error() << "Virtual chunk assigned twice" << std::endl;
-			throw std::runtime_error("Virtual chunk assigned twice");
+			throw tpie::exception("Virtual chunk assigned twice");
 		}
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
 		recv_type temp(m_recv);

@@ -87,7 +87,7 @@ struct pair_factory_base {
 				   "be initialized: prepare(), begin(), end() and other methods will never\n"
 				   "be called, and memory will not be assigned.\n"
 				   "---------------------------------------------------------------------------" << std::endl;
-			throw std::runtime_error("Segment map disconnected - did you forget to add_push_destination?");
+			throw tpie::exception("Segment map disconnected - did you forget to add_push_destination?");
 		}
 	}
 
