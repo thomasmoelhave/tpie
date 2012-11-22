@@ -233,6 +233,10 @@ void phase::assign_memory(memory_size_type m) const {
 	memory_size_type remaining = m;
 	double fraction = memory_fraction();
 	//std::cout << "Remaining " << m << " fraction " << fraction << " segments " << m_segments.size() << std::endl;
+	if (fraction < 1e-9) {
+		assign_minimum_memory();
+		return;
+	}
 	std::vector<char> assigned(m_segments.size());
 	while (true) {
 		bool done = true;
