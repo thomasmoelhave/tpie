@@ -174,7 +174,10 @@ struct segment_map {
 
 	void dump(std::ostream & os = std::cout) const;
 
-	// Called by graph_traits
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method called by graph_traits. Iterates through the
+	/// edge lists and calls add_successor on each pipe_segment in the phase.
+	///////////////////////////////////////////////////////////////////////////
 	void send_successors() const;
 
 private:
