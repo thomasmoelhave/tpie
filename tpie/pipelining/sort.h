@@ -413,7 +413,7 @@ struct passive_sorter_factory : public factory_base {
 		calc_t calc(output->get_sorter());
 		output->set_calc_segment(calc);
 		this->init_segment(calc);
-		input_t input(calc, pred_t());
+		input_t input(calc);
 		this->init_segment(input);
 		return input;
 	}
