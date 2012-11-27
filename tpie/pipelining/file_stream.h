@@ -48,14 +48,20 @@ struct input_t : public pipe_segment {
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		forward("items", fs.size());
+		if (fs.is_open()) {
+			forward("items", fs.size());
+		} else {
+			forward("items", 0);
+		}
 		set_steps(fs.size());
 	}
 
 	virtual void go() /*override*/ {
-		while (fs.can_read()) {
-			dest.push(fs.read());
-			step();
+		if (fs.is_open()) {
+			while (fs.can_read()) {
+				dest.push(fs.read());
+				step();
+			}
 		}
 	}
 
