@@ -248,9 +248,10 @@ template <typename dest_t>
 struct sequence_generator : public pipe_segment {
 	typedef size_t item_type;
 
-	inline sequence_generator(const dest_t & dest, size_t elements)
+	inline sequence_generator(const dest_t & dest, size_t elements, bool reverse = true)
 		: dest(dest)
 		, elements(elements)
+		, reverse(reverse)
 	{
 		add_push_destination(dest);
 		set_name("Generate integers", PRIORITY_INSIGNIFICANT);
@@ -263,14 +264,22 @@ struct sequence_generator : public pipe_segment {
 	}
 
 	virtual void go() /*override*/ {
-		for (size_t i = elements; i > 0; --i) {
-			dest.push(i);
-			step();
+		if (reverse) {
+			for (size_t i = elements; i > 0; --i) {
+				dest.push(i);
+				step();
+			}
+		} else {
+			for (size_t i = 1; i <= elements; ++i) {
+				dest.push(i);
+				step();
+			}
 		}
 	}
 private:
 	dest_t dest;
 	size_t elements;
+	bool reverse;
 };
 
 struct sequence_verifier : public pipe_segment {
@@ -569,6 +578,18 @@ bool parallel_test(size_t modulo) {
 	return result;
 }
 
+bool parallel_ordered_test(size_t modulo) {
+	bool result = false;
+	pipeline p = make_pipe_begin_2<sequence_generator>(modulo-1, false)
+		| parallel(multiplicative_inverter(modulo), true)
+		| parallel(multiplicative_inverter(modulo), true)
+		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
+	p.plot(log_info());
+	tpie::progress_indicator_arrow pi("Parallel", 1);
+	p(modulo-1, pi);
+	return result;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -589,5 +610,6 @@ int main(int argc, char ** argv) {
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
 	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(131071))
+	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(131071))
 	;
 }

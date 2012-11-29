@@ -73,6 +73,7 @@ class parallel_state;
 /// \brief  User-supplied options to the parallelism framework.
 ///////////////////////////////////////////////////////////////////////////////
 struct parallel_options {
+	bool maintainOrder;
 	size_t numJobs;
 	size_t bufSize;
 };
@@ -458,7 +459,8 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Accepts input items from the main thread and sends them down the
-/// pipeline.
+/// pipeline. This class contains the bulk of the code that is run in each
+/// worker thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class parallel_before : public pipe_segment {
@@ -526,7 +528,7 @@ private:
 				log_debug() << parId << " is now processing" << std::endl;
 				return true;
 			case OUTPUTTING:
-				throw std::runtime_error("State 'outputting' was not expected at this point");
+				throw std::runtime_error("State 'outputting' was not expected in parallel_before::ready");
 		}
 		throw std::runtime_error("Unknown state");
 	}
@@ -653,6 +655,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Producer, running in main thread, managing the parallel execution.
+///
+/// This class contains the bulk of the code that is run in the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
 class parallel_producer : public pipe_segment {
@@ -668,6 +672,7 @@ private:
 	size_t readyIdx;
 	boost::shared_ptr<parallel_consumer<T2> > cons;
 	stream_size_type m_remainingItems;
+	internal_queue<memory_size_type> m_outputOrder;
 
 	bool has_ready_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
@@ -675,8 +680,11 @@ private:
 				case INITIALIZING:
 				case PROCESSING:
 					break;
-				case IDLE:
 				case OUTPUTTING:
+					if (st->opts.maintainOrder && m_outputOrder.front() != i)
+						break;
+					// fallthrough
+				case IDLE:
 					readyIdx = i;
 					log_debug() << "Producer: Ready pipe is " << readyIdx << std::endl;
 					return true;
@@ -694,6 +702,8 @@ private:
 				case PROCESSING:
 					break;
 				case OUTPUTTING:
+					if (st->opts.maintainOrder && m_outputOrder.front() != i)
+						break;
 					readyIdx = i;
 					log_debug() << "Producer: Outputting pipe is " << readyIdx << std::endl;
 					return true;
@@ -736,6 +746,10 @@ public:
 			;
 		this->set_minimum_memory(usage);
 		this->add_push_destination(cons);
+
+		if (st->opts.maintainOrder) {
+			m_outputOrder.resize(st->opts.numJobs);
+		}
 	}
 
 	virtual void begin() /*override*/ {
@@ -774,6 +788,8 @@ public:
 					st->set_state(readyIdx, PROCESSING);
 					st->workerCond[readyIdx].notify_one();
 					written = 0;
+					if (st->opts.maintainOrder)
+						m_outputOrder.push(readyIdx);
 					break;
 				}
 				case PROCESSING:
@@ -783,6 +799,9 @@ public:
 					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 					st->set_state(readyIdx, IDLE);
 					st->workerCond[readyIdx].notify_one();
+					if (st->opts.maintainOrder)
+						m_outputOrder.pop();
+					break;
 			}
 		}
 
@@ -890,8 +909,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<bits::parallel_factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, size_t numJobs = 4, size_t bufSize = 64) {
+parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false, size_t numJobs = 4, size_t bufSize = 1024) {
 	bits::parallel_options opts;
+	opts.maintainOrder = maintainOrder;
 	opts.numJobs = numJobs;
 	opts.bufSize = bufSize;
 	return pipe_middle<bits::parallel_factory<fact_t> >
