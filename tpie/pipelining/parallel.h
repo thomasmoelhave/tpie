@@ -249,7 +249,7 @@ public:
 
 	void set_input(array_view<T> input) {
 		if (input.size() > m_inputBuffer.size())
-			throw tpie::exception("Input too large");
+			throw tpie::exception(m_inputBuffer.size() ? "Input too large" : "Input buffer not initialized");
 
 		memory_size_type items =
 			std::copy(input.begin(), input.end(), m_inputBuffer.begin())
