@@ -27,7 +27,30 @@
 #include <boost/shared_ptr.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file parallel.h  Parallel execution of pipe segments
+/// \file parallel.h  Parallel execution of pipe segments.
+///
+/// Given a sequential computation as a partial pipeline, this parallel
+/// framework naively parallelizes it by having multiple thread handle some
+/// items each.
+///
+/// Throughout the code, the input type is named T1, and the output type is
+/// named T2.
+///
+/// Each worker has a pipeline instance of a parallel_before pushing items to
+/// the user-supplied pipeline which pushes to an instance of parallel_after.
+///
+/// The parallel_producer sits in the main thread and distributes item buffers
+/// to parallel_befores running in different threads, and the parallel_consumer
+/// receives the items pushed to each parallel_after instance.
+///
+/// All pipe_segments have access to a single parallel_state instance which has
+/// the mutex and the necessary condition variables.
+///    It also has pointers to the parallel_before and parallel_after instances
+/// and it holds an array of worker states (of enum type
+/// parallel_worker_state).
+///    It also has a parallel_options struct which contains the user-supplied
+/// parameters to the framework (size of item buffer and number of concurrent
+/// workers).
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
