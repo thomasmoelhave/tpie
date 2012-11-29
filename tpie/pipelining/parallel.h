@@ -69,95 +69,6 @@ enum parallel_worker_state {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief  Buffer base class for item input buffer. Same as
-/// parallel_output_buffer, but with different method and field names.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T1>
-class parallel_input_buffer {
-protected:
-	array<T1> inputBuffer;
-	array<memory_size_type> items;
-
-	void resize_input(memory_size_type n) {
-		inputBuffer.resize(n);
-		items.resize(n);
-	}
-
-public:
-	array_view<T1> get_input_buffer(const parallel_options & opts, size_t job) {
-		return array_view<T1>(&inputBuffer[opts.bufSize * job], opts.bufSize);
-	}
-	memory_size_type get_input_size(size_t job) {
-		return items[job];
-	}
-	void set_input_size(size_t job, memory_size_type n) {
-		items[job] = n;
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief  Buffer base class for item output buffer. Same as
-/// parallel_input_buffer, but with different method and field names.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T2>
-class parallel_output_buffer {
-protected:
-	array<T2> outputBuffer;
-	array<memory_size_type> items;
-
-	void resize_output(memory_size_type n) {
-		outputBuffer.resize(n);
-		items.resize(n);
-	}
-
-public:
-	array_view<T2> get_output_buffer_read(const parallel_options & opts, size_t job) {
-		return array_view<T2>(&outputBuffer[opts.bufSize * job], items[job]);
-	}
-	array_view<T2> get_output_buffer_write(const parallel_options & opts, size_t job) {
-		return array_view<T2>(&outputBuffer[opts.bufSize * job], opts.bufSize);
-	}
-	memory_size_type get_output_size(size_t job) {
-		return items[job];
-	}
-	void set_output_size(size_t job, memory_size_type n) {
-		items[job] = n;
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief  Class containing input and output buffers.
-/// We use multiple inheritance so that the input pipe_segment does not need to
-/// have the output type as a template argument, and such that the output
-/// pipe_segment does not need to have the input type as a template argument.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T1, typename T2>
-class parallel_buffer : public parallel_input_buffer<T1>, public parallel_output_buffer<T2> {
-private:
-	size_t bufferSize;
-
-public:
-	parallel_buffer(const parallel_options opts)
-		: bufferSize(opts.numJobs * opts.bufSize)
-	{
-	}
-
-	void alloc() {
-		this->resize_input(bufferSize);
-		this->resize_output(bufferSize);
-	}
-
-	void dealloc() {
-		this->resize_input(0);
-		this->resize_output(0);
-	}
-
-	memory_size_type memory_usage() {
-		return bufferSize*(sizeof(T1)+sizeof(T2));
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Class containing an array of pipe_segment instances. We cannot use
 /// tpie::array or similar, since we need to construct the elements in a
 /// special way. This class is non-copyable since it resides in the refcounted
@@ -226,6 +137,12 @@ public:
 	}
 };
 
+class parallel_after_base : public pipe_segment {
+public:
+	virtual void worker_initialize() = 0;
+	virtual void flush_buffer() = 0;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Common state in parallel pipelining library.
 /// This class is instantiated once and kept in a boost::shared_ptr, and it is
@@ -276,15 +193,15 @@ public:
 	}
 
 	/// Must not be used concurrently.
-	void set_output_ptr(size_t idx, pipe_segment * v) {
+	void set_output_ptr(size_t idx, parallel_after_base * v) {
 		m_outputs[idx] = v;
 	}
 
-	/// Must not be used concurrently.
+	/// Shared state, must have mutex to use.
 	pipe_segment & input(size_t idx) { return *m_inputs[idx]; }
 
-	/// Must not be used concurrently.
-	pipe_segment & output(size_t idx) { return *m_outputs[idx]; }
+	/// Shared state, must have mutex to use.
+	parallel_after_base & output(size_t idx) { return *m_outputs[idx]; }
 
 	/// Shared state, must have mutex to use.
 	parallel_worker_state get_state(size_t idx) {
@@ -298,7 +215,7 @@ public:
 
 protected:
 	std::vector<pipe_segment *> m_inputs;
-	std::vector<pipe_segment *> m_outputs;
+	std::vector<parallel_after_base *> m_outputs;
 	std::vector<parallel_worker_state> m_states;
 
 	parallel_state_base(const parallel_options opts)
@@ -318,6 +235,58 @@ protected:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Instantiated in each thread.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class parallel_input_buffer {
+	memory_size_type m_inputSize;
+	array<T> m_inputBuffer;
+
+public:
+	array_view<T> get_input() {
+		return array_view<T>(&m_inputBuffer[0], m_inputSize);
+	}
+
+	void set_input(array_view<T> input) {
+		if (input.size() > m_inputBuffer.size())
+			throw tpie::exception("Input too large");
+
+		memory_size_type items =
+			std::copy(input.begin(), input.end(), m_inputBuffer.begin())
+			-m_inputBuffer.begin();
+
+		m_inputSize = items;
+	}
+
+	parallel_input_buffer(const parallel_options & opts)
+		: m_inputSize(0)
+		, m_inputBuffer(opts.bufSize)
+	{
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Instantiated in each thread.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class parallel_output_buffer {
+	memory_size_type m_outputSize;
+	array<T> m_outputBuffer;
+	friend class parallel_after<T>;
+
+public:
+	array_view<T> get_output() {
+		return array_view<T>(&m_outputBuffer[0], m_outputSize);
+	}
+
+	parallel_output_buffer(const parallel_options & opts)
+		: m_outputSize(0)
+		, m_outputBuffer(opts.bufSize)
+	{
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief State subclass containing the item type specific state, i.e. the
 /// input/output buffers and the concrete pipes.
 ///////////////////////////////////////////////////////////////////////////////
@@ -329,14 +298,16 @@ public:
 	typedef parallel_state_base::cond_t cond_t;
 	typedef parallel_state_base::lock_t lock_t;
 
-	parallel_buffer<T1, T2> buffer;
+	array<parallel_input_buffer<T1> *> m_inputBuffers;
+	array<parallel_output_buffer<T2> *> m_outputBuffers;
 
 	std::auto_ptr<parallel_pipes<T1, T2> > pipes;
 
 	template <typename fact_t>
 	parallel_state(const parallel_options opts, const fact_t & fact)
 		: parallel_state_base(opts)
-		, buffer(opts)
+		, m_inputBuffers(opts.numJobs)
+		, m_outputBuffers(opts.numJobs)
 	{
 		typedef parallel_pipes_impl<T1, T2, fact_t> pipes_impl_t;
 		pipes.reset(new pipes_impl_t(fact, *this));
@@ -347,13 +318,12 @@ public:
 /// \brief Accepts output items and sends them to the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class parallel_after : public pipe_segment {
+class parallel_after : public parallel_after_base {
 protected:
 	parallel_state_base & st;
 	size_t parId;
-	size_t m_bufferPosition;
-	parallel_output_buffer<T> & m_bufferProvider;
-	array_view<T> m_buffer;
+	std::auto_ptr<parallel_output_buffer<T> > m_buffer;
+	array<parallel_output_buffer<T> *> & m_outputBuffers;
 	typedef parallel_state_base::lock_t lock_t;
 
 public:
@@ -364,38 +334,38 @@ public:
 				   size_t parId)
 		: st(state)
 		, parId(parId)
-		, m_bufferPosition(0)
-		, m_bufferProvider(state.buffer)
-		, m_buffer(0, (size_t) 0)
+		, m_outputBuffers(state.m_outputBuffers)
 	{
 		state.set_output_ptr(parId, this);
 		set_name("Parallel after", PRIORITY_INSIGNIFICANT);
 	}
 
 	parallel_after(const parallel_after & other)
-		: pipe_segment(other)
+		: parallel_after_base(other)
 		, st(other.st)
 		, parId(other.parId)
-		, m_bufferPosition(other.m_bufferPosition)
-		, m_bufferProvider(other.m_bufferProvider)
-		, m_buffer(other.m_buffer)
+		, m_outputBuffers(other.m_outputBuffers)
 	{
 		st.set_output_ptr(parId, this);
 	}
 
-	virtual void begin() /*override*/ {
-		pipe_segment::begin();
-		m_buffer = m_bufferProvider.get_output_buffer_write(st.opts, parId);
-	}
-
 	void push(const T & item) {
-		if (m_bufferPosition >= m_buffer.size())
+		if (m_buffer->m_outputSize >= m_buffer->m_outputBuffer.size())
 			throw std::runtime_error("Buffer overrun in parallel_after");
 
-		m_buffer[m_bufferPosition++] = item;
-		m_bufferProvider.set_output_size(parId, m_bufferPosition);
+		m_buffer->m_outputBuffer[m_buffer->m_outputSize++] = item;
 
-		if (m_bufferPosition >= m_buffer.size()) flush_buffer();
+		if (m_buffer->m_outputSize >= m_buffer->m_outputBuffer.size())
+			flush_buffer_impl();
+	}
+
+	virtual void worker_initialize() {
+		m_buffer.reset(new parallel_output_buffer<T>(st.opts));
+		m_outputBuffers[parId] = m_buffer.get();
+	}
+
+	virtual void flush_buffer() {
+		flush_buffer_impl();
 	}
 
 private:
@@ -416,7 +386,9 @@ private:
 		throw std::runtime_error("Unknown state");
 	}
 
-	void flush_buffer() {
+	void flush_buffer_impl() {
+		if (m_buffer->m_outputSize == 0)
+			return;
 		lock_t lock(st.mutex);
 		st.set_state(parId, OUTPUTTING);
 		log_debug() << parId << " parallel_after notifying producer that output is ready" << std::endl;
@@ -426,7 +398,7 @@ private:
 			if (st.done) return;
 			st.workerCond[parId].wait(lock);
 		}
-		m_bufferPosition = 0;
+		m_buffer->m_outputSize = 0;
 	}
 };
 
@@ -451,7 +423,8 @@ class parallel_before : public pipe_segment {
 protected:
 	parallel_state_base & st;
 	size_t parId;
-	parallel_input_buffer<T> & m_bufferProvider;
+	std::auto_ptr<parallel_input_buffer<T> > m_buffer;
+	array<parallel_input_buffer<T> *> & m_inputBuffers;
 	worker_job job;
 
 	///////////////////////////////////////////////////////////////////////////
@@ -463,7 +436,7 @@ protected:
 	parallel_before(parallel_state<T, Output> & st, size_t parId)
 		: st(st)
 		, parId(parId)
-		, m_bufferProvider(st.buffer)
+		, m_inputBuffers(st.m_inputBuffers)
 	{
 		job.self = this;
 		set_name("Parallel before", PRIORITY_INSIGNIFICANT);
@@ -473,7 +446,7 @@ protected:
 	parallel_before(const parallel_before & other)
 		: st(other.st)
 		, parId(other.parId)
-		, m_bufferProvider(other.m_bufferProvider)
+		, m_inputBuffers(other.m_inputBuffers)
 	{
 		job.self = this;
 	}
@@ -502,22 +475,44 @@ private:
 		throw std::runtime_error("Unknown state");
 	}
 
+	class running_signal {
+		typedef parallel_state_base::cond_t cond_t;
+		memory_size_type & sig;
+		cond_t & dtorNotify;
+	public:
+		running_signal(memory_size_type & sig, cond_t & dtorNotify)
+			: sig(sig)
+			, dtorNotify(dtorNotify)
+		{
+			++sig;
+		}
+
+		~running_signal() {
+			--sig;
+			dtorNotify.notify_one();
+		}
+	};
+
 	void worker() {
 		parallel_state_base::lock_t lock(st.mutex);
-		st.runningWorkers++;
+
+		m_buffer.reset(new parallel_input_buffer<T>(st.opts));
+		m_inputBuffers[parId] = m_buffer.get();
+
+		st.output(parId).worker_initialize();
+
+		running_signal _(st.runningWorkers, st.producerCond);
 		while (true) {
 			log_debug() << parId << ": wait for state = processing" << std::endl;
 			while (!ready()) {
 				if (st.done) {
 					log_debug() << parId << " done signal received; return" << std::endl;
-					st.runningWorkers--;
-					st.producerCond.notify_one();
 					return;
 				}
 				st.workerCond[parId].wait(lock);
 			}
 			lock.unlock();
-			push_all(m_bufferProvider.get_input_buffer(st.opts, parId));
+			push_all(m_buffer->get_input());
 			lock.lock();
 		}
 	}
@@ -531,6 +526,7 @@ class parallel_before_impl : public parallel_before<typename dest_t::item_type> 
 	typedef typename dest_t::item_type item_type;
 
 	dest_t dest;
+
 public:
 	template <typename Output>
 	parallel_before_impl(parallel_state<item_type, Output> & st,
@@ -547,6 +543,7 @@ public:
 		for (size_t i = 0; i < items.size(); ++i) {
 			dest.push(items[i]);
 		}
+		this->st.output(this->parId).flush_buffer();
 	}
 };
 
@@ -587,10 +584,6 @@ public:
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			this->add_pull_destination(st->output(i));
 		}
-	}
-
-	virtual void end() /*override*/ {
-		st->buffer.dealloc();
 	}
 
 	virtual void consume(array_view<item_type> a) /*override*/ {
@@ -676,13 +669,16 @@ public:
 			this->add_push_destination(st->input(i));
 		}
 		this->set_name("Parallel input", PRIORITY_INSIGNIFICANT);
-		this->set_minimum_memory(st->buffer.memory_usage() + st->opts.bufSize * sizeof(item_type));
+		memory_size_type usage =
+			st->opts.numJobs * st->opts.bufSize * (sizeof(T1) + sizeof(T2)) // workers
+			+ st->opts.bufSize * sizeof(item_type) // our buffer
+			;
+		this->set_minimum_memory(usage);
 		this->add_push_destination(cons);
 	}
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		st->buffer.alloc();
 		inputBuffer.resize(st->opts.bufSize);
 		if (!can_fetch("items"))
 			throw std::runtime_error("Parallel processing requires 'items' to be known");
@@ -704,26 +700,24 @@ public:
 				log_debug() << "Producer: Has no ready pipe; producerCond.wait" << std::endl;
 				st->producerCond.wait(lock);
 			}
-			item_type * first;
-			item_type * last;
 			switch (st->get_state(readyIdx)) {
 				case IDLE:
-					first = &inputBuffer[0];
-					last = first + written;
-					st->buffer.set_input_size(readyIdx, written);
-					std::copy(first,
-							last,
-							&st->buffer.get_input_buffer(st->opts, readyIdx)[0]);
+				{
+					item_type * first = &inputBuffer[0];
+					item_type * last = first + written;
+					parallel_input_buffer<T1> & dest = *st->m_inputBuffers[readyIdx];
+					dest.set_input(array_view<T1>(first, last));
 					log_debug() << "Producer: Send buffer to readyIdx " << readyIdx << std::endl;
 					st->set_state(readyIdx, PROCESSING);
 					st->workerCond[readyIdx].notify_one();
 					written = 0;
 					break;
+				}
 				case PROCESSING:
 					throw std::runtime_error("State 'processing' not expected at this point");
 				case OUTPUTTING:
 					log_debug() << "Producer: Receive buffer from readyIdx " << readyIdx << std::endl;
-					cons->consume(st->buffer.get_output_buffer_read(st->opts, readyIdx));
+					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 					st->set_state(readyIdx, IDLE);
 					st->workerCond[readyIdx].notify_one();
 			}
@@ -741,7 +735,7 @@ public:
 				st->producerCond.wait(lock);
 			}
 			if (done) break;
-			cons->consume(st->buffer.get_output_buffer_read(st->opts, readyIdx));
+			cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 			st->set_state(readyIdx, IDLE);
 		}
 		log_debug() << "Producer: Set done = true and notify all workers" << std::endl;
