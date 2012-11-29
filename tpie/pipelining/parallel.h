@@ -59,6 +59,9 @@ struct parallel_options {
 ///////////////////////////////////////////////////////////////////////////////
 enum parallel_worker_state {
 	/** The input is being written by the producer. */
+	INITIALIZING,
+
+	/** The input is being written by the producer. */
 	IDLE,
 
 	/** The worker is writing output. */
@@ -137,9 +140,20 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Non-templated virtual base class of parallel_after.
+///////////////////////////////////////////////////////////////////////////////
 class parallel_after_base : public pipe_segment {
 public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Called by parallel_before::worker to initialize buffers.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void worker_initialize() = 0;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Called by parallel_before::worker after a batch of items has
+	/// been pushed.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_buffer() = 0;
 };
 
@@ -197,10 +211,25 @@ public:
 		m_outputs[idx] = v;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Get the specified parallel_before instance.
+	///
+	/// Enables easy construction of the pipeline graph at runtime.
+	///
 	/// Shared state, must have mutex to use.
+	///////////////////////////////////////////////////////////////////////////
 	pipe_segment & input(size_t idx) { return *m_inputs[idx]; }
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Get the specified parallel_after instance.
+	///
+	/// Serves two purposes:
+	/// First, it enables easy construction of the pipeline graph at runtime.
+	/// Second, it is used by parallel_before to send batch signals to
+	/// parallel_after.
+	///
 	/// Shared state, must have mutex to use.
+	///////////////////////////////////////////////////////////////////////////
 	parallel_after_base & output(size_t idx) { return *m_outputs[idx]; }
 
 	/// Shared state, must have mutex to use.
@@ -224,7 +253,7 @@ protected:
 		, runningWorkers(0)
 		, m_inputs(opts.numJobs, 0)
 		, m_outputs(opts.numJobs, 0)
-		, m_states(opts.numJobs, IDLE)
+		, m_states(opts.numJobs, INITIALIZING)
 	{
 		workerCond = new cond_t[opts.numJobs];
 	}
@@ -371,6 +400,8 @@ public:
 private:
 	bool is_done() const {
 		switch (st.get_state(parId)) {
+			case INITIALIZING:
+				throw tpie::exception("INITIALIZING not expected in parallel_after::is_done");
 			case IDLE:
 				log_debug() << parId << " is now idle" << std::endl;
 				return true;
@@ -463,6 +494,8 @@ public:
 private:
 	bool ready() {
 		switch (st.get_state(parId)) {
+			case INITIALIZING:
+				throw tpie::exception("INITIALIZING not expected in parallel_before::ready");
 			case IDLE:
 				log_debug() << parId << " is idle" << std::endl;
 				return false;
@@ -478,18 +511,19 @@ private:
 	class running_signal {
 		typedef parallel_state_base::cond_t cond_t;
 		memory_size_type & sig;
-		cond_t & dtorNotify;
+		cond_t & producerCond;
 	public:
-		running_signal(memory_size_type & sig, cond_t & dtorNotify)
+		running_signal(memory_size_type & sig, cond_t & producerCond)
 			: sig(sig)
-			, dtorNotify(dtorNotify)
+			, producerCond(producerCond)
 		{
 			++sig;
+			producerCond.notify_one();
 		}
 
 		~running_signal() {
 			--sig;
-			dtorNotify.notify_one();
+			producerCond.notify_one();
 		}
 	};
 
@@ -501,6 +535,7 @@ private:
 
 		st.output(parId).worker_initialize();
 
+		st.set_state(parId, IDLE);
 		running_signal _(st.runningWorkers, st.producerCond);
 		while (true) {
 			log_debug() << parId << ": wait for state = processing" << std::endl;
@@ -614,6 +649,7 @@ private:
 	bool has_ready_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
+				case INITIALIZING:
 				case PROCESSING:
 					break;
 				case IDLE:
@@ -630,6 +666,7 @@ private:
 	bool has_outputting_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
+				case INITIALIZING:
 				case IDLE:
 				case PROCESSING:
 					break;
@@ -646,6 +683,7 @@ private:
 	bool has_processing_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
+				case INITIALIZING:
 				case IDLE:
 				case OUTPUTTING:
 					break;
@@ -701,6 +739,8 @@ public:
 				st->producerCond.wait(lock);
 			}
 			switch (st->get_state(readyIdx)) {
+				case INITIALIZING:
+					throw tpie::exception("State 'INITIALIZING' not expected at this point");
 				case IDLE:
 				{
 					item_type * first = &inputBuffer[0];
