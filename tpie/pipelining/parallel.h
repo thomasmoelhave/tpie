@@ -799,8 +799,14 @@ public:
 					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 					st->set_state(readyIdx, IDLE);
 					st->workerCond[readyIdx].notify_one();
-					if (st->opts.maintainOrder)
+					if (st->opts.maintainOrder) {
+						if (m_outputOrder.front() != readyIdx) {
+							log_error() << "Producer: Expected " << readyIdx << " in front; got "
+								<< m_outputOrder.front() << std::endl;
+							throw tpie::exception("Producer got wrong entry from has_ready_pipe");
+						}
 						m_outputOrder.pop();
+					}
 					break;
 			}
 		}
@@ -819,6 +825,14 @@ public:
 			if (done) break;
 			cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 			st->set_state(readyIdx, IDLE);
+			if (st->opts.maintainOrder) {
+				if (m_outputOrder.front() != readyIdx) {
+					log_error() << "Producer: Expected " << readyIdx << " in front; got "
+						<< m_outputOrder.front() << std::endl;
+					throw tpie::exception("Producer got wrong entry from has_ready_pipe");
+				}
+				m_outputOrder.pop();
+			}
 		}
 		log_debug() << "Producer: Set done = true and notify all workers" << std::endl;
 		st->done = true;
