@@ -51,6 +51,9 @@
 ///    It also has a parallel_options struct which contains the user-supplied
 /// parameters to the framework (size of item buffer and number of concurrent
 /// workers).
+///
+/// TODO at some future point: Optimize code for the case where the buffer size
+/// is one.
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
