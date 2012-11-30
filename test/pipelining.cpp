@@ -35,45 +35,53 @@ using namespace tpie::pipelining;
  * (nodeid, parentid) with the number of nodes whose parentid is nodeid.
  */
 
+// Pipelining item type
 struct node {
-	inline node(size_t id, size_t parent) : id(id), parent(parent) {
-	}
-	inline node() {
-	}
 	size_t id;
 	size_t parent;
+
+	friend std::ostream & operator<<(std::ostream & stream, const node & n) {
+		return stream << '(' << n.id << ", " << n.parent << ')';
+	}
 };
 
+node make_node(size_t id, size_t parent) {
+	node n;
+	n.id = id;
+	n.parent = parent;
+	return n;
+}
+
+// Comparator
 struct sort_by_id {
 	inline bool operator()(const node & lhs, const node & rhs) {
 		return lhs.id < rhs.id;
 	}
 };
 
+// Comparator
 struct sort_by_parent {
 	inline bool operator()(const node & lhs, const node & rhs) {
 		return lhs.parent < rhs.parent;
 	}
 };
 
+// Pipelining item type
 struct node_output {
 	node_output(const node & from) : id(from.id), parent(from.parent), children(0) {
 	}
 	size_t id;
 	size_t parent;
 	size_t children;
+
+	friend std::ostream & operator<<(std::ostream & stream, const node_output & n) {
+		return stream << '(' << n.id << ", " << n.parent << ", " << n.children << ')';
+	}
 };
 
-inline std::ostream & operator<<(std::ostream & stream, const node & n) {
-	return stream << '(' << n.id << ", " << n.parent << ')';
-}
-
-inline std::ostream & operator<<(std::ostream & stream, const node_output & n) {
-	return stream << '(' << n.id << ", " << n.parent << ", " << n.children << ')';
-}
-
 template <typename dest_t>
-struct input_nodes_t : public pipe_segment {
+class input_nodes_t : public pipe_segment {
+public:
 	typedef node item_type;
 
 	inline input_nodes_t(const dest_t & dest, size_t nodes)
@@ -85,12 +93,12 @@ struct input_nodes_t : public pipe_segment {
 		set_steps(nodes);
 	}
 
-	inline void go() {
+	virtual void go() /*override*/ {
 		static boost::mt19937 mt;
 		static boost::uniform_int<> dist(0, nodes-1);
 		dest.begin();
 		for (size_t i = 0; i < nodes; ++i) {
-			dest.push(node(i, dist(mt)));
+			dest.push(make_node(i, dist(mt)));
 			step();
 		}
 		dest.end();
@@ -107,7 +115,12 @@ input_nodes(size_t nodes) {
 }
 
 template <typename dest_t, typename byid_t, typename byparent_t>
-struct count_t : public pipe_segment {
+class count_t : public pipe_segment {
+	dest_t dest;
+	byid_t byid;
+	byparent_t byparent;
+
+public:
 	count_t(const dest_t & dest, const byid_t & byid, const byparent_t & byparent)
 		: dest(dest), byid(byid), byparent(byparent)
 	{
@@ -145,19 +158,16 @@ seen_children:
 			dest.push(cur);
 		}
 	}
-
-	dest_t dest;
-	byid_t byid;
-	byparent_t byparent;
 };
 
 template <typename byid_t, typename byparent_t>
-struct count_factory : public factory_base {
+class count_factory : public factory_base {
 	typedef typename byid_t::factory_type byid_fact_t;
 	typedef typename byparent_t::factory_type byparent_fact_t;
 	typedef typename byid_fact_t::generated_type byid_gen_t;
 	typedef typename byparent_fact_t::generated_type byparent_gen_t;
 
+public:
 	template <typename dest_t>
 	struct generated {
 		typedef count_t<dest_t, byid_gen_t, byparent_gen_t> type;
@@ -187,7 +197,8 @@ count(const byid_t & byid, const byparent_t & byparent) {
 	return count_factory<byid_t, byparent_t>(byid, byparent);
 }
 
-struct output_count_t : public pipe_segment {
+class output_count_t : public pipe_segment {
+public:
 	size_t children;
 	size_t nodes;
 
@@ -235,8 +246,14 @@ int main(int argc, char ** argv) {
 		if (argc > 1) std::stringstream(argv[1]) >> nodes;
 		passive_sorter<node, sort_by_id> byid;
 		passive_sorter<node, sort_by_parent> byparent;
-		pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
-		pipeline p2 = count(byid.output(), byparent.output()) | output_count();
+		pipeline p1 =
+			input_nodes(nodes)
+			| fork(byid.input().name("Sort by id"))
+			| byparent.input().name("Sort by parent");
+
+		pipeline p2 =
+			count(byid.output(), byparent.output())
+			| output_count();
 		p1.plot();
 		if (progress) {
 			progress_indicator_arrow pi("Test", nodes);
