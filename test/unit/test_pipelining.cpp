@@ -720,6 +720,28 @@ bool prepare_test() {
 	return true;
 }
 
+bool pull_iterator_test() {
+	outputvector.resize(inputvector.size());
+	expectvector = inputvector;
+	pipeline p =
+		pull_input_iterator(inputvector.begin(), inputvector.end())
+		| pull_output_iterator(outputvector.begin());
+	p.plot(log_info());
+	p();
+	return check_test_vectors();
+}
+
+bool push_iterator_test() {
+	outputvector.resize(inputvector.size());
+	expectvector = inputvector;
+	pipeline p =
+		push_input_iterator(inputvector.begin(), inputvector.end())
+		| push_output_iterator(outputvector.begin());
+	p.plot(log_info());
+	p();
+	return check_test_vectors();
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -741,5 +763,7 @@ int main(int argc, char ** argv) {
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
 	.test(prepare_test, "prepare")
+	.test(pull_iterator_test, "pull_iterator")
+	.test(push_iterator_test, "push_iterator")
 	;
 }

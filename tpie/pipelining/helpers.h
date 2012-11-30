@@ -217,6 +217,97 @@ struct null_sink_t: public pipe_segment {
 	void push(const T &) {}
 };
 
+template <typename IT>
+class pull_input_iterator_t: public pipe_segment {
+	IT i;
+	IT till;
+public:
+	typedef typename IT::value_type item_type;
+	pull_input_iterator_t(IT from, IT to)
+		: i(from)
+		, till(to)
+	{
+		set_name("Input iterator", PRIORITY_INSIGNIFICANT);
+	}
+
+	bool can_pull() {
+		return i != till;
+	}
+
+	item_type pull() {
+		return *i++;
+	}
+};
+
+template <typename IT>
+class push_input_iterator_t {
+public:
+	template <typename dest_t>
+	class type : public pipe_segment {
+		IT i;
+		IT till;
+		dest_t dest;
+	public:
+		type(dest_t dest, IT from, IT to)
+			: i(from)
+			, till(to)
+			, dest(dest)
+		{
+			set_name("Input iterator", PRIORITY_INSIGNIFICANT);
+			add_push_destination(dest);
+		}
+
+		virtual void go() /*override*/ {
+			while (i != till) {
+				dest.push(*i);
+				++i;
+			}
+		}
+	};
+};
+
+template <typename IT>
+class push_output_iterator_t: public pipe_segment {
+	IT i;
+public:
+	typedef typename IT::value_type item_type;
+	push_output_iterator_t(IT to)
+		: i(to)
+	{
+		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
+	}
+
+	void push(const item_type & item) {
+		*i = item;
+		++i;
+	}
+};
+
+template <typename IT>
+class pull_output_iterator_t {
+public:
+	template <typename dest_t>
+	class type : public pipe_segment {
+		IT i;
+		dest_t dest;
+	public:
+		type(dest_t dest, IT to)
+			: i(to)
+			, dest(dest)
+		{
+			set_name("Output iterator", PRIORITY_INSIGNIFICANT);
+			add_pull_destination(dest);
+		}
+
+		virtual void go() /*override*/ {
+			while (dest.can_pull()) {
+				*i = dest.pull();
+				++i;
+			}
+		}
+	};
+};
+
 } // namespace bits
 
 inline pipe_middle<factory_1<bits::ostream_logger_t, std::ostream &> >
@@ -303,6 +394,26 @@ pipe_middle<factory_2<Fact, T1, T2> > make_pipe_middle_2(T1 e1, T2 e2) {
 template <typename Fact, typename T1, typename T2>
 pipe_end<termfactory_2<Fact, T1, T2> > make_pipe_end_2(T1 e1, T2 e2) {
 	return pipe_end<termfactory_2<Fact, T1, T2> >(termfactory_2<Fact, T1, T2>(e1, e2));
+}
+
+template <typename IT>
+pullpipe_begin<termfactory_2<bits::pull_input_iterator_t<IT>, IT, IT> > pull_input_iterator(IT begin, IT end) {
+	return termfactory_2<bits::pull_input_iterator_t<IT>, IT, IT>(begin, end);
+}
+
+template <typename IT>
+pipe_begin<tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT> > push_input_iterator(IT begin, IT end) {
+	return tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT>(begin, end);
+}
+
+template <typename IT>
+pipe_end<termfactory_1<bits::push_output_iterator_t<IT>, IT> > push_output_iterator(IT to) {
+	return termfactory_1<bits::push_output_iterator_t<IT>, IT>(to);
+}
+
+template <typename IT>
+pullpipe_end<tempfactory_1<bits::pull_output_iterator_t<IT>, IT> > pull_output_iterator(IT to) {
+	return tempfactory_1<bits::pull_output_iterator_t<IT>, IT>(to);
 }
 
 }
