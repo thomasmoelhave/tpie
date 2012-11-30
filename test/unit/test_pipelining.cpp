@@ -581,8 +581,7 @@ bool parallel_test(size_t modulo) {
 bool parallel_ordered_test(size_t modulo) {
 	bool result = false;
 	pipeline p = make_pipe_begin_2<sequence_generator>(modulo-1, false)
-		| parallel(multiplicative_inverter(modulo), true)
-		| parallel(multiplicative_inverter(modulo), true)
+		| parallel(multiplicative_inverter(modulo) | multiplicative_inverter(modulo), true)
 		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);
@@ -609,7 +608,7 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
-	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(131071))
-	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(131071))
+	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(20011))
+	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(20011))
 	;
 }
