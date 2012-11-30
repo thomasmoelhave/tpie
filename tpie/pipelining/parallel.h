@@ -402,6 +402,9 @@ public:
 		st.set_output_ptr(parId, this);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Push to thread-local buffer; flush it when full.
+	///////////////////////////////////////////////////////////////////////////
 	void push(const T & item) {
 		if (m_buffer->m_outputSize >= m_buffer->m_outputBuffer.size())
 			throw std::runtime_error("Buffer overrun in parallel_after");
@@ -427,15 +430,12 @@ private:
 			case INITIALIZING:
 				throw tpie::exception("INITIALIZING not expected in parallel_after::is_done");
 			case IDLE:
-				log_debug() << parId << " is now idle" << std::endl;
 				return true;
 			case PROCESSING:
-				log_debug() << parId << " is now directly to processing" << std::endl;
 				// This case is reached if our state changes from Outputting to
 				// Idle to Processing and we miss a state change
 				return true;
 			case OUTPUTTING:
-				log_debug() << parId << " is still outputting" << std::endl;
 				return false;
 		}
 		throw std::runtime_error("Unknown state");
@@ -446,8 +446,7 @@ private:
 			return;
 		lock_t lock(st.mutex);
 		st.set_state(parId, OUTPUTTING);
-		log_debug() << parId << " parallel_after notifying producer that output is ready" << std::endl;
-		log_debug() << parId << " parallel_after: wait for state != OUTPUTTING" << std::endl;
+		// notify producer that output is ready
 		st.producerCond.notify_one();
 		while (!is_done()) {
 			if (st.done) return;
@@ -469,7 +468,6 @@ class parallel_before : public pipe_segment {
 		parallel_before<T> * self;
 
 		virtual void operator()() /*override*/ {
-			log_debug() << "Job starting" << std::endl;
 			self->worker();
 		}
 	};
@@ -512,7 +510,6 @@ public:
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		log_debug() << "Enqueue job" << std::endl;
 		job.enqueue();
 	}
 
@@ -522,10 +519,8 @@ private:
 			case INITIALIZING:
 				throw tpie::exception("INITIALIZING not expected in parallel_before::ready");
 			case IDLE:
-				log_debug() << parId << " is idle" << std::endl;
 				return false;
 			case PROCESSING:
-				log_debug() << parId << " is now processing" << std::endl;
 				return true;
 			case OUTPUTTING:
 				throw std::runtime_error("State 'outputting' was not expected in parallel_before::ready");
@@ -558,21 +553,24 @@ private:
 		m_buffer.reset(new parallel_input_buffer<T>(st.opts));
 		m_inputBuffers[parId] = m_buffer.get();
 
+		// virtual invocation
 		st.output(parId).worker_initialize();
 
 		st.set_state(parId, IDLE);
 		running_signal _(st.runningWorkers, st.producerCond);
 		while (true) {
-			log_debug() << parId << ": wait for state = processing" << std::endl;
+			// wait for state = processing
 			while (!ready()) {
 				if (st.done) {
-					log_debug() << parId << " done signal received; return" << std::endl;
 					return;
 				}
 				st.workerCond[parId].wait(lock);
 			}
 			lock.unlock();
+
+			// virtual invocation
 			push_all(m_buffer->get_input());
+
 			lock.lock();
 		}
 	}
@@ -599,10 +597,18 @@ public:
 		st.set_input_ptr(parId, this);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Push all items from buffer and flush output buffer afterwards.
+	///
+	/// If pipeline is one-to-one, that is, one item output for each item
+	/// input, then the flush at the end is not needed.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void push_all(array_view<item_type> items) {
 		for (size_t i = 0; i < items.size(); ++i) {
 			dest.push(items[i]);
 		}
+
+		// virtual invocation
 		this->st.output(this->parId).flush_buffer();
 	}
 };
@@ -646,6 +652,9 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Push all items from output buffer to the rest of the pipeline.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void consume(array_view<item_type> a) /*override*/ {
 		for (size_t i = 0; i < a.size(); ++i) {
 			dest.push(a[i]);
@@ -686,11 +695,9 @@ private:
 					// fallthrough
 				case IDLE:
 					readyIdx = i;
-					log_debug() << "Producer: Ready pipe is " << readyIdx << std::endl;
 					return true;
 			}
 		}
-		log_debug() << "Producer: No ready pipe" << std::endl;
 		return false;
 	}
 
@@ -705,11 +712,9 @@ private:
 					if (st->opts.maintainOrder && m_outputOrder.front() != i)
 						break;
 					readyIdx = i;
-					log_debug() << "Producer: Outputting pipe is " << readyIdx << std::endl;
 					return true;
 			}
 		}
-		log_debug() << "Producer: No outputting pipe" << std::endl;
 		return false;
 	}
 
@@ -721,11 +726,9 @@ private:
 				case OUTPUTTING:
 					break;
 				case PROCESSING:
-					log_debug() << "Producer: Processing pipe is " << i << std::endl;
 					return true;
 			}
 		}
-		log_debug() << "Producer: No processing pipe" << std::endl;
 		return false;
 	}
 
@@ -760,19 +763,30 @@ public:
 		m_remainingItems = fetch<stream_size_type>("items");
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Accumulate input buffer and send off to workers.
+	///
+	/// Since the parallel producer and parallel consumer run single-threaded
+	/// in the main thread, producer::push is our only opportunity to have the
+	/// consumer call push on its destination. Thus, when we accumulate an
+	/// input buffer, before sending it off to a worker, we might want to have
+	/// the consumer consume an output buffer to free up a parallel worker.
+	///////////////////////////////////////////////////////////////////////////
 	void push(item_type item) {
 		if (m_remainingItems == 0)
 			throw std::runtime_error("Got more items than expected");
 
 		inputBuffer[written++] = item;
 		--m_remainingItems;
-		if (written < st->opts.bufSize && m_remainingItems > 0)
+		if (written < st->opts.bufSize && m_remainingItems > 0) {
+			// Wait for more items before doing anything expensive such as
+			// locking.
 			return;
+		}
 
 		parallel_state_base::lock_t lock(st->mutex);
 		while (written > 0) {
 			while (!has_ready_pipe()) {
-				log_debug() << "Producer: Has no ready pipe; producerCond.wait" << std::endl;
 				st->producerCond.wait(lock);
 			}
 			switch (st->get_state(readyIdx)) {
@@ -780,11 +794,11 @@ public:
 					throw tpie::exception("State 'INITIALIZING' not expected at this point");
 				case IDLE:
 				{
+					// Send buffer to ready worker
 					item_type * first = &inputBuffer[0];
 					item_type * last = first + written;
 					parallel_input_buffer<T1> & dest = *st->m_inputBuffers[readyIdx];
 					dest.set_input(array_view<T1>(first, last));
-					log_debug() << "Producer: Send buffer to readyIdx " << readyIdx << std::endl;
 					st->set_state(readyIdx, PROCESSING);
 					st->workerCond[readyIdx].notify_one();
 					written = 0;
@@ -795,8 +809,9 @@ public:
 				case PROCESSING:
 					throw std::runtime_error("State 'processing' not expected at this point");
 				case OUTPUTTING:
-					log_debug() << "Producer: Receive buffer from readyIdx " << readyIdx << std::endl;
+					// Receive buffer (virtual invocation)
 					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
+
 					st->set_state(readyIdx, IDLE);
 					st->workerCond[readyIdx].notify_one();
 					if (st->opts.maintainOrder) {
@@ -819,11 +834,14 @@ public:
 					done = true;
 					break;
 				}
-				log_debug() << "Producer: All items pushed; waiting for processors to complete; producerCond.wait" << std::endl;
+				// All items pushed; wait for processors to complete
 				st->producerCond.wait(lock);
 			}
 			if (done) break;
+
+			// virtual invocation
 			cons->consume(st->m_outputBuffers[readyIdx]->get_output());
+
 			st->set_state(readyIdx, IDLE);
 			if (st->opts.maintainOrder) {
 				if (m_outputOrder.front() != readyIdx) {
@@ -834,16 +852,15 @@ public:
 				m_outputOrder.pop();
 			}
 		}
-		log_debug() << "Producer: Set done = true and notify all workers" << std::endl;
+		// Notify all workers that all processing is done
 		st->done = true;
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			st->workerCond[i].notify_one();
 		}
 		while (st->runningWorkers > 0) {
-			log_debug() << "Producer: " << st->runningWorkers << " running workers" << std::endl;
 			st->producerCond.wait(lock);
 		}
-		log_debug() << "Producer: All workers terminated" << std::endl;
+		// All workers terminated
 	}
 
 	virtual void end() /*override*/ {
