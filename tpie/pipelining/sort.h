@@ -96,6 +96,7 @@ struct sort_pull_output_t : public sort_output_base<T, pred_t> {
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		this->set_steps(this->m_sorter->item_count());
+		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
 
 	inline bool can_pull() const {
@@ -143,6 +144,7 @@ struct sort_output_t : public sort_output_base<typename dest_t::item_type, pred_
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		this->set_steps(this->m_sorter->item_count());
+		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
 
 	virtual void go() /*override*/ {
