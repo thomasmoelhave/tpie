@@ -29,10 +29,12 @@
 #include <tpie/file_stream.h>
 #include <iostream>
 #include <sstream>
+#include <iterator>
 #include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
+using namespace std;
 
 template <typename src_pipe_t>
 class add_t {
@@ -71,12 +73,12 @@ add(src_pipe_t srcpipe) {
 void go() {
 	passive_buffer<int> buf;
 	pipeline p
-		= scanf_ints()       // read integers from stdin
-		| pipesort()         // sort them
+		= push_input_iterator(istream_iterator<int>(cin), istream_iterator<int>())
+		| pipesort()         // sort the input
 		| fork(buf.input())  // buffer the sorted items
 		| reverser()         // reverse the items
 		| add(buf.output())  // add the reversed and the buffered sequence
-		| printf_ints();     // print to standard out
+		| printf_ints();
 	p.plot();
 	p();
 }
