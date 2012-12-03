@@ -136,7 +136,8 @@ struct phase::segment_graph {
 };
 
 phase::phase()
-	: g(new segment_graph)
+	: itemFlowGraph(new segment_graph)
+	, actorGraph(new segment_graph)
 	, m_memoryFraction(0.0)
 	, m_minimumMemory(0)
 	, m_initiator(0)
@@ -146,7 +147,8 @@ phase::phase()
 phase::~phase() {}
 
 phase::phase(const phase & other)
-	: g(new segment_graph(*other.g))
+	: itemFlowGraph(new segment_graph(*other.itemFlowGraph))
+	, actorGraph(new segment_graph(*other.actorGraph))
 	, m_segments(other.m_segments)
 	, m_memoryFraction(other.m_memoryFraction)
 	, m_minimumMemory(other.m_minimumMemory)
@@ -155,7 +157,8 @@ phase::phase(const phase & other)
 }
 
 phase & phase::operator=(const phase & other) {
-	g.reset(new segment_graph(*other.g));
+	itemFlowGraph.reset(new segment_graph(*other.itemFlowGraph));
+	actorGraph.reset(new segment_graph(*other.actorGraph));
 	m_segments = other.m_segments;
 	m_memoryFraction = other.m_memoryFraction;
 	m_minimumMemory = other.m_minimumMemory;
@@ -175,11 +178,16 @@ void phase::add(pipe_segment * s) {
 	m_segments.push_back(s);
 	m_memoryFraction += s->get_memory_fraction();
 	m_minimumMemory += s->get_minimum_memory();
-	g->finish_times[s] = 0;
+	itemFlowGraph->finish_times[s] = 0;
+	actorGraph->finish_times[s] = 0;
 }
 
-void phase::add_successor(pipe_segment * from, pipe_segment * to) {
-	g->edges[from].push_back(to);
+void phase::add_successor(pipe_segment * from, pipe_segment * to, bool push) {
+	itemFlowGraph->edges[from].push_back(to);
+	if (push)
+		actorGraph->edges[from].push_back(to);
+	else
+		actorGraph->edges[to].push_back(from);
 }
 
 void phase::evacuate_all() const {
@@ -217,7 +225,7 @@ void phase::assign_minimum_memory() const {
 
 void phase::assign_memory(memory_size_type m) const {
 	{
-		dfs_traversal<phase::segment_graph> dfs(*g);
+		dfs_traversal<phase::segment_graph> dfs(*itemFlowGraph);
 		dfs.dfs();
 		std::vector<pipe_segment *> order = dfs.toposort();
 		for (size_t i = 0; i < order.size(); ++i) {
@@ -356,9 +364,9 @@ void graph_traits::calc_phases() {
 		pipe_segment * to = map.get(i->second.first);
 		if (i->second.second == pulls) std::swap(from, to);
 		pipe_segment * representative = map.get(ids_inv[phases.find_set(ids[i->first])]);
-		for (size_t i = 0; i < m_phases.size(); ++i) {
-			if (m_phases[i].count(representative)) {
-				m_phases[i].add_successor(from, to);
+		for (size_t j = 0; j < m_phases.size(); ++j) {
+			if (m_phases[j].count(representative)) {
+				m_phases[j].add_successor(from, to, i->second.second == pushes);
 				break;
 			}
 		}
@@ -366,19 +374,28 @@ void graph_traits::calc_phases() {
 }
 
 void phase::go(progress_indicator_base & pi) {
-	dfs_traversal<phase::segment_graph> dfs(*g);
-	dfs.dfs();
-	std::vector<pipe_segment *> order = dfs.toposort();
+	std::vector<pipe_segment *> beginOrder;
+	std::vector<pipe_segment *> endOrder;
+	{
+		dfs_traversal<phase::segment_graph> dfs(*itemFlowGraph);
+		dfs.dfs();
+		beginOrder = dfs.toposort();
+	}
+	{
+		dfs_traversal<phase::segment_graph> dfs(*actorGraph);
+		dfs.dfs();
+		endOrder = dfs.toposort();
+	}
 	stream_size_type totalSteps = 0;
-	for (size_t i = 0; i < order.size(); ++i) {
-		order[i]->begin();
-		order[i]->set_progress_indicator(&pi);
-		totalSteps += order[i]->get_steps();
+	for (size_t i = 0; i < beginOrder.size(); ++i) {
+		beginOrder[i]->begin();
+		beginOrder[i]->set_progress_indicator(&pi);
+		totalSteps += beginOrder[i]->get_steps();
 	}
 	pi.init(totalSteps);
 	m_initiator->go();
-	for (size_t i = 0; i < order.size(); ++i) {
-		order[i]->end();
+	for (size_t i = 0; i < endOrder.size(); ++i) {
+		endOrder[i]->end();
 	}
 	pi.done();
 }

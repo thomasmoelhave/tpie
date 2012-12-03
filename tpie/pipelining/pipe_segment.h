@@ -121,6 +121,18 @@ struct pipe_segment {
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Begin pipeline processing phase.
+	///
+	/// The implementation may pull() from a pull destination in begin(),
+	/// but it is not allowed to push() to a push destination.
+	///
+	/// The pipelining framework calls begin() on the pipe_segments in the
+	/// pipeline graph in a topological order. The framework calls
+	/// pipe_segment::begin() on a pipe_segment after its pull destinations and
+	/// before its push destination.
+	///
+	/// The default implementation just calls forward_all(), and an
+	/// implementation is not required to call the parent begin() if this is
+	/// not the wanted behavior.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void begin() {
 		forward_all();
@@ -149,6 +161,17 @@ struct pipe_segment {
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief End pipeline processing phase.
+	///
+	/// The implementation may pull() from a pull destination in end(),
+	/// and it may push() to a push destination.
+	///
+	/// The pipelining framework calls end() on the pipe_segments in the
+	/// pipeline graph in a topological order. The framework calls
+	/// pipe_segment::end() on a pipe_segment before its pull and push
+	/// destinations.
+	///
+	/// The default implementation does nothing, so it does not matter if the
+	/// implementation calls the parent end().
 	///////////////////////////////////////////////////////////////////////////
 	virtual void end() {
 	}

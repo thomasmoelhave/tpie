@@ -550,6 +550,9 @@ struct prepare_result {
 	size_t begin1;
 	size_t begin2;
 	size_t begin3;
+	size_t end1;
+	size_t end2;
+	size_t end3;
 };
 
 std::ostream & operator<<(std::ostream & os, const prepare_result & r) {
@@ -566,7 +569,11 @@ std::ostream & operator<<(std::ostream & os, const prepare_result & r) {
 		<< "prep3:      " << r.prep3 << '\n'
 		<< "begin1:     " << r.begin1 << '\n'
 		<< "begin2:     " << r.begin2 << '\n'
-		<< "begin3:     " << r.begin3 << '\n';
+		<< "begin3:     " << r.begin3 << '\n'
+		<< "end1:       " << r.end1 << '\n'
+		<< "end2:       " << r.end2 << '\n'
+		<< "end3:       " << r.end3 << '\n'
+		;
 }
 
 template <typename dest_t>
@@ -581,6 +588,7 @@ public:
 		, r(r)
 	{
 		add_push_destination(dest);
+		set_name("Begin", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void prepare() /*override*/ {
@@ -605,6 +613,10 @@ public:
 		pipe_segment::set_available_memory(mem);
 		log_debug() << "Begin memory " << mem << std::endl;
 	}
+
+	virtual void end() /*override*/ {
+		r.end1 = r.t++;
+	}
 };
 
 inline pipe_begin<factory_1<prepare_begin_type, prepare_result &> >
@@ -624,6 +636,7 @@ public:
 		, r(r)
 	{
 		add_push_destination(dest);
+		set_name("Middle", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void prepare() /*override*/ {
@@ -649,6 +662,10 @@ public:
 		r.memGotten2 = get_available_memory();
 		forward("t", r.t);
 	}
+
+	virtual void end() /*override*/ {
+		r.end2 = r.t++;
+	}
 };
 
 inline pipe_middle<factory_1<prepare_middle_type, prepare_result &> >
@@ -664,6 +681,7 @@ public:
 	prepare_end_type(prepare_result & r)
 		: r(r)
 	{
+		set_name("End", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void prepare() /*override*/ {
@@ -686,6 +704,10 @@ public:
 		}
 		r.begin3 = r.t++;
 		r.memGotten3 = get_available_memory();
+	}
+
+	virtual void end() /*override*/ {
+		r.end3 = r.t++;
 	}
 };
 
@@ -711,7 +733,10 @@ bool prepare_test() {
 	TEST_ENSURE(r.begin1 == 3, "Begin 1 time is wrong");
 	TEST_ENSURE(r.begin2 == 4, "Begin 2 time is wrong");
 	TEST_ENSURE(r.begin3 == 5, "Begin 3 time is wrong");
-	TEST_ENSURE(r.t      == 6, "Time is wrong after execution");
+	TEST_ENSURE(r.end1   == 6, "End 1 time is wrong");
+	TEST_ENSURE(r.end2   == 7, "End 2 time is wrong");
+	TEST_ENSURE(r.end3   == 8, "End 3 time is wrong");
+	TEST_ENSURE(r.t      == 9, "Time is wrong after execution");
 
 	TEST_ENSURE(r.memGotten1 == r.memWanted1, "Memory assigned to 1 is wrong");
 	TEST_ENSURE(r.memGotten2 == r.memWanted2, "Memory assigned to 2 is wrong");
@@ -719,6 +744,80 @@ bool prepare_test() {
 
 	return true;
 }
+
+namespace end_time {
+
+struct result {
+	size_t t;
+
+	size_t end1;
+	size_t end2;
+
+	friend std::ostream & operator<<(std::ostream & os, result & r) {
+		return os
+			<< "end1 = " << r.end1 << '\n'
+			<< "end2 = " << r.end2 << '\n'
+			<< "t    = " << r.t << '\n'
+			<< std::endl;
+	}
+};
+
+class begin_type : public pipe_segment {
+	result & r;
+
+public:
+	begin_type(result & r) : r(r) {
+		set_name("Begin", PRIORITY_INSIGNIFICANT);
+	}
+
+	virtual void end() /*override*/ {
+		r.end1 = r.t++;
+	}
+};
+
+pullpipe_begin<termfactory_1<begin_type, result &> >
+inline begin(result & r) {
+	return termfactory_1<begin_type, result &>(r);
+}
+
+template <typename dest_t>
+class end_type : public pipe_segment {
+	result & r;
+	dest_t dest;
+
+public:
+	end_type(dest_t dest, result & r) : r(r), dest(dest) {
+		add_pull_destination(dest);
+		set_name("End", PRIORITY_INSIGNIFICANT);
+	}
+
+	virtual void go() /*override*/ {
+	}
+
+	virtual void end() /*override*/ {
+		r.end2 = r.t++;
+	}
+};
+
+pullpipe_end<factory_1<end_type, result &> >
+inline end(result & r) {
+	return factory_1<end_type, result &>(r);
+}
+
+bool test() {
+	result r;
+	r.t = 0;
+	pipeline p = begin(r) | end(r);
+	p.plot(log_info());
+	p();
+	log_debug() << r;
+	TEST_ENSURE(r.end2 == 0, "End 2 time wrong");
+	TEST_ENSURE(r.end1 == 1, "End 1 time wrong");
+	TEST_ENSURE(r.t    == 2, "Time wrong");
+	return true;
+}
+
+} // namespace end_time
 
 bool pull_iterator_test() {
 	outputvector.resize(inputvector.size());
@@ -763,6 +862,7 @@ int main(int argc, char ** argv) {
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
 	.test(prepare_test, "prepare")
+	.test(end_time::test, "end_time")
 	.test(pull_iterator_test, "pull_iterator")
 	.test(push_iterator_test, "push_iterator")
 	;

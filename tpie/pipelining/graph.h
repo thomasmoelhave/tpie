@@ -56,7 +56,7 @@ public:
 
 	void add(pipe_segment * s);
 
-	void add_successor(pipe_segment * from, pipe_segment * to);
+	void add_successor(pipe_segment * from, pipe_segment * to, bool push);
 
 	inline size_t count(pipe_segment * s) {
 		for (size_t i = 0; i < m_segments.size(); ++i) {
@@ -86,7 +86,11 @@ public:
 private:
 	/** Graph of nodes in this phase. Initialised in constructor. Populated
 	 * by graph_traits::calc_phases using add and add_successor. */
-	std::auto_ptr<segment_graph> g;
+	std::auto_ptr<segment_graph> itemFlowGraph;
+
+	/** Graph of nodes in this phase. Initialised in constructor. Populated
+	 * by graph_traits::calc_phases using add and add_successor. */
+	std::auto_ptr<segment_graph> actorGraph;
 
 	/** a pointer is a weak reference to something that isn't reference counted. */
 	std::vector<pipe_segment *> m_segments;
