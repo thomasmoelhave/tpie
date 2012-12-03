@@ -683,7 +683,6 @@ private:
 	size_t written;
 	size_t readyIdx;
 	boost::shared_ptr<parallel_consumer<T2> > cons;
-	stream_size_type m_remainingItems;
 	internal_queue<memory_size_type> m_outputOrder;
 
 	bool has_ready_pipe() {
@@ -761,9 +760,6 @@ public:
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		inputBuffer.resize(st->opts.bufSize);
-		if (!can_fetch("items"))
-			throw std::runtime_error("Parallel processing requires 'items' to be known");
-		m_remainingItems = fetch<stream_size_type>("items");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -776,18 +772,18 @@ public:
 	/// the consumer consume an output buffer to free up a parallel worker.
 	///////////////////////////////////////////////////////////////////////////
 	void push(item_type item) {
-		if (m_remainingItems == 0)
-			throw std::runtime_error("Got more items than expected");
-
 		inputBuffer[written++] = item;
-		--m_remainingItems;
-		if (written < st->opts.bufSize && m_remainingItems > 0) {
+		if (written < st->opts.bufSize) {
 			// Wait for more items before doing anything expensive such as
 			// locking.
 			return;
 		}
-
 		parallel_state_base::lock_t lock(st->mutex);
+		empty_input_buffer(lock);
+	}
+
+private:
+	void empty_input_buffer(parallel_state_base::lock_t & lock) {
 		while (written > 0) {
 			while (!has_ready_pipe()) {
 				st->producerCond.wait(lock);
@@ -828,8 +824,13 @@ public:
 					break;
 			}
 		}
+	}
 
-		if (m_remainingItems > 0) return;
+public:
+	virtual void end() /*override*/ {
+		parallel_state_base::lock_t lock(st->mutex);
+		empty_input_buffer(lock);
+
 		bool done = false;
 		while (!done) {
 			while (!has_outputting_pipe()) {
@@ -864,9 +865,7 @@ public:
 			st->producerCond.wait(lock);
 		}
 		// All workers terminated
-	}
 
-	virtual void end() /*override*/ {
 		inputBuffer.resize(0);
 	}
 };
