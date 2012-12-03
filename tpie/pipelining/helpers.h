@@ -266,12 +266,32 @@ public:
 	};
 };
 
-template <typename IT>
-class push_output_iterator_t: public pipe_segment {
-	IT i;
+template <typename Iterator, typename Item = void>
+class push_output_iterator_t;
+
+template <typename Iterator>
+class push_output_iterator_t<Iterator, void> : public pipe_segment {
+	Iterator i;
 public:
-	typedef typename IT::value_type item_type;
-	push_output_iterator_t(IT to)
+	typedef typename Iterator::value_type item_type;
+	push_output_iterator_t(Iterator to)
+		: i(to)
+	{
+		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
+	}
+
+	void push(const item_type & item) {
+		*i = item;
+		++i;
+	}
+};
+
+template <typename Iterator, typename Item>
+class push_output_iterator_t : public pipe_segment {
+	Iterator i;
+public:
+	typedef Item item_type;
+	push_output_iterator_t(Iterator to)
 		: i(to)
 	{
 		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
@@ -409,6 +429,11 @@ pipe_begin<tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT> > push_input_i
 template <typename IT>
 pipe_end<termfactory_1<bits::push_output_iterator_t<IT>, IT> > push_output_iterator(IT to) {
 	return termfactory_1<bits::push_output_iterator_t<IT>, IT>(to);
+}
+
+template <typename Item, typename IT>
+pipe_end<termfactory_1<bits::push_output_iterator_t<IT, Item>, IT> > typed_push_output_iterator(IT to) {
+	return termfactory_1<bits::push_output_iterator_t<IT, Item>, IT>(to);
 }
 
 template <typename IT>
