@@ -156,6 +156,10 @@ public:
 				pointers.pop();
 			}
 		}
+		while (!pointers.empty()) {
+			tpie::tpie_delete(pointers.front());
+			pointers.pop();
+		}
 	}
 };
 
