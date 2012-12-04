@@ -20,7 +20,10 @@
 #include "common.h"
 #include <tpie/memory.h>
 #include <vector>
-
+#include <tpie/internal_queue.h>
+#include <tpie/internal_vector.h>
+#include <boost/random.hpp>
+#include <tpie/job.h>
 
 struct mtest {
 	size_t & r;
@@ -132,7 +135,48 @@ bool basic_test() {
 	return true;
 }
 
+class memory_user : public tpie::job {
+	typedef int test_t;
+	size_t times;
+	tpie::internal_queue<test_t *> pointers;
+	boost::rand48 rnd;
+	boost::uniform_01<double> urnd;
+
+public:
+	memory_user(size_t times, size_t capacity) : times(times), pointers(capacity) {}
+
+	virtual void operator()() /*override*/ {
+		for (size_t i = 0; i < times; ++i) {
+			if (pointers.empty() ||
+				(!pointers.full() && urnd(rnd) <= (cos(static_cast<double>(i) * 60.0 / static_cast<double>(pointers.size())) + 1.0)/2.0)) {
+
+				pointers.push(tpie::tpie_new<test_t>());
+			} else {
+				tpie::tpie_delete(pointers.front());
+				pointers.pop();
+			}
+		}
+	}
+};
+
+bool parallel_test(size_t nJobs) {
+	const size_t times = 500000;
+	const size_t capacity = 50000;
+	tpie::internal_vector<memory_user *> workers(nJobs);
+	for (size_t i = 0; i < nJobs; ++i) {
+		workers[i] = tpie::tpie_new<memory_user>(times, capacity);
+		workers[i]->enqueue();
+	}
+	for (size_t i = 0; i < nJobs; ++i) {
+		workers[i]->join();
+		tpie::tpie_delete(workers[i]);
+	}
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv, 128)
-		.test(basic_test, "basic");
+		.test(basic_test, "basic")
+		.test(parallel_test, "parallel", "n", static_cast<size_t>(8))
+		;
 }
