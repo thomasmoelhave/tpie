@@ -36,6 +36,21 @@
 /// Throughout the code, the input type is named T1, and the output type is
 /// named T2.
 ///
+/// NOTE about item_type:
+/// If your pipeline to be parallelised is foo() | bar() | baz(), then the
+/// item_type of foo() must not depend on the destination type that follows
+/// baz(). This requirement makes it possible for the framework to get the
+/// input type (T1) before doing the real pipeline instantiation. This is
+/// required since the synthesized "parallel_after" pipe_segment inserted
+/// after baz() in the above example takes T1 and T2 as template parameters.
+/// The template code that makes this happen is in parallel_factory::generated.
+///
+/// This means that item_type of foo must not be declared inside the foo class.
+/// When this is done, the type signature of item_type will implicitly depend
+/// on the destination type, meaning the item_type changes when the baz
+/// destination type changes.
+/// END NOTE.
+///
 /// Each worker has a pipeline instance of a parallel_before pushing items to
 /// the user-supplied pipeline which pushes to an instance of parallel_after.
 ///
