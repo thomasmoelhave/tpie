@@ -180,6 +180,11 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 
 
 #ifndef TPIE_NDEBUG
+void memory_manager::register_pointer(void * p, size_t size, const std::type_info & t) {
+	boost::mutex::scoped_lock lock(m_mutex);
+	__register_pointer(p, size, t);
+}
+
 void memory_manager::__register_pointer(void * p, size_t size, const std::type_info & t) {
 	if (m_pointers.count(p) != 0) {
 		log_error() << "Trying to register pointer " << p << " of size " 
@@ -187,6 +192,11 @@ void memory_manager::__register_pointer(void * p, size_t size, const std::type_i
 		segfault();
 	}
 	m_pointers[p] = std::make_pair(size, &t);;
+}
+
+void memory_manager::unregister_pointer(void * p, size_t size, const std::type_info & t) {
+	boost::mutex::scoped_lock lock(m_mutex);
+	__unregister_pointer(p, size, t);
 }
 
 void memory_manager::__unregister_pointer(void * p, size_t size, const std::type_info & t) {
@@ -210,10 +220,20 @@ void memory_manager::__unregister_pointer(void * p, size_t size, const std::type
 	}
 }
 
+void memory_manager::assert_tpie_ptr(void * p) {
+	boost::mutex::scoped_lock lock(m_mutex);
+	__assert_tpie_ptr(p);
+}
+
 void memory_manager::__assert_tpie_ptr(void * p) {
 	if (!p || m_pointers.count(p)) return;
 	log_error() << p << " has not been allocated with tpie_new" << std::endl;
 	segfault();
+}
+
+void memory_manager::complain_about_unfreed_memory() {
+	boost::mutex::scoped_lock lock(m_mutex);
+	__complain_about_unfreed_memory();
 }
 
 void memory_manager::__complain_about_unfreed_memory() {
@@ -232,7 +252,7 @@ void init_memory_manager() {
 
 void finish_memory_manager() {
 #ifndef TPIE_NDEBUG
-	mm->__complain_about_unfreed_memory();
+	mm->complain_about_unfreed_memory();
 #endif
 	delete mm;
 	mm = 0;

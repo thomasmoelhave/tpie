@@ -127,10 +127,12 @@ public:
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
 
 #ifndef TPIE_NDEBUG
-	void __register_pointer(void * p, size_t size, const std::type_info & t);
-	void __unregister_pointer(void * p, size_t size, const std::type_info & t);
-	void __assert_tpie_ptr(void * p);
-	void __complain_about_unfreed_memory();
+	// The following methods take the mutex before calling the private doubly
+	// underscored equivalent.
+	void register_pointer(void * p, size_t size, const std::type_info & t);
+	void unregister_pointer(void * p, size_t size, const std::type_info & t);
+	void assert_tpie_ptr(void * p);
+	void complain_about_unfreed_memory();
 #endif
 
 
@@ -141,7 +143,14 @@ private:
 	size_t m_nextWarning;
 	enforce_t m_enforce;
 	boost::mutex m_mutex;
+
 #ifndef TPIE_NDEBUG
+	// Before calling these methods, you must have the mutex.
+	void __register_pointer(void * p, size_t size, const std::type_info & t);
+	void __unregister_pointer(void * p, size_t size, const std::type_info & t);
+	void __assert_tpie_ptr(void * p);
+	void __complain_about_unfreed_memory();
+
 	boost::unordered_map<void *, std::pair<size_t, const std::type_info *> > m_pointers;
 #endif
 };
@@ -169,7 +178,7 @@ memory_manager & get_memory_manager();
 ///////////////////////////////////////////////////////////////////////////////
 inline void __register_pointer(void * p, size_t size, const std::type_info & t) {
 #ifndef TPIE_NDEBUG
-	get_memory_manager().__register_pointer(p, size, t);
+	get_memory_manager().register_pointer(p, size, t);
 #else
 	unused(p);
 	unused(size);
@@ -183,7 +192,7 @@ inline void __register_pointer(void * p, size_t size, const std::type_info & t) 
 ///////////////////////////////////////////////////////////////////////////////
 inline void __unregister_pointer(void * p, size_t size, const std::type_info & t) {
 #ifndef TPIE_NDEBUG
-	get_memory_manager().__unregister_pointer(p, size, t);
+	get_memory_manager().unregister_pointer(p, size, t);
 #else
 	unused(p);
 	unused(size);
@@ -198,7 +207,7 @@ inline void __unregister_pointer(void * p, size_t size, const std::type_info & t
 inline void assert_tpie_ptr(void * p) {
 #ifndef TPIE_NDEBUG
 	if (p)
-		get_memory_manager().__assert_tpie_ptr(p);
+		get_memory_manager().assert_tpie_ptr(p);
 #else
 	unused(p);
 #endif
