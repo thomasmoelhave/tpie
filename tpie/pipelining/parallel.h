@@ -41,9 +41,10 @@
 /// item_type of foo() must not depend on the destination type that follows
 /// baz(). This requirement makes it possible for the framework to get the
 /// input type (T1) before doing the real pipeline instantiation. This is
-/// required since the synthesized "parallel_after" pipe_segment inserted
+/// required since the synthesized parallel_bits::after pipe_segment inserted
 /// after baz() in the above example takes T1 and T2 as template parameters.
-/// The template code that makes this happen is in parallel_factory::generated.
+/// The template code that makes this happen is in
+/// parallel_bits::factory::generated.
 ///
 /// This means that item_type of foo must not be declared inside the foo class.
 /// When this is done, the type signature of item_type will implicitly depend
@@ -51,19 +52,19 @@
 /// destination type changes.
 /// END NOTE.
 ///
-/// Each worker has a pipeline instance of a parallel_before pushing items to
-/// the user-supplied pipeline which pushes to an instance of parallel_after.
+/// Each worker has a pipeline instance of a parallel_bits::before pushing items to
+/// the user-supplied pipeline which pushes to an instance of parallel_bits::after.
 ///
-/// The parallel_producer sits in the main thread and distributes item buffers
-/// to parallel_befores running in different threads, and the parallel_consumer
-/// receives the items pushed to each parallel_after instance.
+/// The producer sits in the main thread and distributes item buffers to
+/// parallel_bits::befores running in different threads, and the consumer
+/// receives the items pushed to each after instance.
 ///
-/// All pipe_segments have access to a single parallel_state instance which has
-/// the mutex and the necessary condition variables.
-///    It also has pointers to the parallel_before and parallel_after instances
-/// and it holds an array of worker states (of enum type
-/// parallel_worker_state).
-///    It also has a parallel_options struct which contains the user-supplied
+/// All pipe_segments have access to a single parallel_bits::state instance
+/// which has the mutex and the necessary condition variables.
+///    It also has pointers to the parallel_bits::before and
+/// parallel_bits::after instances and it holds an array of worker states (of
+/// enum type parallel_bits::worker_state).
+///    It also has a options struct which contains the user-supplied
 /// parameters to the framework (size of item buffer and number of concurrent
 /// workers).
 ///
@@ -75,22 +76,22 @@ namespace tpie {
 
 namespace pipelining {
 
-namespace bits {
+namespace parallel_bits {
 
 // predeclare
 template <typename T>
-class parallel_before;
+class before;
 template <typename dest_t>
-class parallel_before_impl;
+class before_impl;
 template <typename T>
-class parallel_after;
+class after;
 template <typename T1, typename T2>
-class parallel_state;
+class state;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  User-supplied options to the parallelism framework.
 ///////////////////////////////////////////////////////////////////////////////
-struct parallel_options {
+struct options {
 	bool maintainOrder;
 	size_t numJobs;
 	size_t bufSize;
@@ -99,7 +100,7 @@ struct parallel_options {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  States of the parallel worker state machine.
 ///////////////////////////////////////////////////////////////////////////////
-enum parallel_worker_state {
+enum worker_state {
 	/** The input is being written by the producer. */
 	INITIALIZING,
 
@@ -117,13 +118,13 @@ enum parallel_worker_state {
 /// \brief Class containing an array of pipe_segment instances. We cannot use
 /// tpie::array or similar, since we need to construct the elements in a
 /// special way. This class is non-copyable since it resides in the refcounted
-/// parallel_state class.
+/// state class.
 /// \tparam fact_t  Type of factory constructing the worker
 /// \tparam Output  Type of output items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output>
-class parallel_pipes {
-	typedef parallel_before<Input> before_t;
+class threads {
+	typedef before<Input> before_t;
 
 protected:
 	std::vector<before_t *> m_dests;
@@ -133,20 +134,20 @@ public:
 		return *m_dests[idx];
 	}
 
-	virtual ~parallel_pipes() {}
+	virtual ~threads() {}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Subclass of parallel_pipes instantiating and managing the pipelines.
+/// \brief Subclass of threads instantiating and managing the pipelines.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output, typename fact_t>
-class parallel_pipes_impl : public parallel_pipes<Input, Output> {
+class threads_impl : public threads<Input, Output> {
 private:
-	typedef parallel_after<Output> after_t;
+	typedef after<Output> after_t;
 	typedef typename fact_t::template generated<after_t>::type worker_t;
 	typedef typename worker_t::item_type T1;
 	typedef Output T2;
-	typedef parallel_before_impl<worker_t> before_t;
+	typedef before_impl<worker_t> before_t;
 
 	/** Size of the m_dests array. */
 	size_t numJobs;
@@ -157,8 +158,8 @@ private:
 	/** Reinterpreted array - points to m_data. */
 	before_t * m_destImpl;
 public:
-	parallel_pipes_impl(fact_t fact,
-						parallel_state<T1, T2> & st)
+	threads_impl(fact_t fact,
+						state<T1, T2> & st)
 		: numJobs(st.opts.numJobs)
 	{
 		// uninitialized allocation
@@ -174,7 +175,7 @@ public:
 		}
 	}
 
-	virtual ~parallel_pipes_impl() {
+	virtual ~threads_impl() {
 		for (size_t i = 0; i < numJobs; ++i) {
 			m_destImpl[i].~before_t();
 		}
@@ -183,17 +184,17 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief  Non-templated virtual base class of parallel_after.
+/// \brief  Non-templated virtual base class of after.
 ///////////////////////////////////////////////////////////////////////////////
-class parallel_after_base : public pipe_segment {
+class after_base : public pipe_segment {
 public:
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Called by parallel_before::worker to initialize buffers.
+	/// \brief  Called by before::worker to initialize buffers.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void worker_initialize() = 0;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Called by parallel_before::worker after a batch of items has
+	/// \brief  Called by before::worker after a batch of items has
 	/// been pushed.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_buffer() = 0;
@@ -207,13 +208,13 @@ public:
 /// Unless noted otherwise, a thread must own the state mutex to access other
 /// parts of this instance.
 ///////////////////////////////////////////////////////////////////////////////
-class parallel_state_base {
+class state_base {
 public:
 	typedef boost::mutex mutex_t;
 	typedef boost::condition_variable cond_t;
 	typedef boost::unique_lock<boost::mutex> lock_t;
 
-	const parallel_options opts;
+	const options opts;
 
 	/** Single mutex. */
 	mutex_t mutex;
@@ -249,12 +250,12 @@ public:
 	}
 
 	/// Must not be used concurrently.
-	void set_output_ptr(size_t idx, parallel_after_base * v) {
+	void set_output_ptr(size_t idx, after_base * v) {
 		m_outputs[idx] = v;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Get the specified parallel_before instance.
+	/// \brief  Get the specified before instance.
 	///
 	/// Enables easy construction of the pipeline graph at runtime.
 	///
@@ -263,33 +264,33 @@ public:
 	pipe_segment & input(size_t idx) { return *m_inputs[idx]; }
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Get the specified parallel_after instance.
+	/// \brief  Get the specified after instance.
 	///
 	/// Serves two purposes:
 	/// First, it enables easy construction of the pipeline graph at runtime.
-	/// Second, it is used by parallel_before to send batch signals to
-	/// parallel_after.
+	/// Second, it is used by before to send batch signals to
+	/// after.
 	///
 	/// Shared state, must have mutex to use.
 	///////////////////////////////////////////////////////////////////////////
-	parallel_after_base & output(size_t idx) { return *m_outputs[idx]; }
+	after_base & output(size_t idx) { return *m_outputs[idx]; }
 
 	/// Shared state, must have mutex to use.
-	parallel_worker_state get_state(size_t idx) {
+	worker_state get_state(size_t idx) {
 		return m_states[idx];
 	}
 
 	/// Shared state, must have mutex to use.
-	void set_state(size_t idx, parallel_worker_state st) {
+	void set_state(size_t idx, worker_state st) {
 		m_states[idx] = st;
 	}
 
 protected:
 	std::vector<pipe_segment *> m_inputs;
-	std::vector<parallel_after_base *> m_outputs;
-	std::vector<parallel_worker_state> m_states;
+	std::vector<after_base *> m_outputs;
+	std::vector<worker_state> m_states;
 
-	parallel_state_base(const parallel_options opts)
+	state_base(const options opts)
 		: opts(opts)
 		, done(false)
 		, runningWorkers(0)
@@ -300,7 +301,7 @@ protected:
 		workerCond = new cond_t[opts.numJobs];
 	}
 
-	virtual ~parallel_state_base() {
+	virtual ~state_base() {
 		delete[] workerCond;
 	}
 };
@@ -329,7 +330,7 @@ public:
 		m_inputSize = items;
 	}
 
-	parallel_input_buffer(const parallel_options & opts)
+	parallel_input_buffer(const options & opts)
 		: m_inputSize(0)
 		, m_inputBuffer(opts.bufSize)
 	{
@@ -343,14 +344,14 @@ template <typename T>
 class parallel_output_buffer {
 	memory_size_type m_outputSize;
 	array<T> m_outputBuffer;
-	friend class parallel_after<T>;
+	friend class after<T>;
 
 public:
 	array_view<T> get_output() {
 		return array_view<T>(&m_outputBuffer[0], m_outputSize);
 	}
 
-	parallel_output_buffer(const parallel_options & opts)
+	parallel_output_buffer(const options & opts)
 		: m_outputSize(0)
 		, m_outputBuffer(opts.bufSize)
 	{
@@ -362,25 +363,25 @@ public:
 /// input/output buffers and the concrete pipes.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
-class parallel_state : public parallel_state_base {
+class state : public state_base {
 public:
-	typedef boost::shared_ptr<parallel_state> ptr;
-	typedef parallel_state_base::mutex_t mutex_t;
-	typedef parallel_state_base::cond_t cond_t;
-	typedef parallel_state_base::lock_t lock_t;
+	typedef boost::shared_ptr<state> ptr;
+	typedef state_base::mutex_t mutex_t;
+	typedef state_base::cond_t cond_t;
+	typedef state_base::lock_t lock_t;
 
 	array<parallel_input_buffer<T1> *> m_inputBuffers;
 	array<parallel_output_buffer<T2> *> m_outputBuffers;
 
-	std::auto_ptr<parallel_pipes<T1, T2> > pipes;
+	std::auto_ptr<threads<T1, T2> > pipes;
 
 	template <typename fact_t>
-	parallel_state(const parallel_options opts, const fact_t & fact)
-		: parallel_state_base(opts)
+	state(const options opts, const fact_t & fact)
+		: state_base(opts)
 		, m_inputBuffers(opts.numJobs)
 		, m_outputBuffers(opts.numJobs)
 	{
-		typedef parallel_pipes_impl<T1, T2, fact_t> pipes_impl_t;
+		typedef threads_impl<T1, T2, fact_t> pipes_impl_t;
 		pipes.reset(new pipes_impl_t(fact, *this));
 	}
 };
@@ -389,19 +390,19 @@ public:
 /// \brief Accepts output items and sends them to the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class parallel_after : public parallel_after_base {
+class after : public after_base {
 protected:
-	parallel_state_base & st;
+	state_base & st;
 	size_t parId;
 	std::auto_ptr<parallel_output_buffer<T> > m_buffer;
 	array<parallel_output_buffer<T> *> & m_outputBuffers;
-	typedef parallel_state_base::lock_t lock_t;
+	typedef state_base::lock_t lock_t;
 
 public:
 	typedef T item_type;
 
 	template <typename Input>
-	parallel_after(parallel_state<Input, T> & state,
+	after(state<Input, T> & state,
 				   size_t parId)
 		: st(state)
 		, parId(parId)
@@ -411,8 +412,8 @@ public:
 		set_name("Parallel after", PRIORITY_INSIGNIFICANT);
 	}
 
-	parallel_after(const parallel_after & other)
-		: parallel_after_base(other)
+	after(const after & other)
+		: after_base(other)
 		, st(other.st)
 		, parId(other.parId)
 		, m_outputBuffers(other.m_outputBuffers)
@@ -425,7 +426,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void push(const T & item) {
 		if (m_buffer->m_outputSize >= m_buffer->m_outputBuffer.size())
-			throw std::runtime_error("Buffer overrun in parallel_after");
+			throw std::runtime_error("Buffer overrun in after");
 
 		m_buffer->m_outputBuffer[m_buffer->m_outputSize++] = item;
 
@@ -446,7 +447,7 @@ private:
 	bool is_done() const {
 		switch (st.get_state(parId)) {
 			case INITIALIZING:
-				throw tpie::exception("INITIALIZING not expected in parallel_after::is_done");
+				throw tpie::exception("INITIALIZING not expected in after::is_done");
 			case IDLE:
 				return true;
 			case PROCESSING:
@@ -480,10 +481,10 @@ private:
 /// worker thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class parallel_before : public pipe_segment {
+class before : public pipe_segment {
 	class worker_job : public tpie::job {
 	public:
-		parallel_before<T> * self;
+		before<T> * self;
 
 		virtual void operator()() /*override*/ {
 			self->worker();
@@ -493,7 +494,7 @@ class parallel_before : public pipe_segment {
 	friend class worker_job;
 
 protected:
-	parallel_state_base & st;
+	state_base & st;
 	size_t parId;
 	std::auto_ptr<parallel_input_buffer<T> > m_buffer;
 	array<parallel_input_buffer<T> *> & m_inputBuffers;
@@ -505,7 +506,7 @@ protected:
 	virtual void push_all(array_view<T> items) = 0;
 
 	template <typename Output>
-	parallel_before(parallel_state<T, Output> & st, size_t parId)
+	before(state<T, Output> & st, size_t parId)
 		: st(st)
 		, parId(parId)
 		, m_inputBuffers(st.m_inputBuffers)
@@ -515,7 +516,7 @@ protected:
 	}
 	// virtual dtor in pipe_segment
 
-	parallel_before(const parallel_before & other)
+	before(const before & other)
 		: st(other.st)
 		, parId(other.parId)
 		, m_inputBuffers(other.m_inputBuffers)
@@ -535,19 +536,19 @@ private:
 	bool ready() {
 		switch (st.get_state(parId)) {
 			case INITIALIZING:
-				throw tpie::exception("INITIALIZING not expected in parallel_before::ready");
+				throw tpie::exception("INITIALIZING not expected in before::ready");
 			case IDLE:
 				return false;
 			case PROCESSING:
 				return true;
 			case OUTPUTTING:
-				throw std::runtime_error("State 'outputting' was not expected in parallel_before::ready");
+				throw std::runtime_error("State 'outputting' was not expected in before::ready");
 		}
 		throw std::runtime_error("Unknown state");
 	}
 
 	class running_signal {
-		typedef parallel_state_base::cond_t cond_t;
+		typedef state_base::cond_t cond_t;
 		memory_size_type & sig;
 		cond_t & producerCond;
 	public:
@@ -566,7 +567,7 @@ private:
 	};
 
 	void worker() {
-		parallel_state_base::lock_t lock(st.mutex);
+		state_base::lock_t lock(st.mutex);
 
 		m_buffer.reset(new parallel_input_buffer<T>(st.opts));
 		m_inputBuffers[parId] = m_buffer.get();
@@ -595,20 +596,20 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Concrete parallel_before class.
+/// \brief Concrete before class.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class parallel_before_impl : public parallel_before<typename dest_t::item_type> {
+class before_impl : public before<typename dest_t::item_type> {
 	typedef typename dest_t::item_type item_type;
 
 	dest_t dest;
 
 public:
 	template <typename Output>
-	parallel_before_impl(parallel_state<item_type, Output> & st,
+	before_impl(state<item_type, Output> & st,
 						 size_t parId,
 						 dest_t dest)
-		: parallel_before<item_type>(st, parId)
+		: before<item_type>(st, parId)
 		, dest(dest)
 	{
 		this->add_push_destination(dest);
@@ -639,7 +640,7 @@ public:
 /// of items to a virtual subclass.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class parallel_consumer : public pipe_segment {
+class consumer : public pipe_segment {
 public:
 	typedef T item_type;
 
@@ -651,15 +652,15 @@ public:
 /// \brief Concrete consumer implementation.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output, typename dest_t>
-class parallel_consumer_impl : public parallel_consumer<typename dest_t::item_type> {
-	typedef parallel_state<Input, Output> state_t;
+class consumer_impl : public consumer<typename dest_t::item_type> {
+	typedef state<Input, Output> state_t;
 	typedef typename state_t::ptr stateptr;
 	dest_t dest;
 	stateptr st;
 public:
 	typedef typename dest_t::item_type item_type;
 
-	parallel_consumer_impl(const dest_t & dest, stateptr st)
+	consumer_impl(const dest_t & dest, stateptr st)
 		: dest(dest)
 		, st(st)
 	{
@@ -686,18 +687,18 @@ public:
 /// This class contains the bulk of the code that is run in the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
-class parallel_producer : public pipe_segment {
+class producer : public pipe_segment {
 public:
 	typedef T1 item_type;
 
 private:
-	typedef parallel_state<T1, T2> state_t;
+	typedef state<T1, T2> state_t;
 	typedef typename state_t::ptr stateptr;
 	stateptr st;
 	array<T1> inputBuffer;
 	size_t written;
 	size_t readyIdx;
-	boost::shared_ptr<parallel_consumer<T2> > cons;
+	boost::shared_ptr<consumer<T2> > cons;
 	internal_queue<memory_size_type> m_outputOrder;
 
 	bool has_ready_pipe() {
@@ -751,7 +752,7 @@ private:
 
 public:
 	template <typename consumer_t>
-	parallel_producer(stateptr st, const consumer_t & cons)
+	producer(stateptr st, const consumer_t & cons)
 		: st(st)
 		, written(0)
 		, cons(new consumer_t(cons))
@@ -793,12 +794,12 @@ public:
 			// locking.
 			return;
 		}
-		parallel_state_base::lock_t lock(st->mutex);
+		state_base::lock_t lock(st->mutex);
 		empty_input_buffer(lock);
 	}
 
 private:
-	void empty_input_buffer(parallel_state_base::lock_t & lock) {
+	void empty_input_buffer(state_base::lock_t & lock) {
 		while (written > 0) {
 			while (!has_ready_pipe()) {
 				st->producerCond.wait(lock);
@@ -843,7 +844,7 @@ private:
 
 public:
 	virtual void end() /*override*/ {
-		parallel_state_base::lock_t lock(st->mutex);
+		state_base::lock_t lock(st->mutex);
 		empty_input_buffer(lock);
 
 		bool done = false;
@@ -889,9 +890,9 @@ public:
 /// \brief Factory instantiating a parallel multithreaded pipeline.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-class parallel_factory : public factory_base {
+class factory : public factory_base {
 	fact_t fact;
-	const parallel_options opts;
+	const options opts;
 public:
 	template <typename dest_t>
 	struct generated {
@@ -903,7 +904,7 @@ public:
 		struct dummy_dest : public pipe_segment { typedef T2 item_type; void push(T2); };
 		typedef typename fact_t::template generated<dummy_dest>::type::item_type T1;
 
-		typedef parallel_after<T2> after_t;
+		typedef after<T2> after_t;
 		typedef typename fact_t::template generated<after_t>::type processor_t;
 
 		// Check that our processor still wants the input we expect it to.
@@ -914,10 +915,10 @@ public:
 		template <typename U> struct is_same<U, U> { typedef void type; };
 		typedef typename is_same<T1, typename processor_t::item_type>::type dummy;
 
-		typedef parallel_producer<T1, T2> type;
+		typedef producer<T1, T2> type;
 	};
 
-	parallel_factory(const fact_t & fact, const parallel_options opts)
+	factory(const fact_t & fact, const options opts)
 		: fact(fact)
 		, opts(opts)
 	{
@@ -930,9 +931,9 @@ public:
 
 		typedef typename gen_t::T1 input_type;
 		typedef typename gen_t::T2 output_type;
-		typedef parallel_state<input_type, output_type> state_t;
+		typedef state<input_type, output_type> state_t;
 
-		typedef parallel_consumer_impl<input_type, output_type, dest_t> consumer_t;
+		typedef consumer_impl<input_type, output_type, dest_t> consumer_t;
 
 		typedef typename gen_t::type producer_t;
 
@@ -946,7 +947,7 @@ public:
 	}
 };
 
-} // namespace bits
+} // namespace parallel_bits
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Runs a pipeline in multiple threads.
@@ -956,14 +957,14 @@ public:
 /// threads.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-inline pipe_middle<bits::parallel_factory<fact_t> >
+inline pipe_middle<parallel_bits::factory<fact_t> >
 parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false, size_t numJobs = 4, size_t bufSize = 1024) {
-	bits::parallel_options opts;
+	parallel_bits::options opts;
 	opts.maintainOrder = maintainOrder;
 	opts.numJobs = numJobs;
 	opts.bufSize = bufSize;
-	return pipe_middle<bits::parallel_factory<fact_t> >
-		(bits::parallel_factory<fact_t>
+	return pipe_middle<parallel_bits::factory<fact_t> >
+		(parallel_bits::factory<fact_t>
 		 (fact.factory, opts));
 }
 
