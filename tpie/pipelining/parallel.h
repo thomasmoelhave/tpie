@@ -118,6 +118,59 @@ enum worker_state {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief  Aligned, uninitialized storage.
+///
+/// This class provides access to an array of items aligned to any boundary
+/// (mostly useful for powers of two).
+/// They are not constructed or destructed; only the memory resource is
+/// handled.
+/// This is used for the pipe_segments that are instantiated once for each
+/// parallel thread of pipeline computation. They should be stored in an array
+/// aligned to a cache line, to avoid cache lock contention.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T, size_t Align>
+class aligned_array {
+	// Compute the size of an item with alignment padding (round up to nearest
+	// multiple of Align).
+	static const size_t aligned_size = (sizeof(T)+Align-1)/Align*Align;
+
+	uint8_t * m_data;
+	size_t m_size;
+
+	void dealloc() {
+		delete[] m_data;
+		m_size = 0;
+	}
+
+public:
+	aligned_array() : m_data(0), m_size(0) {}
+
+	~aligned_array() { realloc(0); }
+
+	T * get(size_t idx) {
+		const size_t addr = (size_t) m_data;
+
+		// Find the aligned base of the array by rounding the pointer up to the
+		// nearest multiple of Align.
+		const size_t alignedBase = (addr + Align - 1)/Align*Align;
+
+		// Find the address of the element.
+		const size_t elmAddress = alignedBase + aligned_size * idx;
+
+		return (T *) elmAddress;
+	}
+
+	void realloc(size_t elms) {
+		dealloc();
+		m_size = elms;
+		// The buffer we get is not guaranteed to be aligned to any boundary.
+		// Request Align extra bytes to ensure we can find an aligned buffer of
+		// size aligned_size*elms.
+		m_data = m_size ? new uint8_t[aligned_size * elms + Align] : 0;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Class containing an array of pipe_segment instances. We cannot use
 /// tpie::array or similar, since we need to construct the elements in a
 /// special way. This class is non-copyable since it resides in the refcounted
@@ -151,38 +204,45 @@ private:
 	typedef typename worker_t::item_type T1;
 	typedef Output T2;
 	typedef before_impl<worker_t> before_t;
+	static const size_t alignment = 64;
+	typedef aligned_array<before_t, alignment> aligned_before_t;
 
 	/** Size of the m_dests array. */
 	size_t numJobs;
 
-	/** Allocated array buffer. Size sizeof(gen_t)*numJobs/sizeof(uint8_t). */
-	uint8_t * m_data;
+	/** Allocated array buffer. */
+	aligned_before_t m_data;
 
-	/** Reinterpreted array - points to m_data. */
-	before_t * m_destImpl;
 public:
 	threads_impl(fact_t fact,
 						state<T1, T2> & st)
 		: numJobs(st.opts.numJobs)
 	{
 		// uninitialized allocation
-		m_data = new uint8_t[sizeof(before_t)*numJobs];
-		m_destImpl = reinterpret_cast<before_t *>(m_data);
+		m_data.realloc(numJobs);
 		this->m_dests.resize(numJobs);
 
 		// construct elements manually
 		for (size_t i = 0; i < numJobs; ++i) {
+			// for debugging: check that pointer is aligned.
+			if (((size_t) m_data.get(i)) % alignment != 0) {
+				log_warning() << "Thread " << i << " is not aligned: Address "
+					<< m_data.get(i) << " is off by " <<
+					(((size_t) m_data.get(i)) % alignment) << " bytes"
+					<< std::endl;
+			}
+
 			this->m_dests[i] =
-				new(&m_destImpl[i])
+				new(m_data.get(i))
 				before_t(st, i, fact.construct(after_t(st, i)));
 		}
 	}
 
 	virtual ~threads_impl() {
 		for (size_t i = 0; i < numJobs; ++i) {
-			m_destImpl[i].~before_t();
+			m_data.get(i)->~before_t();
 		}
-		delete[] m_data;
+		m_data.realloc(0);
 	}
 };
 
