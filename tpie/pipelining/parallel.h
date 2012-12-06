@@ -23,7 +23,6 @@
 #include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/array_view.h>
-#include <tpie/job.h>
 #include <boost/shared_ptr.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,6 +66,10 @@
 ///    It also has a options struct which contains the user-supplied
 /// parameters to the framework (size of item buffer and number of concurrent
 /// workers).
+///
+/// The TPIE job framework is insufficient for this parallelization code,
+/// since we get deadlocks if some of the workers are allowed to wait for a
+/// ready tpie::job worker. Instead, we use boost::threads directly.
 ///
 /// TODO at some future point: Optimize code for the case where the buffer size
 /// is one.
@@ -482,23 +485,12 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class before : public pipe_segment {
-	class worker_job : public tpie::job {
-	public:
-		before<T> * self;
-
-		virtual void operator()() /*override*/ {
-			self->worker();
-		}
-	};
-
-	friend class worker_job;
-
 protected:
 	state_base & st;
 	size_t parId;
 	std::auto_ptr<parallel_input_buffer<T> > m_buffer;
 	array<parallel_input_buffer<T> *> & m_inputBuffers;
-	worker_job job;
+	boost::thread m_worker;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Overridden in subclass to push a buffer of items.
@@ -511,7 +503,6 @@ protected:
 		, parId(parId)
 		, m_inputBuffers(st.m_inputBuffers)
 	{
-		job.self = this;
 		set_name("Parallel before", PRIORITY_INSIGNIFICANT);
 	}
 	// virtual dtor in pipe_segment
@@ -521,7 +512,6 @@ protected:
 		, parId(other.parId)
 		, m_inputBuffers(other.m_inputBuffers)
 	{
-		job.self = this;
 	}
 
 public:
@@ -529,7 +519,8 @@ public:
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		job.enqueue();
+		boost::thread t(run_worker, this);
+		m_worker.swap(t);
 	}
 
 private:
@@ -565,6 +556,10 @@ private:
 			producerCond.notify_one();
 		}
 	};
+
+	static void run_worker(before * self) {
+		self->worker();
+	}
 
 	void worker() {
 		state_base::lock_t lock(st.mutex);
