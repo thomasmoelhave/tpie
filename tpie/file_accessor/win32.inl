@@ -99,6 +99,10 @@ void win32::open_rw_new(const std::string & path) {
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 
+bool win32::is_open() const {
+	return m_fd != INVALID_HANDLE_VALUE;
+}
+
 void win32::close_i() {
 	if (m_fd != INVALID_HANDLE_VALUE) {
 		CloseHandle(m_fd);

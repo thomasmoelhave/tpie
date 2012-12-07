@@ -101,6 +101,10 @@ void posix::open_rw_new(const std::string & path) {
 	::posix_fadvise(m_fd, 0, 0, m_advice);
 }
 
+bool posix::is_open() const {
+	return m_fd != 0;
+}
+
 void posix::close_i() {
 	if (m_fd != 0) {
 		::close(m_fd);
