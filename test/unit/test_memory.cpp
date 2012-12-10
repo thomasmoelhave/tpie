@@ -24,6 +24,7 @@
 #include <tpie/internal_vector.h>
 #include <boost/random.hpp>
 #include <tpie/job.h>
+#include <tpie/cpu_timer.h>
 
 struct mtest {
 	size_t & r;
@@ -163,9 +164,9 @@ public:
 	}
 };
 
-bool parallel_test(size_t nJobs) {
-	const size_t times = 500000;
-	const size_t capacity = 50000;
+bool parallel_test(const size_t nJobs, const size_t times, const size_t capacity) {
+	tpie::cpu_timer t;
+	t.start();
 	tpie::internal_vector<memory_user *> workers(nJobs);
 	for (size_t i = 0; i < nJobs; ++i) {
 		workers[i] = tpie::tpie_new<memory_user>(times, capacity);
@@ -175,12 +176,14 @@ bool parallel_test(size_t nJobs) {
 		workers[i]->join();
 		tpie::tpie_delete(workers[i]);
 	}
+	t.stop();
+	tpie::log_info() << t << std::endl;
 	return true;
 }
 
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv, 128)
 		.test(basic_test, "basic")
-		.test(parallel_test, "parallel", "n", static_cast<size_t>(8))
+		.test(parallel_test, "parallel", "n", static_cast<size_t>(8), "times", static_cast<size_t>(500000), "capacity", static_cast<size_t>(50000))
 		;
 }
