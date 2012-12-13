@@ -63,7 +63,7 @@ public:
 	virtual size_type claimed_size() {return static_cast<size_type>(disjoint_sets<int>::memory_usage(123456));}
 };
 
-bool stress_test(size_t n) {
+bool stress_test(int n) {
 	test_timer t("disjoint_sets");
 	for (int _ = 0; _ < 5; ++_) {
 		t.start();
@@ -87,5 +87,5 @@ int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic")
 		.test(disjointsets_memory_test(), "memory")
-		.test(stress_test, "stress", "n", 1024);
+		.test(stress_test, "stress", "n", static_cast<int>(1024));
 }
