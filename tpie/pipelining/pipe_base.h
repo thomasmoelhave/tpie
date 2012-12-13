@@ -33,7 +33,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename child_t>
-struct pipe_base {
+class pipe_base {
+public:
 	inline child_t & memory(double amount) {
 		self().factory.memory(amount);
 		return self();
@@ -61,7 +62,8 @@ private:
 } // namespace bits
 
 template <typename fact_t>
-struct pipe_end : bits::pipe_base<pipe_end<fact_t> > {
+class pipe_end : public bits::pipe_base<pipe_end<fact_t> > {
+public:
 	typedef fact_t factory_type;
 
 	inline pipe_end() {
@@ -82,7 +84,8 @@ struct pipe_end : bits::pipe_base<pipe_end<fact_t> > {
 ///                factory_1, etc. helpers.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-struct pipe_middle : bits::pipe_base<pipe_middle<fact_t> > {
+class pipe_middle : public bits::pipe_base<pipe_middle<fact_t> > {
+public:
 	typedef fact_t factory_type;
 
 	inline pipe_middle() {
@@ -114,7 +117,8 @@ struct pipe_middle : bits::pipe_base<pipe_middle<fact_t> > {
 };
 
 template <typename fact_t>
-struct pipe_begin : bits::pipe_base<pipe_begin<fact_t> > {
+class pipe_begin : public bits::pipe_base<pipe_begin<fact_t> > {
+public:
 	typedef fact_t factory_type;
 
 	inline pipe_begin() {
@@ -139,7 +143,8 @@ struct pipe_begin : bits::pipe_base<pipe_begin<fact_t> > {
 };
 
 template <typename fact_t>
-struct pullpipe_end : bits::pipe_base<pullpipe_end<fact_t> > {
+class pullpipe_end : public bits::pipe_base<pullpipe_end<fact_t> > {
+public:
 	typedef fact_t factory_type;
 
 	inline pullpipe_end() {
@@ -152,7 +157,8 @@ struct pullpipe_end : bits::pipe_base<pullpipe_end<fact_t> > {
 };
 
 template <typename fact_t>
-struct pullpipe_middle : bits::pipe_base<pullpipe_middle<fact_t> > {
+class pullpipe_middle : public bits::pipe_base<pullpipe_middle<fact_t> > {
+public:
 	typedef fact_t factory_type;
 
 	inline pullpipe_middle() {
@@ -177,7 +183,8 @@ struct pullpipe_middle : bits::pipe_base<pullpipe_middle<fact_t> > {
 };
 
 template <typename fact_t>
-struct pullpipe_begin : bits::pipe_base<pullpipe_begin<fact_t> > {
+class pullpipe_begin : public bits::pipe_base<pullpipe_begin<fact_t> > {
+public:
 	typedef fact_t factory_type;
 
 	inline pullpipe_begin() {

@@ -30,7 +30,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename child_t>
-struct pair_factory_base {
+class pair_factory_base {
+public:
 	pair_factory_base()
 		: m_maps(new segment_map::ptr[2])
 		, m_final(false)
@@ -116,7 +117,8 @@ template <typename fact_t>
 struct maybe_check_connected;
 
 template <class fact1_t, class fact2_t>
-struct pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
+class pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
+public:
 	template <typename dest_t>
 	struct generated {
 		typedef typename fact1_t::template generated<typename fact2_t::template generated<dest_t>::type>::type type;
@@ -142,12 +144,15 @@ struct pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > 
 };
 
 template <class fact1_t, class termfact2_t>
-struct termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
+class termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
+public:
 	typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
 
 	inline termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
-		: fact1(fact1), fact2(fact2) {
-		}
+		: fact1(fact1)
+		, fact2(fact2)
+	{
+	}
 
 	fact1_t fact1;
 	termfact2_t fact2;

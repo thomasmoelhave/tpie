@@ -24,33 +24,40 @@
 
 namespace tpie {
 
-struct merge_sort_not_ready : exception {
+class merge_sort_not_ready : exception {
+public:
 	inline merge_sort_not_ready() : tpie::exception("Merge sort did not have memory assigned") {}
 };
 
 namespace pipelining {
 
-struct not_initiator_segment : tpie::exception {
+class not_initiator_segment : tpie::exception {
+public:
 	inline not_initiator_segment() : tpie::exception("Not an initiator segment") {}
 };
 
-struct virtual_chunk_not_ready : tpie::exception {
+class virtual_chunk_not_ready : tpie::exception {
+public:
 	inline virtual_chunk_not_ready() : tpie::exception("Virtual receiver is missing a destination") {}
 };
 
-struct virtual_chunk_missing_begin : tpie::exception {
+class virtual_chunk_missing_begin : tpie::exception {
+public:
 	inline virtual_chunk_missing_begin() : tpie::exception("Virtual begin chunk contains no pipes") {}
 };
 
-struct virtual_chunk_missing_middle : tpie::exception {
+class virtual_chunk_missing_middle : tpie::exception {
+public:
 	inline virtual_chunk_missing_middle() : tpie::exception("Virtual middle chunk contains no pipes, and input type is not output type") {}
 };
 
-struct virtual_chunk_missing_end : tpie::exception {
+class virtual_chunk_missing_end : tpie::exception {
+public:
 	inline virtual_chunk_missing_end() : tpie::exception("Virtual end chunk contains no pipes") {}
 };
 
-struct non_authoritative_segment_map : public tpie::exception {
+class non_authoritative_segment_map : public tpie::exception {
+public:
 	non_authoritative_segment_map() : tpie::exception("Non-authoritative segment map") {}
 };
 

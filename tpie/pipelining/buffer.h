@@ -38,7 +38,7 @@ namespace bits {
 /// \brief Input segment for buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct buffer_input_t: public pipe_segment {
+class buffer_input_t: public pipe_segment {
 public:
 	typedef T item_type;
 	buffer_input_t(file_stream<T> & queue, const segment_token & token):
@@ -62,7 +62,8 @@ private:
 };
 
 template <typename T>
-struct buffer_pull_output_t: public pipe_segment {
+class buffer_pull_output_t: public pipe_segment {
+public:
 	typedef T item_type;
 
 	buffer_pull_output_t(file_stream<T> & queue, const segment_token & input_token)
@@ -91,7 +92,7 @@ struct buffer_pull_output_t: public pipe_segment {
 /// \brief Input segment for delayed buffer 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct delayed_buffer_input_t: public pipe_segment {
+class delayed_buffer_input_t: public pipe_segment {
 public:
 	typedef T item_type;
 	delayed_buffer_input_t(const segment_token & token):
@@ -116,7 +117,8 @@ private:
 /// \brief Output segment for delayed buffer 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-struct delayed_buffer_output_t: public pipe_segment{
+class delayed_buffer_output_t: public pipe_segment{
+public:
 	typedef typename dest_t::item_type item_type;
 
 	delayed_buffer_output_t(const dest_t &dest, const segment_token & input_token)
@@ -158,7 +160,8 @@ struct delayed_buffer_output_t: public pipe_segment{
 /// it inserts a phase boundary.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct passive_buffer {
+class passive_buffer {
+public:
 	typedef T item_type;
 	typedef bits::buffer_input_t<T> input_t;
 	typedef bits::buffer_pull_output_t<T> output_t;
@@ -196,7 +199,8 @@ private:
 };
 
 template <typename dest_t>
-struct delayed_buffer_t: public pipe_segment {
+class delayed_buffer_t: public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 	typedef bits::delayed_buffer_input_t<item_type> input_t;
 	typedef bits::delayed_buffer_output_t<dest_t> output_t;

@@ -30,10 +30,12 @@ namespace tpie {
 namespace pipelining {
 
 template <typename T>
-struct passive_reverser {
+class passive_reverser {
+public:
 	typedef std::vector<T> buf_t;
 
-	struct sink_t : public pipe_segment {
+	class sink_t : public pipe_segment {
+	public:
 		typedef T item_type;
 
 		inline sink_t(buf_t & buffer, const segment_token & token)
@@ -54,7 +56,8 @@ struct passive_reverser {
 	};
 
 	template <typename dest_t>
-	struct source_t : public pipe_segment {
+	class source_t : public pipe_segment {
+	public:
 		typedef T item_type;
 
 		inline source_t(const dest_t & dest, const buf_t & buffer, const segment_token & sink)
@@ -111,7 +114,8 @@ private:
 namespace bits {
 
 template <typename T>
-struct reverser_input_t: public pipe_segment {
+class reverser_input_t: public pipe_segment {
+public:
 	typedef T item_type;
 
 	inline reverser_input_t(const segment_token & token)
@@ -135,7 +139,8 @@ struct reverser_input_t: public pipe_segment {
 };
 
 template <typename dest_t>
-struct reverser_output_t: public  pipe_segment {
+class reverser_output_t: public  pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	reverser_output_t(const dest_t & dest, const segment_token & input_token)
@@ -170,7 +175,8 @@ struct reverser_output_t: public  pipe_segment {
 
 
 template <typename dest_t>
-struct reverser_t: public pipe_segment {
+class reverser_t: public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	typedef reverser_output_t<dest_t> output_t;

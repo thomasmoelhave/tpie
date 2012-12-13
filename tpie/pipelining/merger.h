@@ -27,7 +27,8 @@
 namespace tpie {
 
 template <typename T, typename pred_t>
-struct merger {
+class merger {
+public:
 	inline merger(pred_t pred)
 		: pq(0, predwrap(pred))
 	{
@@ -90,7 +91,8 @@ struct merger {
 			;
 	}
 
-	struct predwrap {
+	class predwrap {
+	public:
 		typedef std::pair<T, size_t> item_type;
 		typedef item_type first_argument_type;
 		typedef item_type second_argument_type;

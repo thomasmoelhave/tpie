@@ -27,7 +27,8 @@
 namespace {
 	typedef tpie::pipelining::bits::segment_map S;
 
-	struct name {
+	class name {
+	public:
 		inline name(S::ptr segmap, S::id_t id) : segmap(segmap), id(id) {}
 		S::ptr segmap;
 		S::id_t id;

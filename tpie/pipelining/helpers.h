@@ -32,7 +32,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-struct ostream_logger_t : public pipe_segment {
+class ostream_logger_t : public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
@@ -67,7 +68,8 @@ private:
 };
 
 template <typename dest_t>
-struct identity_t : public pipe_segment {
+class identity_t : public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
@@ -83,7 +85,8 @@ private:
 };
 
 template <typename source_t>
-struct pull_identity_t : public pipe_segment {
+class pull_identity_t : public pipe_segment {
+public:
 	typedef typename source_t::item_type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
@@ -104,7 +107,8 @@ private:
 };
 
 template <typename T>
-struct dummydest_t : public pipe_segment {
+class dummydest_t : public pipe_segment {
+public:
 	dummydest_t() : buffer(new T()) {}
 
 	typedef T item_type;
@@ -118,10 +122,12 @@ struct dummydest_t : public pipe_segment {
 };
 
 template <typename pushfact_t>
-struct push_to_pull {
+class push_to_pull {
+public:
 
 	template <typename source_t>
-	struct puller_t : public pipe_segment {
+	class puller_t : public pipe_segment {
+	public:
 
 		typedef typename source_t::item_type item_type;
 		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;
@@ -151,10 +157,12 @@ struct push_to_pull {
 };
 
 template <typename pullfact_t>
-struct pull_to_push {
+class pull_to_push {
+public:
 
 	template <typename dest_t>
-	struct pusher_t : public pipe_segment {
+	class pusher_t : public pipe_segment {
+	public:
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
 
@@ -179,7 +187,8 @@ struct pull_to_push {
 };
 
 template <typename T>
-struct bitbucket_t : public pipe_segment {
+class bitbucket_t : public pipe_segment {
+public:
 	typedef T item_type;
 
 	inline void push(const T &) {
@@ -187,11 +196,13 @@ struct bitbucket_t : public pipe_segment {
 };
 
 template <typename fact2_t>
-struct fork_t {
+class fork_t {
+public:
 	typedef typename fact2_t::generated_type dest2_t;
 
 	template <typename dest_t>
-	struct type : public pipe_segment {
+	class type : public pipe_segment {
+	public:
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
@@ -212,7 +223,8 @@ struct fork_t {
 };
 
 template <typename T>
-struct null_sink_t: public pipe_segment {
+class null_sink_t: public pipe_segment {
+public:
 	typedef T item_type;
 	void push(const T &) {}
 };

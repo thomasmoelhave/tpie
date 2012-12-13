@@ -34,13 +34,13 @@ namespace tpie {
 
 namespace pipelining {
 
-struct pipe_segment;
+class pipe_segment;
 
 namespace bits {
 
 class phase {
 public:
-	struct segment_graph;
+	class segment_graph;
 
 	phase();
 	phase(const phase &);
@@ -102,9 +102,10 @@ private:
 	void assign_minimum_memory() const;
 };
 
-struct segment_map;
+class segment_map;
 
-struct graph_traits {
+class graph_traits {
+public:
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::iterator phaseit;
 	typedef progress_types<true> Progress;

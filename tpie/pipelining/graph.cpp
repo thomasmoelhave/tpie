@@ -78,7 +78,8 @@ private:
 
 };
 
-struct phasegraph {
+class phasegraph {
+public:
 	typedef size_t node_t;
 	typedef int time_type;
 	typedef std::map<node_t, time_type> nodemap_t;
@@ -124,7 +125,8 @@ namespace pipelining {
 
 namespace bits {
 
-struct phase::segment_graph {
+class phase::segment_graph {
+public:
 	typedef pipe_segment * node_t;
 	typedef std::vector<node_t> neighbours_t;
 	typedef std::map<node_t, neighbours_t> edgemap_t;

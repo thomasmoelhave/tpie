@@ -40,7 +40,8 @@ namespace tpie {
 /// simple array traversal.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, bool UseProgress, typename pred_t = std::less<T> >
-struct merge_sorter {
+class merge_sorter {
+public:
 	typedef boost::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
