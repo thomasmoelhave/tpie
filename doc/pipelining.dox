@@ -1,9 +1,333 @@
 /**
-\page pipelining Pipelining order of operations
+\page pipelining Pipelining
 
-This overview is directed at pipe_segment implementers (that is, pipelining users).
+\section sec_pipeintro Pipelining concepts
 
-\section sec_noninitiator Non-initiator segments
+Some algorithms can be expressed in terms of stream sweeps. For instance, the
+Graham sweep algorithm for computing the convex hull of a set of points will
+sweep through the input points from left to right, maintaining the upper convex
+hull and the lower convex hull in a stack of points. Thus, the algorithm
+consists of four components: reading the input, sorting by x-coordinate,
+computing the upper and lower hull, and reporting the convex polygon.
+
+The pipelining framework is used to implement such so-called streaming
+algorithms that process streams of items in this manner. The programmer implements
+the specialized components needed for the algorithm (computing the upper and
+lower hull, for instance), and stitches them together with built-ins such as
+reading, sorting and writing.
+
+In this way, we may test each component individually and reuse them in multiple
+contexts. Without the TPIE pipelining framework, streaming algorithms are often
+implemented as monolithic classes with multiple interdependent methods that do
+not facilitate individual development and testing. Using virtual polymorphism
+may enable unit testing of components, but the virtual method speed penalty
+paid per item per operation is too high a price to pay in our case.
+
+What we want instead is a kind of compile-time polymorphism: Implementations of
+operations that use C++ generic programming to let the programmer mix and match
+at code time, but have the methods inlined and fused together at compile time.
+Without an underlying framework, this kind of architecture will lead to a lot
+of typedefs that are overly verbose and somewhat unmaintainable.
+
+The pipelining framework provides compile-time polymorphism along with high
+maintainability, high testability and low verbosity.
+
+\section sec_pipe_segment Pipe segments
+
+The unit of currency in pipelining is the pipe_segment implementations.
+Each pipe_segment performs either a general-purpose or specialized operation
+that is used in streaming algorithms.
+An implementation must derive from tpie::pipelining::pipe_segment and
+implement either \c push() or the \c pull() / \c can_pull() pair. In the first
+case, the pipe segment is called a <em>push segment</em>, and in the second
+case, it is called a <em>pull segment</em>. The exception to this rule is the
+<em>initiator</em> pipe_segment which overrides the virtual \c go() method.
+
+- A pipe_segment SHOULD aggregate the pipe_segment(s) it pushes to or pulls from,
+  and thus a pipe_segment is usually templated on its destination type.
+
+- A pipe_segment SHOULD be copyable such that any other copyable pipe_segment
+  may aggregate it.
+
+- A push/pull pipe_segment MUST declare a public typedef \c item_type, the type of
+  item accepted by \c push or returned by \c pull. This is used by built-in type
+  generic segments such as the sorter or the reverser.
+
+- At runtime, it MUST declare the pipe_segment(s) it pushes to or pulls from by
+  calling the methods \c pipe_segment::add_push_destination and
+  \c pipe_segment::add_pull_destination.
+
+- At runtime, it SHOULD declare a name by calling the method
+  \c pipe_segment::set_name.
+
+Thus, a \c pipe_segment implementation of a push segment may look as follows:
+
+\code
+template <typename dest_t>
+class hello_world_type : public tpie::pipelining::pipe_segment {
+	dest_t dest;
+public:
+	typedef tpie::memory_size_type item_type;
+
+	hello_world_type(dest_t dest)
+		: dest(dest)
+	{
+		add_push_destination(dest); // dest refers to the parameter
+		                            // dest and not the member
+		                            // this->dest, but in this case
+		                            // the framework does not care
+		set_name("My first pipe segment");
+	}
+
+	void push(const item_type & item) {
+		if ((item % 2) == 0) {
+			dest.push(item/2);
+		} else {
+			dest.push(3*item+1);
+		}
+	}
+};
+\endcode
+
+\section sec_pipelining_factory Factories
+
+In order to instantiate pipe_segment implementations, we need a factory.
+Usually, the built-in factories contained in \c factory_helpers.h will suffice:
+
+\code
+typedef tpie::pipelining::factory_0<hello_world_type> hello_world_factory;
+\endcode
+
+but in some cases it is helpful to implement one's own factory.
+
+We could implement a \c hello_world_factory as follows:
+
+\code
+class hello_world_factory : public tpie::pipelining::factory_base {
+public:
+	template <typename dest_t>
+	struct generated {
+		typedef hello_world_type<dest_t> type;
+	};
+
+	template <typename dest_t>
+	hello_world_type<dest_t> construct(const dest_t & dest) {
+		hello_world_type<dest_t> hw(dest);
+		this->init_segment(hw);
+		return hw;
+	}
+};
+\endcode
+
+For a terminating pipe_segment, which doesn't have a destination, we would
+implement a so called termfactory as follows:
+
+\code
+class goodbye_world_type : public tpie::pipelining::pipe_segment {
+public:
+	typedef tpie::memory_size_type item_type;
+	void push(item_type) {}
+};
+
+class goodbye_world_factory : public tpie::pipelining::factory_base {
+public:
+	typedef goodbye_world generated_type;
+
+	goodbye_world_type construct() {
+		goodbye_world_type gw;
+		this->init_segment(gw);
+		return gw;
+	}
+};
+\endcode
+
+\section sec_pipe_base Factory concatenation
+
+To use the above defined factories, we might write the following:
+
+\code
+using namespace tpie;
+using namespace tpie::pipelining;
+factory_1<input_t, file_stream<memory_size_type> &> fact0(inputstream);
+hello_world_factory fact1;
+goodbye_world_factory fact2;
+pipeline p = fact0.construct(fact1.construct(fact2.construct()));
+p();
+\endcode
+
+However, this is tedious, and so the pipelining framework provides several
+helper classes to ease the construction of pipelines, namely the descendants of
+\c pipe_base which are called \c pipe_begin, \c pipe_middle and \c pipe_end.
+
+\code
+inline pipe_middle<factory_0<hello_world_type> >
+hello_world() {
+	return factory_0<hello_world_type>();
+}
+
+inline pipe_end<termfactory_0<goodbye_world_type> >
+goodbye_world() {
+	return termfactory_0<goodbye_world_type>();
+}
+\endcode
+
+which we would use as follows:
+\code
+using namespace tpie;
+using namespace tpie::pipelining;
+pipeline p = input(inputstream) | hello_world() | goodbye_world();
+p();
+\endcode
+
+The three terms that are piped together have types \c pipe_begin,
+\c pipe_middle and \c pipe_end respectively. As one might expect, piping
+together a \c pipe_begin and a \c pipe_middle yields a new \c pipe_begin, and
+piping together a \c pipe_begin and a \c pipe_end yields a pipeline object
+(actually a \c pipeline_impl object).
+
+\section sec_phases Pipeline phases
+
+Consider the following implementation of a reverser:
+
+\code
+template <typename dest_t>
+class reverser_type : public tpie::pipelining::pipe_segment {
+	tpie::stack<point3d> points;
+	dest_t dest;
+public:
+	typedef point3d item_type;
+
+	reverser_type(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+	}
+
+	void push(point3d p) {
+		points.push(p);
+		set_name("Reverser",
+		         tpie::pipelining::PRIORITY_SIGNIFICANT);
+	}
+
+	void end() {
+		pipe_segment::end();
+		// Pushing items in end() is bad!
+		while (!points.empty()) {
+			dest.push(points.pop());
+		}
+	}
+};
+\endcode
+
+This implementation seems innocuous at first, but it is in fact very wasteful.
+Note that the reverser needs to know the entire stream before it can push
+anything to its destination. This means that when all items have been pushed to
+it, we could as well deallocate all the item buffers that earlier pipe segments
+may have used while processing. As well, we could have waited until the stack
+was ready to push before initializing later pipe segments in the pipeline.
+
+This is what pipelining phases are for. Phases are collections of pipe segments
+that do not have to operate synchronously. Pipe segments may establish an
+ordering of pipelining phases by adding dependencies to pipe segments in other
+phases.
+
+Common buffering operations that give rise to new phases are sorting and
+reversing, and these are already implemented in the pipelining framework.
+
+For an idea of how to properly implement a buffering pipe segment such as a
+reverser using \c pipe_segment::add_dependency, see
+\c tpie/pipelining/reverser.h.
+
+\section sec_chunks Virtual chunks
+
+So far, all pipelining code we have seen has been heavily templated, and in
+practice, debugging and compiler errors will not be easy on the eyes.
+Also, with the current setup we have seen, it is not easy (if at all possible)
+to distribute pipe_segment implementations across compiled objects.
+
+However, the pipelining framework supports <em>virtual chunks</em> which
+operate on the same level as, but are orthogonal to, pipeline phases as
+discussed in the previous section.
+
+Whereas phases are computed at runtime and define the runtime order in which
+the pipe segment implementations have begin, go and end called, virtual chunks
+exist at compile time and are fused together at runtime.
+
+Let us look at an example of how to use virtual chunks. The following is an
+example of an HTML handler with optional parsing and weeding. If weeding is
+requested (noText or noDynamic is set to true), the input HTML is parsed.
+Otherwise, it is fed directly to the output without parsing.
+The items passed around are html_tokens (representing a context-free HTML
+token; text, start node, end node, attribute, etc.) and tag_paths (representing
+a context-sensitive HTML leaf node; a token as well as the path from the root
+to the token).
+
+\code
+virtual_chunk_begin<html_token> input_pipe;
+
+virtual_chunk<html_token, tag_path> parse_pipe;
+virtual_chunk<tag_path, tag_path> remove_text;
+virtual_chunk<tag_path, tag_path> remove_dynamic;
+
+virtual_chunk_end<tag_path> reassembling_output;
+virtual_chunk_end<html_token> simple_output;
+
+if (!url.empty()) {
+	input_pipe = curl_input(url) // pipe_begin
+	| curl_body_extract()        // pipe_middle
+	| html_scanner();            // pipe_middle
+	// result is boxed into a virtual chunk
+
+} else {
+	input_pipe = default_tag_generator();
+	// pipe_begin boxed into virtual chunk
+}
+
+pipeline p;
+
+if (noText || noDynamic) {
+	parse_pipe = html_parser();
+
+	if (noText)
+		remove_text = html_text_weeder();
+
+	if (noDynamic)
+		remove_dynamic = html_javascript_weeder()
+		| html_css_weeder();
+
+	reassembling_output = html_reassembler();
+
+	p = input_pipe         // virtual_chunk_begin
+	| parse_pipe           // virtual_chunk_middle
+	| remove_text          // optional virtual_chunk_middle
+	| remove_dynamic       // optional virtual_chunk_middle
+	| reassembling_output; // virtual_chunk_end
+} else {
+	simple_output = tag_printer();
+
+	p = input_pipe         // virtual_chunk_begin
+	| simple_output;       // virtual_chunk_end
+}
+
+p(); // invoking the pipeline as without chunks
+\endcode
+
+Usually, supporting virtual chunks requires no additional work on the
+pipe segment end, as long as the pipe segment is templated to accept any
+pipe segment as destination.
+
+In addition to constructing virtual chunks inline from pipe_bases, virtual
+chunks may be returned from a function in an implementation object out into a
+using object. This way, the using object does not have to define the pipe
+segment implementations - all it has to know is the type of object passed
+between the virtual chunks.
+
+If the above options were implemented using compile-time switching on template
+parameters, the emitted code size would be eight times as large, corresponding
+to the eight different combinations of choices for noText, noDynamic and
+url.empty().
+
+\section sec_noninitiator Order of operations
 
 0. The following virtual methods may be overridden in the implementation:
 
