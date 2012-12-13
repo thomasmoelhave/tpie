@@ -33,7 +33,7 @@ inline void segfault() {
 
 memory_manager * mm = 0;
 
-memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_enforce(ENFORCE_WARN), m_nextWarning(0) {}
+memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN) {}
 
 size_t memory_manager::available() const throw() {
 	size_t used = m_used;
