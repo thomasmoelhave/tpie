@@ -32,6 +32,7 @@ namespace P = tpie::pipelining;
 
 template <typename T>
 struct point {
+	typedef T coord_type;
 	T x;
 	T y;
 
@@ -61,216 +62,205 @@ bool right_turn(const point<T> & p1, const point<T> & p2, const point<T> & p3) {
 
 // Second part of the computation. Reads the two stacks to construct the convex
 // polygon. Outputs duplicates.
-template <typename T>
-class graham_scan_reconstruct_type {
+template <typename dest_t>
+class graham_scan_reconstruct_type : public P::pipe_segment {
+	typedef typename dest_t::item_type Pt;
+
+	TP::temp_file * uhTmp;
+
+	/** Upper hull */
+	TP::file_stream<Pt> * uh;
+
+	/** Lower hull */
+	TP::stack<Pt> * lh;
+
+	dest_t dest;
+
 public:
-	template <typename dest_t>
-	class type : public P::pipe_segment {
-		typedef point<T> Pt;
+	typedef Pt item_type;
 
-		TP::temp_file * uhTmp;
+	graham_scan_reconstruct_type(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+		set_minimum_memory(sizeof(TP::temp_file)
+						   + TP::stack<Pt>::memory_usage()
+						   + TP::file_stream<Pt>::memory_usage());
+	}
 
-		/** Upper hull */
-		TP::file_stream<Pt> * uh;
+	void set_predecessor(P::pipe_segment & pred) {
+		add_dependency(pred);
+	}
 
-		/** Lower hull */
-		TP::stack<Pt> * lh;
+	virtual void begin() /*override*/ {
+		uhTmp = fetch<TP::temp_file *>("uhTmp");
+		lh = fetch<TP::stack<Pt> *>("lh");
+		uh = TP::tpie_new<TP::file_stream<Pt> >();
+		uh->open(*uhTmp);
 
-		dest_t dest;
+		std::cerr << "Upper hull: " << uh->size() << ", lower: " << lh->size() << std::endl;
+		TP::stream_size_type items = uh->size() + lh->size();
+		set_steps(items);
+		forward<TP::stream_size_type>("items", items);
+	}
 
-	public:
-		type(const dest_t & dest)
-			: dest(dest)
-		{
-			add_push_destination(dest);
-			set_minimum_memory(sizeof(TP::temp_file)
-							   + TP::stack<Pt>::memory_usage()
-							   + TP::file_stream<Pt>::memory_usage());
+	virtual void go() /*override*/ {
+		while (uh->can_read()) {
+			dest.push(uh->read());
+			step();
 		}
-
-		void set_predecessor(P::pipe_segment & pred) {
-			add_dependency(pred);
+		while (!lh->empty()) {
+			dest.push(lh->pop());
+			step();
 		}
+	}
 
-		virtual void begin() /*override*/ {
-			uhTmp = fetch<TP::temp_file *>("uhTmp");
-			lh = fetch<TP::stack<Pt> *>("lh");
-			uh = TP::tpie_new<TP::file_stream<Pt> >();
-			uh->open(*uhTmp);
-
-			TP::stream_size_type items = uh->size() + lh->size();
-			set_steps(items);
-			forward<TP::stream_size_type>("items", items);
-		}
-
-		virtual void go() /*override*/ {
-			while (uh->can_read()) {
-				dest.push(uh->read());
-				step();
-			}
-			while (!lh->empty()) {
-				dest.push(lh->pop());
-				step();
-			}
-		}
-
-		virtual void end() /*override*/ {
-			using TP::tpie_delete;
-			tpie_delete(lh);
-			tpie_delete(uh);
-			tpie_delete(uhTmp);
-		}
-	};
+	virtual void end() /*override*/ {
+		using TP::tpie_delete;
+		tpie_delete(lh);
+		tpie_delete(uh);
+		tpie_delete(uhTmp);
+	}
 };
 
 // First part of computation. Assumes input is sorted by x coordinate. Must be
 // followed by a graham_scan_reconstruct_type instance.
-template <typename T>
-class graham_scan_type {
+template <typename dest_t>
+class graham_scan_type;
+template <typename rdest_t>
+class graham_scan_type<graham_scan_reconstruct_type<rdest_t> > : public P::pipe_segment {
+	typedef graham_scan_reconstruct_type<rdest_t> dest_t;
+	typedef typename dest_t::item_type Pt;
+	typedef typename Pt::coord_type T;
+
+	TP::temp_file * uhTmp;
+
+	/** Upper hull */
+	TP::stack<Pt> * uh;
+
+	/** Lower hull */
+	TP::stack<Pt> * lh;
+
+	dest_t dest;
+
 public:
-	template <typename dest_t>
-	class type;
-	template <typename rdest_t>
-	class type<typename graham_scan_reconstruct_type<T>::template type<rdest_t> > : public P::pipe_segment {
-		typedef typename graham_scan_reconstruct_type<T>::template type<rdest_t> dest_t;
-		typedef point<T> Pt;
+	typedef Pt item_type;
 
-		TP::temp_file * uhTmp;
+	graham_scan_type(const dest_t & dest)
+		: dest(dest)
+	{
+		this->dest.set_predecessor(*this);
+		set_minimum_memory(sizeof(TP::temp_file)
+						   + 2*TP::stack<Pt>::memory_usage());
+	}
 
-		/** Upper hull */
-		TP::stack<Pt> * uh;
+	virtual void begin() /*override*/ {
+		using TP::tpie_new;
+		uhTmp = tpie_new<TP::temp_file>();
+		uh = tpie_new<TP::stack<Pt> >(*uhTmp);
+		lh = tpie_new<TP::stack<Pt> >();
+		forward("uhTmp", uhTmp);
+		forward("lh", lh);
+	}
 
-		/** Lower hull */
-		TP::stack<Pt> * lh;
-
-		dest_t dest;
-
-	public:
-		typedef Pt item_type;
-
-		type(const dest_t & dest)
-			: dest(dest)
-		{
-			this->dest.set_predecessor(*this);
-			set_minimum_memory(sizeof(TP::temp_file)
-							   + 2*TP::stack<Pt>::memory_usage());
+	void push(Pt pt) {
+		if (uh->empty()) {
+			std::clog << "Add first point." << std::endl;
+			uh->push(pt);
+			lh->push(pt);
+		} else {
+			add_upper(pt);
+			add_lower(pt);
 		}
+	}
 
-		virtual void begin() /*override*/ {
-			using TP::tpie_new;
-			uhTmp = tpie_new<TP::temp_file>();
-			uh = tpie_new<TP::stack<Pt> >(*uhTmp);
-			lh = tpie_new<TP::stack<Pt> >();
-			forward("uhTmp", uhTmp);
-			forward("lh", lh);
+	virtual void end() /*override*/ {
+		TP::tpie_delete(uh);
+	}
+
+private:
+	void add_upper(Pt pt) {
+		add_hull(pt, uh, left_turn<T>);
+	}
+
+	void add_lower(Pt pt) {
+		add_hull(pt, lh, right_turn<T>);
+	}
+
+	template <typename Pred>
+	void add_hull(Pt pt, TP::stack<Pt> * stack, Pred pred) {
+		Pt p2 = stack->top();
+		if (p2 == pt) {
+			// No need to have both points on stack.
+			return;
 		}
-
-		void push(Pt pt) {
-			if (uh->empty()) {
-				// Add first point.
-				uh->push(pt);
-				lh->push(pt);
-			} else {
-				add_upper(pt);
-				add_lower(pt);
-			}
-		}
-
-		virtual void end() /*override*/ {
-			TP::tpie_delete(uh);
-		}
-
-	private:
-		void add_upper(Pt pt) {
-			add_hull(pt, uh, left_turn<T>);
-		}
-
-		void add_lower(Pt pt) {
-			add_hull(pt, lh, right_turn<T>);
-		}
-
-		template <typename Pred>
-		void add_hull(Pt pt, TP::stack<Pt> * stack, Pred pred) {
-			Pt p2 = stack->top();
-			if (p2 == pt) {
-				// No need to have both points on stack.
-				return;
-			}
-			stack->pop();
-			Pt p1 = stack->empty() ? p2 : stack->pop();
-			while (true) {
-				if (pred(p1, p2, pt)) {
-					if (!stack->empty()) {
-						p2 = p1;
-						p1 = stack->pop();
-					} else {
-						stack->push(p1);
-						if (p1 != pt) {
-							stack->push(pt);
-						}
-						break;
-					}
+		stack->pop();
+		Pt p1 = stack->empty() ? p2 : stack->pop();
+		while (true) {
+			if (pred(p1, p2, pt)) {
+				if (!stack->empty()) {
+					p2 = p1;
+					p1 = stack->pop();
 				} else {
 					stack->push(p1);
-					stack->push(p2);
-					stack->push(pt);
+					if (p1 != pt) {
+						stack->push(pt);
+					}
 					break;
 				}
+			} else {
+				stack->push(p1);
+				stack->push(p2);
+				stack->push(pt);
+				break;
 			}
 		}
-	};
+	}
 };
 
-template <typename T>
-P::pipe_middle<P::tempfactory_0<graham_scan_type<T> > >
+P::pipe_middle<P::factory_0<graham_scan_type> >
 graham_scan_in() {
-	return P::tempfactory_0<graham_scan_type<T> >();
+	return P::factory_0<graham_scan_type>();
 }
 
-template <typename T>
-P::pipe_middle<P::tempfactory_0<graham_scan_reconstruct_type<T> > >
+P::pipe_middle<P::factory_0<graham_scan_reconstruct_type> >
 graham_scan_out() {
-	return P::tempfactory_0<graham_scan_reconstruct_type<T> >();
+	return P::factory_0<graham_scan_reconstruct_type>();
 }
 
 // Aggregates two coordinates into one point.
-template <typename T>
-class make_points_type {
+template <typename dest_t>
+class make_points_type : public P::pipe_segment {
+	typedef typename dest_t::item_type Pt;
+
+	bool flag;
+	Pt buffer;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type : public P::pipe_segment {
-		typedef point<T> Pt;
+	typedef typename Pt::coord_type item_type;
 
-		bool flag;
-		Pt buffer;
-		dest_t dest;
-	public:
-		typedef T item_type;
+	make_points_type(dest_t dest)
+		: flag(false)
+		, dest(dest)
+	{
+		add_push_destination(dest);
+	}
 
-		type(dest_t dest)
-			: flag(false)
-			, dest(dest)
-		{
-			add_push_destination(dest);
+	void push(item_type coord) {
+		if (!flag) {
+			buffer.x = coord;
+			flag = true;
+		} else {
+			buffer.y = coord;
+			dest.push(buffer);
+			flag = false;
 		}
-
-		void push(T coord) {
-			if (!flag) {
-				buffer.x = coord;
-				flag = true;
-			} else {
-				buffer.y = coord;
-				dest.push(buffer);
-				flag = false;
-			}
-		}
-	};
+	}
 };
 
-template <typename T>
-P::pipe_middle<P::tempfactory_0<make_points_type<T> > >
+P::pipe_middle<P::factory_0<make_points_type> >
 make_points() {
-	return P::tempfactory_0<make_points_type<T> >();
+	return P::factory_0<make_points_type>();
 }
 
 // Print and verify polygon. Weeds out duplicates.
@@ -281,7 +271,7 @@ class print_points_type : public P::pipe_segment {
 	Pt buf[3];
 
 	void invalid() {
-		std::cout << "Not right turn" << std::endl;
+		std::clog << "Not right turn" << std::endl;
 	}
 
 public:
@@ -291,6 +281,7 @@ public:
 	}
 
 	void push(Pt pt) {
+		std::cerr << pt.x << ' ' << pt.y << '\n';
 		switch (state) {
 			case 0:
 				if (pt == buf[2]) return;
@@ -336,12 +327,12 @@ int main() {
 	{
 		P::pipeline p
 			= P::push_input_iterator(std::istream_iterator<int>(std::cin), std::istream_iterator<int>())
-			| make_points<int>()
+			| make_points()
 			| P::pipesort()
-			| graham_scan_in<int>()
-			| graham_scan_out<int>()
+			| graham_scan_in()
+			| graham_scan_out()
 			| print_points<int>();
-		p.plot(std::cout);
+		p.plot(std::clog);
 		p();
 	}
 	TP::tpie_finish();
