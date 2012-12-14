@@ -22,6 +22,7 @@
 
 #include <tpie/types.h>
 #include <tpie/pipelining/priority_type.h>
+#include <tpie/pipelining/factory_base.h>
 
 namespace tpie {
 
@@ -57,6 +58,13 @@ public:
 	void push_breadcrumb(const std::string & n) {
 		self().fact1.push_breadcrumb(n);
 		self().fact2.push_breadcrumb(n);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  See factory_base::hook_initialization.
+	///////////////////////////////////////////////////////////////////////////
+	void hook_initialization(factory_init_hook * hook) {
+		self().hook_initialization_impl(hook);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -139,6 +147,11 @@ public:
 		maybe_check_connected<fact2_t>::check(fact2);
 	}
 
+	void hook_initialization_impl(factory_init_hook * hook) {
+		fact1.hook_initialization(hook);
+		fact2.hook_initialization(hook);
+	}
+
 	fact1_t fact1;
 	fact2_t fact2;
 };
@@ -164,6 +177,11 @@ public:
 	void recursive_connected_check() const {
 		maybe_check_connected<fact1_t>::check(fact1);
 		maybe_check_connected<termfact2_t>::check(fact2);
+	}
+
+	void hook_initialization_impl(factory_init_hook * hook) {
+		fact1.hook_initialization(hook);
+		fact2.hook_initialization(hook);
 	}
 };
 

@@ -391,7 +391,8 @@ void phase::go(progress_indicator_base & pi) {
 	stream_size_type totalSteps = 0;
 	for (size_t i = 0; i < beginOrder.size(); ++i) {
 		beginOrder[i]->begin();
-		beginOrder[i]->set_progress_indicator(&pi);
+		if (beginOrder[i]->get_progress_indicator() == 0)
+			beginOrder[i]->set_progress_indicator(&pi);
 		totalSteps += beginOrder[i]->get_steps();
 	}
 	pi.init(totalSteps);
