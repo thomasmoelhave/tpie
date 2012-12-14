@@ -37,7 +37,8 @@ namespace bits {
 /// file_stream input generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-struct input_t : public pipe_segment {
+class input_t : public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
@@ -48,14 +49,20 @@ struct input_t : public pipe_segment {
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		forward("items", fs.size());
+		if (fs.is_open()) {
+			forward("items", fs.size());
+		} else {
+			forward("items", 0);
+		}
 		set_steps(fs.size());
 	}
 
 	virtual void go() /*override*/ {
-		while (fs.can_read()) {
-			dest.push(fs.read());
-			step();
+		if (fs.is_open()) {
+			while (fs.can_read()) {
+				dest.push(fs.read());
+				step();
+			}
 		}
 	}
 
@@ -70,7 +77,8 @@ private:
 /// file_stream pull input generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct pull_input_t : public pipe_segment {
+class pull_input_t : public pipe_segment {
+public:
 	typedef T item_type;
 
 	inline pull_input_t(file_stream<T> & fs) : fs(fs) {
@@ -101,7 +109,8 @@ struct pull_input_t : public pipe_segment {
 /// file_stream output terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct output_t : public pipe_segment {
+class output_t : public pipe_segment {
+public:
 	typedef T item_type;
 
 	inline output_t(file_stream<T> & fs) : fs(fs) {
@@ -122,7 +131,8 @@ private:
 /// file_stream output pull data source.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename source_t>
-struct pull_output_t : public pipe_segment {
+class pull_output_t : public pipe_segment {
+public:
 	typedef typename source_t::item_type item_type;
 
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
@@ -144,7 +154,8 @@ struct pull_output_t : public pipe_segment {
 };
 
 template <typename T>
-struct tee_t {
+class tee_t {
+public:
 	template <typename dest_t>
 	class type: public pipe_segment {
 	public:

@@ -17,16 +17,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+/**
+ * Given a list of integers a0, a1, a2, ... an on standard input,
+ * sort the numbers and add the ith and the (n-i)th number in the sorted order
+ * and print the sums to standard out.
+ */
+
 #include <tpie/tpie.h>
 #include <tpie/pipelining.h>
 #include <boost/random.hpp>
 #include <tpie/file_stream.h>
 #include <iostream>
 #include <sstream>
+#include <iterator>
 #include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
+using namespace std;
 
 template <typename src_pipe_t>
 class add_t {
@@ -65,11 +73,11 @@ add(src_pipe_t srcpipe) {
 void go() {
 	passive_buffer<int> buf;
 	pipeline p
-		= scanf_ints()
-		| pipesort()
-		| fork(buf.input())
-		| reverser()
-		| add(buf.output())
+		= push_input_iterator(istream_iterator<int>(cin), istream_iterator<int>())
+		| pipesort()         // sort the input
+		| fork(buf.input())  // buffer the sorted items
+		| reverser()         // reverse the items
+		| add(buf.output())  // add the reversed and the buffered sequence
 		| printf_ints();
 	p.plot();
 	p();

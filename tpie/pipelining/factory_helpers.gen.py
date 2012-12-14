@@ -39,7 +39,8 @@ def footer():
 	p("""} // namespace pipelining
 } // namespace tpie
 
-#endif // __TPIE_PIPELINING_FACTORY_HELPERS_H__""")
+#endif // __TPIE_PIPELINING_FACTORY_HELPERS_H__
+""")
 
 def gen(types, terminal, templated):
 	indices = range(1, 1+types)
@@ -80,7 +81,8 @@ def gen(types, terminal, templated):
 		p(", typename T%s" % (str(x),))
 	print ">"
 
-	print "struct " + cl + " : public factory_base {"
+	print "class " + cl + " : public factory_base {"
+	print "public:"
 	if terminal:
 		print "\ttypedef %s generated_type;\n" % (generator,)
 	else:

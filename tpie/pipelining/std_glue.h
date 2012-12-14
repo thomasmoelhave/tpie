@@ -33,7 +33,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-struct input_vector_t : public pipe_segment {
+class input_vector_t : public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
@@ -60,7 +61,8 @@ private:
 };
 
 template <typename T>
-struct output_vector_t : public pipe_segment {
+class output_vector_t : public pipe_segment {
+public:
 	typedef T item_type;
 
 	inline output_vector_t(std::vector<T> & output) : output(output) {

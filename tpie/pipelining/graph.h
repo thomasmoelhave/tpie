@@ -34,13 +34,13 @@ namespace tpie {
 
 namespace pipelining {
 
-struct pipe_segment;
+class pipe_segment;
 
 namespace bits {
 
 class phase {
 public:
-	struct segment_graph;
+	class segment_graph;
 
 	phase();
 	phase(const phase &);
@@ -56,7 +56,7 @@ public:
 
 	void add(pipe_segment * s);
 
-	void add_successor(pipe_segment * from, pipe_segment * to);
+	void add_successor(pipe_segment * from, pipe_segment * to, bool push);
 
 	inline size_t count(pipe_segment * s) {
 		for (size_t i = 0; i < m_segments.size(); ++i) {
@@ -84,7 +84,13 @@ public:
 	std::string get_unique_id() const;
 
 private:
-	std::auto_ptr<segment_graph> g;
+	/** Graph of nodes in this phase. Initialised in constructor. Populated
+	 * by graph_traits::calc_phases using add and add_successor. */
+	std::auto_ptr<segment_graph> itemFlowGraph;
+
+	/** Graph of nodes in this phase. Initialised in constructor. Populated
+	 * by graph_traits::calc_phases using add and add_successor. */
+	std::auto_ptr<segment_graph> actorGraph;
 
 	/** a pointer is a weak reference to something that isn't reference counted. */
 	std::vector<pipe_segment *> m_segments;
@@ -96,12 +102,15 @@ private:
 	void assign_minimum_memory() const;
 };
 
-struct segment_map;
+class segment_map;
 
-struct graph_traits {
+class graph_traits {
+public:
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::iterator phaseit;
 	typedef progress_types<true> Progress;
+
+	static memory_size_type memory_usage(size_t phases);
 
 	graph_traits(const segment_map & map);
 

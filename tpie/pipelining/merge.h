@@ -37,11 +37,13 @@ namespace bits {
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename fact_t>
-struct merge_t {
+class merge_t {
+public:
 	typedef typename fact_t::generated_type pull_t;
 
 	template <typename dest_t>
-	struct type : public pipe_segment {
+	class type : public pipe_segment {
+	public:
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {

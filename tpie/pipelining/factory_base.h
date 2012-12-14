@@ -24,7 +24,8 @@ namespace tpie {
 
 namespace pipelining {
 
-struct factory_base {
+class factory_base {
+public:
 	factory_base() : m_amount(0), m_set(false) {
 	}
 

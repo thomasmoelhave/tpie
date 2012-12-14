@@ -85,9 +85,9 @@ namespace tpie {
 
 namespace pipelining {
 
-struct pipe_segment;
+class pipe_segment;
 
-struct segment_token;
+class segment_token;
 
 namespace bits {
 
@@ -97,7 +97,8 @@ enum segment_relation {
 	depends
 };
 
-struct segment_map {
+class segment_map {
+public:
 	typedef uint64_t id_t;
 	typedef pipe_segment * val_t;
 
@@ -174,7 +175,10 @@ struct segment_map {
 
 	void dump(std::ostream & os = std::cout) const;
 
-	// Called by graph_traits
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method called by graph_traits. Iterates through the
+	/// edge lists and calls add_successor on each pipe_segment in the phase.
+	///////////////////////////////////////////////////////////////////////////
 	void send_successors() const;
 
 private:
@@ -203,7 +207,8 @@ private:
 
 } // namespace bits
 
-struct segment_token {
+class segment_token {
+public:
 	typedef bits::segment_map::id_t id_t;
 	typedef bits::segment_map::val_t val_t;
 

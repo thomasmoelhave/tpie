@@ -71,7 +71,8 @@ protected:
 /// Templated subclass of pipeline_base for push pipelines.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-struct pipeline_impl : public pipeline_base {
+class pipeline_impl : public pipeline_base {
+public:
 	typedef typename fact_t::generated_type gen_t;
 
 	inline pipeline_impl(const fact_t & factory)
@@ -97,7 +98,8 @@ private:
 /// This class is used to avoid writing the template argument in the
 /// pipeline_impl type.
 ///////////////////////////////////////////////////////////////////////////////
-struct pipeline {
+class pipeline {
+public:
 	template <typename T>
 	inline pipeline(const T & from) {
 		p = new T(from);

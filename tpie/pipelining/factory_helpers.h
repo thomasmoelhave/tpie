@@ -12,7 +12,8 @@ namespace pipelining {
 /// Push segment factory for 0-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R>
-struct factory_0 : public factory_base {
+class factory_0 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -31,7 +32,8 @@ struct factory_0 : public factory_base {
 /// Push segment factory for 0-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder>
-struct tempfactory_0 : public factory_base {
+class tempfactory_0 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -50,7 +52,8 @@ struct tempfactory_0 : public factory_base {
 /// Push segment factory for 1-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1>
-struct factory_1 : public factory_base {
+class factory_1 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -73,7 +76,8 @@ private:
 /// Push segment factory for 1-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1>
-struct tempfactory_1 : public factory_base {
+class tempfactory_1 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -96,7 +100,8 @@ private:
 /// Push segment factory for 2-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2>
-struct factory_2 : public factory_base {
+class factory_2 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -120,7 +125,8 @@ private:
 /// Push segment factory for 2-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2>
-struct tempfactory_2 : public factory_base {
+class tempfactory_2 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -144,7 +150,8 @@ private:
 /// Push segment factory for 3-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3>
-struct factory_3 : public factory_base {
+class factory_3 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -169,7 +176,8 @@ private:
 /// Push segment factory for 3-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3>
-struct tempfactory_3 : public factory_base {
+class tempfactory_3 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -194,7 +202,8 @@ private:
 /// Push segment factory for 4-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4>
-struct factory_4 : public factory_base {
+class factory_4 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -220,7 +229,8 @@ private:
 /// Push segment factory for 4-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3, typename T4>
-struct tempfactory_4 : public factory_base {
+class tempfactory_4 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -246,7 +256,8 @@ private:
 /// Push segment factory for 5-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4, typename T5>
-struct factory_5 : public factory_base {
+class factory_5 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -273,7 +284,8 @@ private:
 /// Push segment factory for 5-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5>
-struct tempfactory_5 : public factory_base {
+class tempfactory_5 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -300,7 +312,8 @@ private:
 /// Push segment factory for 6-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-struct factory_6 : public factory_base {
+class factory_6 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -328,7 +341,8 @@ private:
 /// Push segment factory for 6-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-struct tempfactory_6 : public factory_base {
+class tempfactory_6 : public factory_base {
+public:
 	template<typename dest_t>
 	struct generated {
 		typedef typename Holder::template type<dest_t> type;
@@ -356,7 +370,8 @@ private:
 /// Push segment factory for 0-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R>
-struct termfactory_0 : public factory_base {
+class termfactory_0 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline R construct() const {
@@ -371,7 +386,8 @@ struct termfactory_0 : public factory_base {
 /// Push segment factory for 1-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1>
-struct termfactory_1 : public factory_base {
+class termfactory_1 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline termfactory_1(T1 t1) : t1(t1) {}
@@ -390,7 +406,8 @@ private:
 /// Push segment factory for 2-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2>
-struct termfactory_2 : public factory_base {
+class termfactory_2 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
@@ -410,7 +427,8 @@ private:
 /// Push segment factory for 3-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3>
-struct termfactory_3 : public factory_base {
+class termfactory_3 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline termfactory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
@@ -431,7 +449,8 @@ private:
 /// Push segment factory for 4-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3, typename T4>
-struct termfactory_4 : public factory_base {
+class termfactory_4 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline termfactory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
@@ -453,7 +472,8 @@ private:
 /// Push segment factory for 5-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3, typename T4, typename T5>
-struct termfactory_5 : public factory_base {
+class termfactory_5 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline termfactory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
@@ -476,7 +496,8 @@ private:
 /// Push segment factory for 6-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-struct termfactory_6 : public factory_base {
+class termfactory_6 : public factory_base {
+public:
 	typedef R generated_type;
 
 	inline termfactory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}

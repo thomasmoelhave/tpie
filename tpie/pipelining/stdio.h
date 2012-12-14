@@ -32,7 +32,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-struct scanf_ints_t : public pipe_segment {
+class scanf_ints_t : public pipe_segment {
+public:
 	typedef int item_type;
 
 	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
@@ -51,7 +52,8 @@ private:
 	dest_t dest;
 };
 
-struct printf_ints_t : public pipe_segment {
+class printf_ints_t : public pipe_segment {
+public:
 	typedef int item_type;
 
 	inline printf_ints_t() {

@@ -38,10 +38,10 @@ namespace pipelining {
 namespace bits {
 
 template <typename T, typename pred_t>
-struct sort_calc_t;
+class sort_calc_t;
 
 template <typename T, typename pred_t>
-struct sort_input_t;
+class sort_input_t;
 
 template <typename T, typename pred_t>
 class sort_output_base : public pipe_segment {
@@ -77,7 +77,8 @@ protected:
 /// \tparam dest_t   Destination segment type.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct sort_pull_output_t : public sort_output_base<T, pred_t> {
+class sort_pull_output_t : public sort_output_base<T, pred_t> {
+public:
 	/** Type of items sorted. */
 	typedef T item_type;
 	/** Type of the merge sort implementation used. */
@@ -96,6 +97,7 @@ struct sort_pull_output_t : public sort_output_base<T, pred_t> {
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		this->set_steps(this->m_sorter->item_count());
+		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
 
 	inline bool can_pull() const {
@@ -120,7 +122,8 @@ protected:
 /// \tparam dest_t   Destination segment type.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename dest_t>
-struct sort_output_t : public sort_output_base<typename dest_t::item_type, pred_t> {
+class sort_output_t : public sort_output_base<typename dest_t::item_type, pred_t> {
+public:
 	/** Type of items sorted. */
 	typedef typename dest_t::item_type item_type;
 	/** Base class */
@@ -143,6 +146,7 @@ struct sort_output_t : public sort_output_base<typename dest_t::item_type, pred_
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		this->set_steps(this->m_sorter->item_count());
+		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
 
 	virtual void go() /*override*/ {
@@ -168,7 +172,8 @@ private:
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct sort_calc_t : public pipe_segment {
+class sort_calc_t : public pipe_segment {
+public:
 	/** Type of items sorted. */
 	typedef T item_type;
 	/** Type of the merge sort implementation used. */
@@ -249,7 +254,8 @@ private:
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct sort_input_t : public pipe_segment {
+class sort_input_t : public pipe_segment {
+public:
 	/** Type of items sorted. */
 	typedef T item_type;
 	/** Type of the merge sort implementation used. */
@@ -303,7 +309,8 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort factory using std::less<T> as comparator.
 ///////////////////////////////////////////////////////////////////////////////
-struct default_pred_sort_factory : public factory_base {
+class default_pred_sort_factory : public factory_base {
+public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Declare generated type based on destination type.
@@ -335,7 +342,8 @@ struct default_pred_sort_factory : public factory_base {
 /// \brief Sort factory using the given predicate as comparator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
-struct sort_factory : public factory_base {
+class sort_factory : public factory_base {
+public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Declare generated type based on destination type.
@@ -396,7 +404,8 @@ namespace bits {
 /// \brief Factory for the passive sorter input segment.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct passive_sorter_factory : public factory_base {
+class passive_sorter_factory : public factory_base {
+public:
 	typedef sort_pull_output_t<T, pred_t> output_t;
 	typedef sort_calc_t<T, pred_t> calc_t;
 	typedef sort_input_t<T, pred_t> input_t;
@@ -413,7 +422,7 @@ struct passive_sorter_factory : public factory_base {
 		calc_t calc(output->get_sorter());
 		output->set_calc_segment(calc);
 		this->init_segment(calc);
-		input_t input(calc, pred_t());
+		input_t input(calc);
 		this->init_segment(input);
 		return input;
 	}
@@ -426,7 +435,8 @@ private:
 /// \brief Factory for the passive sorter output segment.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-struct passive_sorter_factory_2 : public factory_base {
+class passive_sorter_factory_2 : public factory_base {
+public:
 	typedef sort_pull_output_t<T, pred_t> output_t;
 	typedef output_t generated_type;
 
@@ -464,8 +474,9 @@ public:
 	typedef bits::sort_pull_output_t<item_type, pred_t> output_t;
 
 	inline passive_sorter(pred_t pred = pred_t())
-		: m_output(pred)
-		, m_sorter(new sorter_t())
+		: m_sorter(new sorter_t())
+		, pred(pred)
+		, m_output(pred)
 	{
 	}
 
@@ -490,7 +501,7 @@ private:
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 
-	friend struct bits::passive_sorter_factory_2<T, pred_t>;
+	friend class bits::passive_sorter_factory_2<T, pred_t>;
 };
 
 namespace bits {

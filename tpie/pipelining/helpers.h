@@ -32,7 +32,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-struct ostream_logger_t : public pipe_segment {
+class ostream_logger_t : public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
@@ -67,7 +68,8 @@ private:
 };
 
 template <typename dest_t>
-struct identity_t : public pipe_segment {
+class identity_t : public pipe_segment {
+public:
 	typedef typename dest_t::item_type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
@@ -83,7 +85,8 @@ private:
 };
 
 template <typename source_t>
-struct pull_identity_t : public pipe_segment {
+class pull_identity_t : public pipe_segment {
+public:
 	typedef typename source_t::item_type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
@@ -104,7 +107,8 @@ private:
 };
 
 template <typename T>
-struct dummydest_t : public pipe_segment {
+class dummydest_t : public pipe_segment {
+public:
 	dummydest_t() : buffer(new T()) {}
 
 	typedef T item_type;
@@ -118,10 +122,12 @@ struct dummydest_t : public pipe_segment {
 };
 
 template <typename pushfact_t>
-struct push_to_pull {
+class push_to_pull {
+public:
 
 	template <typename source_t>
-	struct puller_t : public pipe_segment {
+	class puller_t : public pipe_segment {
+	public:
 
 		typedef typename source_t::item_type item_type;
 		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;
@@ -151,10 +157,12 @@ struct push_to_pull {
 };
 
 template <typename pullfact_t>
-struct pull_to_push {
+class pull_to_push {
+public:
 
 	template <typename dest_t>
-	struct pusher_t : public pipe_segment {
+	class pusher_t : public pipe_segment {
+	public:
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
 
@@ -179,7 +187,8 @@ struct pull_to_push {
 };
 
 template <typename T>
-struct bitbucket_t : public pipe_segment {
+class bitbucket_t : public pipe_segment {
+public:
 	typedef T item_type;
 
 	inline void push(const T &) {
@@ -187,11 +196,13 @@ struct bitbucket_t : public pipe_segment {
 };
 
 template <typename fact2_t>
-struct fork_t {
+class fork_t {
+public:
 	typedef typename fact2_t::generated_type dest2_t;
 
 	template <typename dest_t>
-	struct type : public pipe_segment {
+	class type : public pipe_segment {
+	public:
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
@@ -212,9 +223,121 @@ struct fork_t {
 };
 
 template <typename T>
-struct null_sink_t: public pipe_segment {
+class null_sink_t: public pipe_segment {
+public:
 	typedef T item_type;
 	void push(const T &) {}
+};
+
+template <typename IT>
+class pull_input_iterator_t: public pipe_segment {
+	IT i;
+	IT till;
+public:
+	typedef typename IT::value_type item_type;
+	pull_input_iterator_t(IT from, IT to)
+		: i(from)
+		, till(to)
+	{
+		set_name("Input iterator", PRIORITY_INSIGNIFICANT);
+	}
+
+	bool can_pull() {
+		return i != till;
+	}
+
+	item_type pull() {
+		return *i++;
+	}
+};
+
+template <typename IT>
+class push_input_iterator_t {
+public:
+	template <typename dest_t>
+	class type : public pipe_segment {
+		IT i;
+		IT till;
+		dest_t dest;
+	public:
+		type(dest_t dest, IT from, IT to)
+			: i(from)
+			, till(to)
+			, dest(dest)
+		{
+			set_name("Input iterator", PRIORITY_INSIGNIFICANT);
+			add_push_destination(dest);
+		}
+
+		virtual void go() /*override*/ {
+			while (i != till) {
+				dest.push(*i);
+				++i;
+			}
+		}
+	};
+};
+
+template <typename Iterator, typename Item = void>
+class push_output_iterator_t;
+
+template <typename Iterator>
+class push_output_iterator_t<Iterator, void> : public pipe_segment {
+	Iterator i;
+public:
+	typedef typename Iterator::value_type item_type;
+	push_output_iterator_t(Iterator to)
+		: i(to)
+	{
+		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
+	}
+
+	void push(const item_type & item) {
+		*i = item;
+		++i;
+	}
+};
+
+template <typename Iterator, typename Item>
+class push_output_iterator_t : public pipe_segment {
+	Iterator i;
+public:
+	typedef Item item_type;
+	push_output_iterator_t(Iterator to)
+		: i(to)
+	{
+		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
+	}
+
+	void push(const item_type & item) {
+		*i = item;
+		++i;
+	}
+};
+
+template <typename IT>
+class pull_output_iterator_t {
+public:
+	template <typename dest_t>
+	class type : public pipe_segment {
+		IT i;
+		dest_t dest;
+	public:
+		type(dest_t dest, IT to)
+			: i(to)
+			, dest(dest)
+		{
+			set_name("Output iterator", PRIORITY_INSIGNIFICANT);
+			add_pull_destination(dest);
+		}
+
+		virtual void go() /*override*/ {
+			while (dest.can_pull()) {
+				*i = dest.pull();
+				++i;
+			}
+		}
+	};
 };
 
 } // namespace bits
@@ -303,6 +426,31 @@ pipe_middle<factory_2<Fact, T1, T2> > make_pipe_middle_2(T1 e1, T2 e2) {
 template <typename Fact, typename T1, typename T2>
 pipe_end<termfactory_2<Fact, T1, T2> > make_pipe_end_2(T1 e1, T2 e2) {
 	return pipe_end<termfactory_2<Fact, T1, T2> >(termfactory_2<Fact, T1, T2>(e1, e2));
+}
+
+template <typename IT>
+pullpipe_begin<termfactory_2<bits::pull_input_iterator_t<IT>, IT, IT> > pull_input_iterator(IT begin, IT end) {
+	return termfactory_2<bits::pull_input_iterator_t<IT>, IT, IT>(begin, end);
+}
+
+template <typename IT>
+pipe_begin<tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT> > push_input_iterator(IT begin, IT end) {
+	return tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT>(begin, end);
+}
+
+template <typename IT>
+pipe_end<termfactory_1<bits::push_output_iterator_t<IT>, IT> > push_output_iterator(IT to) {
+	return termfactory_1<bits::push_output_iterator_t<IT>, IT>(to);
+}
+
+template <typename Item, typename IT>
+pipe_end<termfactory_1<bits::push_output_iterator_t<IT, Item>, IT> > typed_push_output_iterator(IT to) {
+	return termfactory_1<bits::push_output_iterator_t<IT, Item>, IT>(to);
+}
+
+template <typename IT>
+pullpipe_end<tempfactory_1<bits::pull_output_iterator_t<IT>, IT> > pull_output_iterator(IT to) {
+	return tempfactory_1<bits::pull_output_iterator_t<IT>, IT>(to);
 }
 
 }

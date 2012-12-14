@@ -68,25 +68,25 @@ private:
 	memory_size_type m_threshold;
 };
 
-bool sort_test(memory_size_type m2,
+bool sort_test(memory_size_type m1,
+			   memory_size_type m2,
 			   memory_size_type m3,
-			   memory_size_type m4,
 			   double mb_data,
 			   bool evacuateBeforeMerge = false,
 			   bool evacuateBeforeReport = false)
 {
+	m1 *= 1024*1024;
 	m2 *= 1024*1024;
 	m3 *= 1024*1024;
-	m4 *= 1024*1024;
 	stream_size_type items = static_cast<stream_size_type>(mb_data*1024/sizeof(test_t)*1024);
 	log_debug() << "sort_test with " << items << " items\n";
 	boost::rand48 rng;
 	relative_memory_usage m;
 	merge_sorter<test_t, false> s;
-	s.set_available_memory(m2, m3, m4);
+	s.set_available_memory(m1, m2, m3);
 
-	log_debug() << "Begin phase 2" << std::endl;
-	m.set_threshold(m2);
+	log_debug() << "Begin phase 1" << std::endl;
+	m.set_threshold(m1);
 	s.begin();
 	if (!m.below()) return false;
 	for (stream_size_type i = 0; i < items; ++i) {
@@ -102,8 +102,8 @@ bool sort_test(memory_size_type m2,
 		if (!m.below(s.evacuated_memory_usage())) return false;
 	}
 
-	log_debug() << "Begin phase 3" << std::endl;
-	m.set_threshold(m3);
+	log_debug() << "Begin phase 2" << std::endl;
+	m.set_threshold(m2);
 	if (!m.below()) return false;
 	dummy_progress_indicator pi;
 	s.calc(pi);
@@ -115,8 +115,8 @@ bool sort_test(memory_size_type m2,
 		if (!m.below(s.evacuated_memory_usage())) return false;
 	}
 
-	log_debug() << "Begin phase 4" << std::endl;
-	m.set_threshold(m4);
+	log_debug() << "Begin phase 3" << std::endl;
+	m.set_threshold(m3);
 	if (!m.below()) return false;
 	test_t prev = std::numeric_limits<test_t>::min();
 	memory_size_type itemsRead = 0;
