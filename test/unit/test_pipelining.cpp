@@ -25,6 +25,7 @@
 #include <tpie/pipelining/graph.h>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
+#include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -247,11 +248,13 @@ template <typename dest_t>
 struct sequence_generator : public pipe_segment {
 	typedef size_t item_type;
 
-	inline sequence_generator(const dest_t & dest, size_t elements)
+	inline sequence_generator(const dest_t & dest, size_t elements, bool reverse = true)
 		: dest(dest)
 		, elements(elements)
+		, reverse(reverse)
 	{
 		add_push_destination(dest);
+		set_name("Generate integers", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void begin() /*override*/ {
@@ -261,14 +264,22 @@ struct sequence_generator : public pipe_segment {
 	}
 
 	virtual void go() /*override*/ {
-		for (size_t i = elements; i > 0; --i) {
-			dest.push(i);
-			step();
+		if (reverse) {
+			for (size_t i = elements; i > 0; --i) {
+				dest.push(i);
+				step();
+			}
+		} else {
+			for (size_t i = 1; i <= elements; ++i) {
+				dest.push(i);
+				step();
+			}
 		}
 	}
 private:
 	dest_t dest;
 	size_t elements;
+	bool reverse;
 };
 
 struct sequence_verifier : public pipe_segment {
@@ -281,6 +292,7 @@ struct sequence_verifier : public pipe_segment {
 		, bad(false)
 	{
 		result = false;
+		set_name("Verify integers", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void begin() /*override*/ {
@@ -292,8 +304,12 @@ struct sequence_verifier : public pipe_segment {
 	}
 
 	inline void push(size_t element) {
-		if (element != expect++) bad = true;
+		if (element != expect) {
+			(bad ? log_debug() : log_error()) << "Got " << element << ", expected " << expect << std::endl;
+			bad = true;
+		}
 		result = false;
+		++expect;
 	}
 
 	virtual void end() /*override*/ {
@@ -841,6 +857,140 @@ bool push_iterator_test() {
 	return check_test_vectors();
 }
 
+template <typename dest_t>
+class multiplicative_inverter_type : public pipe_segment {
+	dest_t dest;
+	const size_t p;
+
+public:
+	typedef size_t item_type;
+
+	multiplicative_inverter_type(const dest_t & dest, size_t p)
+		: dest(dest)
+		, p(p)
+	{
+		add_push_destination(dest);
+		set_name("Multiplicative inverter");
+		set_steps(p);
+	}
+
+	void push(size_t n) {
+		size_t i;
+		for (i = 0; (i*n) % p != 1; ++i);
+		dest.push(i);
+		step();
+	}
+};
+
+inline pipe_middle<factory_1<multiplicative_inverter_type, size_t> >
+multiplicative_inverter(size_t p) {
+	return factory_1<multiplicative_inverter_type, size_t>(p);
+}
+
+bool parallel_test(size_t modulo) {
+	bool result = false;
+	pipeline p = make_pipe_begin_1<sequence_generator>(modulo-1)
+		| parallel(multiplicative_inverter(modulo))
+		| pipesort()
+		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
+	p.plot(log_info());
+	tpie::progress_indicator_arrow pi("Parallel", 1);
+	p(modulo-1, pi);
+	return result;
+}
+
+bool parallel_ordered_test(size_t modulo) {
+	bool result = false;
+	pipeline p = make_pipe_begin_2<sequence_generator>(modulo-1, false)
+		| parallel(multiplicative_inverter(modulo) | multiplicative_inverter(modulo), true)
+		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
+	p.plot(log_info());
+	tpie::progress_indicator_arrow pi("Parallel", 1);
+	p(modulo-1, pi);
+	return result;
+}
+
+template <typename dest_t>
+class step_begin_type : public pipe_segment {
+	dest_t dest;
+	static const size_t items = 256*1024*1024;
+
+public:
+	typedef typename dest_t::item_type item_type;
+
+	step_begin_type(dest_t dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+	}
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		forward<stream_size_type>("items", items);
+	}
+
+	virtual void go() /*override*/ {
+		for (size_t i = 0; i < items; ++i) {
+			dest.push(item_type());
+		}
+	}
+};
+
+pipe_begin<factory_0<step_begin_type> >
+step_begin() {
+	return factory_0<step_begin_type>();
+}
+
+template <typename dest_t>
+class step_middle_type : public pipe_segment {
+	dest_t dest;
+
+public:
+	typedef typename dest_t::item_type item_type;
+
+	step_middle_type(dest_t dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+	}
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		if (!can_fetch("items")) throw tpie::exception("Cannot fetch items");
+		set_steps(fetch<stream_size_type>("items"));
+	}
+
+	void push(item_type i) {
+		step();
+		dest.push(i);
+	}
+};
+
+pipe_middle<factory_0<step_middle_type> >
+step_middle() {
+	return factory_0<step_middle_type>();
+}
+
+class step_end_type : public pipe_segment {
+public:
+	typedef size_t item_type;
+
+	void push(item_type) {
+	}
+};
+
+pipe_end<termfactory_0<step_end_type> >
+step_end() {
+	return termfactory_0<step_end_type>();
+}
+
+bool parallel_step_test() {
+	pipeline p = step_begin() | parallel(step_middle()) | step_end();
+	progress_indicator_arrow pi("Test", 0);
+	p(get_memory_manager().available(), pi);
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -865,5 +1015,8 @@ int main(int argc, char ** argv) {
 	.test(end_time::test, "end_time")
 	.test(pull_iterator_test, "pull_iterator")
 	.test(push_iterator_test, "push_iterator")
+	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(20011))
+	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(20011))
+	.test(parallel_step_test, "parallel_step")
 	;
 }
