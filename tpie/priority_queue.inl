@@ -75,7 +75,8 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 			+ sizeof(T) //extra buffer for remove_group_buffer
 			+ 2*sizeof(T); //mergebuffer
 		const memory_size_type buffer_m_overhead = sizeof(T) + 2*sizeof(T); //buffer
-		const memory_size_type extra_overhead = 2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
+		const memory_size_type extra_overhead =
+			  2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
 			+ 2*(sizeof(T)+sizeof(group_type)); //mergeheap
 		const memory_size_type additional_overhead = 16*1024; //Just leave a bit unused
 		TP_LOG_DEBUG("fanout_overhead     " << fanout_overhead     << ",\n" <<
@@ -105,10 +106,18 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 			//compute setting_k
 			//some of these numbers get big which is the reason for all this
 			//careful casting.
-			stream_size_type squared_tmp = static_cast<stream_size_type>(fanout_overhead)*static_cast<stream_size_type>(fanout_overhead);
-			squared_tmp += static_cast<stream_size_type>(4*sq_fanout_overhead)*static_cast<stream_size_type>(setting_k);
+			stream_size_type squared_tmp =
+				static_cast<stream_size_type>(fanout_overhead)
+				*static_cast<stream_size_type>(fanout_overhead);
+
+			squared_tmp +=
+				static_cast<stream_size_type>(4*sq_fanout_overhead)
+				*static_cast<stream_size_type>(setting_k);
+
 			long double dsquared_tmp = static_cast<long double>(squared_tmp);
-			const stream_size_type root_discriminant = static_cast<stream_size_type>(std::floor(std::sqrt(dsquared_tmp)));
+
+			const stream_size_type root_discriminant =
+				static_cast<stream_size_type>(std::floor(std::sqrt(dsquared_tmp)));
 
 			const stream_size_type nominator = root_discriminant-fanout_overhead;
 			const stream_size_type denominator = 2*sq_fanout_overhead;
@@ -207,19 +216,22 @@ template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 
 	if(opq->full()) {
+		// When the overflow priority queue (aka. insertion buffer) is full,
+		// insert its contents into a new slot in group 0.
+		//
+		// To maintain the heap invariant
+		//     deletion buffer <= group buffer 0 <= group 0 slots
+		// we bubble lesser elements from insertion buffer down into
+		// deletion buffer and group buffer 0.
 
-		// Merge insertion buffer, deletion buffer and group buffer 0
-		// such that deletion buffer <= group buffer 0 <= insertion buffer.
-
-		// Afterwards, move insertion buffer to a free slot in group 0.
-
-		slot_type slot = free_slot(0); // if group 0 is full, we recursively empty group i
-		                               // by merging it into a slot in group i+1
+		slot_type slot = free_slot(0); // (if group 0 is full, we recursively empty group i
+		                               // by merging it into a slot in group i+1)
 
 		assert(opq->sorted_size() == setting_m);
 		T* arr = opq->sorted_array();
 
-		if(buffer_size > 0) { // maintain heap invariant for deletion buffer
+		// Bubble lesser elements down into deletion buffer
+		if(buffer_size > 0) {
 
 			// fetch insertion buffer
 			memcpy(&mergebuffer[0], &arr[0], sizeof(T)*opq->sorted_size());
@@ -237,7 +249,8 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 			memcpy(&arr[0], mergebuffer.get()+buffer_size, sizeof(T)*opq->sorted_size());
 		}
 
-		if(group_size(0)> 0) { // maintain heap invariant for gbuffer0
+		// Bubble lesser elements down into group buffer 0
+		if(group_size(0)> 0) {
 
 			// Merge insertion buffer and group buffer 0
 			assert(group_size(0)+opq->sorted_size() <= setting_m*2);
@@ -488,8 +501,6 @@ priority_queue<T, Comparator, OPQType>::free_slot(group_type group) {
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::fill_buffer() {
-	//cout << "fill buffer" << "\n";
-	//dump();
 	if(buffer_size !=0) {
 		return;
 	}
@@ -498,28 +509,23 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	}
 
 	// refill group buffers, if needed
-	//cout << "refill group buffers" << "\n";
 	for(memory_size_type i=0;i<current_r;i++) {
 		if(group_size(i)<static_cast<stream_size_type>(setting_mmark)) {
-			//cout << "fill group buffer " << i << "\n";
 			fill_group_buffer(i);
-			//cout << "fill group buffer " << i << " done" << "\n";
-			//dump();
 		}
 		if(group_size(i) == 0 && i==current_r-1) {
 			current_r--;
 		}
 	}
 
-	//cout << "done filling groups" << "\n";
 	// merge to buffer
-	//cout << "current_r: " << current_r << "\n";
 	mergebuffer.resize(0);
 #ifndef TPIE_NDEBUG
 	std::cout << "memavail after mb free: "
 			  << get_memory_manager().available() << "b" << std::endl;
 #endif
 
+	{
 	pq_merge_heap<T, Comparator> heap(current_r);
 
 	tpie::array<tpie::auto_ptr<file_stream<T> > > data(current_r);
@@ -529,20 +535,16 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			heap.push(gbuffer0[group_start(0)], 0);
 		} else if(group_size(i)>0) {
 			data[i]->open(group_data(i));
-			//      assert(slot_size(group*setting_k+i>0));
 			data[i]->seek(group_start(i));
 			heap.push(data[i]->read(), i);
 		} else if(i > 0) {
 			// dummy, well :o/
-			//cout << "create dummy " << i << "\n";
 		}
 	}
-	//cout << "init done" << "\n";
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
 		group_type current_group = heap.top_run();
 		if(current_group!= 0 && data[current_group]->offset() == setting_m) {
-			//cout << "fill group seeking to 0" << "\n";
 			data[current_group]->seek(0);
 		}
 		buffer[(buffer_size+buffer_start)%setting_m] = heap.top();
@@ -555,22 +557,18 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			heap.pop();
 		} else {
 			if(current_group == 0) {
-				//cout << "0 push: " << "\n";
-				//cout << gbuffer0[group_start(0)] << "\n";
 				heap.pop_and_push(gbuffer0[group_start(0)], 0);
 			} else {
 				heap.pop_and_push(data[current_group]->read(), current_group);
 			}
 		}
 	}
-	//cout << "while done" << "\n";
+	} // destruct and deallocate `heap'
 #ifndef TPIE_NDEBUG
 	std::cout << "memavail before mb alloc: "
 			  << get_memory_manager().available() << "b" << std::endl;
 #endif
 	mergebuffer.resize(setting_m*2);
-
-	//cout << "end fill buffer" << "\n";
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -723,7 +721,6 @@ void priority_queue<T, Comparator, OPQType>::empty_group(group_type group) {
 			slot_type current_slot = heap.top_run();
 			newstream.write(heap.top());
 			slot_size_set(newslot,slot_size(newslot)+1);
-			//cout << heap.top() << " from slot " << current_slot << "\n";
 			slot_start_set(current_slot, slot_start(current_slot)+1);
 			slot_size_set(current_slot, slot_size(current_slot)-1);
 			if(slot_size(current_slot) == 0) {
@@ -741,6 +738,13 @@ void priority_queue<T, Comparator, OPQType>::empty_group(group_type group) {
 	mergebuffer.resize(setting_m*2);;
 
 	if(group_size(group+1) > 0 && !ret) {
+		// Maintain heap invariant:
+		//     group buffer i <= group i slots
+		// If the group buffer of the group in which we inserted runs
+		// was not empty before, we might now have violated a heap invariant
+		// by inserting elements in a [group+1] slot that are less than elements
+		// in group buffer [group+1].
+		// Just remove the group buffer to ensure the invariant.
 		remove_group_buffer(group+1); // todo, this might recurse?
 	}
 }
@@ -793,7 +797,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T read = stream.read();
 				if(comp_(read, last)) { // compare
 					dump();
-					TP_LOG_FATAL_ID("Error: Group buffer " << i << " order invalid (last: " << last << ", read: " << read << ")");
+					TP_LOG_FATAL_ID("Error: Group buffer " << i << " order invalid (last: " << last <<
+									", read: " << read << ")");
 					exit(-1);
 				} 
 			}
@@ -809,7 +814,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 			for(stream_size_type j = 1; j < slot_size(i); j++) {
 				T read = stream.read();
 				if(comp_(read, last)) { // compare
-					TP_LOG_FATAL_ID("Error: Slot " << i << " order invalid (last: " << last << ", read: " << read << ")");
+					TP_LOG_FATAL_ID("Error: Slot " << i << " order invalid (last: " << last <<
+									", read: " << read << ")");
 					exit(-1);
 				}
 			}
@@ -830,7 +836,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T first = stream.read();
 				if(comp_(first, buf_max)) { // compare
 					dump();
-					TP_LOG_FATAL_ID("Error: Heap property invalid, buffer -> group buffer " << i << "(buffer: " << buf_max << ", first: " << first << ")");
+					TP_LOG_FATAL_ID("Error: Heap property invalid, buffer -> group buffer " << i <<
+									"(buffer: " << buf_max << ", first: " << first << ")");
 					exit(-1);
 				}
 			}
@@ -855,7 +862,9 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 					
 					if(comp_(item_slot, item_group)) { // compare
 						dump();
-						TP_LOG_FATAL_ID("Error: Heap property invalid, group buffer " << i << " -> slot " << j << "(group: " << item_group << ", slot: " << item_slot << ")");
+						TP_LOG_FATAL_ID("Error: Heap property invalid, group buffer " << i <<
+										" -> slot " << j << "(group: " << item_group <<
+										", slot: " << item_slot << ")");
 						exit(-1);
 					}
 				}
@@ -867,10 +876,10 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 #endif
 }
 
-// After emptying a group, we empty its group buffer
-// by merging it with group buffer 0.
-// Smaller elements go in gb0,
-// and larger elements go in a group 0 slot.
+// Empty a group buffer by inserting it into an empty group 0 slot.
+// To maintain the invariant
+//     group buffer 0 elements <= group 0 slot elements,
+// merge the given group buffer with group buffer 0 before writing the slot out.
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type group) {
 #ifndef NDEBUG
@@ -884,7 +893,9 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 	slot_type slot = free_slot(0);
 	if(group_size(group) == 0) return;
 
-	TP_LOG_DEBUG_ID("Remove group buffer " << group << " of size " << group_size(group) << " with available memory " << get_memory_manager().available());
+	TP_LOG_DEBUG_ID("Remove group buffer " << group <<
+					" of size " << group_size(group) <<
+					" with available memory " << get_memory_manager().available());
 
 	assert(group < setting_k);
 	array<T> arr(static_cast<size_t>(group_size(group)));
@@ -907,7 +918,6 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
 	if(group > 0 && group_size(0) != 0) {
-		// this code is also used in PQFishspear
 		memory_size_type j = 0;
 		for(memory_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
 			mergebuffer[j] = gbuffer0[i%setting_m];
@@ -939,7 +949,6 @@ memory_size_type priority_queue<T, Comparator, OPQType>::slot_start(slot_type sl
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::slot_size_set(slot_type slot, memory_size_type n) {
-	//cout << "change slot " << slot << " size" << "\n";
 	assert(slot<setting_k*setting_k);
 	slot_state[slot*3+1] = n;
 }
@@ -987,24 +996,23 @@ temp_file & priority_queue<T, Comparator, OPQType>::group_data(group_type groupi
 
 template <typename T, typename Comparator, typename OPQType>
 memory_size_type priority_queue<T, Comparator, OPQType>::slot_max_size(slot_type slotid) {
-	return setting_m*static_cast<memory_size_type>(pow((long double)setting_k,(long double)(slotid/setting_k))); // todo, too many casts
+	// todo, too many casts
+	return setting_m
+		*static_cast<memory_size_type>(pow((long double)setting_k,
+										   (long double)(slotid/setting_k)));
 }
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::write_slot(slot_type slotid, T* arr, memory_size_type len) {
 	assert(len > 0);
-	//cout << "write slot " << slotid << " " << len << "\n";
-	//cout << "write slot " << slot_data(slotid) << "\n";
 	file_stream<T> data(block_factor);
 	data.open(slot_data(slotid));
-	//cout << "write slot new done" << "\n";
 	data.write(arr+0, arr+len);
 	slot_start_set(slotid, 0);
 	slot_size_set(slotid, len);
 	if(current_r == 0 && slotid < setting_k) {
 		current_r = 1;
 	}
-	//cout << "write slot done" << std::endl;
 }
 
 /////////////////////

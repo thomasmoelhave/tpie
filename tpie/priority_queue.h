@@ -49,38 +49,47 @@ namespace tpie {
 		priority_queue_error(const std::string& what) : std::logic_error(what)
 		{ }
 	};
-	
-/////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// \class priority_queue
+/// \brief External memory priority queue implementation.
 ///
-///  \class priority_queue
-///  \author Lars Hvam Petersen
+/// Originally implemented by Lars Hvam Petersen for his Master's thesis
+/// titled "External Priority Queues in Practice", June 2007.
+/// This implementation, named "PQSequence3", is the fastest among the
+/// priority queue implementations studied in the paper.
+/// Inspiration: Sanders - Fast priority queues for cached memory (1999).
 ///
-///  Inspiration: Sanders - Fast priority queues for cached memory (1999)
-///  Refer to Section 2 and Figure 1 for an overview of the algorithm
+/// For an overview of the algorithm, refer to Sanders (1999) section 2 and
+/// figure 1, or Lars Hvam's thesis, section 4.4.
 ///
-/////////////////////////////////////////////////////////
+/// In the debug log, the priority queue reports two values setting_k and
+/// setting_m. The priority queue has a maximum capacity which is on the order
+/// of setting_m * setting_k**setting_k elements (where ** denotes
+/// exponentiation).
+///
+/// However, even with as little as 8 MB of memory, this maximum capacity in
+/// practice exceeds 2**48, corresponding to a petabyte-sized dataset of 32-bit
+/// integers.
+///////////////////////////////////////////////////////////////////////////////
 
 template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
 class priority_queue {
 	typedef memory_size_type group_type;
 	typedef memory_size_type slot_type;
 public:
-    /////////////////////////////////////////////////////////
-    ///
-    /// Constructor
-    ///
-    /// \param f Factor of memory that the priority queue is 
-    /// allowed to use.
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor.
+	///
+	/// \param f Factor of memory that the priority queue is allowed to use.
 	/// \param b Block factor
-    ///
-    /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0, float b=0.0625);
+	///////////////////////////////////////////////////////////////////////////
+	priority_queue(double f=1.0, float b=0.0625);
 
 #ifndef DOXYGEN
-    // \param mmavail Number of bytes the priority queue is
-    // allowed to use.
+	// \param mmavail Number of bytes the priority queue is allowed to use.
 	// \param b Block factor
-    priority_queue(memory_size_type mm_avail, float b=0.0625);
+	priority_queue(memory_size_type mm_avail, float b=0.0625);
 #endif
 
 
@@ -154,17 +163,38 @@ private:
     T min;
     bool min_in_buffer;
 
-	tpie::auto_ptr<OPQType> opq; // insert heap
-	tpie::array<T> buffer; // deletion buffer
-	tpie::array<T> gbuffer0; // group buffer 0
-	tpie::array<T> mergebuffer; // merge buffer for merging deletion buffer and group buffer 0
+	/** Overflow priority queue (for buffering inserted elements). Capacity m. */
+	tpie::auto_ptr<OPQType> opq;
+
+	/** Deletion buffer containing the m' top elements in the entire structure. */
+	tpie::array<T> buffer;
+
+	/** Group buffers contain at most m elements all less or equal to elements
+	 * in the corresponding group slots. Elements in group buffers are *not*
+	 * repeated in actual group slots. For efficiency, we keep group buffer 0
+	 * in memory. */
+	tpie::array<T> gbuffer0;
+
+	/** Merge buffer of size 2*m. */
+	tpie::array<T> mergebuffer;
+
+	/** 3*(#slots) integers. Slot i contains its elements in cyclic ascending order,
+	 * starting at index slot_state[3*i]. Slot i contains slot_state[3*i+1] elements.
+	 * Its data is in data file index slot_state[3*i+2]. */
 	tpie::array<memory_size_type> slot_state;
+
+	/** 2*(#groups) integers. Group buffer i has its elements in cyclic ascending order,
+	 * starting at index group_state[2*i]. Gbuffer i contains group_state[2*i+1] elements. */
 	tpie::array<memory_size_type> group_state;
 
-    memory_size_type setting_k;
-    memory_size_type current_r;
-    memory_size_type setting_m;
-    memory_size_type setting_mmark;
+	/** k, the fanout of each group and the max fanout R. */
+	memory_size_type setting_k;
+	/** Number of groups in use. */
+	memory_size_type current_r;
+	/** m, the size of a slot and the size of the group buffers. */
+	memory_size_type setting_m;
+	/** m', the size of the deletion buffer. */
+	memory_size_type setting_mmark;
 
     memory_size_type slot_data_id;
 

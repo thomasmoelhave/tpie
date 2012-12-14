@@ -51,6 +51,7 @@ public:
 	inline void seek_i(stream_size_type offset);
 	inline void close_i();
 	inline void truncate_i(stream_size_type bytes);
+	inline bool is_open() const;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Check the global errno variable and throw an exception that

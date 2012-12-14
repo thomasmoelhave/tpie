@@ -20,7 +20,6 @@
 #endif
 
 #cmakedefine TPL_LOGGING 1
-#cmakedefine TPIE_THREADSAFE_MEMORY_MANAGEMNT 1
 
 #cmakedefine TPIE_NDEBUG
 
