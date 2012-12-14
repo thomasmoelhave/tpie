@@ -871,12 +871,14 @@ public:
 	{
 		add_push_destination(dest);
 		set_name("Multiplicative inverter");
+		set_steps(p);
 	}
 
 	void push(size_t n) {
 		size_t i;
 		for (i = 0; (i*n) % p != 1; ++i);
 		dest.push(i);
+		step();
 	}
 };
 
@@ -908,6 +910,87 @@ bool parallel_ordered_test(size_t modulo) {
 	return result;
 }
 
+template <typename dest_t>
+class step_begin_type : public pipe_segment {
+	dest_t dest;
+	static const size_t items = 256*1024*1024;
+
+public:
+	typedef typename dest_t::item_type item_type;
+
+	step_begin_type(dest_t dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+	}
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		forward<stream_size_type>("items", items);
+	}
+
+	virtual void go() /*override*/ {
+		for (size_t i = 0; i < items; ++i) {
+			dest.push(item_type());
+		}
+	}
+};
+
+pipe_begin<factory_0<step_begin_type> >
+step_begin() {
+	return factory_0<step_begin_type>();
+}
+
+template <typename dest_t>
+class step_middle_type : public pipe_segment {
+	dest_t dest;
+
+public:
+	typedef typename dest_t::item_type item_type;
+
+	step_middle_type(dest_t dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+	}
+
+	virtual void begin() /*override*/ {
+		pipe_segment::begin();
+		if (!can_fetch("items")) throw tpie::exception("Cannot fetch items");
+		set_steps(fetch<stream_size_type>("items"));
+	}
+
+	void push(item_type i) {
+		step();
+		dest.push(i);
+	}
+};
+
+pipe_middle<factory_0<step_middle_type> >
+step_middle() {
+	return factory_0<step_middle_type>();
+}
+
+class step_end_type : public pipe_segment {
+public:
+	typedef size_t item_type;
+
+	void push(item_type) {
+	}
+};
+
+pipe_end<termfactory_0<step_end_type> >
+step_end() {
+	return termfactory_0<step_end_type>();
+}
+
+bool parallel_step_test() {
+	pipeline p = step_begin() | parallel(step_middle()) | step_end();
+	progress_indicator_arrow pi("Test", 0);
+	p(get_memory_manager().available(), pi);
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -934,5 +1017,6 @@ int main(int argc, char ** argv) {
 	.test(push_iterator_test, "push_iterator")
 	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(20011))
 	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(20011))
+	.test(parallel_step_test, "parallel_step")
 	;
 }
