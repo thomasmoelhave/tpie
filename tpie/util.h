@@ -31,10 +31,13 @@
 
 namespace tpie {
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Ignore an unused variable warning
-/// \param x The variable that we are well aware is not beeing useod
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Declare that a variable is unused on purpose.
+///
+/// Used to suppress warnings about unused variables.
+///
+/// \param x The variable that is unused on purpose
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
 
@@ -56,20 +59,24 @@ const char directory_delimiter = '\\';
 const char directory_delimiter = '/';
 #endif
 
-///////////////////////////////////////////////////////////////////////////
-/// Any internal memory datastructur whos memory usage is linear
-/// in the numebr of elements.
-/// The structure must implement memory_cooeficient and
-/// memory_overhead
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Base class of data structures with linear memory usage.
+///
+/// Uses CRTP to defer the definition of memory_coefficient and
+/// memory_overhead which must be implemented in the subclass.
+///
+/// Defines two static methods, memory_usage and memory_fits, that determine
+/// the amount of memory used and the number of items for a given memory
+/// amount, respectively.
+///////////////////////////////////////////////////////////////////////////////
 template <typename child_t> 
 struct linear_memory_base {
 
 	///////////////////////////////////////////////////////////////////////////
-	// Return the number of bytes required to create a datatstucture supporting 
-	// a given number of elements
-	// \param size The number of elements to support
-	// \return The abount of memory required in bytes
+	/// \brief Return the number of bytes required to create a data structure
+	/// supporting a given number of elements.
+	/// \param size The number of elements to support
+	/// \return The amount of memory required in bytes
 	///////////////////////////////////////////////////////////////////////////
 	inline static stream_size_type memory_usage(stream_size_type size) {
 		return static_cast<stream_size_type>(
@@ -77,10 +84,11 @@ struct linear_memory_base {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// Return the maximum number of elements that can be contained in 
-	// in the stucture when it is allowed to fill a given number of bytes
-	// \param memory The number of bytes the structure is allowed to occupie
-	// \return The number of elements that will fit in the structure
+	/// \brief Return the maximum number of elements that can be contained in
+	/// in the structure when it is allowed to fill a given number of bytes.
+	///
+	/// \param memory The number of bytes the structure is allowed to occupy
+	/// \return The number of elements that will fit in the structure
 	///////////////////////////////////////////////////////////////////////////
 	inline static memory_size_type memory_fits(memory_size_type memory) {
 		return static_cast<memory_size_type>(
@@ -103,10 +111,10 @@ struct template_log<1> {
 };
 
 
-/////////////////////////////////////////////////////////
-/// \brief Restore heap invariants after the first element 
-/// has been replaced by some other olement
-/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Restore heap invariants after the first element has been replaced by
+/// some other element.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename C>
 void pop_and_push_heap(T a, T b, C lt) {
 	size_t i=0;
@@ -132,26 +140,26 @@ void pop_and_push_heap(T a, T b, C lt) {
 	}
 }
 
-/////////////////////////////////////////////////////////
-/// \brief Restore heap invariants after the first element 
-/// has been replaced by some other olement
-/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Restore heap invariants after the first element has been replaced by
+/// some other element. Uses std::less as the heap property.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 void pop_and_push_heap(T a, T b) {
 	pop_and_push_heap(a,b, std::less<typename T::value_type>());
 }
 
 
-/////////////////////////////////////////////////////////
-/// A binary functor object with the arguments swapped
-/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  A binary functor with the arguments swapped.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct binary_argument_swap: public std::binary_function<typename T::second_argument_type, 
-														 typename T::first_argument_type, 
+struct binary_argument_swap: public std::binary_function<typename T::second_argument_type,
+														 typename T::first_argument_type,
 														 typename T::result_type> {
 	T i;
 	binary_argument_swap(const T & _=T()): i(_) {}
-	inline bool operator()(const typename T::second_argument_type & x, 
+	inline bool operator()(const typename T::second_argument_type & x,
 						   const typename T::first_argument_type & y) {
 		return i(y,x);
 	}
