@@ -168,6 +168,8 @@ public:
 		// size aligned_size*elms.
 		m_data = m_size ? new uint8_t[aligned_size * elms + Align] : 0;
 	}
+
+	size_t size() const { return m_size; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -183,11 +185,48 @@ class threads {
 	typedef before<Input> before_t;
 
 protected:
+	static const size_t alignment = 64;
+
+	/** Progress indicator type */
+	typedef progress_indicator_null pi_t;
+	aligned_array<pi_t, alignment> m_progressIndicators;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Factory hook that sets the progress indicator of the
+	/// pipe_segments run in parallel to the null progress indicator.
+	/// This way, we can collect the number of steps in the main thread.
+	///////////////////////////////////////////////////////////////////////////
+	class progress_indicator_hook : public factory_init_hook {
+		threads * t;
+	public:
+		progress_indicator_hook(threads * t)
+			: t(t)
+			, index(0)
+		{
+		}
+
+		virtual void init_segment(pipe_segment & r) /*override*/ {
+			r.set_progress_indicator(t->m_progressIndicators.get(index));
+		}
+
+		size_t index;
+	};
+
+	friend class progress_indicator_hook;
+
 	std::vector<before_t *> m_dests;
 
 public:
 	before_t & operator[](size_t idx) {
 		return *m_dests[idx];
+	}
+
+	stream_size_type sum_steps() {
+		stream_size_type res = 0;
+		for (size_t i = 0; i < m_progressIndicators.size(); ++i) {
+			res += m_progressIndicators.get(i)->get_current();
+		}
+		return res;
 	}
 
 	virtual ~threads() {}
@@ -199,12 +238,17 @@ public:
 template <typename Input, typename Output, typename fact_t>
 class threads_impl : public threads<Input, Output> {
 private:
+	typedef threads<Input, Output> p_t;
+
+	/** Progress indicator type */
+	typedef typename p_t::pi_t pi_t;
+
 	typedef after<Output> after_t;
 	typedef typename fact_t::template generated<after_t>::type worker_t;
 	typedef typename worker_t::item_type T1;
 	typedef Output T2;
 	typedef before_impl<worker_t> before_t;
-	static const size_t alignment = 64;
+	static const size_t alignment = p_t::alignment;
 	typedef aligned_array<before_t, alignment> aligned_before_t;
 
 	/** Size of the m_dests array. */
@@ -218,8 +262,11 @@ public:
 						state<T1, T2> & st)
 		: numJobs(st.opts.numJobs)
 	{
+		typename p_t::progress_indicator_hook hook(this);
+		fact.hook_initialization(&hook);
 		// uninitialized allocation
 		m_data.realloc(numJobs);
+		this->m_progressIndicators.realloc(numJobs);
 		this->m_dests.resize(numJobs);
 
 		// construct elements manually
@@ -232,6 +279,9 @@ public:
 					<< std::endl;
 			}
 
+			hook.index = i;
+			new (this->m_progressIndicators.get(i)) pi_t();
+
 			this->m_dests[i] =
 				new(m_data.get(i))
 				before_t(st, i, fact.construct(after_t(st, i)));
@@ -241,8 +291,10 @@ public:
 	virtual ~threads_impl() {
 		for (size_t i = 0; i < numJobs; ++i) {
 			m_data.get(i)->~before_t();
+			this->m_progressIndicators.get(i)->~pi_t();
 		}
 		m_data.realloc(0);
+		this->m_progressIndicators.realloc(0);
 	}
 };
 
@@ -771,6 +823,7 @@ private:
 	size_t readyIdx;
 	boost::shared_ptr<consumer<T2> > cons;
 	internal_queue<memory_size_type> m_outputOrder;
+	stream_size_type m_steps;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Check if a worker is waiting for the main thread.
@@ -851,12 +904,35 @@ private:
 		return false;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Propagate progress information.
+	///////////////////////////////////////////////////////////////////////////
+	void flush_steps() {
+		// The number of items has been forwarded along unchanged to all
+		// the workers (it is still a valid upper bound).
+		//
+		// This means the workers each expect to handle all the items,
+		// which means the number of steps reported in total is scaled up
+		// by the number of workers.
+		//
+		// Therefore, we similarly scale up the number of times we call step.
+		// In effect, every time step() is called once in a single worker,
+		// we process this as if all workers called step().
+
+		stream_size_type steps = st->pipes->sum_steps();
+		if (steps != m_steps) {
+			this->get_progress_indicator()->step(st->opts.numJobs*(steps - m_steps));
+			m_steps = steps;
+		}
+	}
+
 public:
 	template <typename consumer_t>
 	producer(stateptr st, const consumer_t & cons)
 		: st(st)
 		, written(0)
 		, cons(new consumer_t(cons))
+		, m_steps(0)
 	{
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			this->add_push_destination(st->input(i));
@@ -896,6 +972,9 @@ public:
 			return;
 		}
 		state_base::lock_t lock(st->mutex);
+
+		flush_steps();
+
 		empty_input_buffer(lock);
 	}
 
@@ -946,6 +1025,9 @@ private:
 public:
 	virtual void end() /*override*/ {
 		state_base::lock_t lock(st->mutex);
+
+		flush_steps();
+
 		empty_input_buffer(lock);
 
 		bool done = false;
@@ -982,6 +1064,8 @@ public:
 			st->producerCond.wait(lock);
 		}
 		// All workers terminated
+
+		flush_steps();
 
 		inputBuffer.resize(0);
 	}
