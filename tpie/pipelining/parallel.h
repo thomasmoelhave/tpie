@@ -497,11 +497,18 @@ public:
 			flush_buffer_impl();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Invoked by before::worker (in worker thread context).
+	///////////////////////////////////////////////////////////////////////////
 	virtual void worker_initialize() {
 		m_buffer.reset(new parallel_output_buffer<T>(st.opts));
 		m_outputBuffers[parId] = m_buffer.get();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Invoked by before::push_all when all input items have been
+	/// pushed.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_buffer() {
 		flush_buffer_impl();
 	}
@@ -584,6 +591,9 @@ public:
 	}
 
 private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Check if we are ready to process a batch of input.
+	///////////////////////////////////////////////////////////////////////////
 	bool ready() {
 		switch (st.get_state(parId)) {
 			case INITIALIZING:
@@ -598,6 +608,9 @@ private:
 		throw std::runtime_error("Unknown state");
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Class providing RAII-style bookkeeping of number of workers.
+	///////////////////////////////////////////////////////////////////////////
 	class running_signal {
 		typedef state_base::cond_t cond_t;
 		memory_size_type & sig;
@@ -621,6 +634,9 @@ private:
 		self->worker();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Worker thread entry point.
+	///////////////////////////////////////////////////////////////////////////
 	void worker() {
 		state_base::lock_t lock(st.mutex);
 
@@ -756,6 +772,13 @@ private:
 	boost::shared_ptr<consumer<T2> > cons;
 	internal_queue<memory_size_type> m_outputOrder;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Check if a worker is waiting for the main thread.
+	///
+	/// A worker may wait for output to be fetched, or it may wait for input to
+	/// be sent. If there is a worker waiting, this function returns true and
+	/// sets the index of the waiting worker in this->readyIdx.
+	///////////////////////////////////////////////////////////////////////////
 	bool has_ready_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
@@ -763,6 +786,9 @@ private:
 				case PROCESSING:
 					break;
 				case OUTPUTTING:
+					// If we have to maintain order of items, the only
+					// outputting worker we consider to be waiting is the
+					// "front worker".
 					if (st->opts.maintainOrder && m_outputOrder.front() != i)
 						break;
 					// fallthrough
@@ -774,6 +800,16 @@ private:
 		return false;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Check if a worker is waiting for the main thread to process its
+	/// output.
+	///
+	/// This is used in end() instead of has_ready_pipe, since we do not care
+	/// about workers waiting for input when we don't have any input to send.
+	///
+	/// Like has_ready_pipe, this function sets this->readyIdx if and only if
+	/// it returns true.
+	///////////////////////////////////////////////////////////////////////////
 	bool has_outputting_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
@@ -791,6 +827,16 @@ private:
 		return false;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Check if a worker is waiting for the main thread to process its
+	/// output.
+	///
+	/// This is used in end() when we are waiting for workers to finish up.
+	/// When no worker is outputting and no worker is processing, all items
+	/// have been processed.
+	///
+	/// Does not modify this->readyIdx.
+	///////////////////////////////////////////////////////////////////////////
 	bool has_processing_pipe() {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
