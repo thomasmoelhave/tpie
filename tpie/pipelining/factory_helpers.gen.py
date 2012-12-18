@@ -74,6 +74,7 @@ def gen(types, terminal, templated):
 			p("template <typename R")
 			generator = "R"
 		else:
+			# `typename` not permitted as a substitute for `class` here
 			p("template <template <typename dest_t> class R")
 			generator = "R<dest_t>"
 
