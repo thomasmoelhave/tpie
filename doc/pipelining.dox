@@ -41,7 +41,12 @@ An implementation must derive from tpie::pipelining::pipe_segment and
 implement either \c push() or the \c pull() / \c can_pull() pair. In the first
 case, the pipe segment is called a <em>push segment</em>, and in the second
 case, it is called a <em>pull segment</em>. The exception to this rule is the
-<em>initiator</em> pipe_segment which overrides the virtual \c go() method.
+<em>initiator</em> pipe_segment which instead overrides the virtual \c go() method.
+Furthermore, any implementation may request memory using the
+\c set_minimum_memory() and \c set_memory_fraction() methods in either its
+constructor or in an overridden virtual \c prepare() method; it may override
+\c begin() and \c end() to do initialization and finalization related to its
+computation.
 
 - A pipe_segment SHOULD aggregate the pipe_segment(s) it pushes to or pulls from,
   and thus a pipe_segment is usually templated on its destination type.
@@ -91,7 +96,9 @@ public:
 
 \section sec_pipelining_factory Factories
 
-In order to instantiate pipe_segment implementations, we need a factory.
+Since the C++ language does not infer template arguments to constructor calls,
+but does infer template arguments to functions and methods, we use factories to
+instantiate the pipe_segment implementations.
 Usually, the built-in factories contained in \c factory_helpers.h will suffice:
 
 \code
@@ -140,6 +147,13 @@ public:
 	}
 };
 \endcode
+
+The main differences between an ordinary factory and a termfactory:
+
+- Instead of a templated \c construct() accepting the destination as its first
+  parameter, the \c construct() method takes no parameters, and
+- <tt>generated<dest_t>::type</tt> is replaced by the simpler \c generated_type
+  typedef.
 
 \section sec_pipe_base Factory concatenation
 
@@ -331,61 +345,69 @@ url.empty().
 
 0. The following virtual methods may be overridden in the implementation:
 
-   - begin
-   - end
-   - evacuate (in which case can_evacuate should be overridden to return true)
-   - set_available_memory
+   - \c prepare
+   - \c begin
+   - \c end
+   - \c evacuate (in which case \c can_evacuate should be overridden to return true)
+   - \c set_available_memory
 
-1. Constructor is called. The constructor should call any of the following
-   pipe_segment protected methods as appropriate:
+1. The \c pipe_segment is constructed, and \c prepare() is called. The
+   constructor should call any of the following pipe_segment protected methods
+   as appropriate:
 
-   - set_name
-   - add_push_destination
-   - add_pull_destination
-   - add_dependency
-   - set_minimum_memory
+   - \c set_name
+   - \c add_push_destination
+   - \c add_pull_destination
+   - \c add_dependency
 
-2. Virtual method set_available_memory is called. If overridden, the overriding
-   implementation must call pipe_segment::set_available_memory with the same
+   Furthermore, the constructor and/or \c prepare() may call the following:
+   - \c set_memory_fraction
+   - \c set_minimum_memory
+
+2. Virtual method \c set_available_memory is called. If overridden, the overriding
+   implementation must call \c pipe_segment::set_available_memory with the same
    argument.
 
-3. begin() is called on all pipe_segments in the current phase in topological
+3. \c begin() is called on all pipe_segments in the current phase in topological
    order, beginning with the initiator segment.
-   At this point, the implementation may fetch<>() auxiliary data from its
-   predecessors and forward() auxiliary data to its successors.
-   The default implementation of begin() forwards all auxiliary data that was
+   At this point, the implementation may <tt>fetch<>()</tt> auxiliary data from its
+   predecessors and \c forward() auxiliary data to its successors.
+   The default implementation of \c begin() forwards all auxiliary data that was
    forwarded to this segment. If this behavior is wanted (and in most cases it
    is), the implementation should first call the super method, that is,
-   pipe_segment::begin().
+   \c pipe_segment::begin().
    If the segment does not push as many items as are pushed into it, it should
-   check using can_fetch() whether "items" has been forwarded. "items" is a
-   stream_size_type, and the pipe_segment should forward the expected number of
-   items being pushed to the destination.
+   check using \c can_fetch() whether <tt>"items"</tt> has been forwarded.
+   <tt>"items"</tt> is a stream_size_type, and the pipe_segment should forward
+   the expected number of items being pushed to the destination.
+   If the implementation wants to report progress information, it should call
+   \c set_steps() in begin.
 
-4. Either push() or pull() is called any number of times.
+4. Either \c push() or \c pull() is called any number of times.
 
-5. end() is called on all pipe_segments in the current phase in the same order
-   as with begin(). Implementations overriding end() should call the super
-   method.
+5. \c end() is called on the pipe_segment in the current phase in an order such
+   that it has \c end() called before the pipe_segments it pushes to or pulls
+   from. The default implementation of \c end() does nothing, so there is no
+   reason to perform a super call.
 
-6. If appropriate, evacuate() is called, in which case the pipe_segment should
+6. If \c can_evacuate() is overridden to return true, and evacuation is
+   necessary, \c evacuate() is called, in which case the pipe_segment should
    deallocate all internal buffers shared between this segment and a depending
    segment.
 
 \section sec_initiators Initiator segments
 
 You will rarely need to implement initiators. For an initiator, instead of
-push(), the virtual go() method must be overridden, and this is called once.
-go() accepts a progress_indicator_base &, and if known, go() should forward()
-a piece of stream_size_type data named "items" indicating the expected number
-of items being pushed.
+\c push(), the virtual \c go() method must be overridden, and this is called once.
+go() should forward() a piece of stream_size_type data named "items" indicating
+the expected number of items being pushed.
 
 \section sec_troubleshooting Implementation troubleshooting
 
 Common faults in pipe_segment implementations include
 
-- Missing add_push_destination/add_pull_destination/add_dependency. If
-  pipeline::plot does not yield a graph containing all the nodes you expect,
+- Missing \c add_push_destination/add_pull_destination/add_dependency. If
+  \c pipeline::plot does not yield a graph containing all the nodes you expect,
   this is probably the problem.
 
 */
