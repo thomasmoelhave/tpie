@@ -410,4 +410,30 @@ Common faults in pipe_segment implementations include
   \c pipeline::plot does not yield a graph containing all the nodes you expect,
   this is probably the problem.
 
+\section sec_parallel Parallel execution
+
+The pipelining framework provides transparent parallel execution of pipelines.
+For CPU intensive computations in which the function of one item does not
+depend on the previous item such as point projection, one simply wraps the part of the pipeline to be parallelized in a call to \c parallel() as such:
+
+\code
+bool maintainOrder = false;
+size_t numJobs = 4;
+size_t bufSize = 1024;
+
+pipeline p =
+input_points()
+| parallel(projection(mat), maintainOrder, numJobs, bufSize)
+| output_points();
+\endcode
+
+The three extra parameters, \c maintainOrder (def. false), \c numJobs (def. 4)
+and \c bufSize (def. 64), are optional. If \c maintainOrder is set, the
+framework will make sure that the output is produced in the same order as the
+input, which may incur a performance penalty in some cases when the execution
+time varies per item. \c numJobs declares the number of worker threads to utilize.
+\c bufSize is the number of items that are sent to a thread at a time. There is
+an overhead associated to each buffer sent (a couple virtual calls and a thread
+switch), so you should not set this too low. On the other hand, a larger buffer
+increases the memory overhead.
 */
