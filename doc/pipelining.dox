@@ -436,4 +436,50 @@ time varies per item. \c numJobs declares the number of worker threads to utiliz
 an overhead associated to each buffer sent (a couple virtual calls and a thread
 switch), so you should not set this too low. On the other hand, a larger buffer
 increases the memory overhead.
+
+\section sec_library Pipelining library
+
+The pipelining framework comes with a library of pipe_segment implementations.
+
+\subsection ssec_buffer Buffer
+
+To get simple buffering to disk of an item stream, a \c delayed_buffer() will
+accept pushed items, store them in a temporary file, and push them to its
+destination in another phase. This is necessary, for instance, when the item
+stream is being sorted (which is a buffering operation in itself), but the same
+item stream is later needed in its original order.
+
+For a buffer that accepts items pushed to it and can be pulled from in another
+phase, define a local \c passive_buffer, and get its input and output parts
+with \c passive_buffer::input() and \c passive_buffer::output(), respectively.
+
+\subsection ssec_reverse Reverser
+
+Like the buffer, the reverser exists as an active push input/push output and a
+passive push input/pull output form.
+For the passive reverser, define a \c passive_reverser and use
+\c passive_reverser::sink and \c passive_reverser::source.
+For the active reverser, simply use \c reverser().
+
+\subsection ssec_sorter Sorter
+
+Like the buffer and the reverser, there is an active sorter, \c pipesort(), and
+a passive sorter with \c passive_sorter::input() and
+\c passive_sorter::output().
+Both accept an optional less-than-predicate that defaults to \c std::less.
+
+\subsection ssec_file_stream Input and output files
+
+To read and entire file_stream and push its contents, define a \c file_stream
+variable, for instance <tt>file_stream<size_t> foo;</tt> and use it in your
+pipeline as \c input(foo). For a pull pipe, use \c pull_input(foo).
+Similarly, for outputting to a file_stream, there are the \c output(foo) and
+\c pull_output(foo) pipe_segments.
+To write the item stream to a file_stream and push it on to another
+destination, use \c tee(foo).
+
+\subsection ssec_stdio scanf and printf
+
+For reading and writing 32-bit ints using scanf (stdin) and printf (stdout),
+the pipelining framework provides \c scanf_ints() and \c printf_ints().
 */
