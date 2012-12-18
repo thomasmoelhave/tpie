@@ -124,7 +124,7 @@ private:
 template <typename fact_t>
 struct maybe_check_connected;
 
-template <class fact1_t, class fact2_t>
+template <typename fact1_t, typename fact2_t>
 class pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
 public:
 	template <typename dest_t>
@@ -156,7 +156,7 @@ public:
 	fact2_t fact2;
 };
 
-template <class fact1_t, class termfact2_t>
+template <typename fact1_t, typename termfact2_t>
 class termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
 public:
 	typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
