@@ -41,8 +41,10 @@ template <typename T>
 class buffer_input_t: public pipe_segment {
 public:
 	typedef T item_type;
-	buffer_input_t(file_stream<T> & queue, const segment_token & token):
-		pipe_segment(token), queue(queue) {
+	buffer_input_t(file_stream<T> & queue, const segment_token & token)
+		: pipe_segment(token)
+		, queue(queue)
+	{
 		set_name("Storing items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(queue.memory_usage());
 	}
@@ -55,100 +57,116 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc pipe_segment::push
 	///////////////////////////////////////////////////////////////////////////
-	void push(const item_type & item) {queue.write(item);}
+	void push(const item_type & item) {
+		queue.write(item);
+	}
+
 private:
 	file_stream<T> & queue;
-
 };
 
 template <typename T>
 class buffer_pull_output_t: public pipe_segment {
+	file_stream<T> & queue;
+
 public:
 	typedef T item_type;
 
 	buffer_pull_output_t(file_stream<T> & queue, const segment_token & input_token)
-		: queue(queue) {
+		: queue(queue)
+	{
 		add_dependency(input_token);
 		set_name("Fetching items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(queue.memory_usage());
 	}
 
-
-	file_stream<T> & queue;
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
 		queue.seek(0);
 		forward("items", queue.size());
 	}
-	bool can_pull() const {return queue.can_read();}
-	T pull() {return queue.read();}
+
+	bool can_pull() const {
+		return queue.can_read();
+	}
+
+	T pull() {
+		return queue.read();
+	}
+
 	virtual void end() /*override*/ {
-		pipe_segment::end();
 		queue.close();
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Input segment for delayed buffer 
+/// \brief Input segment for delayed buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class delayed_buffer_input_t: public pipe_segment {
 public:
 	typedef T item_type;
-	delayed_buffer_input_t(const segment_token & token):
-		pipe_segment(token) {
+
+	delayed_buffer_input_t(const segment_token & token)
+		: pipe_segment(token)
+	{
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 	}
 
 	virtual void begin() /*override*/ {
 		pipe_segment::begin();
-		the_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
-		the_queue->open();
-		forward("queue", the_queue);
+		m_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
+		m_queue->open();
+		forward("queue", m_queue);
 	}
-	void push(const T & item) {the_queue -> write(item);}
-private:
 
-	tpie::file_stream<T> * the_queue;
+	void push(const T & item) {
+		m_queue->write(item);
+	}
+
+private:
+	tpie::file_stream<T> * m_queue;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Output segment for delayed buffer 
+/// \brief Output segment for delayed buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class delayed_buffer_output_t: public pipe_segment{
+class delayed_buffer_output_t: public pipe_segment {
 public:
 	typedef typename dest_t::item_type item_type;
 
 	delayed_buffer_output_t(const dest_t &dest, const segment_token & input_token)
-		: dest(dest) {
+		: dest(dest)
+	{
 		add_dependency(input_token);
 		add_push_destination(dest);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 		set_name("Fetching items", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() /* override */ {
-		the_queue = fetch<tpie::file_stream<item_type> *>("queue");
-		forward("items", the_queue->size());
-		set_steps(the_queue->size());
+	virtual void begin() /*override*/ {
+		m_queue = fetch<tpie::file_stream<item_type> *>("queue");
+		forward("items", m_queue->size());
+		set_steps(m_queue->size());
 	}
 
-	virtual void go() /* override */ {
-		the_queue -> seek(0);
-		while (the_queue -> can_read()) {
-			dest.push(the_queue->read());
+	virtual void go() /*override*/ {
+		m_queue->seek(0);
+		while (m_queue->can_read()) {
+			dest.push(m_queue->read());
 			step();
 		}
 	}
 
-	virtual void end() /* override */ {
-		tpie::tpie_delete(the_queue);
+	virtual void end() /*override*/ {
+		tpie::tpie_delete(m_queue);
 	}
 
+private:
 	dest_t dest;
-	tpie::file_stream<item_type> * the_queue;
+	file_stream<item_type> * m_queue;
 };
 
 
@@ -205,15 +223,21 @@ public:
 	typedef bits::delayed_buffer_input_t<item_type> input_t;
 	typedef bits::delayed_buffer_output_t<dest_t> output_t;
 
-	delayed_buffer_t(const dest_t &dest):
-		input_token(),
-		input(input_token), output(dest, input_token) {
+	delayed_buffer_t(const dest_t & dest)
+		: input_token()
+		, input(input_token)
+		, output(dest, input_token)
+	{
 		add_push_destination(input);
-		set_name("DelayedBuffer", PRIORITY_INSIGNIFICANT);
+		set_name("Delayed buffer", PRIORITY_INSIGNIFICANT);
 	}
 
-	delayed_buffer_t(const delayed_buffer_t &o):
-		pipe_segment(o), input_token(o.input_token), input(o.input), output(o.output) {
+	delayed_buffer_t(const delayed_buffer_t &o)
+		: pipe_segment(o)
+		, input_token(o.input_token)
+		, input(o.input)
+		, output(o.output)
+	{
 	}
 
 	virtual void push(item_type item) {
