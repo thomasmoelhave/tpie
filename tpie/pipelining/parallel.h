@@ -1136,8 +1136,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Runs a pipeline in multiple threads.
-/// \param numJobs  The number of threads (TPIE jobs) to utilize for parallel
-/// execution.
+/// \param numJobs  The number of threads to utilize for parallel execution.
 /// \param bufSize  The number of items to store in the buffer sent between
 /// threads.
 ///////////////////////////////////////////////////////////////////////////////
