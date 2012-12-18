@@ -1142,7 +1142,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false, size_t numJobs = 4, size_t bufSize = 1024) {
+parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false, size_t numJobs = 4, size_t bufSize = 64) {
 	parallel_bits::options opts;
 	opts.maintainOrder = maintainOrder;
 	opts.numJobs = numJobs;
