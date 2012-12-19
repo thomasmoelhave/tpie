@@ -26,7 +26,7 @@ namespace pipelining {
 
 class factory_init_hook {
 public:
-	virtual void init_segment(pipe_segment & r) = 0;
+	virtual void init_segment(node & r) = 0;
 	virtual ~factory_init_hook() {
 	}
 };
@@ -46,7 +46,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Add a pipe_segment initialization hook. When a pipe_segment is
+	/// \brief  Add a node initialization hook. When a node is
 	/// instantiated in construct(), the given hook will get a chance to do
 	/// some additional initialization.
 	///////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ public:
 		}
 	}
 
-	inline void init_segment(pipe_segment & r) const {
+	inline void init_segment(node & r) const {
 		if (m_set) r.set_memory_fraction(memory());
 		if (!m_name.empty()) {
 			r.set_name(m_name, m_namePriority);

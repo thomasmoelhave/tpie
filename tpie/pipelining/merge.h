@@ -42,7 +42,7 @@ public:
 	typedef typename fact_t::generated_type pull_t;
 
 	template <typename dest_t>
-	class type : public pipe_segment {
+	class type : public node {
 	public:
 		typedef typename dest_t::item_type item_type;
 

@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_SORT_H__
 #define __TPIE_PIPELINING_SORT_H__
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/pipelining/merge_sorter.h>
@@ -44,8 +44,8 @@ template <typename T, typename pred_t>
 class sort_input_t;
 
 template <typename T, typename pred_t>
-class sort_output_base : public pipe_segment {
-	// pipe_segment has virtual dtor
+class sort_output_base : public node {
+	// node has virtual dtor
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
@@ -58,7 +58,7 @@ public:
 		return m_sorter;
 	}
 
-	void set_calc_segment(pipe_segment & calc) {
+	void set_calc_segment(node & calc) {
 		add_dependency(calc);
 	}
 
@@ -95,7 +95,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		this->set_steps(this->m_sorter->item_count());
 		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
@@ -111,7 +111,7 @@ public:
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
-		pipe_segment::set_available_memory(availableMemory);
+		node::set_available_memory(availableMemory);
 		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
 };
@@ -144,7 +144,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		this->set_steps(this->m_sorter->item_count());
 		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
@@ -158,7 +158,7 @@ public:
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
-		pipe_segment::set_available_memory(availableMemory);
+		node::set_available_memory(availableMemory);
 		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
 
@@ -172,7 +172,7 @@ private:
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-class sort_calc_t : public pipe_segment {
+class sort_calc_t : public node {
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
@@ -184,7 +184,7 @@ public:
 	typedef sort_output_base<T, pred_t> Output;
 
 	inline sort_calc_t(const sort_calc_t & other)
-		: pipe_segment(other)
+		: node(other)
 		, m_sorter(other.m_sorter)
 		, dest(other.dest)
 	{
@@ -212,7 +212,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		set_steps(1000);
 	}
 
@@ -233,13 +233,13 @@ public:
 		return m_sorter;
 	}
 
-	void set_input_segment(pipe_segment & input) {
+	void set_input_segment(node & input) {
 		add_dependency(input);
 	}
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
-		pipe_segment::set_available_memory(availableMemory);
+		node::set_available_memory(availableMemory);
 		m_sorter->set_phase_2_memory(availableMemory);
 	}
 
@@ -254,7 +254,7 @@ private:
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
-class sort_input_t : public pipe_segment {
+class sort_input_t : public node {
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
@@ -274,7 +274,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		m_sorter->begin();
 	}
 
@@ -283,7 +283,7 @@ public:
 	}
 
 	virtual void end() /*override*/ {
-		pipe_segment::end();
+		node::end();
 		m_sorter->end();
 	}
 
@@ -297,7 +297,7 @@ public:
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
-		pipe_segment::set_available_memory(availableMemory);
+		node::set_available_memory(availableMemory);
 		m_sorter->set_phase_1_memory(availableMemory);
 	}
 

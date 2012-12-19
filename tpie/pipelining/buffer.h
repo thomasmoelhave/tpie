@@ -24,7 +24,7 @@
 #ifndef __TPIE_PIPELINING_BUFFER_H__
 #define __TPIE_PIPELINING_BUFFER_H__
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/file_stream.h>
 
@@ -38,11 +38,11 @@ namespace bits {
 /// \brief Input segment for buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class buffer_input_t: public pipe_segment {
+class buffer_input_t: public node {
 public:
 	typedef T item_type;
 	buffer_input_t(file_stream<T> & queue, const segment_token & token)
-		: pipe_segment(token)
+		: node(token)
 		, queue(queue)
 	{
 		set_name("Storing items", PRIORITY_SIGNIFICANT);
@@ -50,12 +50,12 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		queue.open();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc pipe_segment::push
+	/// \copydoc node::push
 	///////////////////////////////////////////////////////////////////////////
 	void push(const item_type & item) {
 		queue.write(item);
@@ -66,7 +66,7 @@ private:
 };
 
 template <typename T>
-class buffer_pull_output_t: public pipe_segment {
+class buffer_pull_output_t: public node {
 	file_stream<T> & queue;
 
 public:
@@ -81,7 +81,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		queue.seek(0);
 		forward("items", queue.size());
 	}
@@ -103,19 +103,19 @@ public:
 /// \brief Input segment for delayed buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class delayed_buffer_input_t: public pipe_segment {
+class delayed_buffer_input_t: public node {
 public:
 	typedef T item_type;
 
 	delayed_buffer_input_t(const segment_token & token)
-		: pipe_segment(token)
+		: node(token)
 	{
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		m_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
 		m_queue->open();
 		forward("queue", m_queue);
@@ -133,7 +133,7 @@ private:
 /// \brief Output segment for delayed buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class delayed_buffer_output_t: public pipe_segment {
+class delayed_buffer_output_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -217,7 +217,7 @@ private:
 };
 
 template <typename dest_t>
-class delayed_buffer_t: public pipe_segment {
+class delayed_buffer_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 	typedef bits::delayed_buffer_input_t<item_type> input_t;
@@ -233,7 +233,7 @@ public:
 	}
 
 	delayed_buffer_t(const delayed_buffer_t &o)
-		: pipe_segment(o)
+		: node(o)
 		, input_token(o.input_token)
 		, input(o.input)
 		, output(o.output)

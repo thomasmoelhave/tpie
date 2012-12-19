@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/pipelining/pipeline.h>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/graph.h>
 #include <boost/unordered_map.hpp>
 #include <iostream>
@@ -50,7 +50,7 @@ namespace pipelining {
 
 namespace bits {
 
-typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
+typedef boost::unordered_map<const node *, size_t> nodes_t;
 
 void pipeline_base::plot(std::ostream & out) {
 	out << "digraph {\n";

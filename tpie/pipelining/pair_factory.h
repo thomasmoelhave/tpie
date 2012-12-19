@@ -87,12 +87,12 @@ public:
 		if (m_maps[0]->find_authority() != m_maps[1]->find_authority()) {
 			log_error() << "Segment map disconnected - more information in debug log." << std::endl;
 			log_debug()
-				<< "Note about pipe_segment implementations.\n\n"
-				   "In a pipe_segment constructor that accepts a destination pipe_segment,\n"
-				   "a relation should always be established between the current pipe_segment\n"
+				<< "Note about node implementations.\n\n"
+				   "In a node constructor that accepts a destination node,\n"
+				   "a relation should always be established between the current node\n"
 				   "and the destination using one of the member functions add_push_destination,\n"
 				   "add_pull_destination and add_dependency.\n\n"
-				   "If this relational graph is not connected, some pipe_segments will not\n"
+				   "If this relational graph is not connected, some nodes will not\n"
 				   "be initialized: prepare(), begin(), end() and other methods will never\n"
 				   "be called, and memory will not be assigned.\n"
 				   "---------------------------------------------------------------------------" << std::endl;
@@ -186,7 +186,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief For pair factories, recursively check that the pipe_segments created
+/// \brief For pair factories, recursively check that the nodes created
 /// share their segment_map.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact1_t, typename fact2_t>

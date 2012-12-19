@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_STDIO_H__
 #define __TPIE_PIPELINING_STDIO_H__
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <cstdio>
@@ -32,7 +32,7 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-class scanf_ints_t : public pipe_segment {
+class scanf_ints_t : public node {
 public:
 	typedef int item_type;
 
@@ -52,7 +52,7 @@ private:
 	dest_t dest;
 };
 
-class printf_ints_t : public pipe_segment {
+class printf_ints_t : public node {
 public:
 	typedef int item_type;
 

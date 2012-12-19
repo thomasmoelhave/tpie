@@ -21,7 +21,7 @@
 #define __TPIE_PIPELINING_NUMERIC_H__
 
 #include <iostream>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 
@@ -32,7 +32,7 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-class linear_t : public pipe_segment {
+class linear_t : public node {
 public:
 	typedef typename dest_t::item_type item_type;
 

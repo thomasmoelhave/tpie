@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_PARALLEL_H__
 #define __TPIE_PIPELINING_PARALLEL_H__
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/array_view.h>
 #include <boost/shared_ptr.hpp>
@@ -40,7 +40,7 @@
 /// item_type of foo() must not depend on the destination type that follows
 /// baz(). This requirement makes it possible for the framework to get the
 /// input type (T1) before doing the real pipeline instantiation. This is
-/// required since the synthesized parallel_bits::after pipe_segment inserted
+/// required since the synthesized parallel_bits::after node inserted
 /// after baz() in the above example takes T1 and T2 as template parameters.
 /// The template code that makes this happen is in
 /// parallel_bits::factory::generated.
@@ -58,7 +58,7 @@
 /// parallel_bits::befores running in different threads, and the consumer
 /// receives the items pushed to each after instance.
 ///
-/// All pipe_segments have access to a single parallel_bits::state instance
+/// All nodes have access to a single parallel_bits::state instance
 /// which has the mutex and the necessary condition variables.
 ///    It also has pointers to the parallel_bits::before and
 /// parallel_bits::after instances and it holds an array of worker states (of
@@ -124,7 +124,7 @@ enum worker_state {
 /// (mostly useful for powers of two).
 /// They are not constructed or destructed; only the memory resource is
 /// handled.
-/// This is used for the pipe_segments that are instantiated once for each
+/// This is used for the nodes that are instantiated once for each
 /// parallel thread of pipeline computation. They should be stored in an array
 /// aligned to a cache line, to avoid cache lock contention.
 ///////////////////////////////////////////////////////////////////////////////
@@ -173,7 +173,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Class containing an array of pipe_segment instances. We cannot use
+/// \brief Class containing an array of node instances. We cannot use
 /// tpie::array or similar, since we need to construct the elements in a
 /// special way. This class is non-copyable since it resides in the refcounted
 /// state class.
@@ -193,7 +193,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Factory hook that sets the progress indicator of the
-	/// pipe_segments run in parallel to the null progress indicator.
+	/// nodes run in parallel to the null progress indicator.
 	/// This way, we can collect the number of steps in the main thread.
 	///////////////////////////////////////////////////////////////////////////
 	class progress_indicator_hook : public factory_init_hook {
@@ -205,7 +205,7 @@ protected:
 		{
 		}
 
-		virtual void init_segment(pipe_segment & r) /*override*/ {
+		virtual void init_segment(node & r) /*override*/ {
 			r.set_progress_indicator(t->m_progressIndicators.get(index));
 		}
 
@@ -301,7 +301,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Non-templated virtual base class of after.
 ///////////////////////////////////////////////////////////////////////////////
-class after_base : public pipe_segment {
+class after_base : public node {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Called by before::worker to initialize buffers.
@@ -360,7 +360,7 @@ public:
 	size_t runningWorkers;
 
 	/// Must not be used concurrently.
-	void set_input_ptr(size_t idx, pipe_segment * v) {
+	void set_input_ptr(size_t idx, node * v) {
 		m_inputs[idx] = v;
 	}
 
@@ -376,7 +376,7 @@ public:
 	///
 	/// Shared state, must have mutex to use.
 	///////////////////////////////////////////////////////////////////////////
-	pipe_segment & input(size_t idx) { return *m_inputs[idx]; }
+	node & input(size_t idx) { return *m_inputs[idx]; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Get the specified after instance.
@@ -401,7 +401,7 @@ public:
 	}
 
 protected:
-	std::vector<pipe_segment *> m_inputs;
+	std::vector<node *> m_inputs;
 	std::vector<after_base *> m_outputs;
 	std::vector<worker_state> m_states;
 
@@ -603,7 +603,7 @@ private:
 /// worker thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class before : public pipe_segment {
+class before : public node {
 protected:
 	state_base & st;
 	size_t parId;
@@ -624,7 +624,7 @@ protected:
 	{
 		set_name("Parallel before", PRIORITY_INSIGNIFICANT);
 	}
-	// virtual dtor in pipe_segment
+	// virtual dtor in node
 
 	before(const before & other)
 		: st(other.st)
@@ -637,7 +637,7 @@ public:
 	typedef T item_type;
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		boost::thread t(run_worker, this);
 		m_worker.swap(t);
 	}
@@ -763,12 +763,12 @@ public:
 /// of items to a virtual subclass.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class consumer : public pipe_segment {
+class consumer : public node {
 public:
 	typedef T item_type;
 
 	virtual void consume(array_view<T>) = 0;
-	// pipe_segment has virtual dtor
+	// node has virtual dtor
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -810,7 +810,7 @@ public:
 /// This class contains the bulk of the code that is run in the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
-class producer : public pipe_segment {
+class producer : public node {
 public:
 	typedef T1 item_type;
 
@@ -951,7 +951,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		inputBuffer.resize(st->opts.bufSize);
 	}
 
@@ -1086,7 +1086,7 @@ public:
 		// We need to know the type that our processor wants as input,
 		// but we don't yet know the type of its destination (par_after<...>).
 		// The following dummy destination type is hopefully an adequate substitute.
-		struct dummy_dest : public pipe_segment { typedef T2 item_type; void push(T2); };
+		struct dummy_dest : public node { typedef T2 item_type; void push(T2); };
 		typedef typename fact_t::template generated<dummy_dest>::type::item_type T1;
 
 		typedef after<T2> after_t;

@@ -47,18 +47,18 @@
 ///
 /// \subsection sub_pipegraphimpl  Implementation
 ///
-/// Since pipe_segments are copyable, we cannot store pipe_segment pointers
+/// Since nodes are copyable, we cannot store node pointers
 /// limitlessly, as pointers will change while the pipeline is being
-/// constructed. Instead, we associate to each pipe_segment a segment token
-/// (numeric id) that is copied with the pipe_segment. The segment_token class
-/// signals the mapping from numeric ids to pipe_segment pointers to a
+/// constructed. Instead, we associate to each node a segment token
+/// (numeric id) that is copied with the node. The segment_token class
+/// signals the mapping from numeric ids to node pointers to a
 /// segment_map.
 ///
-/// However, we do not want a global map from ids to pipe_segment pointers, as
+/// However, we do not want a global map from ids to node pointers, as
 /// an application may construct many pipelines throughout its lifetime. To
 /// mitigate this problem, each segment_map is local to a pipeline, and each
 /// segment_token knows (directly or indirectly) which segment_map currently
-/// holds the mapping of its id to its pipe_segment.
+/// holds the mapping of its id to its node.
 ///
 /// When we need to connect one pipe segment to another in the pipeline graphs,
 /// we need the two corresponding segment_tokens to share the same segment_map.
@@ -97,7 +97,7 @@ enum segment_relation {
 class segment_map {
 public:
 	typedef uint64_t id_t;
-	typedef pipe_segment * val_t;
+	typedef node * val_t;
 
 	typedef std::map<id_t, val_t> map_t;
 	typedef map_t::const_iterator mapit;
@@ -174,7 +174,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method called by graph_traits. Iterates through the
-	/// edge lists and calls add_successor on each pipe_segment in the phase.
+	/// edge lists and calls add_successor on each node in the phase.
 	///////////////////////////////////////////////////////////////////////////
 	void send_successors() const;
 
@@ -209,7 +209,7 @@ public:
 	typedef bits::segment_map::id_t id_t;
 	typedef bits::segment_map::val_t val_t;
 
-	// Use for the simple case in which a pipe_segment owns its own token
+	// Use for the simple case in which a node owns its own token
 	inline segment_token(val_t owner)
 		: m_tokens(bits::segment_map::create())
 		, m_id(m_tokens->add_token(owner))
@@ -218,8 +218,8 @@ public:
 	}
 
 	// This copy constructor has two uses:
-	// 1. Simple case when a pipe_segment is copied (freshToken = false)
-	// 2. Advanced case when a pipe_segment is being constructed with a specific token (freshToken = true)
+	// 1. Simple case when a node is copied (freshToken = false)
+	// 2. Advanced case when a node is being constructed with a specific token (freshToken = true)
 	inline segment_token(const segment_token & other, val_t newOwner, bool freshToken = false)
 		: m_tokens(other.m_tokens->find_authority())
 		, m_id(other.id())
@@ -234,7 +234,7 @@ public:
 		m_tokens->set_token(m_id, newOwner);
 	}
 
-	// Use for the advanced case when a segment_token is allocated before the pipe_segment
+	// Use for the advanced case when a segment_token is allocated before the node
 	inline segment_token()
 		: m_tokens(bits::segment_map::create())
 		, m_id(m_tokens->add_token(0))

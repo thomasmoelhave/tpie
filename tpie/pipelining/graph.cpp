@@ -19,7 +19,7 @@
 
 #include <tpie/pipelining/graph.h>
 #include <tpie/pipelining/tokens.h>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 
 namespace {
 
@@ -127,7 +127,7 @@ namespace bits {
 
 class phase::segment_graph {
 public:
-	typedef pipe_segment * node_t;
+	typedef node * node_t;
 	typedef std::vector<node_t> neighbours_t;
 	typedef std::map<node_t, neighbours_t> edgemap_t;
 	typedef int time_type;
@@ -168,13 +168,13 @@ phase & phase::operator=(const phase & other) {
 	return *this;
 }
 
-bool phase::is_initiator(pipe_segment * s) {
+bool phase::is_initiator(node * s) {
 	segment_map::ptr m = s->get_segment_map()->find_authority();
 	segment_map::id_t id = s->get_id();
 	return m->in_degree(id, pushes) == 0 && m->in_degree(id, pulls) == 0;
 }
 
-void phase::add(pipe_segment * s) {
+void phase::add(node * s) {
 	if (count(s)) return;
 	if (is_initiator(s)) set_initiator(s);
 	m_segments.push_back(s);
@@ -184,7 +184,7 @@ void phase::add(pipe_segment * s) {
 	actorGraph->finish_times[s] = 0;
 }
 
-void phase::add_successor(pipe_segment * from, pipe_segment * to, bool push) {
+void phase::add_successor(node * from, node * to, bool push) {
 	itemFlowGraph->edges[from].push_back(to);
 	if (push)
 		actorGraph->edges[from].push_back(to);
@@ -229,7 +229,7 @@ void phase::assign_memory(memory_size_type m) const {
 	{
 		dfs_traversal<phase::segment_graph> dfs(*itemFlowGraph);
 		dfs.dfs();
-		std::vector<pipe_segment *> order = dfs.toposort();
+		std::vector<node *> order = dfs.toposort();
 		for (size_t i = 0; i < order.size(); ++i) {
 			order[i]->prepare();
 		}
@@ -252,7 +252,7 @@ void phase::assign_memory(memory_size_type m) const {
 		bool done = true;
 		for (size_t i = 0; i < m_segments.size(); ++i) {
 			if (assigned[i]) continue;
-			pipe_segment * s = m_segments[i];
+			node * s = m_segments[i];
 			memory_size_type min = s->get_minimum_memory();
 			double frac = s->get_memory_fraction();
 			double to_assign = frac/fraction * remaining;
@@ -267,7 +267,7 @@ void phase::assign_memory(memory_size_type m) const {
 		if (!done) continue;
 		for (size_t i = 0; i < m_segments.size(); ++i) {
 			if (assigned[i]) continue;
-			pipe_segment * s = m_segments[i];
+			node * s = m_segments[i];
 			double frac = s->get_memory_fraction();
 			double to_assign = frac/fraction * remaining;
 			s->set_available_memory(static_cast<memory_size_type>(to_assign));
@@ -350,8 +350,8 @@ void graph_traits::calc_phases() {
 		*j = i > 0 && !g.is_depending(internalexec[i], internalexec[i-1]);
 	}
 	for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
-		pipe_segment * representative = map.get(ids_inv[phases.find_set(i->first)]);
-		pipe_segment * current = map.get(i->second);
+		node * representative = map.get(ids_inv[phases.find_set(i->first)]);
+		node * current = map.get(i->second);
 		if (current == representative) continue;
 		for (size_t i = 0; i < m_phases.size(); ++i) {
 			if (m_phases[i].count(representative)) {
@@ -362,10 +362,10 @@ void graph_traits::calc_phases() {
 	}
 	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second == depends) continue;
-		pipe_segment * from = map.get(i->first);
-		pipe_segment * to = map.get(i->second.first);
+		node * from = map.get(i->first);
+		node * to = map.get(i->second.first);
 		if (i->second.second == pulls) std::swap(from, to);
-		pipe_segment * representative = map.get(ids_inv[phases.find_set(ids[i->first])]);
+		node * representative = map.get(ids_inv[phases.find_set(ids[i->first])]);
 		for (size_t j = 0; j < m_phases.size(); ++j) {
 			if (m_phases[j].count(representative)) {
 				m_phases[j].add_successor(from, to, i->second.second == pushes);
@@ -376,8 +376,8 @@ void graph_traits::calc_phases() {
 }
 
 void phase::go(progress_indicator_base & pi) {
-	std::vector<pipe_segment *> beginOrder;
-	std::vector<pipe_segment *> endOrder;
+	std::vector<node *> beginOrder;
+	std::vector<node *> endOrder;
 	{
 		dfs_traversal<phase::segment_graph> dfs(*itemFlowGraph);
 		dfs.dfs();

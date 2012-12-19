@@ -21,7 +21,7 @@
 #define __TPIE_PIPELINING_HELPERS_H__
 
 #include <iostream>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/memory.h>
 
@@ -32,7 +32,7 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-class ostream_logger_t : public pipe_segment {
+class ostream_logger_t : public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -41,11 +41,11 @@ public:
 		set_name("Log", PRIORITY_INSIGNIFICANT);
 	}
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		begun = true;
 	}
 	virtual void end() /*override*/ {
-		pipe_segment::end();
+		node::end();
 		ended = true;
 	}
 	inline void push(const item_type & item) {
@@ -68,7 +68,7 @@ private:
 };
 
 template <typename dest_t>
-class identity_t : public pipe_segment {
+class identity_t : public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -85,7 +85,7 @@ private:
 };
 
 template <typename source_t>
-class pull_identity_t : public pipe_segment {
+class pull_identity_t : public node {
 public:
 	typedef typename source_t::item_type item_type;
 
@@ -107,7 +107,7 @@ private:
 };
 
 template <typename T>
-class dummydest_t : public pipe_segment {
+class dummydest_t : public node {
 public:
 	dummydest_t() : buffer(new T()) {}
 
@@ -126,7 +126,7 @@ class push_to_pull {
 public:
 
 	template <typename source_t>
-	class puller_t : public pipe_segment {
+	class puller_t : public node {
 	public:
 
 		typedef typename source_t::item_type item_type;
@@ -161,7 +161,7 @@ class pull_to_push {
 public:
 
 	template <typename dest_t>
-	class pusher_t : public pipe_segment {
+	class pusher_t : public node {
 	public:
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
@@ -187,7 +187,7 @@ public:
 };
 
 template <typename T>
-class bitbucket_t : public pipe_segment {
+class bitbucket_t : public node {
 public:
 	typedef T item_type;
 
@@ -201,7 +201,7 @@ public:
 	typedef typename fact2_t::generated_type dest2_t;
 
 	template <typename dest_t>
-	class type : public pipe_segment {
+	class type : public node {
 	public:
 		typedef typename dest_t::item_type item_type;
 
@@ -223,14 +223,14 @@ public:
 };
 
 template <typename T>
-class null_sink_t: public pipe_segment {
+class null_sink_t: public node {
 public:
 	typedef T item_type;
 	void push(const T &) {}
 };
 
 template <typename IT>
-class pull_input_iterator_t: public pipe_segment {
+class pull_input_iterator_t: public node {
 	IT i;
 	IT till;
 public:
@@ -255,7 +255,7 @@ template <typename IT>
 class push_input_iterator_t {
 public:
 	template <typename dest_t>
-	class type : public pipe_segment {
+	class type : public node {
 		IT i;
 		IT till;
 		dest_t dest;
@@ -282,7 +282,7 @@ template <typename Iterator, typename Item = void>
 class push_output_iterator_t;
 
 template <typename Iterator>
-class push_output_iterator_t<Iterator, void> : public pipe_segment {
+class push_output_iterator_t<Iterator, void> : public node {
 	Iterator i;
 public:
 	typedef typename Iterator::value_type item_type;
@@ -299,7 +299,7 @@ public:
 };
 
 template <typename Iterator, typename Item>
-class push_output_iterator_t : public pipe_segment {
+class push_output_iterator_t : public node {
 	Iterator i;
 public:
 	typedef Item item_type;
@@ -319,7 +319,7 @@ template <typename IT>
 class pull_output_iterator_t {
 public:
 	template <typename dest_t>
-	class type : public pipe_segment {
+	class type : public node {
 		IT i;
 		dest_t dest;
 	public:

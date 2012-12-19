@@ -46,18 +46,18 @@ public:
 	phase & operator=(const phase &);
 	~phase();
 
-	inline void set_initiator(pipe_segment * s) {
+	inline void set_initiator(node * s) {
 		tp_assert(m_initiator == 0, "Initiator set twice");
 		m_initiator = s;
 	}
 
-	bool is_initiator(pipe_segment * s);
+	bool is_initiator(node * s);
 
-	void add(pipe_segment * s);
+	void add(node * s);
 
-	void add_successor(pipe_segment * from, pipe_segment * to, bool push);
+	void add_successor(node * from, node * to, bool push);
 
-	inline size_t count(pipe_segment * s) {
+	inline size_t count(node * s) {
 		for (size_t i = 0; i < m_segments.size(); ++i) {
 			if (m_segments[i] == s) return 1;
 		}
@@ -92,11 +92,11 @@ private:
 	std::auto_ptr<segment_graph> actorGraph;
 
 	/** a pointer is a weak reference to something that isn't reference counted. */
-	std::vector<pipe_segment *> m_segments;
+	std::vector<node *> m_segments;
 
 	double m_memoryFraction;
 	memory_size_type m_minimumMemory;
-	pipe_segment * m_initiator;
+	node * m_initiator;
 
 	void assign_minimum_memory() const;
 };

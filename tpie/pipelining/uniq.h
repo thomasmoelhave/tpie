@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_UNIQ_H__
 #define __TPIE_PIPELINING_UNIQ_H__
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/file_stream.h>
@@ -32,7 +32,7 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-class count_consecutive_t : public pipe_segment {
+class count_consecutive_t : public node {
 public:
 	typedef uint64_t count_t;
 	typedef typename dest_t::item_type::first_type item_type;
@@ -46,7 +46,7 @@ public:
 	}
 
 	virtual void end() /*override*/ {
-		pipe_segment::end();
+		node::end();
 		flush();
 	}
 
@@ -79,7 +79,7 @@ public:
 };
 
 template <typename dest_t>
-class extract_first_t : public pipe_segment {
+class extract_first_t : public node {
 public:
 	typedef std::pair<typename dest_t::item_type, any_type> item_type;
 

@@ -21,7 +21,7 @@
 #define __TPIE_PIPELINING_SEGMENT_MAP_DUMP_H__
 
 #include <tpie/pipelining/tokens.h>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 
 namespace tpie {
 

@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_REVERSE_H__
 #define __TPIE_PIPELINING_REVERSE_H__
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/stack.h>
@@ -34,12 +34,12 @@ class passive_reverser {
 public:
 	typedef std::vector<T> buf_t;
 
-	class sink_t : public pipe_segment {
+	class sink_t : public node {
 	public:
 		typedef T item_type;
 
 		inline sink_t(buf_t & buffer, const segment_token & token)
-			: pipe_segment(token)
+			: node(token)
 			, buffer(buffer)
 		{
 			it = buffer.begin();
@@ -56,7 +56,7 @@ public:
 	};
 
 	template <typename dest_t>
-	class source_t : public pipe_segment {
+	class source_t : public node {
 	public:
 		typedef T item_type;
 
@@ -114,19 +114,19 @@ private:
 namespace bits {
 
 template <typename T>
-class reverser_input_t: public pipe_segment {
+class reverser_input_t: public node {
 public:
 	typedef T item_type;
 
 	inline reverser_input_t(const segment_token & token)
-		: pipe_segment(token)
+		: node(token)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(this->the_stack->memory_usage());
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		the_stack = tpie_new<stack<item_type> >();
 		forward("stack", the_stack);
 	}
@@ -139,7 +139,7 @@ public:
 };
 
 template <typename dest_t>
-class reverser_output_t: public  pipe_segment {
+class reverser_output_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -175,7 +175,7 @@ public:
 
 
 template <typename dest_t>
-class reverser_t: public pipe_segment {
+class reverser_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -191,8 +191,12 @@ public:
 		set_name("Reverser", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline reverser_t(const reverser_t & o):
-		pipe_segment(o), input_token(o.input_token), input(o.input), output(o.output) {
+	inline reverser_t(const reverser_t & o)
+		: node(o)
+		, input_token(o.input_token)
+		, input(o.input)
+		, output(o.output)
+	{
 	}
 
 	void push(const item_type & i) {input.push(i);}

@@ -22,7 +22,7 @@
 
 #include <tpie/file_stream.h>
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_helpers.h>
 
 namespace tpie {
@@ -37,7 +37,7 @@ namespace bits {
 /// file_stream input generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class input_t : public pipe_segment {
+class input_t : public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -48,7 +48,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		if (fs.is_open()) {
 			forward("items", fs.size());
 		} else {
@@ -77,7 +77,7 @@ private:
 /// file_stream pull input generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class pull_input_t : public pipe_segment {
+class pull_input_t : public node {
 public:
 	typedef T item_type;
 
@@ -109,7 +109,7 @@ public:
 /// file_stream output terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class output_t : public pipe_segment {
+class output_t : public node {
 public:
 	typedef T item_type;
 
@@ -131,7 +131,7 @@ private:
 /// file_stream output pull data source.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename source_t>
-class pull_output_t : public pipe_segment {
+class pull_output_t : public node {
 public:
 	typedef typename source_t::item_type item_type;
 
@@ -157,7 +157,7 @@ template <typename T>
 class tee_t {
 public:
 	template <typename dest_t>
-	class type: public pipe_segment {
+	class type: public node {
 	public:
 		typedef T item_type;
 		type(const dest_t & dest, file_stream<item_type> & fs): fs(fs), dest(dest) {

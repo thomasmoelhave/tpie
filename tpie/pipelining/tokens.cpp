@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/pipelining/tokens.h>
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 
 namespace tpie {
 

@@ -80,7 +80,7 @@ struct node_output {
 };
 
 template <typename dest_t>
-class input_nodes_t : public P::pipe_segment {
+class input_nodes_t : public P::node {
 public:
 	typedef node item_type;
 
@@ -115,7 +115,7 @@ input_nodes(size_t nodes) {
 }
 
 template <typename dest_t, typename byid_t, typename byparent_t>
-class count_t : public P::pipe_segment {
+class count_t : public P::node {
 	dest_t dest;
 	byid_t byid;
 	byparent_t byparent;
@@ -197,7 +197,7 @@ count(const byid_t & byid, const byparent_t & byparent) {
 	return count_factory<byid_t, byparent_t>(byid, byparent);
 }
 
-class output_count_t : public P::pipe_segment {
+class output_count_t : public P::node {
 public:
 	size_t children;
 	size_t nodes;

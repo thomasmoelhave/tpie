@@ -33,7 +33,7 @@ using namespace tpie::pipelining;
 typedef uint64_t test_t;
 
 template <typename dest_t>
-struct multiply_t : public pipe_segment {
+struct multiply_t : public node {
 	typedef test_t item_type;
 
 	inline multiply_t(const dest_t & dest, uint64_t factor)
@@ -46,7 +46,7 @@ struct multiply_t : public pipe_segment {
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		log_debug() << "multiply begin with memory " << this->get_available_memory() << std::endl;
 	}
 
@@ -245,7 +245,7 @@ bool reverse_test() {
 }
 
 template <typename dest_t>
-struct sequence_generator : public pipe_segment {
+struct sequence_generator : public node {
 	typedef size_t item_type;
 
 	inline sequence_generator(const dest_t & dest, size_t elements, bool reverse = true)
@@ -258,7 +258,7 @@ struct sequence_generator : public pipe_segment {
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		forward("items", static_cast<stream_size_type>(elements));
 		set_steps(elements);
 	}
@@ -282,7 +282,7 @@ private:
 	bool reverse;
 };
 
-struct sequence_verifier : public pipe_segment {
+struct sequence_verifier : public node {
 	typedef size_t item_type;
 
 	inline sequence_verifier(size_t elements, bool & result)
@@ -403,7 +403,7 @@ bool fork_test() {
 }
 
 template <typename dest_t>
-struct buffer_node_t : public pipe_segment {
+struct buffer_node_t : public node {
 	typedef typename dest_t::item_type item_type;
 
 	inline buffer_node_t(const dest_t & dest)
@@ -478,14 +478,14 @@ struct my_item {
 };
 
 template <typename dest_t>
-struct FF1 : public pipe_segment {
+struct FF1 : public node {
 	dest_t dest;
 	FF1(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
 		set_name("FF1");
 	}
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		my_item i;
 		i.v1 = 1;
 		forward("my_item", i);
@@ -495,7 +495,7 @@ struct FF1 : public pipe_segment {
 };
 
 template <typename dest_t>
-struct FF2 : public pipe_segment {
+struct FF2 : public node {
 	dest_t dest;
 	FF2(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
@@ -505,7 +505,7 @@ struct FF2 : public pipe_segment {
 
 bool fetch_forward_result;
 
-struct FF3 : public pipe_segment {
+struct FF3 : public node {
 	FF3() {
 		set_name("FF3");
 	}
@@ -593,7 +593,7 @@ std::ostream & operator<<(std::ostream & os, const prepare_result & r) {
 }
 
 template <typename dest_t>
-class prepare_begin_type : public pipe_segment {
+class prepare_begin_type : public node {
 	dest_t dest;
 	prepare_result & r;
 public:
@@ -626,7 +626,7 @@ public:
 	}
 
 	virtual void set_available_memory(memory_size_type mem) /*override*/ {
-		pipe_segment::set_available_memory(mem);
+		node::set_available_memory(mem);
 		log_debug() << "Begin memory " << mem << std::endl;
 	}
 
@@ -641,7 +641,7 @@ prepare_begin(prepare_result & r) {
 }
 
 template <typename dest_t>
-class prepare_middle_type : public pipe_segment {
+class prepare_middle_type : public node {
 	dest_t dest;
 	prepare_result & r;
 public:
@@ -689,7 +689,7 @@ prepare_middle(prepare_result & r) {
 	return factory_1<prepare_middle_type, prepare_result &>(r);
 }
 
-class prepare_end_type : public pipe_segment {
+class prepare_end_type : public node {
 	prepare_result & r;
 public:
 	typedef void * item_type;
@@ -778,7 +778,7 @@ struct result {
 	}
 };
 
-class begin_type : public pipe_segment {
+class begin_type : public node {
 	result & r;
 
 public:
@@ -797,7 +797,7 @@ inline begin(result & r) {
 }
 
 template <typename dest_t>
-class end_type : public pipe_segment {
+class end_type : public node {
 	result & r;
 	dest_t dest;
 
@@ -858,7 +858,7 @@ bool push_iterator_test() {
 }
 
 template <typename dest_t>
-class multiplicative_inverter_type : public pipe_segment {
+class multiplicative_inverter_type : public node {
 	dest_t dest;
 	const size_t p;
 
@@ -911,7 +911,7 @@ bool parallel_ordered_test(size_t modulo) {
 }
 
 template <typename dest_t>
-class step_begin_type : public pipe_segment {
+class step_begin_type : public node {
 	dest_t dest;
 	static const size_t items = 256*1024*1024;
 
@@ -925,7 +925,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		forward<stream_size_type>("items", items);
 	}
 
@@ -942,7 +942,7 @@ step_begin() {
 }
 
 template <typename dest_t>
-class step_middle_type : public pipe_segment {
+class step_middle_type : public node {
 	dest_t dest;
 
 public:
@@ -955,7 +955,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		if (!can_fetch("items")) throw tpie::exception("Cannot fetch items");
 		set_steps(fetch<stream_size_type>("items"));
 	}
@@ -971,7 +971,7 @@ step_middle() {
 	return factory_0<step_middle_type>();
 }
 
-class step_end_type : public pipe_segment {
+class step_end_type : public node {
 public:
 	typedef size_t item_type;
 

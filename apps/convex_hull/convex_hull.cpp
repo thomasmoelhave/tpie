@@ -63,7 +63,7 @@ bool right_turn(const point<T> & p1, const point<T> & p2, const point<T> & p3) {
 // Second part of the computation. Reads the two stacks to construct the convex
 // polygon. Outputs duplicates.
 template <typename dest_t>
-class graham_scan_reconstruct_type : public P::pipe_segment {
+class graham_scan_reconstruct_type : public P::node {
 	typedef typename dest_t::item_type Pt;
 
 	TP::temp_file * uhTmp;
@@ -88,7 +88,7 @@ public:
 						   + TP::file_stream<Pt>::memory_usage());
 	}
 
-	void set_predecessor(P::pipe_segment & pred) {
+	void set_predecessor(P::node & pred) {
 		add_dependency(pred);
 	}
 
@@ -128,7 +128,7 @@ public:
 template <typename dest_t>
 class graham_scan_type;
 template <typename rdest_t>
-class graham_scan_type<graham_scan_reconstruct_type<rdest_t> > : public P::pipe_segment {
+class graham_scan_type<graham_scan_reconstruct_type<rdest_t> > : public P::node {
 	typedef graham_scan_reconstruct_type<rdest_t> dest_t;
 	typedef typename dest_t::item_type Pt;
 	typedef typename Pt::coord_type T;
@@ -230,7 +230,7 @@ graham_scan_out() {
 
 // Aggregates two coordinates into one point.
 template <typename dest_t>
-class make_points_type : public P::pipe_segment {
+class make_points_type : public P::node {
 	typedef typename dest_t::item_type Pt;
 
 	bool flag;
@@ -265,7 +265,7 @@ make_points() {
 
 // Print and verify polygon. Weeds out duplicates.
 template <typename T>
-class print_points_type : public P::pipe_segment {
+class print_points_type : public P::node {
 	typedef point<T> Pt;
 	int state;
 	Pt buf[3];

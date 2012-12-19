@@ -22,7 +22,7 @@
 
 #include <vector>
 
-#include <tpie/pipelining/pipe_segment.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 
@@ -33,7 +33,7 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-class input_vector_t : public pipe_segment {
+class input_vector_t : public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
@@ -43,7 +43,7 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		pipe_segment::begin();
+		node::begin();
 		forward("items", static_cast<stream_size_type>(input.size()));
 		set_steps(input.size());
 	}
@@ -61,7 +61,7 @@ private:
 };
 
 template <typename T>
-class output_vector_t : public pipe_segment {
+class output_vector_t : public node {
 public:
 	typedef T item_type;
 

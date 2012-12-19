@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file virtual.h  Virtual wrappers for pipe_segments
+/// \file virtual.h  Virtual wrappers for nodes
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TPIE_PIPELINING_VIRTUAL_H__
@@ -31,11 +31,11 @@ namespace pipelining {
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Virtual base pipe_segment that is injected into the beginning of a
+/// \brief Virtual base node that is injected into the beginning of a
 /// virtual chunk.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input>
-class virtsrc : public pipe_segment {
+class virtsrc : public node {
 public:
 	virtual const segment_token & get_token() = 0;
 	virtual void push(Input v) = 0;
@@ -53,12 +53,12 @@ public:
 	virtsrc_impl(const dest_t & dest)
 		: dest(dest)
 	{
-		pipe_segment::add_push_destination(dest);
+		node::add_push_destination(dest);
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
 	}
 
 	const segment_token & get_token() {
-		return pipe_segment::get_token();
+		return node::get_token();
 	}
 
 	void push(item_type v) {
@@ -67,12 +67,12 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Virtual pipe_segment that is injected into the end of a virtual
+/// \brief Virtual node that is injected into the end of a virtual
 /// chunk. May be dynamically connected to a virtsrc using the set_destination
 /// method.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Output>
-class virtrecv : public pipe_segment {
+class virtrecv : public node {
 	virtrecv *& m_self;
 	virtsrc<Output> * m_virtdest;
 
@@ -88,7 +88,7 @@ public:
 	}
 
 	virtrecv(const virtrecv & other)
-		: pipe_segment(other)
+		: node(other)
 		, m_self(other.m_self)
 		, m_virtdest(other.m_virtdest)
 	{
@@ -97,7 +97,7 @@ public:
 
 	void begin() {
 		tpie::log_info() << this << " begin " << m_virtdest << std::endl;
-		pipe_segment::begin();
+		node::begin();
 		if (m_virtdest == 0) {
 			throw tpie::exception("No virtual destination");
 		}
@@ -118,12 +118,12 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Ownership of pipe_segments. This class can only be instantiated
+/// \brief Ownership of nodes. This class can only be instantiated
 /// through static methods that return a virt_node::ptr, providing reference
-/// counting so that pipe_segments are only instantiated once each and are
+/// counting so that nodes are only instantiated once each and are
 /// destroyed when the pipeline object goes out of scope.
 ///
-/// This class either owns a pipe_segment or two virt_nodes. The first case is
+/// This class either owns a node or two virt_nodes. The first case is
 /// used in the virtual_chunk constructors that accept a single pipe_base. The
 /// second case is used in the virtual_chunk pipe operators.
 ///////////////////////////////////////////////////////////////////////////////
@@ -132,15 +132,15 @@ public:
 	typedef boost::shared_ptr<virt_node> ptr;
 
 private:
-	std::auto_ptr<pipe_segment> m_pipeSegment;
+	std::auto_ptr<node> m_pipeSegment;
 	ptr m_left;
 	ptr m_right;
 
 public:
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Take std::new-ownership of given pipe_segment.
+	/// \brief Take std::new-ownership of given node.
 	///////////////////////////////////////////////////////////////////////////
-	static ptr take_own(pipe_segment * pipe) {
+	static ptr take_own(node * pipe) {
 		virt_node * n = new virt_node();
 		n->m_pipeSegment.reset(pipe);
 		ptr res(n);
@@ -264,7 +264,7 @@ public:
 	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that recursively constructs a pipe_segment and takes
+	/// \brief Constructor that recursively constructs a node and takes
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
@@ -274,7 +274,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor that combines two virtual chunks. Assumes that the
-	/// virtual pipe_segments are already connected. You should not use this
+	/// virtual nodes are already connected. You should not use this
 	/// constructor directly; instead, use the pipe operator.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename Mid>
@@ -282,7 +282,7 @@ public:
 					  const virtual_chunk_end<Mid> & right);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Construct a pipe_segment and assign it to this virtual chunk.
+	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk_end & operator=(const pipe_end<fact_t> & pipe) {
@@ -324,7 +324,7 @@ public:
 	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that recursively constructs a pipe_segment and takes
+	/// \brief Constructor that recursively constructs a node and takes
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
@@ -334,7 +334,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor that combines two virtual chunks. Assumes that the
-	/// virtual pipe_segments are already connected. You should not use this
+	/// virtual nodes are already connected. You should not use this
 	/// constructor directly; instead, use the pipe operator.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename Mid>
@@ -347,7 +347,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Construct a pipe_segment and assign it to this virtual chunk.
+	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk & operator=(const pipe_middle<fact_t> & pipe) {
@@ -420,7 +420,7 @@ public:
 	{}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that recursively constructs a pipe_segment and takes
+	/// \brief Constructor that recursively constructs a node and takes
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
@@ -430,7 +430,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor that combines two virtual chunks. Assumes that the
-	/// virtual pipe_segments are already connected. You should not use this
+	/// virtual nodes are already connected. You should not use this
 	/// constructor directly; instead, use the pipe operator.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename Mid>
@@ -443,7 +443,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Construct a pipe_segment and assign it to this virtual chunk.
+	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
 	virtual_chunk_begin & operator=(const pipe_begin<fact_t> & pipe) {

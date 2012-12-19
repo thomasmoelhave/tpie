@@ -43,7 +43,7 @@ class add_t {
 
 public:
 	template <typename dest_t>
-	class type : public pipe_segment {
+	class type : public node {
 		dest_t dest;
 		src_t src;
 	public:
