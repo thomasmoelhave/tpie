@@ -52,21 +52,21 @@
 /// constructed. Instead, we associate to each node a segment token
 /// (numeric id) that is copied with the node. The segment_token class
 /// signals the mapping from numeric ids to node pointers to a
-/// segment_map.
+/// node_map.
 ///
 /// However, we do not want a global map from ids to node pointers, as
 /// an application may construct many pipelines throughout its lifetime. To
-/// mitigate this problem, each segment_map is local to a pipeline, and each
-/// segment_token knows (directly or indirectly) which segment_map currently
+/// mitigate this problem, each node_map is local to a pipeline, and each
+/// segment_token knows (directly or indirectly) which node_map currently
 /// holds the mapping of its id to its node.
 ///
 /// When we need to connect one pipe segment to another in the pipeline graphs,
-/// we need the two corresponding segment_tokens to share the same segment_map.
-/// When we merge two segment_maps, the mappings in one are copied to the
-/// other, and one segment_map remembers that it has been usurped by another
-/// segment_map. This corresponds to the set representative in a union-find
+/// we need the two corresponding segment_tokens to share the same node_map.
+/// When we merge two node_maps, the mappings in one are copied to the
+/// other, and one node_map remembers that it has been usurped by another
+/// node_map. This corresponds to the set representative in a union-find
 /// data structure, and we implement union-find merge by rank. We use Boost
-/// smart pointers to deallocate segment_maps when they are no longer needed.
+/// smart pointers to deallocate node_maps when they are no longer needed.
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TPIE_PIPELINING_TOKENS_H__
@@ -94,7 +94,7 @@ enum segment_relation {
 	depends
 };
 
-class segment_map {
+class node_map {
 public:
 	typedef uint64_t id_t;
 	typedef node * val_t;
@@ -105,11 +105,11 @@ public:
 	typedef std::multimap<id_t, std::pair<id_t, segment_relation> > relmap_t;
 	typedef relmap_t::const_iterator relmapit;
 
-	typedef boost::shared_ptr<segment_map> ptr;
-	typedef boost::weak_ptr<segment_map> wptr;
+	typedef boost::shared_ptr<node_map> ptr;
+	typedef boost::weak_ptr<node_map> wptr;
 
 	static inline ptr create() {
-		ptr result(new segment_map);
+		ptr result(new node_map);
 		result->self = wptr(result);
 		return result;
 	}
@@ -167,7 +167,7 @@ public:
 	}
 
 	void assert_authoritative() const {
-		if (m_authority) throw non_authoritative_segment_map();
+		if (m_authority) throw non_authoritative_node_map();
 	}
 
 	void dump(std::ostream & os = std::cout) const;
@@ -191,13 +191,13 @@ private:
 	ptr m_authority;
 	size_t m_rank;
 
-	inline segment_map()
+	inline node_map()
 		: m_rank(0)
 	{
 	}
 
-	inline segment_map(const segment_map &);
-	inline segment_map & operator=(const segment_map &);
+	inline node_map(const node_map &);
+	inline node_map & operator=(const node_map &);
 
 	static id_t nextId;
 };
@@ -206,12 +206,12 @@ private:
 
 class segment_token {
 public:
-	typedef bits::segment_map::id_t id_t;
-	typedef bits::segment_map::val_t val_t;
+	typedef bits::node_map::id_t id_t;
+	typedef bits::node_map::val_t val_t;
 
 	// Use for the simple case in which a node owns its own token
 	inline segment_token(val_t owner)
-		: m_tokens(bits::segment_map::create())
+		: m_tokens(bits::node_map::create())
 		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
 	{
@@ -236,7 +236,7 @@ public:
 
 	// Use for the advanced case when a segment_token is allocated before the node
 	inline segment_token()
-		: m_tokens(bits::segment_map::create())
+		: m_tokens(bits::node_map::create())
 		, m_id(m_tokens->add_token(0))
 		, m_free(true)
 	{
@@ -244,13 +244,13 @@ public:
 
 	inline size_t id() const { return m_id; }
 
-	inline bits::segment_map::ptr map_union(const segment_token & with) {
+	inline bits::node_map::ptr map_union(const segment_token & with) {
 		if (m_tokens == with.m_tokens) return m_tokens;
 		m_tokens->union_set(with.m_tokens);
 		return m_tokens = m_tokens->find_authority();
 	}
 
-	inline bits::segment_map::ptr get_map() const {
+	inline bits::node_map::ptr get_map() const {
 		return m_tokens;
 	}
 
@@ -259,7 +259,7 @@ public:
 	}
 
 private:
-	bits::segment_map::ptr m_tokens;
+	bits::node_map::ptr m_tokens;
 	size_t m_id;
 	bool m_free;
 };

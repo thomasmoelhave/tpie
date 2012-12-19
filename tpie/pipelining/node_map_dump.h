@@ -29,8 +29,8 @@ namespace pipelining {
 
 namespace bits {
 
-inline void segment_map::dump(std::ostream & os) const {
-	os << this << " segment_map\n";
+inline void node_map::dump(std::ostream & os) const {
+	os << this << " node_map\n";
 	if (m_authority)
 		os << "Non-authoritative" << std::endl;
 	else

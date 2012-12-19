@@ -10,6 +10,7 @@ set (PIPE_HEADERS
 	merge_sorter.h
 	merger.h
 	node.h
+	node_map_dump.h
 	numeric.h
 	pair_factory.h
 	pipe_base.h
@@ -17,7 +18,6 @@ set (PIPE_HEADERS
 	pipe_segment_typedef.h
 	pipeline.h
 	reverse.h
-	segment_map_dump.h
 	sort.h
 	std_glue.h
 	stdio.h

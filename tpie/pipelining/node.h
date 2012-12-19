@@ -96,7 +96,7 @@ public:
 	/// \brief Get the local node map, mapping node IDs to node
 	/// pointers for all the nodes reachable from this one.
 	///////////////////////////////////////////////////////////////////////////
-	inline bits::segment_map::ptr get_segment_map() const {
+	inline bits::node_map::ptr get_node_map() const {
 		return token.get_map();
 	}
 
@@ -222,7 +222,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally to facilitate forwarding parameters to
 	/// successors in the item flow graph. Called by
-	/// segment_map::send_successors.
+	/// node_map::send_successors.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_successor(node * succ) {
 		m_successors.push_back(succ);
@@ -302,7 +302,7 @@ protected:
 	/// \brief Called by implementers to declare a push destination.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_push_destination(const segment_token & dest) {
-		bits::segment_map::ptr m = token.map_union(dest);
+		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::pushes);
 	}
 
@@ -317,7 +317,7 @@ protected:
 	/// \brief Called by implementers to declare a pull destination.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_pull_destination(const segment_token & dest) {
-		bits::segment_map::ptr m = token.map_union(dest);
+		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::pulls);
 	}
 
@@ -334,7 +334,7 @@ protected:
 	/// of this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_dependency(const segment_token & dest) {
-		bits::segment_map::ptr m = token.map_union(dest);
+		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::depends);
 	}
 

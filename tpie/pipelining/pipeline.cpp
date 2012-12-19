@@ -25,7 +25,7 @@
 #include <boost/unordered_set.hpp>
 
 namespace {
-	typedef tpie::pipelining::bits::segment_map S;
+	typedef tpie::pipelining::bits::node_map S;
 
 	class name {
 	public:
@@ -54,12 +54,12 @@ typedef boost::unordered_map<const node *, size_t> nodes_t;
 
 void pipeline_base::plot(std::ostream & out) {
 	out << "digraph {\n";
-	segment_map::ptr segmap = m_segmap->find_authority();
-	for (segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
+	node_map::ptr segmap = m_segmap->find_authority();
+	for (node_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
 		out << '"' << name(segmap, i->first) << "\";\n";
 	}
-	const segment_map::relmap_t & relations = segmap->get_relations();
-	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+	const node_map::relmap_t & relations = segmap->get_relations();
+	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		switch (i->second.second) {
 			case pushes:
 				out << '"' << name(segmap, i->first) << "\" -> \"" << name(segmap, i->second.first) << "\";\n";
@@ -79,7 +79,7 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::const_iterator it;
 
-	segment_map::ptr map = m_segmap->find_authority();
+	node_map::ptr map = m_segmap->find_authority();
 	graph_traits g(*map);
 	const phases_t & phases = g.phases();
 	if (initialMemory == 0) log_warning() << "No memory for pipelining" << std::endl;
@@ -101,9 +101,9 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 } // namespace bits
 
 void pipeline::output_memory(std::ostream & o) const {
-	bits::segment_map::ptr segmap = p->get_segment_map()->find_authority();
-	for (bits::segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
-		bits::segment_map::val_t p = segmap->get(i->first);
+	bits::node_map::ptr segmap = p->get_node_map()->find_authority();
+	for (bits::node_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
+		bits::node_map::val_t p = segmap->get(i->first);
 		o << p->get_name() << ": min=" << p->get_minimum_memory() << "; max=" << p->get_available_memory() << "; prio=" << p->get_memory_fraction() << ";" << std::endl;
 
 	}

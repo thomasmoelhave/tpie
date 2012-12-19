@@ -169,8 +169,8 @@ phase & phase::operator=(const phase & other) {
 }
 
 bool phase::is_initiator(node * s) {
-	segment_map::ptr m = s->get_segment_map()->find_authority();
-	segment_map::id_t id = s->get_id();
+	node_map::ptr m = s->get_node_map()->find_authority();
+	node_map::id_t id = s->get_id();
 	return m->in_degree(id, pushes) == 0 && m->in_degree(id, pulls) == 0;
 }
 
@@ -276,7 +276,7 @@ void phase::assign_memory(memory_size_type m) const {
 	}
 }
 
-graph_traits::graph_traits(const segment_map & map)
+graph_traits::graph_traits(const node_map & map)
 	: map(map)
 {
 	map.assert_authoritative();
@@ -310,12 +310,12 @@ void graph_traits::go_all(stream_size_type n, Progress::base & pi) {
 
 void graph_traits::calc_phases() {
 	map.assert_authoritative();
-	typedef std::map<segment_map::id_t, size_t> ids_t;
-	typedef std::map<size_t, segment_map::id_t> ids_inv_t;
+	typedef std::map<node_map::id_t, size_t> ids_t;
+	typedef std::map<size_t, node_map::id_t> ids_inv_t;
 	ids_t ids;
 	ids_inv_t ids_inv;
 	size_t nextid = 0;
-	for (segment_map::mapit i = map.begin(); i != map.end(); ++i) {
+	for (node_map::mapit i = map.begin(); i != map.end(); ++i) {
 		ids.insert(std::make_pair(i->first, nextid));
 		ids_inv.insert(std::make_pair(nextid, i->first));
 		++nextid;
@@ -323,8 +323,8 @@ void graph_traits::calc_phases() {
 	tpie::disjoint_sets<size_t> phases(nextid);
 	for (size_t i = 0; i < nextid; ++i) phases.make_set(i);
 
-	const segment_map::relmap_t relations = map.get_relations();
-	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+	const node_map::relmap_t relations = map.get_relations();
+	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second != depends) phases.union_set(ids[i->first], ids[i->second.first]);
 	}
 	// `phases` holds a map from segment to phase number
@@ -332,7 +332,7 @@ void graph_traits::calc_phases() {
 	phasegraph g(phases, nextid);
 
 	// establish phase relationships
-	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second == depends) g.depends(phases.find_set(ids[i->first]), phases.find_set(ids[i->second.first]));
 	}
 
@@ -360,7 +360,7 @@ void graph_traits::calc_phases() {
 			}
 		}
 	}
-	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second == depends) continue;
 		node * from = map.get(i->first);
 		node * to = map.get(i->second.first);

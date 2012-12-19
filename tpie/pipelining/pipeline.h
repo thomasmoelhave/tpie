@@ -56,12 +56,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipeline_base() {}
 
-	segment_map::ptr get_segment_map() const {
+	node_map::ptr get_node_map() const {
 		return m_segmap;
 	}
 
 protected:
-	segment_map::ptr m_segmap;
+	node_map::ptr m_segmap;
 	double m_memory;
 };
 
@@ -79,7 +79,7 @@ public:
 		: r(factory.construct())
 	{
 		this->m_memory = factory.memory();
-		this->m_segmap = r.get_segment_map();
+		this->m_segmap = r.get_node_map();
 	}
 
 	inline operator gen_t() {
@@ -123,8 +123,8 @@ public:
 	inline double memory() const {
 		return p->memory();
 	}
-	inline bits::segment_map::ptr get_segment_map() const {
-		return p->get_segment_map();
+	inline bits::node_map::ptr get_node_map() const {
+		return p->get_node_map();
 	}
 
 	void output_memory(std::ostream & o) const;

@@ -26,10 +26,10 @@ namespace pipelining {
 
 namespace bits {
 
-segment_map::id_t segment_map::nextId = 0;
+node_map::id_t node_map::nextId = 0;
 
 // Called by graph_traits
-void segment_map::send_successors() const {
+void node_map::send_successors() const {
 	for (relmapit i = m_relations.begin(); i != m_relations.end(); ++i) {
 		switch (i->second.second) {
 			case pushes:
@@ -43,7 +43,7 @@ void segment_map::send_successors() const {
 	}
 }
 
-void segment_map::link(segment_map::ptr target) {
+void node_map::link(node_map::ptr target) {
 	if (target.get() == this) {
 		// self link attempted
 		// we must never have some_map->m_authority point to some_map,
@@ -71,20 +71,20 @@ void segment_map::link(segment_map::ptr target) {
 		++m_rank;
 }
 
-segment_map::ptr segment_map::find_authority() {
+node_map::ptr node_map::find_authority() {
 	if (!m_authority)
 		return ptr(self);
 
-	segment_map * i = m_authority.get();
+	node_map * i = m_authority.get();
 	while (i->m_authority) {
 		i = i->m_authority.get();
 	}
 	ptr result(i->self);
 
 	// path compression
-	segment_map * j = m_authority.get();
+	node_map * j = m_authority.get();
 	while (j->m_authority) {
-		segment_map * k = j->m_authority.get();
+		node_map * k = j->m_authority.get();
 		j->m_authority = result;
 		j = k;
 	}
@@ -92,7 +92,7 @@ segment_map::ptr segment_map::find_authority() {
 	return result;
 }
 
-size_t segment_map::out_degree(const relmap_t & map, id_t from, segment_relation rel) const {
+size_t node_map::out_degree(const relmap_t & map, id_t from, segment_relation rel) const {
 	size_t res = 0;
 	relmapit i = map.find(from);
 	while (i != map.end() && i->first == from) {

@@ -32,7 +32,7 @@ class node;
 class segment_token;
 
 namespace bits {
-	class segment_map;
+	class node_map;
 	class phase;
 }
 

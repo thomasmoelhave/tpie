@@ -34,13 +34,13 @@ template <typename child_t>
 class pair_factory_base {
 public:
 	pair_factory_base()
-		: m_maps(new segment_map::ptr[2])
+		: m_maps(new node_map::ptr[2])
 		, m_final(false)
 	{
 	}
 
 	pair_factory_base(const pair_factory_base & other)
-		: m_maps(new segment_map::ptr[2])
+		: m_maps(new node_map::ptr[2])
 		, m_final(other.m_final)
 	{
 		m_maps[0] = other.m_maps[0];
@@ -69,11 +69,11 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Internal - used by subclasses to record references to
-	/// segment_maps for a later connectivity check.
+	/// node_maps for a later connectivity check.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename pipe_t>
 	pipe_t record(size_t idx, const pipe_t & pipe) const {
-		m_maps[idx] = pipe.get_segment_map();
+		m_maps[idx] = pipe.get_node_map();
 		if (idx == 0 && m_final) {
 			// Now is the opportunity to check that the constructed pipeline is
 			// connected.
@@ -113,7 +113,7 @@ private:
 	inline child_t & self() {return *static_cast<child_t*>(this);}
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 
-	boost::scoped_array<segment_map::ptr> m_maps;
+	boost::scoped_array<node_map::ptr> m_maps;
 	bool m_final;
 };
 
@@ -187,7 +187,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief For pair factories, recursively check that the nodes created
-/// share their segment_map.
+/// share their node_map.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact1_t, typename fact2_t>
 struct maybe_check_connected<pair_factory<fact1_t, fact2_t> > {

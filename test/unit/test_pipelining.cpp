@@ -153,7 +153,7 @@ bool file_stream_pull_test() {
 		file_stream<test_t> out;
 		out.open("output");
 		pipeline p = (pull_input(in) | pull_identity() | pull_output(out));
-		p.get_segment_map()->dump(log_info());
+		p.get_node_map()->dump(log_info());
 		p.plot(log_info());
 		p();
 	}
@@ -387,7 +387,7 @@ bool uniq_test() {
 bool memory_test() {
 	pipeline p = input_vector(inputvector).memory(1.1) | multiply(3).memory(3.2) | multiply(2).memory(3.3) | output_vector(outputvector).memory(2.3);
 	p();
-	tpie::pipelining::bits::graph_traits g(*p.get_segment_map());
+	tpie::pipelining::bits::graph_traits g(*p.get_node_map());
 	double fractions = g.sum_memory();
 	memory_size_type memory = g.sum_minimum_memory();
 	log_info() << fractions << std::endl << memory << std::endl;

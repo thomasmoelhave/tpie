@@ -56,9 +56,9 @@ public:
 	inline virtual_chunk_missing_end() : tpie::exception("Virtual end chunk contains no pipes") {}
 };
 
-class non_authoritative_segment_map : public tpie::exception {
+class non_authoritative_node_map : public tpie::exception {
 public:
-	non_authoritative_segment_map() : tpie::exception("Non-authoritative segment map") {}
+	non_authoritative_node_map() : tpie::exception("Non-authoritative segment map") {}
 };
 
 } // namespace pipelining

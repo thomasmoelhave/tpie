@@ -109,7 +109,7 @@ public:
 
 	static memory_size_type memory_usage(size_t phases);
 
-	graph_traits(const segment_map & map);
+	graph_traits(const node_map & map);
 
 	double sum_memory() {
 		double sum = 0.0;
@@ -134,7 +134,7 @@ public:
 	void go_all(stream_size_type n, Progress::base & pi);
 
 private:
-	const segment_map & map;
+	const node_map & map;
 	phases_t m_phases;
 	std::vector<bool> m_evacuatePrevious;
 

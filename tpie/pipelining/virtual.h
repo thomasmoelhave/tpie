@@ -194,13 +194,13 @@ public:
 	virtual_chunk_base() {}
 
 	virt_node::ptr get_node() const { return m_node; }
-	virtual_chunk_base(segment_map::ptr segmap, virt_node::ptr ptr)
+	virtual_chunk_base(node_map::ptr segmap, virt_node::ptr ptr)
 		: m_node(ptr)
 	{
 		this->m_segmap = segmap;
 	}
 
-	virtual_chunk_base(segment_map::ptr segmap) {
+	virtual_chunk_base(node_map::ptr segmap) {
 		this->m_segmap = segmap;
 	}
 
@@ -294,7 +294,7 @@ public:
 		typedef typename fact_t::generated_type generated_type;
 		m_src = new bits::virtsrc_impl<generated_type>(pipe.factory.construct());
 		this->m_node = bits::virt_node::take_own(m_src);
-		this->m_segmap = m_src->get_segment_map();
+		this->m_segmap = m_src->get_node_map();
 
 		return *this;
 	}
@@ -359,7 +359,7 @@ public:
 		recv_type temp(m_recv);
 		m_src = new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp));
 		this->m_node = bits::virt_node::take_own(m_src);
-		this->m_segmap = temp.get_segment_map();
+		this->m_segmap = temp.get_node_map();
 
 		return *this;
 	}
@@ -394,7 +394,7 @@ template <typename Input>
 template <typename Mid>
 virtual_chunk_end<Input>::virtual_chunk_end(const virtual_chunk<Input, Mid> & left,
 											const virtual_chunk_end<Mid> & right)
-	: virtual_chunk_base(left.get_segment_map(),
+	: virtual_chunk_base(left.get_node_map(),
 						 bits::virt_node::combine(left.get_node(), right.get_node()))
 {
 	m_src = acc::get_source(left);
@@ -436,7 +436,7 @@ public:
 	template <typename Mid>
 	virtual_chunk_begin(const virtual_chunk_begin<Mid> & left,
 						const virtual_chunk<Mid, Output> & right)
-		: virtual_chunk_base(left.get_segment_map(),
+		: virtual_chunk_base(left.get_node_map(),
 							 bits::virt_node::combine(left.get_node(), right.get_node()))
 	{
 		m_recv = acc::get_destination(right);
@@ -454,7 +454,7 @@ public:
 		typedef typename fact_t::template generated<recv_type>::type generated_type;
 		recv_type temp(m_recv);
 		this->m_node = bits::virt_node::take_own(new generated_type(pipe.factory.construct(temp)));
-		this->m_segmap = m_recv->get_segment_map();
+		this->m_segmap = m_recv->get_node_map();
 		return *this;
 	}
 
