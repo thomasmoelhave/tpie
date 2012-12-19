@@ -37,7 +37,7 @@ namespace bits {
 template <typename Input>
 class virtsrc : public node {
 public:
-	virtual const segment_token & get_token() = 0;
+	virtual const node_token & get_token() = 0;
 	virtual void push(Input v) = 0;
 };
 
@@ -57,7 +57,7 @@ public:
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
 	}
 
-	const segment_token & get_token() {
+	const node_token & get_token() {
 		return node::get_token();
 	}
 

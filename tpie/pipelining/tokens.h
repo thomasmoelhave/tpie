@@ -50,18 +50,18 @@
 /// Since nodes are copyable, we cannot store node pointers
 /// limitlessly, as pointers will change while the pipeline is being
 /// constructed. Instead, we associate to each node a segment token
-/// (numeric id) that is copied with the node. The segment_token class
+/// (numeric id) that is copied with the node. The node_token class
 /// signals the mapping from numeric ids to node pointers to a
 /// node_map.
 ///
 /// However, we do not want a global map from ids to node pointers, as
 /// an application may construct many pipelines throughout its lifetime. To
 /// mitigate this problem, each node_map is local to a pipeline, and each
-/// segment_token knows (directly or indirectly) which node_map currently
+/// node_token knows (directly or indirectly) which node_map currently
 /// holds the mapping of its id to its node.
 ///
 /// When we need to connect one pipe segment to another in the pipeline graphs,
-/// we need the two corresponding segment_tokens to share the same node_map.
+/// we need the two corresponding node_tokens to share the same node_map.
 /// When we merge two node_maps, the mappings in one are copied to the
 /// other, and one node_map remembers that it has been usurped by another
 /// node_map. This corresponds to the set representative in a union-find
@@ -204,13 +204,13 @@ private:
 
 } // namespace bits
 
-class segment_token {
+class node_token {
 public:
 	typedef bits::node_map::id_t id_t;
 	typedef bits::node_map::val_t val_t;
 
 	// Use for the simple case in which a node owns its own token
-	inline segment_token(val_t owner)
+	inline node_token(val_t owner)
 		: m_tokens(bits::node_map::create())
 		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
@@ -220,7 +220,7 @@ public:
 	// This copy constructor has two uses:
 	// 1. Simple case when a node is copied (freshToken = false)
 	// 2. Advanced case when a node is being constructed with a specific token (freshToken = true)
-	inline segment_token(const segment_token & other, val_t newOwner, bool freshToken = false)
+	inline node_token(const node_token & other, val_t newOwner, bool freshToken = false)
 		: m_tokens(other.m_tokens->find_authority())
 		, m_id(other.id())
 		, m_free(false)
@@ -234,8 +234,8 @@ public:
 		m_tokens->set_token(m_id, newOwner);
 	}
 
-	// Use for the advanced case when a segment_token is allocated before the node
-	inline segment_token()
+	// Use for the advanced case when a node_token is allocated before the node
+	inline node_token()
 		: m_tokens(bits::node_map::create())
 		, m_id(m_tokens->add_token(0))
 		, m_free(true)
@@ -244,7 +244,7 @@ public:
 
 	inline size_t id() const { return m_id; }
 
-	inline bits::node_map::ptr map_union(const segment_token & with) {
+	inline bits::node_map::ptr map_union(const node_token & with) {
 		if (m_tokens == with.m_tokens) return m_tokens;
 		m_tokens->union_set(with.m_tokens);
 		return m_tokens = m_tokens->find_authority();
@@ -267,5 +267,7 @@ private:
 } // namespace pipelining
 
 } // namespace tpie
+
+#include <tpie/pipelining/segment_token_typedef.h>
 
 #endif // __TPIE_PIPELINING_TOKENS_H__

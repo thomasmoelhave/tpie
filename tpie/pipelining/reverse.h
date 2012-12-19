@@ -38,7 +38,7 @@ public:
 	public:
 		typedef T item_type;
 
-		inline sink_t(buf_t & buffer, const segment_token & token)
+		inline sink_t(buf_t & buffer, const node_token & token)
 			: node(token)
 			, buffer(buffer)
 		{
@@ -60,7 +60,7 @@ public:
 	public:
 		typedef T item_type;
 
-		inline source_t(const dest_t & dest, const buf_t & buffer, const segment_token & sink)
+		inline source_t(const dest_t & dest, const buf_t & buffer, const node_token & sink)
 			: dest(dest)
 		   	, buffer(buffer)
 			, it(buffer.rbegin())
@@ -96,19 +96,19 @@ public:
 	{
 	}
 
-	inline pipe_end<termfactory_2<sink_t, buf_t &, const segment_token &> >
+	inline pipe_end<termfactory_2<sink_t, buf_t &, const node_token &> >
 	sink() {
-		return termfactory_2<sink_t, buf_t &, const segment_token &>(buffer, sink_token);
+		return termfactory_2<sink_t, buf_t &, const node_token &>(buffer, sink_token);
 	}
 
-	inline pipe_begin<factory_2<source_t, const buf_t &, const segment_token &> >
+	inline pipe_begin<factory_2<source_t, const buf_t &, const node_token &> >
 	source() {
-		return factory_2<source_t, const buf_t &, const segment_token &>(buffer, sink_token);
+		return factory_2<source_t, const buf_t &, const node_token &>(buffer, sink_token);
 	}
 
 private:
 	buf_t buffer;
-	segment_token sink_token;
+	node_token sink_token;
 };
 
 namespace bits {
@@ -118,7 +118,7 @@ class reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline reverser_input_t(const segment_token & token)
+	inline reverser_input_t(const node_token & token)
 		: node(token)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
@@ -143,7 +143,7 @@ class reverser_output_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
-	reverser_output_t(const dest_t & dest, const segment_token & input_token)
+	reverser_output_t(const dest_t & dest, const node_token & input_token)
 		: dest(dest)
 	{
 		add_dependency(input_token);
@@ -201,7 +201,7 @@ public:
 
 	void push(const item_type & i) {input.push(i);}
 private:
-	segment_token input_token;
+	node_token input_token;
 
 	input_t input;
 	output_t output;

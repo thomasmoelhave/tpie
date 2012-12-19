@@ -41,7 +41,7 @@ template <typename T>
 class buffer_input_t: public node {
 public:
 	typedef T item_type;
-	buffer_input_t(file_stream<T> & queue, const segment_token & token)
+	buffer_input_t(file_stream<T> & queue, const node_token & token)
 		: node(token)
 		, queue(queue)
 	{
@@ -72,7 +72,7 @@ class buffer_pull_output_t: public node {
 public:
 	typedef T item_type;
 
-	buffer_pull_output_t(file_stream<T> & queue, const segment_token & input_token)
+	buffer_pull_output_t(file_stream<T> & queue, const node_token & input_token)
 		: queue(queue)
 	{
 		add_dependency(input_token);
@@ -107,7 +107,7 @@ class delayed_buffer_input_t: public node {
 public:
 	typedef T item_type;
 
-	delayed_buffer_input_t(const segment_token & token)
+	delayed_buffer_input_t(const node_token & token)
 		: node(token)
 	{
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
@@ -137,7 +137,7 @@ class delayed_buffer_output_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
-	delayed_buffer_output_t(const dest_t &dest, const segment_token & input_token)
+	delayed_buffer_output_t(const dest_t &dest, const node_token & input_token)
 		: dest(dest)
 	{
 		add_dependency(input_token);
@@ -184,8 +184,8 @@ public:
 	typedef bits::buffer_input_t<T> input_t;
 	typedef bits::buffer_pull_output_t<T> output_t;
 private:
-	typedef termfactory_2<input_t,  file_stream<T> &, const segment_token &> inputfact_t;
-	typedef termfactory_2<output_t, file_stream<T> &, const segment_token &> outputfact_t;
+	typedef termfactory_2<input_t,  file_stream<T> &, const node_token &> inputfact_t;
+	typedef termfactory_2<output_t, file_stream<T> &, const node_token &> outputfact_t;
 	typedef pipe_end      <inputfact_t>  inputpipe_t;
 	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
@@ -209,7 +209,7 @@ public:
 	}
 
 private:
-	segment_token input_token;
+	node_token input_token;
 	file_stream<T> queue;
 
 	passive_buffer(const passive_buffer &);
@@ -244,7 +244,7 @@ public:
 		input.push(item);
 	}
 
-	segment_token input_token;
+	node_token input_token;
 
 	input_t input;
 	output_t output;

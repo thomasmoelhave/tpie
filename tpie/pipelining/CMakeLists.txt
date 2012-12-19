@@ -18,6 +18,7 @@ set (PIPE_HEADERS
 	pipe_segment_typedef.h
 	pipeline.h
 	reverse.h
+	segment_token_typedef.h
 	sort.h
 	std_glue.h
 	stdio.h

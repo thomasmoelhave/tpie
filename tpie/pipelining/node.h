@@ -104,7 +104,7 @@ public:
 	/// \brief Get the internal node ID of this node (mainly
 	/// for debugging purposes).
 	///////////////////////////////////////////////////////////////////////////
-	inline segment_token::id_t get_id() const {
+	inline node_token::id_t get_id() const {
 		return token.id();
 	}
 
@@ -252,7 +252,7 @@ public:
 
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Default constructor, using a new segment_token.
+	/// \brief Default constructor, using a new node_token.
 	///////////////////////////////////////////////////////////////////////////
 	inline node()
 		: token(this)
@@ -268,7 +268,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Copy constructor. We need to define this explicitly since the
-	/// segment_token needs to know its new owner.
+	/// node_token needs to know its new owner.
 	///////////////////////////////////////////////////////////////////////////
 	inline node(const node & other)
 		: token(other.token, this)
@@ -284,9 +284,9 @@ protected:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor using a given fresh segment_token.
+	/// \brief Constructor using a given fresh node_token.
 	///////////////////////////////////////////////////////////////////////////
-	inline node(const segment_token & token)
+	inline node(const node_token & token)
 		: token(token, this, true)
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
@@ -301,7 +301,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare a push destination.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_push_destination(const segment_token & dest) {
+	inline void add_push_destination(const node_token & dest) {
 		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::pushes);
 	}
@@ -316,7 +316,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare a pull destination.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_pull_destination(const segment_token & dest) {
+	inline void add_pull_destination(const node_token & dest) {
 		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::pulls);
 	}
@@ -333,7 +333,7 @@ protected:
 	/// a requirement that another node has end() called before the begin()
 	/// of this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_dependency(const segment_token & dest) {
+	inline void add_dependency(const node_token & dest) {
 		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::depends);
 	}
@@ -408,10 +408,10 @@ protected:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the segment_token that maps this node's ID to a pointer
+	/// \brief Get the node_token that maps this node's ID to a pointer
 	/// to this.
 	///////////////////////////////////////////////////////////////////////////
-	const segment_token & get_token() {
+	const node_token & get_token() {
 		return token;
 	}
 
@@ -472,7 +472,7 @@ protected:
 	friend class bits::phase;
 
 private:
-	segment_token token;
+	node_token token;
 
 	memory_size_type m_minimumMemory;
 	memory_size_type m_availableMemory;
