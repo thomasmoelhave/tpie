@@ -26,12 +26,11 @@
 #include <tpie/progress_indicator_null.h>
 #include <boost/any.hpp>
 #include <tpie/pipelining/priority_type.h>
+#include <tpie/pipelining/predeclare.h>
 
 namespace tpie {
 
 namespace pipelining {
-
-class pipe_segment;
 
 namespace bits {
 
@@ -47,8 +46,6 @@ public:
 
 	inline void refresh();
 };
-
-class phase;
 
 } // namespace bits
 

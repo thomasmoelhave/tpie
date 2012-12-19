@@ -74,6 +74,7 @@
 
 #include <tpie/exception.h>
 #include <tpie/pipelining/exception.h>
+#include <tpie/pipelining/predeclare.h>
 #include <tpie/types.h>
 #include <tpie/tpie_assert.h>
 #include <map>
@@ -84,10 +85,6 @@
 namespace tpie {
 
 namespace pipelining {
-
-class pipe_segment;
-
-class segment_token;
 
 namespace bits {
 

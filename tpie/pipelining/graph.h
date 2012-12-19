@@ -29,12 +29,11 @@
 #include <tpie/tpie_assert.h>
 #include <vector>
 #include <stack>
+#include <tpie/pipelining/predeclare.h>
 
 namespace tpie {
 
 namespace pipelining {
-
-class pipe_segment;
 
 namespace bits {
 
@@ -101,8 +100,6 @@ private:
 
 	void assign_minimum_memory() const;
 };
-
-class segment_map;
 
 class graph_traits {
 public:
