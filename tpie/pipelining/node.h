@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_PIPE_SEGMENT_H__
-#define __TPIE_PIPELINING_PIPE_SEGMENT_H__
+#ifndef __TPIE_PIPELINING_NODE_H__
+#define __TPIE_PIPELINING_NODE_H__
 
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/tokens.h>
@@ -35,12 +35,12 @@ namespace pipelining {
 namespace bits {
 
 class proxy_progress_indicator : public tpie::progress_indicator_base {
-	pipe_segment & m_segment;
+	node & m_node;
 
 public:
-	proxy_progress_indicator(pipe_segment & s)
+	proxy_progress_indicator(node & s)
 		: progress_indicator_base(1)
-		, m_segment(s)
+		, m_node(s)
 	{
 	}
 
@@ -50,20 +50,20 @@ public:
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Base class of all segments. A segment should inherit from pipe_segment,
-/// have a single template parameter dest_t if it is not a terminus segment,
+/// Base class of all nodes. A node should inherit from the node class,
+/// have a single template parameter dest_t if it is not a terminus node,
 /// and implement methods begin(), push() and end(), if it is not a source
-/// segment.
+/// node.
 ///////////////////////////////////////////////////////////////////////////////
-class pipe_segment {
+class node {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
-	virtual ~pipe_segment() {}
+	virtual ~node() {}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the minimum amount of memory declared by this pipe_segment.
+	/// \brief Get the minimum amount of memory declared by this node.
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_minimum_memory() const {
@@ -71,37 +71,37 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the amount of memory assigned to this pipe_segment.
+	/// \brief Get the amount of memory assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_available_memory() const {
 		return m_availableMemory;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set the memory priority of this segment. Memory is distributed
-	/// proportionally to the priorities of the segments in the given phase.
+	/// \brief Set the memory priority of this node. Memory is distributed
+	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_memory_fraction(double f) {
 		m_memoryFraction = f;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the memory priority of this segment.
+	/// \brief Get the memory priority of this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline double get_memory_fraction() const {
 		return m_memoryFraction;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the local segment map, mapping segment IDs to pipe_segment
-	/// pointers for all the pipe_segments reachable from this one.
+	/// \brief Get the local node map, mapping node IDs to node
+	/// pointers for all the nodes reachable from this one.
 	///////////////////////////////////////////////////////////////////////////
 	inline bits::segment_map::ptr get_segment_map() const {
 		return token.get_map();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the internal pipe_segment ID of this pipe_segment (mainly
+	/// \brief Get the internal node ID of this node (mainly
 	/// for debugging purposes).
 	///////////////////////////////////////////////////////////////////////////
 	inline segment_token::id_t get_id() const {
@@ -123,9 +123,9 @@ public:
 	/// The implementation may pull() from a pull destination in begin(),
 	/// but it is not allowed to push() to a push destination.
 	///
-	/// The pipelining framework calls begin() on the pipe_segments in the
+	/// The pipelining framework calls begin() on the nodes in the
 	/// pipeline graph in a topological order. The framework calls
-	/// pipe_segment::begin() on a pipe_segment after its pull destinations and
+	/// node::begin() on a node after its pull destinations and
 	/// before its push destination.
 	///
 	/// The default implementation just calls forward_all(), and an
@@ -137,15 +137,15 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief For initiator segments, execute this phase by pushing all items
-	/// to be pushed. For non-initiator segments, the default implementation
+	/// \brief For initiator nodes, execute this phase by pushing all items
+	/// to be pushed. For non-initiator nodes, the default implementation
 	/// throws a not_initiator_segment exception.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void go() {
 		progress_indicator_null pi;
 		go(pi);
 		// if go didn't throw, it was overridden - but it shouldn't be
-		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " uses old go() interface" << std::endl;
+		log_warning() << "node subclass " << typeid(*this).name() << " uses old go() interface" << std::endl;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,7 @@ public:
 	/// argument does nothing. Instead, use step() and set_steps().
 	///////////////////////////////////////////////////////////////////////////
 	virtual void go(progress_indicator_base &) {
-		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl;
+		log_warning() << "node subclass " << typeid(*this).name() << " is not an initiator node" << std::endl;
 		throw not_initiator_segment();
 	}
 
@@ -163,9 +163,9 @@ public:
 	/// The implementation may pull() from a pull destination in end(),
 	/// and it may push() to a push destination.
 	///
-	/// The pipelining framework calls end() on the pipe_segments in the
+	/// The pipelining framework calls end() on the nodes in the
 	/// pipeline graph in a topological order. The framework calls
-	/// pipe_segment::end() on a pipe_segment before its pull and push
+	/// node::end() on a node before its pull and push
 	/// destinations.
 	///
 	/// The default implementation does nothing, so it does not matter if the
@@ -175,20 +175,20 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Overridden by pipe segments that have data to evacuate.
+	/// \brief Overridden by nodes that have data to evacuate.
 	///////////////////////////////////////////////////////////////////////////
 	virtual bool can_evacuate() {
 		return false;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Overridden by pipe segments that have data to evacuate.
+	/// \brief Overridden by nodes that have data to evacuate.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void evacuate() {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the priority of this segment's name. For purposes of
+	/// \brief Get the priority of this node's name. For purposes of
 	/// pipeline debugging and phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline priority_type get_name_priority() {
@@ -196,7 +196,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get this segment's name. For purposes of pipeline debugging and
+	/// \brief Get this node's name. For purposes of pipeline debugging and
 	/// phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline const std::string & get_name() {
@@ -204,7 +204,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set this segment's name. For purposes of pipeline debugging and
+	/// \brief Set this node's name. For purposes of pipeline debugging and
 	/// phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_name(const std::string & name, priority_type priority = PRIORITY_USER) {
@@ -224,13 +224,13 @@ public:
 	/// successors in the item flow graph. Called by
 	/// segment_map::send_successors.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_successor(pipe_segment * succ) {
+	inline void add_successor(node * succ) {
 		m_successors.push_back(succ);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally for progress indication. Get the number of times
-	/// the pipe_segment expects to call step() at most.
+	/// the node expects to call step() at most.
 	///////////////////////////////////////////////////////////////////////////
 	inline stream_size_type get_steps() {
 		return m_stepsTotal;
@@ -254,7 +254,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Default constructor, using a new segment_token.
 	///////////////////////////////////////////////////////////////////////////
-	inline pipe_segment()
+	inline node()
 		: token(this)
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
@@ -270,7 +270,7 @@ protected:
 	/// \brief Copy constructor. We need to define this explicitly since the
 	/// segment_token needs to know its new owner.
 	///////////////////////////////////////////////////////////////////////////
-	inline pipe_segment(const pipe_segment & other)
+	inline node(const node & other)
 		: token(other.token, this)
 		, m_minimumMemory(other.m_minimumMemory)
 		, m_availableMemory(other.m_availableMemory)
@@ -286,7 +286,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor using a given fresh segment_token.
 	///////////////////////////////////////////////////////////////////////////
-	inline pipe_segment(const segment_token & token)
+	inline node(const segment_token & token)
 		: token(token, this, true)
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
@@ -309,7 +309,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare a push destination.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_push_destination(const pipe_segment & dest) {
+	inline void add_push_destination(const node & dest) {
 		add_push_destination(dest.token);
 	}
 
@@ -324,14 +324,14 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare a pull destination.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_pull_destination(const pipe_segment & dest) {
+	inline void add_pull_destination(const node & dest) {
 		add_pull_destination(dest.token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare a segment dependency, that is,
-	/// a requirement that another segment has end() called before the begin()
-	/// of this segment.
+	/// \brief Called by implementers to declare a node dependency, that is,
+	/// a requirement that another node has end() called before the begin()
+	/// of this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_dependency(const segment_token & dest) {
 		bits::segment_map::ptr m = token.map_union(dest);
@@ -339,11 +339,11 @@ protected:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare a segment dependency, that is,
-	/// a requirement that another segment has end() called before the begin()
-	/// of this segment.
+	/// \brief Called by implementers to declare a node dependency, that is,
+	/// a requirement that another node has end() called before the begin()
+	/// of this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_dependency(const pipe_segment & dest) {
+	inline void add_dependency(const node & dest) {
 		add_dependency(dest.token);
 	}
 
@@ -356,7 +356,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by the memory manager to set the amount of memory
-	/// assigned to this pipe_segment.
+	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void set_available_memory(memory_size_type availableMemory) {
 		m_availableMemory = availableMemory;
@@ -374,7 +374,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward all auxiliary data that was
-	/// forwarded to this segment. Called in the default implementation of
+	/// forwarded to this node. Called in the default implementation of
 	/// begin().
 	///////////////////////////////////////////////////////////////////////////
 	inline void forward_all() {
@@ -408,7 +408,7 @@ protected:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the segment_token that maps this segment's ID to a pointer
+	/// \brief Get the segment_token that maps this node's ID to a pointer
 	/// to this.
 	///////////////////////////////////////////////////////////////////////////
 	const segment_token & get_token() {
@@ -440,9 +440,9 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get a non-initialized progress indicator for use with external
 	/// implementations. When step() is called on a proxying progress
-	/// indicator, step() is called on the pipe_segment according to the number
+	/// indicator, step() is called on the node according to the number
 	/// of steps declared in progress_indicator_base::init() and in
-	/// pipe_segment::set_steps().
+	/// node::set_steps().
 	///////////////////////////////////////////////////////////////////////////
 	progress_indicator_base * proxy_progress_indicator() {
 		if (m_piProxy.get() != 0) return m_piProxy.get();
@@ -453,18 +453,18 @@ protected:
 
 #ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief For pull segments, return true if there are more items to be
+	/// \brief For pull nodes, return true if there are more items to be
 	/// pulled.
 	///////////////////////////////////////////////////////////////////////////
 	inline bool can_pull() const;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief For pull segments, pull the next item from this segment.
+	/// \brief For pull nodes, pull the next item from this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline item_type pull();
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief For push segments, push the next item to this segment.
+	/// \brief For push nodes, push the next item to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline void push(const item_type & item);
 #endif
@@ -481,7 +481,7 @@ private:
 	std::string m_name;
 	priority_type m_namePriority;
 
-	std::vector<pipe_segment *> m_successors;
+	std::vector<node *> m_successors;
 	typedef std::map<std::string, boost::any> valuemap;
 	valuemap m_values;
 
@@ -498,13 +498,13 @@ namespace bits {
 void proxy_progress_indicator::refresh() {
 	double proxyMax = static_cast<double>(get_range());
 	double proxyCur = static_cast<double>(get_current());
-	double parentMax = static_cast<double>(m_segment.m_stepsTotal);
-	double parentCur = static_cast<double>(m_segment.m_stepsTotal-m_segment.m_stepsLeft);
+	double parentMax = static_cast<double>(m_node.m_stepsTotal);
+	double parentCur = static_cast<double>(m_node.m_stepsTotal-m_node.m_stepsLeft);
 	double missing = parentMax*proxyCur/proxyMax - parentCur;
 	if (missing < 1.0) return;
 	stream_size_type times = static_cast<stream_size_type>(1.0+missing);
-	times = std::min(m_segment.m_stepsLeft, times);
-	m_segment.step(times);
+	times = std::min(m_node.m_stepsLeft, times);
+	m_node.step(times);
 }
 
 } // namespace bits
@@ -513,4 +513,4 @@ void proxy_progress_indicator::refresh() {
 
 } // namespace tpie
 
-#endif // __TPIE_PIPELINING_PIPE_SEGMENT_H__
+#endif // __TPIE_PIPELINING_NODE_H__

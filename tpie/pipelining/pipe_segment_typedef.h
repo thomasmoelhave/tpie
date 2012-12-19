@@ -17,29 +17,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-///////////////////////////////////////////////////////////////////////////////
-/// \file predeclare.h  Predeclarations of some pipelining classes.
-///////////////////////////////////////////////////////////////////////////////
-
-#ifndef __TPIE_PIPELINING_PREDECLARE_H__
-#define __TPIE_PIPELINING_PREDECLARE_H__
+#ifndef __TPIE_PIPELINING_PIPE_SEGMENT_TYPEDEF_H__
+#define __TPIE_PIPELINING_PIPE_SEGMENT_TYPEDEF_H__
 
 namespace tpie {
 
 namespace pipelining {
 
-class node;
-class segment_token;
-
-namespace bits {
-	class segment_map;
-	class phase;
-}
+#ifdef __GNUC__
+typedef node pipe_segment __attribute__ ((deprecated));
+#elif defined(_MSC_VER)
+typedef node __declspec(deprecated) pipe_segment;
+#else
+typedef node pipe_segment;
+#endif
 
 } // namespace pipelining
 
 } // namespace tpie
 
-#include <tpie/pipelining/pipe_segment_typedef.h>
-
-#endif // __TPIE_PIPELINING_PREDECLARE_H__
+#endif // __TPIE_PIPELINING_PIPE_SEGMENT_TYPEDEF_H__
