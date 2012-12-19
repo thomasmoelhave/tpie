@@ -25,8 +25,8 @@
 #include <sstream>
 #include <tpie/progress_indicator_arrow.h>
 
-using namespace tpie;
-using namespace tpie::pipelining;
+namespace TP = tpie;
+namespace P = tpie::pipelining;
 
 /* This file should solve the following problem:
  * Given a graph consisting of (nodeid, parentid), find the number of children.
@@ -80,7 +80,7 @@ struct node_output {
 };
 
 template <typename dest_t>
-class input_nodes_t : public pipe_segment {
+class input_nodes_t : public P::pipe_segment {
 public:
 	typedef node item_type;
 
@@ -109,13 +109,13 @@ private:
 	size_t nodes;
 };
 
-inline pipe_begin<factory_1<input_nodes_t, size_t> >
+inline P::pipe_begin<P::factory_1<input_nodes_t, size_t> >
 input_nodes(size_t nodes) {
-	return factory_1<input_nodes_t, size_t>(nodes);
+	return P::factory_1<input_nodes_t, size_t>(nodes);
 }
 
 template <typename dest_t, typename byid_t, typename byparent_t>
-class count_t : public pipe_segment {
+class count_t : public P::pipe_segment {
 	dest_t dest;
 	byid_t byid;
 	byparent_t byparent;
@@ -131,7 +131,7 @@ public:
 	}
 
 	virtual void go() /*override*/ {
-		tpie::auto_ptr<node> buf(0);
+		tpie::auto_ptr< ::node> buf(0);
 		while (byid.can_pull()) {
 			node_output cur = byid.pull();
 			if (buf.get()) {
@@ -142,10 +142,10 @@ public:
 				}
 			}
 			while (byparent.can_pull()) {
-				node child = byparent.pull();
+				::node child = byparent.pull();
 				if (child.parent != cur.id) {
 					if (!buf.get()) {
-						buf.reset(tpie_new<node>(child));
+						buf.reset(TP::tpie_new< ::node>(child));
 					} else {
 						*buf = child;
 					}
@@ -161,7 +161,7 @@ seen_children:
 };
 
 template <typename byid_t, typename byparent_t>
-class count_factory : public factory_base {
+class count_factory : public P::factory_base {
 	typedef typename byid_t::factory_type byid_fact_t;
 	typedef typename byparent_t::factory_type byparent_fact_t;
 	typedef typename byid_fact_t::generated_type byid_gen_t;
@@ -192,12 +192,12 @@ private:
 };
 
 template <typename byid_t, typename byparent_t>
-inline pipe_begin<count_factory<byid_t, byparent_t> >
+inline P::pipe_begin<count_factory<byid_t, byparent_t> >
 count(const byid_t & byid, const byparent_t & byparent) {
 	return count_factory<byid_t, byparent_t>(byid, byparent);
 }
 
-class output_count_t : public pipe_segment {
+class output_count_t : public P::pipe_segment {
 public:
 	size_t children;
 	size_t nodes;
@@ -210,59 +210,59 @@ public:
 	}
 
 	virtual void begin() /*override*/ {
-		log_info() << "Begin output" << std::endl;
+		TP::log_info() << "Begin output" << std::endl;
 	}
 
 	virtual void end() /*override*/ {
-		log_info() << "End output" << std::endl;
-		log_info() << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
+		TP::log_info() << "End output" << std::endl;
+		TP::log_info() << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
 	}
 
 	inline void push(const node_output & node) {
-		if (nodes < 32) log_info() << node << std::endl;
-		else if (nodes == 32) log_info() << "..." << std::endl;
+		if (nodes < 32) TP::log_info() << node << std::endl;
+		else if (nodes == 32) TP::log_info() << "..." << std::endl;
 		children += node.children;
 		++nodes;
 	}
 };
 
-inline pipe_end<termfactory_0<output_count_t> >
+inline P::pipe_end<P::termfactory_0<output_count_t> >
 output_count() {
-	return termfactory_0<output_count_t>();
+	return P::termfactory_0<output_count_t>();
 }
 
 int main(int argc, char ** argv) {
-	tpie_init(ALL & ~DEFAULT_LOGGING);
+	TP::tpie_init(TP::ALL & ~TP::DEFAULT_LOGGING);
 	bool debug_log = false;
 	bool progress = true;
 
 	{
-		stderr_log_target stderr_target(debug_log ? LOG_DEBUG : LOG_ERROR);
-		get_log().add_target(&stderr_target);
+		TP::stderr_log_target stderr_target(debug_log ? TP::LOG_DEBUG : TP::LOG_ERROR);
+		TP::get_log().add_target(&stderr_target);
 
-		get_memory_manager().set_limit(13*1024*1024);
+		TP::get_memory_manager().set_limit(13*1024*1024);
 
 		size_t nodes = 1 << 24;
 		if (argc > 1) std::stringstream(argv[1]) >> nodes;
-		passive_sorter<node, sort_by_id> byid;
-		passive_sorter<node, sort_by_parent> byparent;
-		pipeline p1 =
+		P::passive_sorter<node, sort_by_id> byid;
+		P::passive_sorter<node, sort_by_parent> byparent;
+		P::pipeline p1 =
 			input_nodes(nodes)
-			| fork(byid.input().name("Sort by id"))
+			| P::fork(byid.input().name("Sort by id"))
 			| byparent.input().name("Sort by parent");
 
-		pipeline p2 =
+		P::pipeline p2 =
 			count(byid.output(), byparent.output())
 			| output_count();
 		p1.plot();
 		if (progress) {
-			progress_indicator_arrow pi("Test", nodes);
+			TP::progress_indicator_arrow pi("Test", nodes);
 			p1(nodes, pi);
 		} else {
 			p1();
 		}
-		get_log().remove_target(&stderr_target);
+		TP::get_log().remove_target(&stderr_target);
 	}
-	tpie_finish(ALL & ~DEFAULT_LOGGING);
+	TP::tpie_finish(TP::ALL & ~TP::DEFAULT_LOGGING);
 	return 0;
 }
