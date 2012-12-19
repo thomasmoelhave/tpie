@@ -9,7 +9,7 @@ namespace pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_0
-/// Push segment factory for 0-argument generator.
+/// Node factory for 0-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R>
 class factory_0 : public factory_base {
@@ -22,14 +22,14 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_0
-/// Push segment factory for 0-argument templated generator.
+/// Node factory for 0-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder>
 class tempfactory_0 : public factory_base {
@@ -42,14 +42,14 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_1
-/// Push segment factory for 1-argument generator.
+/// Node factory for 1-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1>
 class factory_1 : public factory_base {
@@ -64,7 +64,7 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -73,7 +73,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_1
-/// Push segment factory for 1-argument templated generator.
+/// Node factory for 1-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1>
 class tempfactory_1 : public factory_base {
@@ -88,7 +88,7 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -97,7 +97,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_2
-/// Push segment factory for 2-argument generator.
+/// Node factory for 2-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2>
 class factory_2 : public factory_base {
@@ -112,7 +112,7 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -122,7 +122,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_2
-/// Push segment factory for 2-argument templated generator.
+/// Node factory for 2-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2>
 class tempfactory_2 : public factory_base {
@@ -137,7 +137,7 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -147,7 +147,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_3
-/// Push segment factory for 3-argument generator.
+/// Node factory for 3-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3>
 class factory_3 : public factory_base {
@@ -162,7 +162,7 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -173,7 +173,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_3
-/// Push segment factory for 3-argument templated generator.
+/// Node factory for 3-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3>
 class tempfactory_3 : public factory_base {
@@ -188,7 +188,7 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -199,7 +199,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_4
-/// Push segment factory for 4-argument generator.
+/// Node factory for 4-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4>
 class factory_4 : public factory_base {
@@ -214,7 +214,7 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3, t4);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -226,7 +226,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_4
-/// Push segment factory for 4-argument templated generator.
+/// Node factory for 4-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3, typename T4>
 class tempfactory_4 : public factory_base {
@@ -241,7 +241,7 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -253,7 +253,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_5
-/// Push segment factory for 5-argument generator.
+/// Node factory for 5-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4, typename T5>
 class factory_5 : public factory_base {
@@ -268,7 +268,7 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3, t4, t5);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -281,7 +281,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_5
-/// Push segment factory for 5-argument templated generator.
+/// Node factory for 5-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5>
 class tempfactory_5 : public factory_base {
@@ -296,7 +296,7 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4, t5);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -309,7 +309,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_6
-/// Push segment factory for 6-argument generator.
+/// Node factory for 6-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 class factory_6 : public factory_base {
@@ -324,7 +324,7 @@ public:
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3, t4, t5, t6);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -338,7 +338,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class tempfactory_6
-/// Push segment factory for 6-argument templated generator.
+/// Node factory for 6-argument templated generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 class tempfactory_6 : public factory_base {
@@ -353,7 +353,7 @@ public:
 	template <typename dest_t>
 	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4, t5, t6);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -367,7 +367,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_0
-/// Push segment factory for 0-argument terminator.
+/// Node factory for 0-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R>
 class termfactory_0 : public factory_base {
@@ -376,14 +376,14 @@ public:
 
 	inline R construct() const {
 		R r;
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_1
-/// Push segment factory for 1-argument terminator.
+/// Node factory for 1-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1>
 class termfactory_1 : public factory_base {
@@ -394,7 +394,7 @@ public:
 
 	inline R construct() const {
 		R r(t1);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -403,7 +403,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_2
-/// Push segment factory for 2-argument terminator.
+/// Node factory for 2-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2>
 class termfactory_2 : public factory_base {
@@ -414,7 +414,7 @@ public:
 
 	inline R construct() const {
 		R r(t1, t2);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -424,7 +424,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_3
-/// Push segment factory for 3-argument terminator.
+/// Node factory for 3-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3>
 class termfactory_3 : public factory_base {
@@ -435,7 +435,7 @@ public:
 
 	inline R construct() const {
 		R r(t1, t2, t3);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -446,7 +446,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_4
-/// Push segment factory for 4-argument terminator.
+/// Node factory for 4-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3, typename T4>
 class termfactory_4 : public factory_base {
@@ -457,7 +457,7 @@ public:
 
 	inline R construct() const {
 		R r(t1, t2, t3, t4);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -469,7 +469,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_5
-/// Push segment factory for 5-argument terminator.
+/// Node factory for 5-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3, typename T4, typename T5>
 class termfactory_5 : public factory_base {
@@ -480,7 +480,7 @@ public:
 
 	inline R construct() const {
 		R r(t1, t2, t3, t4, t5);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:
@@ -493,7 +493,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory_6
-/// Push segment factory for 6-argument terminator.
+/// Node factory for 6-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 class termfactory_6 : public factory_base {
@@ -504,7 +504,7 @@ public:
 
 	inline R construct() const {
 		R r(t1, t2, t3, t4, t5, t6);
-		this->init_segment(r);
+		this->init_node(r);
 		return r;
 	}
 private:

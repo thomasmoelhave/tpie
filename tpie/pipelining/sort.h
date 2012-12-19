@@ -329,11 +329,11 @@ public:
 		typedef typename dest_t::item_type item_type;
 		typedef std::less<item_type> pred_type;
 		sort_output_t<pred_type, dest_t> output(dest, pred_type());
-		this->init_segment(output);
+		this->init_node(output);
 		sort_calc_t<item_type, pred_type> calc(output);
-		this->init_segment(calc);
+		this->init_node(calc);
 		sort_input_t<item_type, pred_type> input(calc);
-		this->init_segment(input);
+		this->init_node(input);
 		return input;
 	}
 };
@@ -357,11 +357,11 @@ public:
 	inline typename generated<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
 		sort_output_t<pred_t, dest_t> output(dest);
-		this->init_segment(output);
+		this->init_node(output);
 		sort_calc_t<item_type, pred_t> calc(output);
-		this->init_segment(calc);
+		this->init_node(calc);
 		sort_input_t<item_type, pred_t> input(calc, pred);
-		this->init_segment(input);
+		this->init_node(input);
 		return input;
 	}
 
@@ -421,9 +421,9 @@ public:
 	inline generated_type construct() const {
 		calc_t calc(output->get_sorter());
 		output->set_calc_segment(calc);
-		this->init_segment(calc);
+		this->init_node(calc);
 		input_t input(calc);
-		this->init_segment(input);
+		this->init_node(input);
 		return input;
 	}
 
@@ -510,7 +510,7 @@ template <typename T, typename pred_t>
 typename passive_sorter_factory_2<T, pred_t>::generated_type
 passive_sorter_factory_2<T, pred_t>::construct() const {
 	generated_type res = m_sorter.m_output;
-	init_segment(res);
+	init_node(res);
 	return res;
 }
 

@@ -54,7 +54,7 @@ def gen(types, terminal, templated):
 
 	print """%s
 /// \class %s
-/// Push segment factory for %s-argument %s%s.
+/// Node factory for %s-argument %s%s.
 %s""" % ("/"*79,
 		cl,
 		str(types),
@@ -110,7 +110,7 @@ def gen(types, terminal, templated):
 			", ".join(["t%d" % x for x in indices]),
 			")" if not terminal or types > 0 else "",
 			)
-	print """\t\tthis->init_segment(r);
+	print """\t\tthis->init_node(r);
 		return r;
 	}"""
 

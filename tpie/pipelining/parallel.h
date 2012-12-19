@@ -205,7 +205,7 @@ protected:
 		{
 		}
 
-		virtual void init_segment(node & r) /*override*/ {
+		virtual void init_node(node & r) /*override*/ {
 			r.set_progress_indicator(t->m_progressIndicators.get(index));
 		}
 
@@ -1125,9 +1125,9 @@ public:
 		typename state_t::ptr st(new state_t(opts, fact));
 
 		consumer_t consumer(dest, st);
-		this->init_segment(consumer);
+		this->init_node(consumer);
 		producer_t producer(st, consumer);
-		this->init_segment(producer);
+		this->init_node(producer);
 		return producer;
 	}
 };

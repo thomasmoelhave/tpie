@@ -20,13 +20,16 @@
 #ifndef __TPIE_PIPELINING_FACTORY_BASE_H__
 #define __TPIE_PIPELINING_FACTORY_BASE_H__
 
+// XXX remove when init_segment is removed
+#include <tpie/backtrace.h>
+
 namespace tpie {
 
 namespace pipelining {
 
 class factory_init_hook {
 public:
-	virtual void init_segment(node & r) = 0;
+	virtual void init_node(node & r) = 0;
 	virtual ~factory_init_hook() {
 	}
 };
@@ -64,6 +67,12 @@ public:
 	}
 
 	inline void init_segment(node & r) const {
+		log_fatal() << "init_segment has been renamed to init_node" << std::endl;
+		backtrace(log_fatal());
+		init_node(r);
+	}
+
+	inline void init_node(node & r) const {
 		if (m_set) r.set_memory_fraction(memory());
 		if (!m_name.empty()) {
 			r.set_name(m_name, m_namePriority);
@@ -72,7 +81,7 @@ public:
 			r.set_breadcrumb(m_breadcrumbs);
 		}
 		for (size_t i = 0; i < m_hooks.size(); ++i) {
-			m_hooks[i]->init_segment(r);
+			m_hooks[i]->init_node(r);
 		}
 	}
 
