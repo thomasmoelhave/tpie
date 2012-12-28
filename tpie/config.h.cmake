@@ -1,6 +1,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+#include <boost/version.hpp>
+
 #cmakedefine TPIE_HAVE_UNISTD_H
 #cmakedefine TPIE_HAVE_SYS_UNISTD_H
 
@@ -53,8 +55,15 @@
 	#pragma warning(disable : 4800)
 #endif
 	
-//eases transition from filesystem2 to filesystem3
-#define BOOST_FILESYSTEM_VERSION ${BOOST_FILESYSTEM_VERSION}
+//We use boost filesystem v3 from boost v1.46 and onwards
+#if BOOST_VERSION >= 104600
+	#if BOOST_VERSION < 105000
+		//boost v 1.50 dropped fs v2 so no need to "select" it explicitely
+		#define BOOST_FILESYSTEM_VERSION 3
+	#endif
+	//let TPIE (and its users) know that we should use the v3
+	#define TPIE_USE_NEW_FILESYSTEM
+#endif
 
 #ifdef _WIN32
 #ifndef NOMINMAX

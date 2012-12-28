@@ -31,10 +31,6 @@ if(WIN32)
 endif(WIN32)
 find_package(Boost COMPONENTS date_time thread filesystem system)
 
-#we are using the filesystem2 interface, so force this for version 1.46 and 1.47 that use
-#version 3 by default. We should move to version 3 soon
-set(BOOST_FILESYSTEM_VERSION 2)
-
 if(TPIE_FRACTIONDB_DIR_INL) 
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
 endif(TPIE_FRACTIONDB_DIR_INL)
