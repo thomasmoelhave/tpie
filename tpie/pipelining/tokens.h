@@ -18,28 +18,27 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file tokens.h  Pipeline segment tokens.
+/// \file tokens.h  Pipeline tokens.
 ///
 /// \section sec_pipegraphs  The two pipeline graphs
 ///
-/// A pipeline consists of several segments. Each segment either produces,
-/// transforms or consumes items. One segment may push items to another
-/// segment, and it may pull items from another segment, and it may depend
-/// implicitly on the execution of another segment. For instance, to reverse an
-/// item stream using two segments, one segment will write items to a
+/// A pipeline consists of several nodes. Each node either produces,
+/// transforms or consumes items. One node may push items to another
+/// node, and it may pull items from another node, and it may depend
+/// implicitly on the execution of another node. For instance, to reverse an
+/// item stream using two nodes, one node will write items to a
 /// file_stream, and the other will read them in backwards. Thus, the second
-/// segment depends on the first, but it does not directly push to or pull from
+/// node depends on the first, but it does not directly push to or pull from
 /// it.
 ///
-/// To a pipeline we associate two different graphs. In both graphs, each
-/// segment is a node and each relationship is a directed edge.
+/// To a pipeline graph we associate two different directed edge sets.
 ///
 /// The <i>item flow graph</i> is a directed acyclic graph, and edges go from
 /// producer towards consumer, regardless of push/pull kind.
 ///
 /// The <i>actor graph</i> is a directed graph where edges go from actors, so a
-/// node has an edge to another node if the corresponding segment either pushes
-/// to or pulls from the other corresponding segment.
+/// node has an edge to another node if the corresponding node either pushes
+/// to or pulls from the other corresponding node.
 ///
 /// The item flow graph is useful for transitive dependency resolution and
 /// execution order decision. The actor graph is useful for presenting the
@@ -49,7 +48,7 @@
 ///
 /// Since nodes are copyable, we cannot store node pointers
 /// limitlessly, as pointers will change while the pipeline is being
-/// constructed. Instead, we associate to each node a segment token
+/// constructed. Instead, we associate to each node a token
 /// (numeric id) that is copied with the node. The node_token class
 /// signals the mapping from numeric ids to node pointers to a
 /// node_map.
@@ -60,7 +59,7 @@
 /// node_token knows (directly or indirectly) which node_map currently
 /// holds the mapping of its id to its node.
 ///
-/// When we need to connect one pipe segment to another in the pipeline graphs,
+/// When we need to connect one node to another in the pipeline graphs,
 /// we need the two corresponding node_tokens to share the same node_map.
 /// When we merge two node_maps, the mappings in one are copied to the
 /// other, and one node_map remembers that it has been usurped by another
@@ -88,7 +87,7 @@ namespace pipelining {
 
 namespace bits {
 
-enum segment_relation {
+enum node_relation {
 	pushes,
 	pulls,
 	depends
@@ -102,7 +101,7 @@ public:
 	typedef std::map<id_t, val_t> map_t;
 	typedef map_t::const_iterator mapit;
 
-	typedef std::multimap<id_t, std::pair<id_t, segment_relation> > relmap_t;
+	typedef std::multimap<id_t, std::pair<id_t, node_relation> > relmap_t;
 	typedef relmap_t::const_iterator relmapit;
 
 	typedef boost::shared_ptr<node_map> ptr;
@@ -149,7 +148,7 @@ public:
 	// union-find
 	ptr find_authority();
 
-	inline void add_relation(id_t from, id_t to, segment_relation rel) {
+	inline void add_relation(id_t from, id_t to, node_relation rel) {
 		m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
 		m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
 	}
@@ -158,11 +157,11 @@ public:
 		return m_relations;
 	}
 
-	inline size_t in_degree(id_t from, segment_relation rel) const {
+	inline size_t in_degree(id_t from, node_relation rel) const {
 		return out_degree(m_relationsInv, from, rel);
 	}
 
-	inline size_t out_degree(id_t from, segment_relation rel) const {
+	inline size_t out_degree(id_t from, node_relation rel) const {
 		return out_degree(m_relations, from, rel);
 	}
 
@@ -183,7 +182,7 @@ private:
 	relmap_t m_relations;
 	relmap_t m_relationsInv;
 
-	size_t out_degree(const relmap_t & map, id_t from, segment_relation rel) const;
+	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 
 	wptr self;
 

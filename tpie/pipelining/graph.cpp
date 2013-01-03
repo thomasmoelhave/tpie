@@ -125,7 +125,7 @@ namespace pipelining {
 
 namespace bits {
 
-class phase::segment_graph {
+class phase::node_graph {
 public:
 	typedef node * node_t;
 	typedef std::vector<node_t> neighbours_t;
@@ -138,8 +138,8 @@ public:
 };
 
 phase::phase()
-	: itemFlowGraph(new segment_graph)
-	, actorGraph(new segment_graph)
+	: itemFlowGraph(new node_graph)
+	, actorGraph(new node_graph)
 	, m_memoryFraction(0.0)
 	, m_minimumMemory(0)
 	, m_initiator(0)
@@ -149,9 +149,9 @@ phase::phase()
 phase::~phase() {}
 
 phase::phase(const phase & other)
-	: itemFlowGraph(new segment_graph(*other.itemFlowGraph))
-	, actorGraph(new segment_graph(*other.actorGraph))
-	, m_segments(other.m_segments)
+	: itemFlowGraph(new node_graph(*other.itemFlowGraph))
+	, actorGraph(new node_graph(*other.actorGraph))
+	, m_nodes(other.m_nodes)
 	, m_memoryFraction(other.m_memoryFraction)
 	, m_minimumMemory(other.m_minimumMemory)
 	, m_initiator(other.m_initiator)
@@ -159,9 +159,9 @@ phase::phase(const phase & other)
 }
 
 phase & phase::operator=(const phase & other) {
-	itemFlowGraph.reset(new segment_graph(*other.itemFlowGraph));
-	actorGraph.reset(new segment_graph(*other.actorGraph));
-	m_segments = other.m_segments;
+	itemFlowGraph.reset(new node_graph(*other.itemFlowGraph));
+	actorGraph.reset(new node_graph(*other.actorGraph));
+	m_nodes = other.m_nodes;
 	m_memoryFraction = other.m_memoryFraction;
 	m_minimumMemory = other.m_minimumMemory;
 	m_initiator = other.m_initiator;
@@ -177,7 +177,7 @@ bool phase::is_initiator(node * s) {
 void phase::add(node * s) {
 	if (count(s)) return;
 	if (is_initiator(s)) set_initiator(s);
-	m_segments.push_back(s);
+	m_nodes.push_back(s);
 	m_memoryFraction += s->get_memory_fraction();
 	m_minimumMemory += s->get_minimum_memory();
 	itemFlowGraph->finish_times[s] = 0;
@@ -193,41 +193,41 @@ void phase::add_successor(node * from, node * to, bool push) {
 }
 
 void phase::evacuate_all() const {
-	for (size_t i = 0; i < m_segments.size(); ++i) {
-		if (m_segments[i]->can_evacuate())
-			m_segments[i]->evacuate();
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		if (m_nodes[i]->can_evacuate())
+			m_nodes[i]->evacuate();
 	}
 }
 
 const std::string & phase::get_name() const {
 	priority_type highest = std::numeric_limits<priority_type>::min();
-	size_t highest_segment = 0;
-	for (size_t i = 0; i < m_segments.size(); ++i) {
-		if (m_segments[i]->get_name_priority() > highest) {
-			highest_segment = i;
-			highest = m_segments[i]->get_name_priority();
+	size_t highest_node = 0;
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		if (m_nodes[i]->get_name_priority() > highest) {
+			highest_node = i;
+			highest = m_nodes[i]->get_name_priority();
 		}
 	}
-	return m_segments[highest_segment]->get_name();
+	return m_nodes[highest_node]->get_name();
 }
 
 std::string phase::get_unique_id() const {
 	std::stringstream uid;
-	for (size_t i = 0; i < m_segments.size(); ++i) {
-		uid << typeid(*m_segments[i]).name() << ':';
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		uid << typeid(*m_nodes[i]).name() << ':';
 	}
 	return uid.str();
 }
 
 void phase::assign_minimum_memory() const {
-	for (size_t i = 0; i < m_segments.size(); ++i) {
-		m_segments[i]->set_available_memory(m_segments[i]->get_minimum_memory());
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		m_nodes[i]->set_available_memory(m_nodes[i]->get_minimum_memory());
 	}
 }
 
 void phase::assign_memory(memory_size_type m) const {
 	{
-		dfs_traversal<phase::segment_graph> dfs(*itemFlowGraph);
+		dfs_traversal<phase::node_graph> dfs(*itemFlowGraph);
 		dfs.dfs();
 		std::vector<node *> order = dfs.toposort();
 		for (size_t i = 0; i < order.size(); ++i) {
@@ -242,17 +242,16 @@ void phase::assign_memory(memory_size_type m) const {
 	}
 	memory_size_type remaining = m;
 	double fraction = memory_fraction();
-	//std::cout << "Remaining " << m << " fraction " << fraction << " segments " << m_segments.size() << std::endl;
 	if (fraction < 1e-9) {
 		assign_minimum_memory();
 		return;
 	}
-	std::vector<char> assigned(m_segments.size());
+	std::vector<char> assigned(m_nodes.size());
 	while (true) {
 		bool done = true;
-		for (size_t i = 0; i < m_segments.size(); ++i) {
+		for (size_t i = 0; i < m_nodes.size(); ++i) {
 			if (assigned[i]) continue;
-			node * s = m_segments[i];
+			node * s = m_nodes[i];
 			memory_size_type min = s->get_minimum_memory();
 			double frac = s->get_memory_fraction();
 			double to_assign = frac/fraction * remaining;
@@ -265,9 +264,9 @@ void phase::assign_memory(memory_size_type m) const {
 			}
 		}
 		if (!done) continue;
-		for (size_t i = 0; i < m_segments.size(); ++i) {
+		for (size_t i = 0; i < m_nodes.size(); ++i) {
 			if (assigned[i]) continue;
-			node * s = m_segments[i];
+			node * s = m_nodes[i];
 			double frac = s->get_memory_fraction();
 			double to_assign = frac/fraction * remaining;
 			s->set_available_memory(static_cast<memory_size_type>(to_assign));
@@ -327,7 +326,7 @@ void graph_traits::calc_phases() {
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second != depends) phases.union_set(ids[i->first], ids[i->second.first]);
 	}
-	// `phases` holds a map from segment to phase number
+	// `phases` holds a map from node to phase number
 
 	phasegraph g(phases, nextid);
 
@@ -343,7 +342,7 @@ void graph_traits::calc_phases() {
 
 	std::vector<bool>::iterator j = m_evacuatePrevious.begin();
 	for (size_t i = 0; i < internalexec.size(); ++i, ++j) {
-		// all segments with phase number internalexec[i] should be executed in phase i
+		// all nodes with phase number internalexec[i] should be executed in phase i
 
 		// first, insert phase representatives
 		m_phases[i].add(map.get(ids_inv[internalexec[i]]));
@@ -379,12 +378,12 @@ void phase::go(progress_indicator_base & pi) {
 	std::vector<node *> beginOrder;
 	std::vector<node *> endOrder;
 	{
-		dfs_traversal<phase::segment_graph> dfs(*itemFlowGraph);
+		dfs_traversal<phase::node_graph> dfs(*itemFlowGraph);
 		dfs.dfs();
 		beginOrder = dfs.toposort();
 	}
 	{
-		dfs_traversal<phase::segment_graph> dfs(*actorGraph);
+		dfs_traversal<phase::node_graph> dfs(*actorGraph);
 		dfs.dfs();
 		endOrder = dfs.toposort();
 	}

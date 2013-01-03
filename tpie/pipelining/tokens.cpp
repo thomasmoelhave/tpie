@@ -92,7 +92,7 @@ node_map::ptr node_map::find_authority() {
 	return result;
 }
 
-size_t node_map::out_degree(const relmap_t & map, id_t from, segment_relation rel) const {
+size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {
 	size_t res = 0;
 	relmapit i = map.find(from);
 	while (i != map.end() && i->first == from) {

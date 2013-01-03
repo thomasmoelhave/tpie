@@ -26,7 +26,7 @@
 #include <boost/shared_ptr.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file parallel.h  Parallel execution of pipe segments.
+/// \file parallel.h  Parallel execution of nodes.
 ///
 /// Given a sequential computation as a partial pipeline, this parallel
 /// framework naively parallelizes it by having multiple thread handle some
@@ -756,7 +756,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief  Pipe segment running in main thread, accepting an output buffer
+/// \brief  Node running in main thread, accepting an output buffer
 /// from the managing producer and forwards them down the pipe. The overhead
 /// concerned with switching threads dominates the overhead of a virtual method
 /// call, so this class only depends on the output type and leaves the pushing

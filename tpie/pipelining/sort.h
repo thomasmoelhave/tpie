@@ -58,7 +58,7 @@ public:
 		return m_sorter;
 	}
 
-	void set_calc_segment(node & calc) {
+	void set_calc_node(node & calc) {
 		add_dependency(calc);
 	}
 
@@ -72,9 +72,9 @@ protected:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipe sorter pull output segment.
+/// \brief Pipe sorter pull output node.
 /// \tparam pred_t   The less-than predicate.
-/// \tparam dest_t   Destination segment type.
+/// \tparam dest_t   Destination node type.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 class sort_pull_output_t : public sort_output_base<T, pred_t> {
@@ -117,9 +117,9 @@ protected:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipe sorter push output segment.
+/// \brief Pipe sorter push output node.
 /// \tparam pred_t   The less-than predicate.
-/// \tparam dest_t   Destination segment type.
+/// \tparam dest_t   Destination node type.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename dest_t>
 class sort_output_t : public sort_output_base<typename dest_t::item_type, pred_t> {
@@ -167,7 +167,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipe sorter middle segment.
+/// \brief Pipe sorter middle node.
 /// \tparam T        The type of items sorted
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
@@ -195,7 +195,7 @@ public:
 		: dest(new dest_t(dest))
 	{
 		m_sorter = this->dest->get_sorter();
-		this->dest->set_calc_segment(*this);
+		this->dest->set_calc_node(*this);
 		init();
 	}
 
@@ -233,7 +233,7 @@ public:
 		return m_sorter;
 	}
 
-	void set_input_segment(node & input) {
+	void set_input_node(node & input) {
 		add_dependency(input);
 	}
 
@@ -249,7 +249,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipe sorter input segment.
+/// \brief Pipe sorter input node.
 /// \tparam T        The type of items sorted
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
@@ -267,7 +267,7 @@ public:
 		: m_sorter(dest.get_sorter())
 		, dest(dest)
 	{
-		this->dest.set_input_segment(*this);
+		this->dest.set_input_node(*this);
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
@@ -401,7 +401,7 @@ class passive_sorter;
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Factory for the passive sorter input segment.
+/// \brief Factory for the passive sorter input node.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 class passive_sorter_factory : public factory_base {
@@ -420,7 +420,7 @@ public:
 
 	inline generated_type construct() const {
 		calc_t calc(output->get_sorter());
-		output->set_calc_segment(calc);
+		output->set_calc_node(calc);
 		this->init_node(calc);
 		input_t input(calc);
 		this->init_node(input);
@@ -432,7 +432,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Factory for the passive sorter output segment.
+/// \brief Factory for the passive sorter output node.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 class passive_sorter_factory_2 : public factory_base {
@@ -481,14 +481,14 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the input push pipe segment.
+	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
 	inline pipe_end<bits::passive_sorter_factory<item_type, pred_t> > input() {
 		return bits::passive_sorter_factory<item_type, pred_t>(m_output);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the output pull pipe segment.
+	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
 	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t> > output() {
 		return bits::passive_sorter_factory_2<item_type, pred_t>(*this);

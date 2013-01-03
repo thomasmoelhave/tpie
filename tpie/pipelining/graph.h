@@ -39,7 +39,7 @@ namespace bits {
 
 class phase {
 public:
-	class segment_graph;
+	class node_graph;
 
 	phase();
 	phase(const phase &);
@@ -58,8 +58,8 @@ public:
 	void add_successor(node * from, node * to, bool push);
 
 	inline size_t count(node * s) {
-		for (size_t i = 0; i < m_segments.size(); ++i) {
-			if (m_segments[i] == s) return 1;
+		for (size_t i = 0; i < m_nodes.size(); ++i) {
+			if (m_nodes[i] == s) return 1;
 		}
 		return 0;
 	}
@@ -85,14 +85,14 @@ public:
 private:
 	/** Graph of nodes in this phase. Initialised in constructor. Populated
 	 * by graph_traits::calc_phases using add and add_successor. */
-	std::auto_ptr<segment_graph> itemFlowGraph;
+	std::auto_ptr<node_graph> itemFlowGraph;
 
 	/** Graph of nodes in this phase. Initialised in constructor. Populated
 	 * by graph_traits::calc_phases using add and add_successor. */
-	std::auto_ptr<segment_graph> actorGraph;
+	std::auto_ptr<node_graph> actorGraph;
 
 	/** a pointer is a weak reference to something that isn't reference counted. */
-	std::vector<node *> m_segments;
+	std::vector<node *> m_nodes;
 
 	double m_memoryFraction;
 	memory_size_type m_minimumMemory;

@@ -208,7 +208,7 @@ struct maybe_check_connected<termpair_factory<fact1_t, termfact2_t> > {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief For user-defined factories in the general case, we cannot do
-/// anything to ensure that segment maps are joined together.
+/// anything to ensure that node maps are joined together.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 struct maybe_check_connected {
