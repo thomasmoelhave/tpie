@@ -23,6 +23,6 @@
 #define __TPIE_PIPELINING_PIPE_SEGMENT_H__
 
 #include <tpie/pipelining/node.h>
-#include <tpie/pipelining/pipe_segment_typedef.h>
+#include <tpie/pipelining/legacy_typedefs.h>
 
 #endif // __TPIE_PIPELINING_PIPE_SEGMENT_H__

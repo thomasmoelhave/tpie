@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_PIPE_SEGMENT_TYPEDEF_H__
-#define __TPIE_PIPELINING_PIPE_SEGMENT_TYPEDEF_H__
+#ifndef __TPIE_PIPELINING_LEGACY_TYPEDEFS_H__
+#define __TPIE_PIPELINING_LEGACY_TYPEDEFS_H__
 
 namespace tpie {
 
@@ -26,14 +26,17 @@ namespace pipelining {
 
 #ifdef __GNUC__
 typedef node pipe_segment __attribute__ ((deprecated));
+typedef node_token segment_token __attribute__ ((deprecated));
 #elif defined(_MSC_VER)
 typedef node __declspec(deprecated) pipe_segment;
+typedef node_token __declspec(deprecated) segment_token;
 #else
 typedef node pipe_segment;
+typedef node_token segment_token;
 #endif
 
 } // namespace pipelining
 
 } // namespace tpie
 
-#endif // __TPIE_PIPELINING_PIPE_SEGMENT_TYPEDEF_H__
+#endif // __TPIE_PIPELINING_LEGACY_TYPEDEFS_H__

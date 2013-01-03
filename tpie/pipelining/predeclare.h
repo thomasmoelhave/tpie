@@ -40,6 +40,6 @@ namespace bits {
 
 } // namespace tpie
 
-#include <tpie/pipelining/pipe_segment_typedef.h>
+#include <tpie/pipelining/legacy_typedefs.h>
 
 #endif // __TPIE_PIPELINING_PREDECLARE_H__

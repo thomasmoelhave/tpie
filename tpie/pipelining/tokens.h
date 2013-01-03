@@ -267,6 +267,6 @@ private:
 
 } // namespace tpie
 
-#include <tpie/pipelining/segment_token_typedef.h>
+#include <tpie/pipelining/legacy_typedefs.h>
 
 #endif // __TPIE_PIPELINING_TOKENS_H__

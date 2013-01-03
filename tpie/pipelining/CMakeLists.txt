@@ -6,6 +6,7 @@ set (PIPE_HEADERS
 	file_stream.h
 	graph.h
 	helpers.h
+	legacy_typedefs.h
 	merge.h
 	merge_sorter.h
 	merger.h
@@ -15,10 +16,8 @@ set (PIPE_HEADERS
 	pair_factory.h
 	pipe_base.h
 	pipe_segment.h
-	pipe_segment_typedef.h
 	pipeline.h
 	reverse.h
-	segment_token_typedef.h
 	sort.h
 	std_glue.h
 	stdio.h
