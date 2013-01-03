@@ -31,9 +31,9 @@ public:
 
 namespace pipelining {
 
-class not_initiator_segment : tpie::exception {
+class not_initiator_node : tpie::exception {
 public:
-	inline not_initiator_segment() : tpie::exception("Not an initiator segment") {}
+	inline not_initiator_node() : tpie::exception("Not an initiator node") {}
 };
 
 class virtual_chunk_not_ready : tpie::exception {
@@ -58,7 +58,7 @@ public:
 
 class non_authoritative_node_map : public tpie::exception {
 public:
-	non_authoritative_node_map() : tpie::exception("Non-authoritative segment map") {}
+	non_authoritative_node_map() : tpie::exception("Non-authoritative node map") {}
 };
 
 } // namespace pipelining

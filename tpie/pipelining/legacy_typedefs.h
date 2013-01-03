@@ -27,12 +27,15 @@ namespace pipelining {
 #ifdef __GNUC__
 typedef node pipe_segment __attribute__ ((deprecated));
 typedef node_token segment_token __attribute__ ((deprecated));
+typedef not_initiator_node not_initiator_segment __attribute__ ((deprecated));
 #elif defined(_MSC_VER)
 typedef node __declspec(deprecated) pipe_segment;
 typedef node_token __declspec(deprecated) segment_token;
+typedef not_initiator_node __declspec(deprecated) not_initiator_segment;
 #else
 typedef node pipe_segment;
 typedef node_token segment_token;
+typedef not_initiator_node not_initiator_segment;
 #endif
 
 } // namespace pipelining
