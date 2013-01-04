@@ -88,7 +88,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 		else
 			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp() + suffix);
 		if ( !boost::filesystem::exists(p) )
-#ifdef TPIE_USE_NEW_FILESYSTEM
+#if BOOST_FILESYSTEM_VERSION == 3
 			return p.string();
 #else
 			return p.file_string();
@@ -169,7 +169,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
 
-#ifdef TPIE_USE_NEW_FILESYSTEM
+#if BOOST_FILESYSTEM_VERSION == 3
 		default_path = p.string();
 #else
 		default_path = p.directory_string();

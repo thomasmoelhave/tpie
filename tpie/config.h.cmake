@@ -55,14 +55,12 @@
 	#pragma warning(disable : 4800)
 #endif
 	
-//We use boost filesystem v3 from boost v1.46 and onwards
-#if BOOST_VERSION >= 104600
-	#if BOOST_VERSION < 105000
-		//boost v 1.50 dropped fs v2 so no need to "select" it explicitely
-		#define BOOST_FILESYSTEM_VERSION 3
-	#endif
-	//let TPIE (and its users) know that we should use the v3
-	#define TPIE_USE_NEW_FILESYSTEM
+//We use boost filesystem v3 from boost v1.47 and onwards
+//(boost v 1.50 dropped fs v2 altogether)
+#if BOOST_VERSION >= 104700
+	#define BOOST_FILESYSTEM_VERSION 3
+#else
+	#define BOOST_FILESYSTEM_VERSION 2
 #endif
 
 #ifdef _WIN32
