@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include <tpie/serialization.h>
+#include <tpie/serialization2.h>
 #include <map>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/unordered_map.hpp>
@@ -27,8 +28,62 @@
 using namespace tpie;
 using namespace std;
 
+struct write_container {
+	ostream & o;
+	write_container(ostream & o): o(o) {}
+	void write(const char * x, size_t t) {
+		log_info() << "Write " << t << std::endl;
+		o.write(x, t);
+	}
+};
+
+struct read_container {
+	istream & o;
+	read_container(istream & o): o(o) {}
+	void read(char * x, size_t t) {
+		log_info() << "Read " << t << std::endl;
+		o.read(x, t);
+	}
+};
+
+bool testSer2() {
+	std::stringstream ss;
+	std::vector<int> v;
+	v.push_back(88);
+	v.push_back(74);
+
+	write_container wc(ss);
+	serialize(wc, (int)454);
+	serialize(wc, (float)4.5);
+	serialize(wc, true);
+	serialize(wc, v);
+	serialize(wc, std::string("Abekat"));
+
+	int a;
+	float b;
+	bool c;
+	std::vector<int> d;
+	std::string e;
+
+	read_container rc(ss);
+	unserialize(rc, a);
+	unserialize(rc, b);
+	unserialize(rc, c);
+	unserialize(rc, d);
+	unserialize(rc, e);
+	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e <<  std::endl;
+	if (a != 454) return false;
+	if (b != 4.5) return false;
+	if (c != true) return false;
+	std::cout << "Here" << std::endl;
+	if (d != v) return false;
+	std::cout << "Here" << std::endl;
+	if (e != "Abekat") return false;
+	return true;
+}
+
+
 bool testSer(bool safe) {
-	boost::filesystem::remove("temp.ser");
 	std::stringstream ss;
 	std::vector<int> v;
 	v.push_back(88);
@@ -74,5 +129,6 @@ bool unsafe_test() { return testSer(false); }
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(safe_test, "safe")
-		.test(unsafe_test, "unsafe");
+		.test(unsafe_test, "unsafe")
+		.test(testSer2, "serialization2");
 }

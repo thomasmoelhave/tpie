@@ -58,6 +58,7 @@ set (HEADERS
 		progress_indicator_terminal.h
 		queue.h
 		serialization.h
+		serialization2.h
 		sort.h
 		sort_deprecated.h
 		sort_manager.h
