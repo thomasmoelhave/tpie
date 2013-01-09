@@ -767,6 +767,21 @@ namespace std {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Enable std::swapping two tpie::arrays.
+///
+/// Citing the C++11 draft N3242, dated 2011-02-28, 17.6.4.2.1, paragraph 1:
+///
+///    "The behavior of a C++ program is undefined if it adds declarations or
+///     definitions to namespace std or to a namespace within namespace std
+///     unless otherwise specified. A program may add a template specialization
+///     for any standard library template to namespace std only if the
+///     declaration depends on a user-defined type and the specialization meets
+///     the standard library requirements for the original template and is not
+///     explicitly prohibited."  [Footnote: "Any library code that instantiates
+///     other library templates must be prepared to work adequately with any
+///     user-supplied specialization that meets the minimum requirements of the
+///     Standard."]
+///
+/// In other words, we are allowed to specialize std::swap.
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
