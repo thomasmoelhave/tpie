@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -20,6 +20,7 @@
 #include "common.h"
 #include <tpie/serialization.h>
 #include <tpie/serialization2.h>
+#include <tpie/serialization_stream.h>
 #include <map>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/unordered_map.hpp>
@@ -52,23 +53,19 @@ struct serializable_dummy {
 
 const char serializable_dummy::msg[] = "Hello, yes, this is dog!";
 
-namespace tpie {
+template <typename D>
+void serialize(D & dst, const serializable_dummy &) {
+	dst.write(serializable_dummy::msg, sizeof(serializable_dummy::msg));
+}
 
-	template <typename D>
-	void serialize(D & dst, const serializable_dummy &) {
-		dst.write(serializable_dummy::msg, sizeof(serializable_dummy::msg));
+template <typename S>
+void unserialize(S & src, serializable_dummy &) {
+	std::string s(sizeof(serializable_dummy::msg), '\0');
+	src.read(&s[0], s.size());
+	if (!std::equal(s.begin(), s.end(), serializable_dummy::msg)) {
+		throw tpie::exception("Did not serialize the dummy");
 	}
-
-	template <typename S>
-	void unserialize(S & src, const serializable_dummy &) {
-		std::string s(sizeof(serializable_dummy::msg), '\0');
-		src.read(&s[0], s.size());
-		if (!std::equal(s.begin(), s.end(), serializable_dummy::msg)) {
-			throw tpie::exception("Did not serialize the dummy");
-		}
-	}
-
-} // namespace tpie
+}
 
 bool testSer2() {
 	std::stringstream ss;
@@ -153,9 +150,70 @@ bool testSer(bool safe) {
 bool safe_test() { return testSer(true); }
 bool unsafe_test() { return testSer(false); }
 
+bool stream_test() {
+	bool result = true;
+
+	memory_size_type N = 2000;
+	array<memory_size_type> numbers(N);
+	for (memory_size_type i = 0; i < N; ++i) {
+		numbers[i] = i;
+	}
+
+	temp_file f;
+	{
+	serialization_writer ss;
+	ss.open(f.path());
+	for (memory_size_type i = 0; i < N; ++i) {
+		ss.serialize(&numbers[0], &numbers[i]);
+	}
+	ss.serialize(serializable_dummy());
+	ss.close();
+	}
+	{
+	serialization_reader ss;
+	ss.open(f.path());
+	for (memory_size_type i = 0; i < N; ++i) {
+		if (!ss.can_read()) {
+			log_error() << "Expected can_read()" << std::endl;
+			result = false;
+		}
+		for (memory_size_type j = 0; j < N; ++j) {
+			numbers[j] = N;
+		}
+		ss.unserialize(&numbers[0], &numbers[i]);
+		for (memory_size_type j = 0; j < N; ++j) {
+			if (j < i && numbers[j] != j) {
+				log_error() << "Incorrect deserialization #" << i << " in position " << j << std::endl;
+				result = false;
+			}
+			if (j >= i && numbers[j] != N) {
+				log_error() << "Deserialization #" << i << " changed an array index " << j << " out of bounds" << std::endl;
+				result = false;
+			}
+			numbers[j] = N;
+		}
+	}
+	if (!ss.can_read()) {
+		log_error() << "Expected can_read()" << std::endl;
+		result = false;
+	}
+	serializable_dummy d;
+	ss.unserialize(d);
+	if (ss.can_read()) {
+		log_error() << "Expected !can_read()" << std::endl;
+		result = false;
+	}
+	ss.close();
+	}
+
+	return result;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(safe_test, "safe")
 		.test(unsafe_test, "unsafe")
-		.test(testSer2, "serialization2");
+		.test(testSer2, "serialization2")
+		.test(stream_test, "stream")
+		;
 }
