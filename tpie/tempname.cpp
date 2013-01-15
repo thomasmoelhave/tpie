@@ -88,7 +88,12 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 		else
 			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp() + suffix);
 		if ( !boost::filesystem::exists(p) )
+#if BOOST_FILESYSTEM_VERSION == 3
+			return p.string();
+#else
 			return p.file_string();
+#endif
+		
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -163,7 +168,12 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			default_path = path;
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
+
+#if BOOST_FILESYSTEM_VERSION == 3
+		default_path = p.string();
+#else
 		default_path = p.directory_string();
+#endif
 	} catch (boost::filesystem::filesystem_error) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
