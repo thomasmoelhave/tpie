@@ -20,102 +20,117 @@
 #include <tpie/serialization_stream.h>
 #include <tpie/array.h>
 
-namespace tpie {
-
 ///////////////////////////////////////////////////////////////////////////////
 // serialization_header {{{
 
-#pragma pack(push, 1)
-struct serialization_header::stream_header_t {
-	static const uint64_t magicConst = 0xfa340f49edbada67ll;
-	static const uint64_t versionConst = 1;
+namespace tpie {
 
-	uint64_t magic;
-	uint64_t version;
-	uint64_t size;
-	// bool has funny semantics with regards to equality. we want to reject
-	// invalid bool values (>1), but that is not easy to express with a C++
-	// bool variable.
-	char cleanClose;
-	char reverse;
-};
+namespace bits {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \class Stream accessor for serialization streams.
+///
+/// This class handles the stream header of a given file accessor.
+///////////////////////////////////////////////////////////////////////////////
+class serialization_header {
+public:
+	static memory_size_type header_size() {
+		memory_size_type sz = sizeof(stream_header_t);
+		memory_size_type align = 4096;
+		return (sz + (align-1))/align * align;
+	}
+
+	serialization_header(file_accessor::raw_file_accessor & file)
+		: m_headerPtr(new stream_header_t())
+		, m_header(*m_headerPtr)
+		, m_fileAccessor(file)
+	{
+		m_header.magic = stream_header_t::magicConst;
+		m_header.version = stream_header_t::versionConst;
+		m_header.size = 0;
+		m_header.cleanClose = 0;
+	}
+
+	void read() {
+		m_fileAccessor.seek_i(0);
+		m_fileAccessor.read_i(&m_header, sizeof(m_header));
+	}
+
+	void write(bool cleanClose) {
+		m_header.cleanClose = cleanClose;
+
+		tpie::array<char> headerArea(header_size());
+		std::fill(headerArea.begin(), headerArea.end(), '\x42');
+		char * headerData = reinterpret_cast<char *>(&m_header);
+		std::copy(headerData, sizeof(m_header) + headerData,
+				  headerArea.begin());
+
+		m_fileAccessor.seek_i(0);
+		m_fileAccessor.write_i(&headerArea[0], headerArea.size());
+	}
+
+	void verify() {
+		if (m_header.magic != m_header.magicConst)
+			throw stream_exception("Bad header magic");
+		if (m_header.version < m_header.versionConst)
+			throw stream_exception("Stream version too old");
+		if (m_header.version > m_header.versionConst)
+			throw stream_exception("Stream version too new");
+		if (m_header.cleanClose != 1)
+			throw stream_exception("Stream was not closed properly");
+		if (m_header.reverse != 0 && m_header.reverse != 1)
+			throw stream_exception("Reverse flag is not a boolean");
+	}
+
+	stream_size_type get_size() {
+		return m_header.size;
+	}
+
+	void set_size(stream_size_type size) {
+		m_header.size = size;
+	}
+
+	bool get_clean_close() {
+		return m_header.cleanClose;
+	}
+
+	bool get_reverse() {
+		return m_header.reverse;
+	}
+
+	void set_reverse(bool reverse) {
+		m_header.reverse = reverse;
+	}
+
+private:
+#pragma pack(push, 1)
+	struct stream_header_t {
+		static const uint64_t magicConst = 0xfa340f49edbada67ll;
+		static const uint64_t versionConst = 1;
+
+		uint64_t magic;
+		uint64_t version;
+		uint64_t size;
+		// bool has funny semantics with regards to equality. we want to reject
+		// invalid bool values (>1), but that is not easy to express with a C++
+		// bool variable.
+		char cleanClose;
+		char reverse;
+	};
 #pragma pack(pop)
 
-serialization_header::serialization_header(file_accessor::raw_file_accessor & file)
-	: m_headerPtr(new stream_header_t())
-	, m_header(*m_headerPtr)
-	, m_fileAccessor(file)
-{
-	m_header.magic = stream_header_t::magicConst;
-	m_header.version = stream_header_t::versionConst;
-	m_header.size = 0;
-	m_header.cleanClose = 0;
-}
+	std::auto_ptr<stream_header_t> m_headerPtr;
+	stream_header_t & m_header;
 
-serialization_header::~serialization_header() {
-}
+	file_accessor::raw_file_accessor & m_fileAccessor;
+};
 
-memory_size_type serialization_header::header_size() {
-	memory_size_type sz = sizeof(stream_header_t);
-	memory_size_type align = 4096;
-	return (sz + (align-1))/align * align;
-}
+} // namespace bits
 
-void serialization_header::read() {
-	m_fileAccessor.seek_i(0);
-	m_fileAccessor.read_i(&m_header, sizeof(m_header));
-}
-
-void serialization_header::write(bool cleanClose) {
-	m_header.cleanClose = cleanClose;
-
-	tpie::array<char> headerArea(header_size());
-	std::fill(headerArea.begin(), headerArea.end(), '\x42');
-	char * headerData = reinterpret_cast<char *>(&m_header);
-	std::copy(headerData, sizeof(m_header) + headerData,
-			  headerArea.begin());
-
-	m_fileAccessor.seek_i(0);
-	m_fileAccessor.write_i(&headerArea[0], headerArea.size());
-}
-
-void serialization_header::verify() {
-	if (m_header.magic != m_header.magicConst)
-		throw stream_exception("Bad header magic");
-	if (m_header.version < m_header.versionConst)
-		throw stream_exception("Stream version too old");
-	if (m_header.version > m_header.versionConst)
-		throw stream_exception("Stream version too new");
-	if (m_header.cleanClose != 1)
-		throw stream_exception("Stream was not closed properly");
-	if (m_header.reverse != 0 && m_header.reverse != 1)
-		throw stream_exception("Reverse flag is not a boolean");
-}
-
-stream_size_type serialization_header::get_size() {
-	return m_header.size;
-}
-
-void serialization_header::set_size(stream_size_type size) {
-	m_header.size = size;
-}
-
-bool serialization_header::get_clean_close() {
-	return m_header.cleanClose;
-}
-
-bool serialization_header::get_reverse() {
-	return m_header.reverse;
-}
-
-void serialization_header::set_reverse(bool reverse) {
-	m_header.reverse = reverse;
-}
+} // namespace tpie
 
 // }}}
 ///////////////////////////////////////////////////////////////////////////////
-
-} // namespace tpie
 
 namespace {
 	class open_guard {
@@ -163,7 +178,7 @@ void serialization_writer_base::open(std::string path, bool reverse) {
 	m_blocksWritten = 0;
 	m_size = 0;
 
-	serialization_header header(m_fileAccessor);
+	bits::serialization_header header(m_fileAccessor);
 	header.set_reverse(reverse);
 	header.write(false);
 	guard.commit();
@@ -172,7 +187,7 @@ void serialization_writer_base::open(std::string path, bool reverse) {
 void serialization_writer_base::write_block(const char * const s, const memory_size_type n) {
 	assert(n <= block_size());
 	stream_size_type offset = m_blocksWritten * block_size();
-	m_fileAccessor.seek_i(serialization_header::header_size() + offset);
+	m_fileAccessor.seek_i(bits::serialization_header::header_size() + offset);
 	m_fileAccessor.write_i(s, n);
 	++m_blocksWritten;
 	m_size = offset + n;
@@ -180,7 +195,7 @@ void serialization_writer_base::write_block(const char * const s, const memory_s
 
 void serialization_writer_base::close(bool reverse) {
 	if (!m_open) return;
-	serialization_header header(m_fileAccessor);
+	bits::serialization_header header(m_fileAccessor);
 	header.set_size(m_size);
 	header.set_reverse(reverse);
 	header.write(true);
@@ -245,7 +260,7 @@ void serialization_reader_base::open(std::string path, bool reverse) {
 	open_guard guard(m_open, m_fileAccessor);
 	m_block.resize(block_size());
 
-	serialization_header header(m_fileAccessor);
+	bits::serialization_header header(m_fileAccessor);
 	header.read();
 	header.verify();
 	m_size = header.get_size();
@@ -262,7 +277,7 @@ void serialization_reader_base::read_block(const stream_size_type blk) {
 	if (to <= from) throw end_of_stream_exception();
 	m_index = 0;
 	m_blockSize = to-from;
-	m_fileAccessor.seek_i(serialization_header::header_size()
+	m_fileAccessor.seek_i(bits::serialization_header::header_size()
 						  + from);
 	m_fileAccessor.read_i(m_block.get(), m_blockSize);
 }

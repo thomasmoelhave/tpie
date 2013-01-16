@@ -32,45 +32,6 @@
 
 namespace tpie {
 
-///////////////////////////////////////////////////////////////////////////////
-/// \class Stream accessor for serialization streams.
-///
-/// This class handles the stream header of a given file accessor.
-///////////////////////////////////////////////////////////////////////////////
-class serialization_header {
-public:
-	static memory_size_type header_size();
-
-	serialization_header(file_accessor::raw_file_accessor & file);
-	~serialization_header();
-
-	void read();
-
-	void write(bool cleanClose);
-
-	void verify();
-
-	stream_size_type get_size();
-
-	void set_size(stream_size_type size);
-
-	bool get_clean_close();
-
-	bool get_reverse();
-
-	void set_reverse(bool reverse);
-
-private:
-#pragma pack(push, 1)
-	struct stream_header_t;
-#pragma pack(pop)
-
-	std::auto_ptr<stream_header_t> m_headerPtr;
-	stream_header_t & m_header;
-
-	file_accessor::raw_file_accessor & m_fileAccessor;
-};
-
 namespace bits {
 
 class serialization_writer_base {
