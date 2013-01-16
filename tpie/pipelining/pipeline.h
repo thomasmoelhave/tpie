@@ -100,9 +100,22 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline {
 public:
+	pipeline()
+		: p(0)
+	{
+	}
+
 	template <typename T>
-	inline pipeline(const T & from) {
+	inline pipeline(const T & from)
+		: p(0)
+	{
+		*this = from;
+	}
+	template <typename T>
+	pipeline & operator=(const T & from) {
+		if (p) delete p;
 		p = new T(from);
+		return *this;
 	}
 	inline ~pipeline() {
 		delete p;
