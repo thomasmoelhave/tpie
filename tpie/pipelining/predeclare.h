@@ -30,6 +30,7 @@ namespace pipelining {
 
 class node;
 class node_token;
+class not_initiator_node;
 
 namespace bits {
 	class node_map;
