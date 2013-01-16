@@ -154,7 +154,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual void go(progress_indicator_base &) {
 		log_warning() << "node subclass " << typeid(*this).name() << " is not an initiator node" << std::endl;
-		throw not_initiator_segment();
+		throw not_initiator_node();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
