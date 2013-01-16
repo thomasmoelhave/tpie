@@ -37,7 +37,7 @@ struct serialization_header::stream_header_t {
 	// invalid bool values (>1), but that is not easy to express with a C++
 	// bool variable.
 	char cleanClose;
-	// TODO: add reverse
+	char reverse;
 };
 #pragma pack(pop)
 
@@ -88,6 +88,8 @@ void serialization_header::verify() {
 		throw stream_exception("Stream version too new");
 	if (m_header.cleanClose != 1)
 		throw stream_exception("Stream was not closed properly");
+	if (m_header.reverse != 0 && m_header.reverse != 1)
+		throw stream_exception("Reverse flag is not a boolean");
 }
 
 stream_size_type serialization_header::get_size() {
@@ -100,6 +102,14 @@ void serialization_header::set_size(stream_size_type size) {
 
 bool serialization_header::get_clean_close() {
 	return m_header.cleanClose;
+}
+
+bool serialization_header::get_reverse() {
+	return m_header.reverse;
+}
+
+void serialization_header::set_reverse(bool reverse) {
+	m_header.reverse = reverse;
 }
 
 // }}}
@@ -146,7 +156,7 @@ serialization_writer_base::serialization_writer_base()
 }
 
 void serialization_writer_base::open(std::string path, bool reverse) {
-	close();
+	close(reverse);
 	m_fileAccessor.set_cache_hint(access_sequential);
 	m_fileAccessor.open_wo(path);
 	open_guard guard(m_open, m_fileAccessor);
@@ -154,6 +164,7 @@ void serialization_writer_base::open(std::string path, bool reverse) {
 	m_size = 0;
 
 	serialization_header header(m_fileAccessor);
+	header.set_reverse(reverse);
 	header.write(false);
 	guard.commit();
 }
@@ -167,10 +178,11 @@ void serialization_writer_base::write_block(const char * const s, const memory_s
 	m_size = offset + n;
 }
 
-void serialization_writer_base::close() {
+void serialization_writer_base::close(bool reverse) {
 	if (!m_open) return;
 	serialization_header header(m_fileAccessor);
 	header.set_size(m_size);
+	header.set_reverse(reverse);
 	header.write(true);
 	m_fileAccessor.close_i();
 	m_open = false;
@@ -193,7 +205,27 @@ void serialization_writer::close() {
 	if (m_index > 0) write_block();
 	m_block.resize(0);
 	m_index = 0;
-	p_t::close();
+	p_t::close(false);
+}
+
+void serialization_reverse_writer::write_block() {
+	// See note about m_index and its semantics.
+	std::reverse(m_block.get(), m_block.get() + block_size());
+	p_t::write_block(m_block.get(), m_index);
+	m_index = 0;
+}
+
+void serialization_reverse_writer::open(std::string path) {
+	p_t::open(path, true);
+	m_block.resize(block_size());
+	m_index = 0;
+}
+
+void serialization_reverse_writer::close() {
+	if (m_index > 0) write_block();
+	m_block.resize(0);
+	m_index = 0;
+	p_t::close(true);
 }
 
 namespace bits {
@@ -217,6 +249,10 @@ void serialization_reader_base::open(std::string path, bool reverse) {
 	header.read();
 	header.verify();
 	m_size = header.get_size();
+	if (reverse && !header.get_reverse())
+		throw stream_exception("Opened a non-reverse stream for reverse reading");
+	if (!reverse && header.get_reverse())
+		throw stream_exception("Opened a reverse stream for non-reverse reading");
 	guard.commit();
 }
 
@@ -240,10 +276,6 @@ void serialization_reader_base::close() {
 
 } // namespace bits
 
-void serialization_reader::read_from(stream_size_type offset) {
-	read_block(offset);
-}
-
 void serialization_reader::next_block() /*override*/ {
 	if (m_blockSize == 0) {
 		m_blockNumber = 0;
@@ -261,6 +293,24 @@ serialization_reader::serialization_reader()
 void serialization_reader::open(std::string path) {
 	p_t::open(path, false);
 	m_blockNumber = 0;
+}
+
+void serialization_reverse_reader::next_block() /*override*/ {
+	if (m_blockNumber == 0)
+		throw end_of_stream_exception();
+	--m_blockNumber;
+	read_block(m_blockNumber);
+	std::reverse(m_block.begin(), m_block.begin() + m_blockSize);
+}
+
+serialization_reverse_reader::serialization_reverse_reader()
+	: m_blockNumber(0)
+{
+}
+
+void serialization_reverse_reader::open(std::string path) {
+	p_t::open(path, true);
+	m_blockNumber = (m_size + (block_size() - 1)) / block_size();
 }
 
 } // namespace tpie

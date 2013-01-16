@@ -154,7 +154,7 @@ bool stream_test() {
 	bool result = true;
 
 	memory_size_type N = 2000;
-	array<memory_size_type> numbers(N);
+	tpie::array<memory_size_type> numbers(N);
 	for (memory_size_type i = 0; i < N; ++i) {
 		numbers[i] = i;
 	}
@@ -209,11 +209,76 @@ bool stream_test() {
 	return result;
 }
 
+bool stream_reverse_test() {
+	bool result = true;
+
+	memory_size_type N = 2000;
+	tpie::array<memory_size_type> numbers(N);
+	for (memory_size_type i = 0; i < N; ++i) {
+		numbers[i] = i;
+	}
+
+	temp_file f;
+	{
+	serialization_reverse_writer ss;
+	ss.open(f.path());
+	ss.serialize(serializable_dummy());
+	for (memory_size_type i = 0; i < N; ++i) {
+		ss.serialize(&numbers[0], &numbers[i]);
+	}
+	ss.serialize(serializable_dummy());
+	ss.serialize(serializable_dummy());
+	ss.close();
+	}
+	{
+	serialization_reverse_reader ss;
+	serializable_dummy d;
+	ss.open(f.path());
+	ss.unserialize(d);
+	ss.unserialize(d);
+	for (memory_size_type i = N; i--;) {
+		if (!ss.can_read()) {
+			log_error() << "Expected can_read()" << std::endl;
+			result = false;
+		}
+		for (memory_size_type j = 0; j < N; ++j) {
+			numbers[j] = N;
+		}
+		ss.unserialize(&numbers[0], &numbers[i]);
+		for (memory_size_type j = 0; j < N; ++j) {
+			if (j < i && numbers[j] != j) {
+				log_error() << "Incorrect deserialization #" << i << " in position " << j << std::endl;
+				log_error() << "Got " << numbers[j] << ", expected " << j << std::endl;
+				result = false;
+			}
+			if (j >= i && numbers[j] != N) {
+				log_error() << "Deserialization #" << i << " changed an array index " << j << " out of bounds" << std::endl;
+				result = false;
+			}
+			numbers[j] = N;
+		}
+	}
+	if (!ss.can_read()) {
+		log_error() << "Expected can_read()" << std::endl;
+		result = false;
+	}
+	ss.unserialize(d);
+	if (ss.can_read()) {
+		log_error() << "Expected !can_read()" << std::endl;
+		result = false;
+	}
+	ss.close();
+	}
+
+	return result;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(safe_test, "safe")
 		.test(unsafe_test, "unsafe")
 		.test(testSer2, "serialization2")
 		.test(stream_test, "stream")
+		.test(stream_reverse_test, "stream_reverse")
 		;
 }
