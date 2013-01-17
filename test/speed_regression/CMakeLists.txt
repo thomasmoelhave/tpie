@@ -37,3 +37,15 @@ set_target_properties(pipelining_sort_test PROPERTIES FOLDER tpie/test)
 add_executable(serialization_speed serialization.cpp ${SPEED_DEPS})
 target_link_libraries(serialization_speed tpie)
 set_target_properties(serialization_speed PROPERTIES FOLDER tpie/test)
+
+add_executable(numbergen numbergen.cpp ${SPEED_DEPS})
+target_link_libraries(numbergen tpie)
+set_target_properties(numbergen PROPERTIES FOLDER tpie/test)
+
+add_executable(fractile_tpie fractile_tpie.cpp ${SPEED_DEPS})
+target_link_libraries(fractile_tpie tpie)
+set_target_properties(fractile_tpie PROPERTIES FOLDER tpie/test)
+
+add_executable(fractile_serialization fractile_serialization.cpp ${SPEED_DEPS})
+target_link_libraries(fractile_serialization tpie)
+set_target_properties(fractile_serialization PROPERTIES FOLDER tpie/test)

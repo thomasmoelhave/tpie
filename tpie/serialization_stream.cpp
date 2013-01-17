@@ -203,6 +203,10 @@ void serialization_writer_base::close(bool reverse) {
 	m_open = false;
 }
 
+stream_size_type serialization_writer_base::file_size() {
+	return serialization_header::header_size() + m_size;
+}
+
 } // namespace bits
 
 void serialization_writer::write_block() {
@@ -287,6 +291,10 @@ void serialization_reader_base::close() {
 	m_fileAccessor.close_i();
 	m_open = false;
 	m_block.resize(0);
+}
+
+stream_size_type serialization_reader_base::file_size() {
+	return serialization_header::header_size() + m_size;
 }
 
 } // namespace bits

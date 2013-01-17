@@ -62,6 +62,11 @@ protected:
 	void write_block(const char * const s, const memory_size_type n);
 
 	void close(bool reverse);
+
+public:
+	static memory_size_type memory_usage() { return block_size(); }
+
+	stream_size_type file_size();
 };
 
 } // namespace bits
@@ -312,6 +317,10 @@ public:
 		using tpie::unserialize;
 		unserialize(*this, a, b);
 	}
+
+	static memory_size_type memory_usage() { return block_size(); }
+
+	stream_size_type file_size();
 };
 
 } // namespace bits

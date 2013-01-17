@@ -60,6 +60,7 @@ set (HEADERS
 		serialization.h
 		serialization2.h
 		serialization_stream.h
+		serialization_sort.h
 		sort.h
 		sort_deprecated.h
 		sort_manager.h

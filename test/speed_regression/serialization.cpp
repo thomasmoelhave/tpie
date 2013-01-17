@@ -21,7 +21,9 @@
 #include <tpie/sysinfo.h>
 #include <tpie/tempname.h>
 #include <tpie/serialization_stream.h>
+#include <tpie/serialization_sort.h>
 #include <tpie/file_stream.h>
+#include <tpie/sort.h>
 #include "stat.h"
 #include "testtime.h"
 
@@ -30,11 +32,41 @@ struct item {
 	uint32_t b;
 	uint32_t c;
 	uint32_t d;
+
+	item & operator=(uint32_t v) {
+		a = v;
+		return *this;
+	}
+
+	item & operator=(uint64_t v) {
+		a = static_cast<uint32_t>(v);
+		return *this;
+	}
+
+	std::pair<uint32_t, uint32_t> repr() const {
+		const uint32_t mask = 0x55555555u;
+		return std::make_pair(a & mask, a & ~mask);
+	}
+
+	bool operator<(const item & other) const {
+		return repr() < other.repr();
+	}
 };
+
+template <typename D>
+void serialize(D & dst, const item & it) {
+	dst.write(reinterpret_cast<const char *>(&it), sizeof(it));
+}
+
+template <typename S>
+void unserialize(S & src, item & it) {
+	src.read(reinterpret_cast<char *>(&it), sizeof(it));
+}
 
 struct parameters {
 	size_t mb;
 	size_t times;
+	size_t memory;
 };
 
 template <typename child_t>
@@ -118,7 +150,7 @@ public:
 		wr.open(path);
 		item it;
 		for (size_t j = 0; j < items; ++j) {
-			it.a = j;
+			it = j;
 			wr.serialize(it);
 		}
 		wr.close();
@@ -183,11 +215,105 @@ size_t number(std::string arg) {
 	return res;
 }
 
+template <typename Algorithm>
+class sort_tester {
+	typedef typename Algorithm::item_type item_type;
+	Algorithm a;
+	tpie::stream_size_type items;
+
+public:
+	sort_tester(parameters params)
+		: a(params)
+		, items(params.mb * (1024 * 1024 / sizeof(item_type)))
+	{
+	}
+
+	void go() {
+		a.begin(items);
+		item_type x;
+		for (tpie::stream_size_type i = 0; i < items; ++i) {
+			x = (i + 91493)*104729;
+			a.push(x);
+		}
+		a.end();
+		x = a.pull();
+		for (tpie::stream_size_type i = 1; i < items; ++i) {
+			item_type y = a.pull();
+			if (y < x) {
+				std::cout << "Not sorted" << std::endl;
+				return;
+			}
+			x = y;
+		}
+	}
+};
+
+class serialization_sorter {
+public:
+	typedef item item_type;
+
+private:
+	tpie::serialization_sort<item, std::less<item> > sorter;
+
+public:
+	serialization_sorter(parameters params)
+		: sorter(params.memory)
+	{
+	}
+
+	void begin(tpie::stream_size_type /*items*/) {
+		sorter.begin();
+	}
+
+	void push(item i) {
+		sorter.push(i);
+	}
+
+	void end() {
+		sorter.end();
+	}
+
+	item pull() {
+		return sorter.pull();
+	}
+};
+
+class tpie_sorter {
+public:
+	typedef item item_type;
+
+private:
+	tpie::file_stream<item> data;
+	tpie::temp_file f;
+
+public:
+	tpie_sorter(parameters /*params*/) {
+	}
+
+	void begin(tpie::stream_size_type /*items*/) {
+		data.open(f);
+	}
+
+	void push(item i) {
+		data.write(i);
+	}
+
+	void end() {
+		tpie::sort(data, data);
+		data.seek(0);
+	}
+
+	item pull() {
+		return data.read();
+	}
+};
+
 int main(int argc, char ** argv) {
 	tpie::tpie_init();
 	parameters params;
 	params.mb = 20480;
 	params.times = 5;
+	params.memory = 200*1024*1024;
 	std::string type;
 	for (int i = 1; i < argc; ++i) {
 		std::string arg = argv[i];
@@ -202,10 +328,14 @@ int main(int argc, char ** argv) {
 			break;
 		}
 	}
+	tpie::get_memory_manager().set_limit(params.memory
+										 + tpie::get_memory_manager().used());
 	if (type == "serialization_forward") serialization_forward_speed_tester().go(params);
 	else if (type == "serialization_backward") serialization_backward_speed_tester().go(params);
 	else if (type == "stream_forward") stream_speed_tester<stream_forward>().go(params);
 	else if (type == "stream_backward") stream_speed_tester<stream_backward>().go(params);
+	else if (type == "serialization_sort") sort_tester<serialization_sorter>(params).go();
+	else if (type == "tpie_sort") sort_tester<tpie_sorter>(params).go();
 	else usage(argv);
 	tpie::tpie_finish();
 	return 0;
