@@ -53,7 +53,9 @@ struct array_encode_magic {
 template <typename D, typename T>
 struct array_encode_magic<D, T, true, true, false> {
     void operator()(D & d, T start, T end) {
-		d.write((const char*)(&(*start)), (end-start)*sizeof(T));
+		const char * from = reinterpret_cast<const char *>(&*start);
+		const char * to = reinterpret_cast<const char *>(&*end);
+		d.write(from, to-from);
     }
 };
 
@@ -71,7 +73,9 @@ struct array_decode_magic {
 template <typename D, typename T>
 struct array_decode_magic<D, T, true, true, false> {
     void operator()(D & d, T start, T end) {
-		d.read((char *)(&(*start)), (end-start)*sizeof(T));
+		char * from = reinterpret_cast<char *>(&*start);
+		char * to = reinterpret_cast<char *>(&*end);
+		d.read(from, to-from);
     }
 };
 
