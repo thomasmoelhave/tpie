@@ -33,3 +33,7 @@ set_target_properties(pipeline_speed_test PROPERTIES FOLDER tpie/test)
 add_executable(pipelining_sort_test pipelining_sort_test.cpp)
 target_link_libraries(pipelining_sort_test tpie)
 set_target_properties(pipelining_sort_test PROPERTIES FOLDER tpie/test)
+
+add_executable(serialization_speed serialization.cpp ${SPEED_DEPS})
+target_link_libraries(serialization_speed tpie)
+set_target_properties(serialization_speed PROPERTIES FOLDER tpie/test)
