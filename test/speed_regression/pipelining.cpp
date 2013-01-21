@@ -44,7 +44,7 @@ static inline void usage() {
 }
 
 template <typename dest_t>
-struct number_generator_t : public pipe_segment {
+struct number_generator_t : public node {
 	typedef typename dest_t::item_type item_type;
 	inline number_generator_t(const dest_t & dest, size_t count)
 		: dest(dest)
@@ -66,7 +66,7 @@ private:
 	size_t count;
 };
 
-struct number_sink_t : public pipe_segment {
+struct number_sink_t : public node {
 	typedef test_t item_type;
 	inline number_sink_t(test_t & output) : output(output) {}
 	inline void push(const test_t & item) {
