@@ -20,9 +20,14 @@
 #ifndef TPIE_SERIALIZATION2_H
 #define TPIE_SERIALIZATION2_H
 
-///////////////////////////////////////////////////////////////////////////
-/// \file tpie/serialization.h Binary serialization and unserialization.
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \file tpie/serialization2.h Binary serialization and unserialization.
+///
+/// This serialization framework is based on generic writers that have a write
+/// method accepting a source buffer and a byte size as parameters, and generic
+/// readers that have a read method accepting a destination buffer and a byte
+/// size as parameters.
+///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/config.h>
 #include <tpie/portability.h>
@@ -32,86 +37,137 @@
 #include <boost/utility/enable_if.hpp>
 #include <tpie/is_simple_iterator.h>
 
-namespace tpie_serialize {}
-
 namespace tpie {
 
-namespace bits {
-using namespace tpie_serialize;
+#ifdef DOXYGEN
 
-template <typename D, typename T, 
+///////////////////////////////////////////////////////////////////////////////
+// The following two declarations are for documentation purposes only.
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Sample tpie::serialize prototype.
+///
+/// To enable serialization of your own type, overload tpie::serialize.
+/// This docstring is an example for a type named foo, but it is for exposition
+/// purposes only.
+///
+/// The implementation of tpie::serialize(dst, v) shall call dst.write(src, n)
+/// a number of times. Each time, src is a const pointer to a byte buffer of
+/// size n (bytes) that represents a piece of the serialized object.
+///
+/// A common idiom for polymorphic and/or variable-sized objects is to first
+/// serialize a constant-size tag or length and then serialize the variably
+/// sized payload. For this purpose, you may want to use
+/// tpie::serialize(dst, a, b) to serialize all elements in the range [a, b).
+///////////////////////////////////////////////////////////////////////////////
+template <typename D>
+void serialize(D & dst, const foo & v);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Sample tpie::unserialize prototype.
+///
+/// To enable unserialization of your own type, overload tpie::unserialize.
+/// This docstring is an example for a type named foo, but it is for exposition
+/// purposes only.
+///
+/// The implementation of tpie::unserialize(src, v) shall call src.read(dst, n)
+/// a number of times. Each time, src is a pointer to a byte buffer that can
+/// hold at least n bytes, where n is the number of bytes to be read.
+///
+/// See also tpie::serialize.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S>
+void unserialize(S & src, foo & v);
+
+#endif // DOXYGEN
+
+///////////////////////////////////////////////////////////////////////////////
+// Library implementations of tpie::serialize and tpie::unserialize.
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for POD/array types.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T>
+void serialize(D & dst, const T & v,
+			   typename boost::enable_if<boost::is_pod<T> >::type * = 0,
+			   typename boost::disable_if<boost::is_pointer<T> >::type * = 0) {
+	dst.write((const char *)&v, sizeof(T));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for POD/array types.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T>
+void unserialize(S & src, T & v,
+				 typename boost::enable_if<boost::is_pod<T> >::type * = 0,
+				 typename boost::disable_if<boost::is_pointer<T> >::type * = 0) {
+	src.read((char *)&v, sizeof(T));
+}
+
+namespace bits {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Helper to facilitate fast serialization of trivially copyable
+/// arrays.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T,
 		  bool is_simple_itr=tpie::is_simple_iterator<T>::value,
 		  bool is_pod=boost::is_pod<typename std::iterator_traits<T>::value_type>::value,
 		  bool is_pointer=boost::is_pointer<typename std::iterator_traits<T>::value_type>::value>
 struct array_encode_magic {
-	//using namespace tpie_serialize;
-    void operator()(D & dst, T start, T end) {
-		for (T i=start; i != end; ++i) tp_serialize(dst, *i);
-    }
+	void operator()(D & dst, T start, T end) {
+		for (T i=start; i != end; ++i) tpie::serialize(dst, *i);
+	}
 };
 
 template <typename D, typename T>
 struct array_encode_magic<D, T, true, true, false> {
-    void operator()(D & d, T start, T end) {
+	void operator()(D & d, T start, T end) {
 		const char * from = reinterpret_cast<const char *>(&*start);
 		const char * to = reinterpret_cast<const char *>(&*end);
 		d.write(from, to-from);
-    }
+	}
 };
 
-template <typename D, typename T, 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Helper to facilitate fast unserialization of trivially copyable
+/// arrays.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T,
 		  bool is_simple_itr=tpie::is_simple_iterator<T>::value,
 		  bool is_pod=boost::is_pod<typename std::iterator_traits<T>::value_type>::value,
 		  bool is_pointer=boost::is_pointer<typename std::iterator_traits<T>::value_type>::value>
 struct array_decode_magic {
-	//using namespace tpie_serialize;
-    void operator()(D & dst, T start, T end) {
-		for (T i=start; i != end; ++i) tp_unserialize(dst, *i);
-    }
+	void operator()(D & dst, T start, T end) {
+		for (T i=start; i != end; ++i) tpie::unserialize(dst, *i);
+	}
 };
 
 template <typename D, typename T>
 struct array_decode_magic<D, T, true, true, false> {
-    void operator()(D & d, T start, T end) {
+	void operator()(D & d, T start, T end) {
 		char * from = reinterpret_cast<char *>(&*start);
 		char * to = reinterpret_cast<char *>(&*end);
 		d.read(from, to-from);
-    }
+	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Helper to count the serialized size of objects.
+///////////////////////////////////////////////////////////////////////////////
 struct counter {
 	size_t size;
 	counter(): size(0) {}
-	void write(void *, size_t s) {size += s;}
+	void write(const void *, size_t s) {size += s;}
 };
 
-};
+} // namespace bits
 
-template <class D, typename T>
-void serialize(D & dst, const T & v) {
-	using namespace tpie_serialize;
-	tp_serialize(dst, v);
-}
-template <class D, typename T>
-void serialize(D & dst, T start, T end) {
-	using namespace tpie_serialize;
-	bits::array_encode_magic<D, T> magic;
-	magic(dst, start, end);
-}
-
-template <class S, typename T>
-void unserialize(S & src, T & v) {
-	using namespace tpie_serialize;
-	tp_unserialize(src, v);
-}
-
-template <class D, typename T>
-void unserialize(D & dst, T start, T end) {
-	using namespace tpie_serialize;
-	bits::array_decode_magic<D, T> magic;
-	magic(dst, start, end);
-}
-
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Given a serializable, serialize it and measure its serialized size.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 size_t serialized_size(const T & v) {
 	bits::counter c;
@@ -119,57 +175,72 @@ size_t serialized_size(const T & v) {
 	return c.size;
 }
 
-
-};
-
-namespace tpie_serialize {
-
-template <class D, typename T>
-void tp_serialize(D & dst, const T & v,
-				  typename boost::enable_if<boost::is_pod<T> >::type *_=0,
-				  typename boost::disable_if<boost::is_pointer<T> >::type *__=0) {
-	tpie::unused(_);
-	tpie::unused(__);
-	dst.write((const char *)&v, sizeof(T));
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Serialize an array of serializables.
+///
+/// This uses direct memory copying for POD typed arrays, and tpie::serialize
+/// for proper objects.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T>
+void serialize(D & dst, T start, T end) {
+	bits::array_encode_magic<D, T> magic;
+	magic(dst, start, end);
 }
 
-template <class S, typename T>
-void tp_unserialize(S & src, T & v,
-					typename boost::enable_if<boost::is_pod<T> >::type *_=0,
-					typename boost::disable_if<boost::is_pointer<T> >::type *__=0) {
-	tpie::unused(_);
-	tpie::unused(__);
-	src.read((char *)&v, sizeof(T));
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Unserialize an array of serializables.
+///
+/// This uses direct memory copying for POD typed arrays, and tpie::unserialize
+/// for proper objects.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T>
+void unserialize(D & dst, T start, T end) {
+	bits::array_decode_magic<D, T> magic;
+	magic(dst, start, end);
 }
 
-template <class D, typename T, typename alloc_t>
-void tp_serialize(D & dst, const std::vector<T, alloc_t> & v) {
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for std::vectors of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T, typename alloc_t>
+void serialize(D & dst, const std::vector<T, alloc_t> & v) {
 	tpie::serialize(dst, v.size());
-    tpie::serialize(dst, v.begin(), v.end());
+	tpie::serialize(dst, v.begin(), v.end());
 }
 
-template <class S, typename T, typename alloc_t>
-void tp_unserialize(S & src, std::vector<T, alloc_t> & v) {
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for std::vectors of unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T, typename alloc_t>
+void unserialize(S & src, std::vector<T, alloc_t> & v) {
 	typename std::vector<T>::size_type s;
 	tpie::unserialize(src, s);
 	v.resize(s);
-    tpie::unserialize(src, v.begin(), v.end());
+	tpie::unserialize(src, v.begin(), v.end());
 }
 
-template <class D, typename T>
-void tp_serialize(D & dst, const std::basic_string<T> & v) {
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for std::basic_strings of serializable items,
+/// including std::strings.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T>
+void serialize(D & dst, const std::basic_string<T> & v) {
 	tpie::serialize(dst, v.size());
-    tpie::serialize(dst, v.begin(), v.end());
+	tpie::serialize(dst, v.begin(), v.end());
 }
 
-template <class S, typename T>
-void tp_unserialize(S & src, std::basic_string<T> & v) {
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for std::basic_strings of unserializable items,
+/// including std::strings.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T>
+void unserialize(S & src, std::basic_string<T> & v) {
 	typename std::basic_string<T>::size_type s;
 	tpie::unserialize(src, s);
 	v.resize(s);
-    tpie::unserialize(src, v.begin(), v.end());
+	tpie::unserialize(src, v.begin(), v.end());
 }
 
-} //namespace tpie_serialize
+} // namespace tpie
 
 #endif // TPIE_SERIALIZATION2_H

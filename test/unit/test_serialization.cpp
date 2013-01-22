@@ -46,6 +46,30 @@ struct read_container {
 	}
 };
 
+struct serializable_dummy {
+	static const char msg[];
+};
+
+const char serializable_dummy::msg[] = "Hello, yes, this is dog!";
+
+namespace tpie {
+
+	template <typename D>
+	void serialize(D & dst, const serializable_dummy &) {
+		dst.write(serializable_dummy::msg, sizeof(serializable_dummy::msg));
+	}
+
+	template <typename S>
+	void unserialize(S & src, const serializable_dummy &) {
+		std::string s(sizeof(serializable_dummy::msg), '\0');
+		src.read(&s[0], s.size());
+		if (!std::equal(s.begin(), s.end(), serializable_dummy::msg)) {
+			throw tpie::exception("Did not serialize the dummy");
+		}
+	}
+
+} // namespace tpie
+
 bool testSer2() {
 	std::stringstream ss;
 	std::vector<int> v;
@@ -58,12 +82,14 @@ bool testSer2() {
 	serialize(wc, true);
 	serialize(wc, v);
 	serialize(wc, std::string("Abekat"));
+	serialize(wc, serializable_dummy());
 
 	int a;
 	float b;
 	bool c;
 	std::vector<int> d;
 	std::string e;
+	serializable_dummy f;
 
 	read_container rc(ss);
 	unserialize(rc, a);
@@ -71,6 +97,7 @@ bool testSer2() {
 	unserialize(rc, c);
 	unserialize(rc, d);
 	unserialize(rc, e);
+	unserialize(rc, f);
 	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e <<  std::endl;
 	if (a != 454) return false;
 	if (b != 4.5) return false;
