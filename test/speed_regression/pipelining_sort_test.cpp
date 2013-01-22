@@ -31,7 +31,33 @@ using namespace tpie;
 using namespace tpie::test;
 using namespace tpie::pipelining;
 
-typedef tpie::uint64_t test_t;
+struct item {
+	uint32_t a;
+	uint32_t b;
+	uint32_t c;
+	uint32_t d;
+
+	item & operator=(uint32_t v) {
+		a = v;
+		return *this;
+	}
+
+	item & operator=(uint64_t v) {
+		a = static_cast<uint32_t>(v);
+		return *this;
+	}
+
+	std::pair<uint32_t, uint32_t> repr() const {
+		const uint32_t mask = 0x55555555u;
+		return std::make_pair(a & mask, a & ~mask);
+	}
+
+	bool operator<(const item & other) const {
+		return repr() < other.repr();
+	}
+};
+
+typedef item test_t;
 
 struct testparams {
 	stream_size_type elements;
@@ -82,9 +108,6 @@ void test(testparams & p) {
 	names[3] = "Correct";
 	tpie::test::stat stats(names);
 	for (size_t i = 0; i < p.times; ++i) {
-		test_t s = tpie::next_prime(p.elements);
-		test_t y = p.elements-16;
-
 		test_realtime_t start;
 		test_realtime_t end;
 
@@ -96,19 +119,12 @@ void test(testparams & p) {
 			m.set_parameters(p.runLength, p.fanout);
 		}
 		m.begin();
-		size_t pushed = 0;
-		for (test_t j = 0; j < s; ++j) {
-			test_t el = (j * y) % s;
-			if (el < p.elements) {
-				m.push(el);
-				++pushed;
-			}
+		test_t x;
+		for (stream_size_type j = 0; j < p.elements; ++j) {
+			x = j;
+			m.push(x);
 		}
 		m.end();
-		if (pushed != p.elements) {
-			log_error() << "Didn't push the right number of elements" << std::endl;
-			return;
-		}
 
 		getTestRealtime(end);
 		stats(testRealtimeDiff(start, end));
@@ -121,10 +137,12 @@ void test(testparams & p) {
 
 		bool good = true;
 		getTestRealtime(start);
-		for (test_t j = 0; j < p.elements; ++j) {
+		x = m.pull();
+		for (stream_size_type j = 1; j < p.elements; ++j) {
 			tp_assert(m.can_pull(), "Can pull");
-			test_t el = m.pull();
-			if (el != j) good = false;
+			test_t y = m.pull();
+			if (y < x) good = false;
+			x = y;
 		}
 		getTestRealtime(end);
 		stats(testRealtimeDiff(start, end));
