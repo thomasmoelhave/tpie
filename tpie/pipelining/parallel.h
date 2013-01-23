@@ -1083,22 +1083,9 @@ public:
 	struct generated {
 		typedef typename dest_t::item_type T2;
 
-		// We need to know the type that our processor wants as input,
-		// but we don't yet know the type of its destination (par_after<...>).
-		// The following dummy destination type is hopefully an adequate substitute.
-		struct dummy_dest : public node { typedef T2 item_type; void push(T2); };
-		typedef typename fact_t::template generated<dummy_dest>::type::item_type T1;
-
 		typedef after<T2> after_t;
 		typedef typename fact_t::template generated<after_t>::type processor_t;
-
-		// Check that our processor still wants the input we expect it to.
-		// This will yield a compile-time error if it now wants another type.
-		// (For instance, it could have a template specialization on par_after
-		// - but we do not allow that.)
-		template <typename U1, typename U2> struct is_same;
-		template <typename U> struct is_same<U, U> { typedef void type; };
-		typedef typename is_same<T1, typename processor_t::item_type>::type dummy;
+		typedef typename processor_t::item_type T1;
 
 		typedef producer<T1, T2> type;
 	};
