@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,375 +17,324 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: convex_hull.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/16/94
-//
-// 2-D convex hull
-//
+///////////////////////////////////////////////////////////////////////////////
+// Graham sweep to compute the convex hull with a sort and two scans.
+///////////////////////////////////////////////////////////////////////////////
 
-#include <portability.h>
+#include <tpie/pipelining.h>
+#include <tpie/stack.h>
+#include <tpie/file_stream.h>
+#include <iostream>
+#include <tpie/tempname.h>
 
-// Get the application defaults.
-#include "app_config.h"
+namespace TP = tpie;
+namespace P = tpie::pipelining;
 
-#include <ami_scan.h>
-#include <ami_sort.h>
-#include <ami_stack.h>
+template <typename T>
+struct point {
+	typedef T coord_type;
+	T x;
+	T y;
 
-VERSION(convex_hull_cpp,"$Id: convex_hull.cpp,v 1.2 2004-08-12 12:36:23 jan Exp $");
+	bool operator!=(const point & other) const {
+		return (x != other.x) || (y != other.y);
+	}
 
-// Utitlities for ascii output.
-#include <ami_scan_utils.h>
+	bool operator==(const point & other) const {
+		return (x == other.x) && (y == other.y);
+	}
 
-#include "parse_args.h"
-#include "point.h"
-#include "scan_random_point.h"
-
-// A scan object that produces both the upper and lower hull as stacks.
-
-template<class T>
-class scan_ul_hull : AMI_scan_object {
-public:
-    AMI_stack< point <T> > *uh_stack, *lh_stack;
-
-    scan_ul_hull(void);
-    virtual ~scan_ul_hull(void);
-    AMI_err initialize(void);
-    AMI_err operate(const point<T> &in, AMI_SCAN_FLAG *sfin);
+	bool operator<(const point & other) const {
+		return (x == other.x) ? (y < other.y) : (x < other.x);
+	}
 };
 
-template<class T>
-scan_ul_hull<T>::scan_ul_hull(void) : uh_stack(NULL), lh_stack(NULL)
-{
+template <typename T>
+bool left_turn(const point<T> & p1, const point<T> & p2, const point<T> & p3) {
+	T sg = (p1.x-p3.x)*(p2.y-p3.y) - (p1.y-p3.y)*(p2.x-p3.x);
+	return sg > 0;
 }
 
-template<class T>
-scan_ul_hull<T>::~scan_ul_hull(void)
-{
+template <typename T>
+bool right_turn(const point<T> & p1, const point<T> & p2, const point<T> & p3) {
+	return left_turn(p3, p2, p1);
 }
 
-template<class T>
-AMI_err scan_ul_hull<T>::initialize(void)
-{
-    return AMI_ERROR_NO_ERROR;
+// Second part of the computation. Reads the two stacks to construct the convex
+// polygon. Outputs duplicates.
+template <typename dest_t>
+class graham_scan_reconstruct_type : public P::node {
+	typedef typename dest_t::item_type Pt;
+
+	TP::temp_file * uhTmp;
+
+	/** Upper hull */
+	TP::file_stream<Pt> * uh;
+
+	/** Lower hull */
+	TP::stack<Pt> * lh;
+
+	dest_t dest;
+
+public:
+	typedef Pt item_type;
+
+	graham_scan_reconstruct_type(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+		set_minimum_memory(sizeof(TP::temp_file)
+						   + TP::stack<Pt>::memory_usage()
+						   + TP::file_stream<Pt>::memory_usage());
+	}
+
+	void set_predecessor(P::node & pred) {
+		add_dependency(pred);
+	}
+
+	virtual void begin() /*override*/ {
+		uhTmp = fetch<TP::temp_file *>("uhTmp");
+		lh = fetch<TP::stack<Pt> *>("lh");
+		uh = TP::tpie_new<TP::file_stream<Pt> >();
+		uh->open(*uhTmp);
+
+		std::cerr << "Upper hull: " << uh->size() << ", lower: " << lh->size() << std::endl;
+		TP::stream_size_type items = uh->size() + lh->size();
+		set_steps(items);
+		forward<TP::stream_size_type>("items", items);
+	}
+
+	virtual void go() /*override*/ {
+		while (uh->can_read()) {
+			dest.push(uh->read());
+			step();
+		}
+		while (!lh->empty()) {
+			dest.push(lh->pop());
+			step();
+		}
+	}
+
+	virtual void end() /*override*/ {
+		using TP::tpie_delete;
+		tpie_delete(lh);
+		tpie_delete(uh);
+		tpie_delete(uhTmp);
+	}
+};
+
+// First part of computation. Assumes input is sorted by x coordinate. Must be
+// followed by a graham_scan_reconstruct_type instance.
+template <typename dest_t>
+class graham_scan_type;
+template <typename rdest_t>
+class graham_scan_type<graham_scan_reconstruct_type<rdest_t> > : public P::node {
+	typedef graham_scan_reconstruct_type<rdest_t> dest_t;
+	typedef typename dest_t::item_type Pt;
+	typedef typename Pt::coord_type T;
+
+	TP::temp_file * uhTmp;
+
+	/** Upper hull */
+	TP::stack<Pt> * uh;
+
+	/** Lower hull */
+	TP::stack<Pt> * lh;
+
+	dest_t dest;
+
+public:
+	typedef Pt item_type;
+
+	graham_scan_type(const dest_t & dest)
+		: dest(dest)
+	{
+		this->dest.set_predecessor(*this);
+		set_minimum_memory(sizeof(TP::temp_file)
+						   + 2*TP::stack<Pt>::memory_usage());
+	}
+
+	virtual void begin() /*override*/ {
+		using TP::tpie_new;
+		uhTmp = tpie_new<TP::temp_file>();
+		uh = tpie_new<TP::stack<Pt> >(*uhTmp);
+		lh = tpie_new<TP::stack<Pt> >();
+		forward("uhTmp", uhTmp);
+		forward("lh", lh);
+	}
+
+	void push(Pt pt) {
+		if (uh->empty()) {
+			std::clog << "Add first point." << std::endl;
+			uh->push(pt);
+			lh->push(pt);
+		} else {
+			add_upper(pt);
+			add_lower(pt);
+		}
+	}
+
+	virtual void end() /*override*/ {
+		TP::tpie_delete(uh);
+	}
+
+private:
+	void add_upper(Pt pt) {
+		add_hull(pt, uh, left_turn<T>);
+	}
+
+	void add_lower(Pt pt) {
+		add_hull(pt, lh, right_turn<T>);
+	}
+
+	template <typename Pred>
+	void add_hull(Pt pt, TP::stack<Pt> * stack, Pred pred) {
+		Pt p2 = stack->top();
+		if (p2 == pt) {
+			// No need to have both points on stack.
+			return;
+		}
+		stack->pop();
+		Pt p1 = stack->empty() ? p2 : stack->pop();
+		while (true) {
+			if (pred(p1, p2, pt)) {
+				if (!stack->empty()) {
+					p2 = p1;
+					p1 = stack->pop();
+				} else {
+					stack->push(p1);
+					if (p1 != pt) {
+						stack->push(pt);
+					}
+					break;
+				}
+			} else {
+				stack->push(p1);
+				stack->push(p2);
+				stack->push(pt);
+				break;
+			}
+		}
+	}
+};
+
+P::pipe_middle<P::factory_0<graham_scan_type> >
+graham_scan_in() {
+	return P::factory_0<graham_scan_type>();
 }
 
-
-template<class T>
-AMI_err scan_ul_hull<T>::operate(const point<T> &in,
-                                 AMI_SCAN_FLAG *sfin)
-{
-    AMI_err ae;
-
-    // If there is no more input we are done.
-    if (!*sfin) {
-        return AMI_SCAN_DONE;
-    }
-
-    if (!uh_stack->stream_len()) {
-
-        // If there is nothing on the stacks then put the first point
-        // on them.
-        ae = uh_stack->push(in);
-        if (ae != AMI_ERROR_NO_ERROR) {
-            return ae;
-        }
-
-        ae = lh_stack->push(in);
-        if (ae != AMI_ERROR_NO_ERROR) {
-            return ae;
-        }
-
-    } else {
-
-        // Add to the upper hull.
-
-        {
-            // Pop the last two points off.
-
-            point<T> *p1, *p2;
-
-            tp_assert(uh_stack->stream_len() >= 1, "Stack is empty.");
-            
-            uh_stack->pop(&p2);
-
-            // If the point just popped is equal to the input, then we
-            // are done.  There is no need to have both on the stack.
-            
-            if (*p2 == in) {
-                uh_stack->push(*p2);
-                return AMI_SCAN_CONTINUE;
-            }
-            
-            if (uh_stack->stream_len() >= 1) {
-                uh_stack->pop(&p1);
-            } else {
-                p1 = p2;
-            }
-            
-            // While the turn is counter clockwise and the stack is
-            // not empty pop another point.
-            
-            while (1) {                
-                if (ccw(*p1,*p2,in) >= 0) {
-                    // It does not turn the right way.  The points may
-                    // be colinear.
-                    if (uh_stack->stream_len() >= 1) {
-                        // Move backwards to check another point.
-                        p2 = p1;
-                        uh_stack->pop(&p1);
-                    } else {
-                        // Nothing left to pop, so we can't move
-                        // backwards.  We're done.
-                        uh_stack->push(*p1);
-                        if (in != *p1) {
-                            uh_stack->push(in);
-                        }
-                        break;
-                    }
-                } else {
-                    // It turns the right way.  We're done.
-                    uh_stack->push(*p1);
-                    uh_stack->push(*p2);
-                    uh_stack->push(in);
-                    break;
-                }
-            }
-        }
-
-        // Add to the lower hull.
-
-        {
-            // Pop the last two points off.
-
-            point<T> *p1, *p2;
-
-            tp_assert(lh_stack->stream_len() >= 1, "Stack is empty.");
-            
-            lh_stack->pop(&p2);
-
-            // If the point just popped is equal to the input, then we
-            // are done.  There is no need to have both on the stack.
-            
-            if (*p2 == in) {
-                lh_stack->push(*p2);
-                return AMI_SCAN_CONTINUE;
-            }
-            
-            if (lh_stack->stream_len() >= 1) {
-                lh_stack->pop(&p1);
-            } else {
-                p1 = p2;
-            }
-            
-            // While the turn is clockwise and the stack is
-            // not empty pop another point.
-            
-            while (1) {                
-                if (cw(*p1,*p2,in) >= 0) {
-                    // It does not turn the right way.  The points may
-                    // be colinear.
-                    if (lh_stack->stream_len() >= 1) {
-                        // Move backwards to check another point.
-                        p2 = p1;
-                        lh_stack->pop(&p1);
-                    } else {
-                        // Nothing left to pop, so we can't move
-                        // backwards.  We're done.
-                        lh_stack->push(*p1);
-                        if (in != *p1) {
-                            lh_stack->push(in);
-                        }
-                        break;
-                    }
-                } else {
-                    // It turns the right way.  We're done.
-                    lh_stack->push(*p1);
-                    lh_stack->push(*p2);
-                    lh_stack->push(in);
-                    break;
-                }
-            }
-        }
-
-        
-    }
-
-    return AMI_SCAN_CONTINUE;    
+P::pipe_middle<P::factory_0<graham_scan_reconstruct_type> >
+graham_scan_out() {
+	return P::factory_0<graham_scan_reconstruct_type>();
 }
 
+// Aggregates two coordinates into one point.
+template <typename dest_t>
+class make_points_type : public P::node {
+	typedef typename dest_t::item_type Pt;
 
-// Compute the convex hull of a set of points.
+	bool flag;
+	Pt buffer;
+	dest_t dest;
+public:
+	typedef typename Pt::coord_type item_type;
 
-template<class T>
-AMI_err convex_hull(AMI_STREAM< point<T> > *instream,
-                    AMI_STREAM< point<T> > *outstream)
-{
-    AMI_err ae;
+	make_points_type(dest_t dest)
+		: flag(false)
+		, dest(dest)
+	{
+		add_push_destination(dest);
+	}
 
-    point<T> *pt;
+	void push(item_type coord) {
+		if (!flag) {
+			buffer.x = coord;
+			flag = true;
+		} else {
+			buffer.y = coord;
+			dest.push(buffer);
+			flag = false;
+		}
+	}
+};
 
-    AMI_stack< point<T> > uh;
-    AMI_stack< point<T> > lh;
-
-    AMI_STREAM< point<T> > in_sort;
-        
-    // Sort the points by x.
-
-    ae = AMI_sort(instream, &in_sort);
-    
-    // Compute the upper hull and lower hull in a single scan.
-
-    scan_ul_hull<T> sulh;
-
-    sulh.uh_stack = &uh;
-    sulh.lh_stack = &lh;
-    
-    ae = AMI_scan(&in_sort, &sulh);
-
-    // Copy the upper hull to the output.
-
-    uh.seek(0);
-    
-    while (1) {
-        ae = uh.read_item(&pt);
-        if (ae == AMI_ERROR_END_OF_STREAM) {
-            break;
-        } else if (ae != AMI_ERROR_NO_ERROR) {
-            return ae;
-        }
-
-        ae = outstream->write_item(*pt);
-        if (ae != AMI_ERROR_NO_ERROR) {
-            return ae;
-        }
-    }
-    
-    // Reverse the lower hull, concatenating it onto the upper hull.
-
-    while (lh.pop(&pt) == AMI_ERROR_NO_ERROR) {
-        ae = outstream->write_item(*pt);
-        if (ae != AMI_ERROR_NO_ERROR) {
-            return ae;
-        }
-    }
-
-    return AMI_ERROR_NO_ERROR;
+P::pipe_middle<P::factory_0<make_points_type> >
+make_points() {
+	return P::factory_0<make_points_type>();
 }
 
+// Print and verify polygon. Weeds out duplicates.
+template <typename T>
+class print_points_type : public P::node {
+	typedef point<T> Pt;
+	int state;
+	Pt buf[3];
 
+	void invalid() {
+		std::clog << "Not right turn" << std::endl;
+	}
 
-static char def_rif[] = "isr.txt";
-static char def_irf[] = "osi.txt";
-static char def_frf[] = "osf.txt";
+public:
+	typedef Pt item_type;
 
-static char *read_input_filename = def_rif;
-static char *initial_results_filename = def_irf;
-static char *final_results_filename = def_frf;
+	print_points_type() : state(3) {
+	}
 
-static bool read_input = false;
-static bool report_results_initial = false;
-static bool report_results_final = false;
+	void push(Pt pt) {
+		std::cerr << pt.x << ' ' << pt.y << '\n';
+		switch (state) {
+			case 0:
+				if (pt == buf[2]) return;
+				buf[0] = pt;
+				if (!right_turn(buf[1], buf[2], buf[0])) invalid();
+				state = 1;
+				break;
+			case 1:
+				if (pt == buf[0]) return;
+				buf[1] = pt;
+				if (!right_turn(buf[2], buf[0], buf[1])) invalid();
+				state = 2;
+				break;
+			case 2:
+				if (pt == buf[1]) return;
+				buf[2] = pt;
+				if (!right_turn(buf[0], buf[1], buf[2])) invalid();
+				state = 0;
+				break;
+			case 3:
+				buf[0] = pt;
+				state = 4;
+				break;
+			case 4:
+				if (pt == buf[0]) return;
+				buf[1] = pt;
+				state = 2;
+				break;
+		}
+		std::cout << pt.x << ' ' << pt.y << '\n';
+	}
+};
 
-static const char as_opts[] = "I:iF:fR:r";
-void parse_app_opt(char c, char *optarg)
-{
-    switch (c) {
-        case 'I':
-            initial_results_filename = optarg;
-        case 'i':
-            report_results_initial = true;
-            break;
-        case 'F':
-            final_results_filename = optarg;
-        case 'f':
-            report_results_final = true;
-            break;
-        case 'R':
-            read_input_filename = optarg;
-        case 'r':
-            read_input = true;
-            break;
-    }
+template <typename T>
+P::pipe_end<P::termfactory_0<print_points_type<T> > >
+print_points() {
+	return P::termfactory_0<print_points_type<T> >();
 }
 
-int main(int argc, char **argv)
-{
-    AMI_err ae;
-    
-    parse_args(argc,argv,as_opts,parse_app_opt);
-
-    if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-      cout << "random_seed = " << random_seed << "." << endl;
-    } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
-    }
-
-    TPIE_OS_SRANDOM(random_seed);
-    
-    // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
-        
-    AMI_STREAM< point<int> > amis0, amis1;
-
-    // Streams for reporting values to ascii streams.
-
-    ifstream *isi;
-    cxx_istream_scan< point<int> > *readi = NULL;
-    
-    ofstream *osi;
-    cxx_ostream_scan< point<int> > *rpti = NULL;
-
-    ofstream *osf;
-    cxx_ostream_scan< point<int> > *rptf = NULL;
-
-    if (read_input) {
-        isi = tpie_new<ifstream>(read_input_filename);
-        readi = tpie_new<cxx_istream_scan< point<int> > >(isi);
-    }
-    
-    if (report_results_initial) {
-        osi = tpie_new<ofstream>(initial_results_filename);
-        rpti = tpie_new<cxx_ostream_scan< point<int> > >(osi);
-    }
-
-    if (report_results_final) {
-        osf = tpie_new<ofstream>(final_results_filename);
-        rptf = tpie_new<cxx_ostream_scan< point<int> > >(osf);
-    }
-
-    if (read_input) {
-        ae = AMI_scan(readi, &amis0);
-    } else {
-        scan_random_point rnds(test_size, random_seed);
-
-        ae = AMI_scan(&rnds, &amis0);    
-    }
-
-    if (verbose) {
-      cout << "Wrote the initial values." << endl;
-        cout << "Stream length = " << amis0.stream_len() << endl;
-    }
-
-    if (report_results_initial) {
-        ae = AMI_scan(&amis0, rpti);
-    }
-
-    ae = convex_hull(&amis0, &amis1);
-    
-    if (verbose) {
-      cout << "Computed convex hull." << endl;
-        cout << "Stream length = " << amis1.stream_len() << endl;
-    }
-
-    if (report_results_final) {
-        ae = AMI_scan(&amis1, rptf);
-    }
-
-    return 0;
+int main() {
+	TP::tpie_init();
+	TP::get_memory_manager().set_limit(50*1024*1024);
+	{
+		P::pipeline p
+			= P::push_input_iterator(std::istream_iterator<int>(std::cin), std::istream_iterator<int>())
+			| make_points()
+			| P::pipesort()
+			| graham_scan_in()
+			| graham_scan_out()
+			| print_points<int>();
+		p.plot(std::clog);
+		p();
+	}
+	TP::tpie_finish();
+	return 0;
 }

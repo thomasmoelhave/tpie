@@ -167,6 +167,18 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 
 void atomic_rename(const std::string & src, const std::string & dst);
 
+
+/////////////////////////////////////////////////////////
+/// Free the memory assosiated with a stl or tpie structure
+/// by swapping it with a default constructed structure
+/// of the same type
+/////////////////////////////////////////////////////////
+template <typename T>
+inline void free_structure_memory(T & v) {
+	T t;
+	std::swap(v, t);
+}
+
 #ifdef _WIN32
 void throw_getlasterror();
 #endif

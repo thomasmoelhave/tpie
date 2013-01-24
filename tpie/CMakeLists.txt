@@ -111,6 +111,8 @@ set (SOURCES
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
+add_subdirectory(pipelining)
+
 if (WIN32)
 set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
 else(WIN32)
@@ -118,7 +120,7 @@ set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
 add_library(tpie ${HEADERS} ${SOURCES})
-target_link_libraries(tpie ${Boost_LIBRARIES})
+target_link_libraries(tpie ${Boost_LIBRARIES} pipelining)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 install(TARGETS tpie
