@@ -81,17 +81,32 @@ template <typename S>
 void unserialize(S & src, foo & v);
 
 #endif // DOXYGEN
-
 ///////////////////////////////////////////////////////////////////////////////
 // Library implementations of tpie::serialize and tpie::unserialize.
 ///////////////////////////////////////////////////////////////////////////////
+
+template <bool> struct is_trivially_serializable_enable_if { };
+template <> struct is_trivially_serializable_enable_if<true> {typedef void type;};
+
+template <typename T>
+struct is_trivially_serializable {
+private:
+	template <typename TT>
+	static char magic(TT *, typename is_simple_iterator_enable_if<TT::is_trivially_serializable>::type *_=0);
+
+	template <typename TT>
+	static long magic(...);
+public:
+	static bool const value=
+		boost::is_pod<T>::value || sizeof(magic<T>((T*)0))==sizeof(char);
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief tpie::serialize for POD/array types.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename D, typename T>
 void serialize(D & dst, const T & v,
-			   typename boost::enable_if<boost::is_pod<T> >::type * = 0,
+			   typename boost::enable_if<is_trivially_serializable<T> >::type * = 0,
 			   typename boost::disable_if<boost::is_pointer<T> >::type * = 0) {
 	dst.write((const char *)&v, sizeof(T));
 }
@@ -101,7 +116,7 @@ void serialize(D & dst, const T & v,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename S, typename T>
 void unserialize(S & src, T & v,
-				 typename boost::enable_if<boost::is_pod<T> >::type * = 0,
+				 typename boost::enable_if<is_trivially_serializable<T> >::type * = 0,
 				 typename boost::disable_if<boost::is_pointer<T> >::type * = 0) {
 	src.read((char *)&v, sizeof(T));
 }
