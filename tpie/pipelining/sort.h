@@ -284,6 +284,7 @@ public:
 
 	virtual void end() /*override*/ {
 		node::end();
+		forward_all(); //TODO FIXME TEMPORERY, SHUOLD NOT BE NEEDED
 		m_sorter->end();
 	}
 
