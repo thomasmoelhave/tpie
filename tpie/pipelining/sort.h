@@ -356,11 +356,11 @@ public:
 	template <typename dest_t>
 	inline typename generated<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
-		sort_output_t<pred_t, dest_t> output(dest);
+		sort_output_t<pred_t, dest_t> output(dest, pred);
 		this->init_node(output);
 		sort_calc_t<item_type, pred_t> calc(output);
 		this->init_node(calc);
-		sort_input_t<item_type, pred_t> input(calc, pred);
+		sort_input_t<item_type, pred_t> input(calc);
 		this->init_node(input);
 		return input;
 	}
