@@ -118,28 +118,6 @@ bool auto_ptr_test() {
 	return true;
 }
 
-bool segmented_array_test() {
-	array<int> h1;
-	array_base<int, true> h2;
-	size_t z=8388619;
-	h1.resize(z);
-	h2.resize(z);
-	for (size_type i=0; i < z; ++i)
-		h2[i] = h1[i] = static_cast<int>((i * 833547)%z);
-
-	array<int>::iterator i1=h1.begin();
-	array_base<int, true>::iterator i2=h2.begin();
-	
-	while (i1 != h1.end() || i2 != h2.end()) {
-		TEST_ENSURE(i1 != h1.end(), "Should not be end");
-		TEST_ENSURE(i2 != h2.end(), "Should not be end");
-		TEST_ENSURE_EQUALITY(*i1, *i2, "Wrong value");
-		i1++;
-		i2++;
-	}
-	return true;
-}
-
 bool basic_bool_test() {
 	tpie::bit_array hat;
   
@@ -242,14 +220,13 @@ bool iterator_bool_test() {
 	return true;
 }
 
-template <bool seg>
 class array_memory_test: public memory_test {
 public:
-	array_base<int, seg> a;
+	array<int> a;
 	virtual void alloc() {a.resize(1024*1024*32);}
 	virtual void free() {a.resize(0);}
 	virtual size_type claimed_size() {
-		return static_cast<size_type>(array_base<int, seg>::memory_usage(1024*1024*32));
+		return static_cast<size_type>(array<int>::memory_usage(1024*1024*32));
 	}
 };
 
@@ -302,6 +279,100 @@ bool swap_test() {
 	return true;
 }
 
+template <typename T>
+class test_allocator {
+public:
+	static size_t allocated;
+	static size_t deallocated;
+	static void reset() {
+		allocated = 0;
+		deallocated = 0;
+	}
+
+private:
+    typedef tpie::allocator<T> a_t;
+    a_t a;
+public:
+    typedef typename a_t::size_type size_type;
+    typedef typename a_t::difference_type difference_type;
+	typedef typename a_t::pointer pointer;
+	typedef typename a_t::const_pointer const_pointer;
+	typedef typename a_t::reference reference;
+	typedef typename a_t::const_reference const_reference;
+    typedef typename a_t::value_type value_type;
+
+	test_allocator() throw() {}
+	test_allocator(const test_allocator & a) throw() {unused(a);}
+	template <typename T2>
+	test_allocator(const test_allocator<T2> & a) throw() {unused(a);}
+
+    template <class U> struct rebind {typedef test_allocator<U> other;};
+
+    inline T * allocate(size_t size, const void * hint=0) {
+		allocated += size;
+		return a.allocate(size, hint);
+    }
+
+    inline void deallocate(T * p, size_t n) {
+		if (p == 0) return;
+		deallocated += n;
+		a.deallocate(p, n);
+    }
+
+    inline size_t max_size() const {return a.max_size();}
+
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+#ifdef TPIE_CPP_VARIADIC_TEMPLATES
+	template <typename ...TT>
+	inline void construct(T * p, TT &&...x) {a.construct(p, x...);}
+#else
+	template <typename TT>
+	inline void construct(T * p, TT && val) {a.construct(p, val);}
+#endif
+#endif
+	inline void construct(T * p) {
+#ifdef WIN32
+#pragma warning( push )
+#pragma warning(disable: 4345)
+#endif
+		new(p) T();
+#ifdef WIN32
+#pragma warning( pop )
+#endif
+	}
+    inline void construct(T * p, const T& val) {a.construct(p, val);}
+    inline void destroy(T * p) {a.destroy(p);}
+	inline pointer address(reference x) const {return &x;}
+	inline const_pointer address(const_reference x) const {return &x;}
+};
+
+template <typename T> size_t test_allocator<T>::allocated;
+template <typename T> size_t test_allocator<T>::deallocated;
+
+bool allocator_test() {
+	typedef size_t test_t;
+	typedef test_allocator<test_t> alloc;
+	typedef tpie::array<test_t, alloc> arr_t;
+	alloc::reset();
+	TEST_ENSURE_EQUALITY(alloc::allocated, 0, "Wrong value");
+	TEST_ENSURE_EQUALITY(alloc::deallocated, 0, "Wrong value");
+	size_t sz1 = 42;
+	size_t sz2 = 420;
+	size_t sz3 = 4200;
+	arr_t arr(sz1);
+	TEST_ENSURE_EQUALITY(alloc::allocated, sz1, "Wrong value after ctor(sz)");
+	TEST_ENSURE_EQUALITY(alloc::deallocated, 0, "Wrong value after ctor(sz)");
+	arr.resize(sz2);
+	TEST_ENSURE_EQUALITY(alloc::allocated, sz2 + alloc::deallocated, "Wrong value after resize(sz)");
+	arr.resize(sz1, 123);
+	TEST_ENSURE_EQUALITY(alloc::allocated, sz1 + alloc::deallocated, "Wrong value after resize(sz, elm)");
+	tpie::array<test_t> other(sz3);
+	for (size_t i = 0; i < sz3; ++i) other[i] = i;
+	arr = other;
+	TEST_ENSURE_EQUALITY(alloc::allocated, sz3 + alloc::deallocated, "Wrong value after operator=");
+	return true;
+}
+
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
@@ -316,9 +387,7 @@ int main(int argc, char **argv) {
 		.test(basic_test, "basic")
 		.test(iterator_test, "iterators")
 		.test(auto_ptr_test, "auto_ptr")
-		.test(array_memory_test<false>(), "memory")
-		.test(segmented_array_test, "segmented")
-		.test(array_memory_test<true>(), "memory_segmented")
+		.test(array_memory_test(), "memory")
 		.test(basic_bool_test, "bit_basic")
 		.test(iterator_bool_test, "bit_iterators")
 		.test(array_bool_memory_test(), "bit_memory")
@@ -326,5 +395,6 @@ int main(int argc, char **argv) {
 		.test(arrayarray, "arrayarray")
 		.test(frontback, "frontback")
 		.test(swap_test, "swap")
+		.test(allocator_test, "allocator")
 		;
 }
