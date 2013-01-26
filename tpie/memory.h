@@ -35,6 +35,10 @@
 
 namespace tpie {
 
+namespace bits {
+	class atomic_int;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Thrown when trying to allocate too much memory.
 ///
@@ -69,7 +73,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the current amount of memory used.
 	///////////////////////////////////////////////////////////////////////////
-	inline size_t used() const throw() {return m_used;}
+	size_t used() const throw();
    
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the amount of memory still available to allocation.
@@ -137,14 +141,15 @@ public:
 
 
 private:
-	size_t m_used;
+	std::auto_ptr<bits::atomic_int> m_used;
 	size_t m_limit;
 	size_t m_maxExceeded;
 	size_t m_nextWarning;
 	enforce_t m_enforce;
-	boost::mutex m_mutex;
 
 #ifndef TPIE_NDEBUG
+	boost::mutex m_mutex;
+
 	// Before calling these methods, you must have the mutex.
 	void __register_pointer(void * p, size_t size, const std::type_info & t);
 	void __unregister_pointer(void * p, size_t size, const std::type_info & t);

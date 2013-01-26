@@ -25,7 +25,87 @@
 #include <cstring>
 #include <cstdlib>
 
+#ifdef _WIN32
+#include <windows.h>
+#undef NO_ERROR
+#endif
+
 namespace tpie {
+
+namespace bits {
+
+template <typename child_t>
+class atomic_int_base {
+	child_t & self() {
+		return *static_cast<child_t *>(this);
+	}
+
+public:
+	size_t add_and_fetch(size_t inc) {
+		return self().fetch_and_add(inc) + inc;
+	}
+
+	size_t sub_and_fetch(size_t inc) {
+		return self().fetch_and_sub(inc) - inc;
+	}
+
+	void add(size_t inc) {
+		self().fetch_and_add(inc);
+	}
+
+	void sub(size_t inc) {
+		self().fetch_and_sub(inc);
+	}
+};
+
+#ifdef _WIN32
+class atomic_int : public atomic_int_base<atomic_int> {
+	volatile size_t i;
+public:
+	atomic_int() : i(0) {}
+
+	size_t fetch_and_add(size_t inc) {
+		return InterlockedExchangeAdd(reinterpret_cast<volatile size_t *>(&i), inc);
+	}
+
+	size_t fetch_and_sub(size_t inc) {
+		return InterlockedExchangeSubtract(reinterpret_cast<volatile size_t *>(&i), inc);
+	}
+
+	size_t fetch() { return i; }
+};
+
+#else // _WIN32
+
+// linux
+class atomic_int : public atomic_int_base<atomic_int> {
+	// what does volatile do here? it certainly does not hurt correctness,
+	// but it may hurt efficiency.
+	volatile size_t i;
+public:
+	atomic_int() : i(0) {}
+
+	size_t fetch_and_add(size_t inc) {
+		return __sync_fetch_and_add(&i, inc);
+	}
+
+	size_t fetch_and_sub(size_t inc) {
+		return __sync_fetch_and_sub(&i, inc);
+	}
+
+	size_t add_and_fetch(size_t inc) {
+		return __sync_add_and_fetch(&i, inc);
+	}
+
+	size_t sub_and_fetch(size_t inc) {
+		return __sync_sub_and_fetch(&i, inc);
+	}
+
+	size_t fetch() { return i; }
+};
+#endif // !_WIN32
+
+} // namespace bits
 
 inline void segfault() {
 	std::abort();
@@ -33,73 +113,73 @@ inline void segfault() {
 
 memory_manager * mm = 0;
 
-memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN) {}
+memory_manager::memory_manager(): m_used(new bits::atomic_int()), m_limit(0), m_maxExceeded(0), m_enforce(ENFORCE_WARN) {}
+
+size_t memory_manager::used() const throw() {
+	return m_used->fetch();
+}
 
 size_t memory_manager::available() const throw() {
-	size_t used = m_used;
+	size_t used = m_used->fetch();
 	size_t limit = m_limit;
 	if (used < limit) return limit-used;
 	return 0;
 }
 
 void memory_manager::register_allocation(size_t bytes) {
-	boost::mutex::scoped_lock lock(m_mutex);
-
 	switch(m_enforce) {
 	case ENFORCE_IGNORE:
-		m_used += bytes;
+		m_used->add(bytes);
 		break;
-	case ENFORCE_THROW:
-		if (m_used + bytes > m_limit && m_limit > 0) {
-			lock.unlock();
+	case ENFORCE_THROW: {
+		size_t usage = m_used->fetch_and_add(bytes);
+		if ((usage + bytes) > m_limit && m_limit > 0) {
 			std::stringstream ss;
 			ss << "Memory allocation error, memory limit exceeded. "
 			   <<"Allocation request \""
 			   << bytes
 			   << "\" plus previous allocation \""
-			   << m_used
+			   << usage
 			   << "\" exceeds user-defined limit \""
 			   << m_limit
 			   << "\"";
 			throw out_of_memory_error(ss.str().c_str());
 		}
-		m_used += bytes;
-		break;
-	case ENFORCE_WARN:
-		m_used += bytes;
-		if (m_used > m_limit && m_used - m_limit > m_maxExceeded && m_limit > 0) {
-			m_maxExceeded = m_used - m_limit;
+		break; }
+	case ENFORCE_WARN: {
+		size_t usage = m_used->add_and_fetch(bytes);
+		if (usage > m_limit && usage - m_limit > m_maxExceeded && m_limit > 0) {
+			m_maxExceeded = usage - m_limit;
 			if (m_maxExceeded >= m_nextWarning) {
 				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
-				lock.unlock();
 				log_warning() << "Memory limit exceeded by " << m_maxExceeded 
 							  << " bytes, while trying to allocate " << bytes << " bytes."
-							  << " Limit is " << m_limit << ", but " << m_used << " would be used. " << std::endl;
+							  << " Limit is " << m_limit << ", but " << usage << " would be used. " << std::endl;
 			}
 		}
+		break; }
 	};
 }
 
 void memory_manager::register_deallocation(size_t bytes) {
-	boost::mutex::scoped_lock lock(m_mutex);
 #ifndef TPIE_NDEBUG
-	if (bytes > m_used) {
+	size_t usage = m_used->fetch_and_sub(bytes);
+	if (bytes > usage) {
 		log_error() << "Error in deallocation, trying to deallocate " << bytes << " bytes, while only " <<
-			m_used << " were allocated" << std::endl;
+			usage << " were allocated" << std::endl;
 		segfault();
 	}
+#else
+	m_used->sub(bytes);
 #endif
-	m_used -= bytes;
 }
 
 
 void memory_manager::set_limit(size_t new_limit) {
-	boost::mutex::scoped_lock lock(m_mutex);
 	m_limit = new_limit;
 }
 
 void memory_manager::set_enforcement(enforce_t e) {
-	boost::mutex::scoped_lock lock(m_mutex);
 	m_enforce = e;
 }
 
@@ -124,8 +204,6 @@ struct log_flusher {
 std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper_bound, size_t granularity) {
 	log_flusher lf;
 
-	boost::mutex::scoped_lock lock(m_mutex);
-
 	size_t high=available()/granularity;
 	if (upper_bound != 0) 
 		high=std::min(upper_bound/granularity, high);
@@ -136,9 +214,9 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	//directly.
 	try {
 		res = new uint8_t[high*granularity];
-		m_used += high*granularity;
+		m_used->add(high*granularity);
 #ifndef TPIE_NDEBUG
-		__register_pointer(res, high*granularity, typeid(uint8_t) );
+		register_pointer(res, high*granularity, typeid(uint8_t) );
 #endif	      
 		return std::make_pair(res, high*granularity);
 	} catch (std::bad_alloc) {
@@ -171,9 +249,9 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	lf.buf << "- - - - - - - END MEMORY SEARCH - - - - - -\n";	
 
 	res = new uint8_t[best];
-	m_used += best;
+	m_used->add(best);
 #ifndef TPIE_NDEBUG
-	__register_pointer(res, best, typeid(uint8_t) );
+	register_pointer(res, best, typeid(uint8_t) );
 #endif	      
 	return std::make_pair(res, best);
 }
