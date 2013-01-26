@@ -619,6 +619,44 @@ void swap(tpie::array<T> & a, tpie::array<T> & b) {
 	a.swap(b);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief std::copy template specialization for tpie::array.
+///////////////////////////////////////////////////////////////////////////////
+template <typename TT1, bool forward1, typename TT2, bool forward2>
+tpie::array_iter_base<TT2, forward2>
+copy(tpie::array_iter_base<TT1, forward1> first,
+     tpie::array_iter_base<TT1, forward1> last,
+	 tpie::array_iter_base<TT2, forward2> d_first) {
+
+	ptrdiff_t dist = copy(&*first, &*last, &*d_first) - &*d_first;
+	return d_first + dist;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief std::copy template specialization for tpie::array as input.
+///////////////////////////////////////////////////////////////////////////////
+template <typename TT, bool forward, typename OutputIterator>
+OutputIterator
+copy(tpie::array_iter_base<TT, forward> first,
+     tpie::array_iter_base<TT, forward> last,
+	 OutputIterator d_first) {
+
+	return copy(&*first, &*last, d_first);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief std::copy template specialization for tpie::array as output.
+///////////////////////////////////////////////////////////////////////////////
+template <typename TT, bool forward, typename InputIterator>
+tpie::array_iter_base<TT, forward>
+copy(InputIterator first,
+	 InputIterator last,
+	 tpie::array_iter_base<TT, forward> d_first) {
+
+	ptrdiff_t dist = copy(first, last, &*d_first) - &*d_first;
+	return d_first + dist;
+}
+
 } // namespace std
 
 #endif //__TPIE_ARRAY_H__ 	
