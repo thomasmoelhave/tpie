@@ -225,10 +225,13 @@ public:
 		, m_free(false)
 	{
 		if (freshToken) {
-			tp_assert(other.m_free, "Trying to take ownership of a non-free token");
-			tp_assert(m_tokens->get(m_id) == 0, "A token already has an owner, but m_free is true - contradiction");
+			if (!other.m_free)
+				throw exception("Trying to take ownership of a non-free token");
+			if (m_tokens->get(m_id) != 0)
+				throw exception("A token already has an owner, but m_free is true - contradiction");
 		} else {
-			tp_assert(!other.m_free, "Trying to copy a free token");
+			if (other.m_free)
+				throw exception("Trying to copy a free token");
 		}
 		m_tokens->set_token(m_id, newOwner);
 	}
