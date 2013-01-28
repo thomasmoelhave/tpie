@@ -133,7 +133,6 @@ public:
 	/// not the wanted behavior.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void begin() {
-		forward_all();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -366,20 +365,13 @@ protected:
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	inline void forward(std::string key, T value) {
+	inline void forward(std::string key, T value, bool expl=true) {
 		for (size_t i = 0; i < m_successors.size(); ++i) {
-			m_successors[i]->m_values[key] = value;
-		}
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to forward all auxiliary data that was
-	/// forwarded to this node. Called in the default implementation of
-	/// begin().
-	///////////////////////////////////////////////////////////////////////////
-	inline void forward_all() {
-		for (valuemap::iterator i = m_values.begin(); i != m_values.end(); ++i) {
-			forward(i->first, i->second);
+			if (m_successors[i]->m_values.count(key) &&
+				!expl && m_successors[i]->m_values[key].second) return;
+			m_successors[i]->m_values[key].first = value;
+			m_successors[i]->m_values[key].second = expl;
+			m_successors[i]->forward(key, value, false);
 		}
 	}
 
@@ -396,7 +388,7 @@ protected:
 	/// representation).
 	///////////////////////////////////////////////////////////////////////////
 	inline boost::any fetch_any(std::string key) {
-		return m_values[key];
+		return m_values[key].first;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -404,7 +396,21 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	inline T fetch(std::string key) {
-		return boost::any_cast<T>(m_values[key]);
+		if (m_values.count(key) == 0) {
+			std::stringstream ss;
+			ss << "Tried to fetch none existing key '" << key 
+			   << "' of type " << typeid(T).name();
+			throw invalid_argument_exception(ss.str());
+		}
+		try {
+			return boost::any_cast<T>(m_values[key].first);
+		} catch(boost::bad_any_cast m) {
+			std::stringstream ss;
+			ss << "Trying to fetch key '" << key << "' of type "
+			   << typeid(T).name() << " but forward was of type " 
+			   << m_values[key].first.type().name() << " message was: " << m.what();
+			throw invalid_argument_exception(ss.str());
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -482,7 +488,7 @@ private:
 	priority_type m_namePriority;
 
 	std::vector<node *> m_successors;
-	typedef std::map<std::string, boost::any> valuemap;
+	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 
 	stream_size_type m_stepsTotal;
