@@ -187,6 +187,9 @@ class pullpipe_begin : public bits::pipe_base<pullpipe_begin<fact_t> > {
 public:
 	typedef fact_t factory_type;
 
+	typedef typename factory_type::generated_type generated_type;
+	generated_type construct() const {return factory.construct();}
+
 	inline pullpipe_begin() {
 	}
 
