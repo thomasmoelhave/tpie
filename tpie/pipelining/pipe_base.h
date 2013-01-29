@@ -59,10 +59,42 @@ private:
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 };
 
+// The derived class has to pass its factory type to us as a template argument.
+// See the following Stack Overflow question, dated Nov 13, 2011, for a discussion.
+// http://stackoverflow.com/q/8113878
+// At the time this class is instantiated, child_t is not yet complete.
+// This means we cannot use child_t::factory_type as an existing type name.
+template <typename child_t, typename fact_t>
+class pipe_term_base : public pipe_base<child_t> {
+public:
+	typedef typename fact_t::generated_type generated_type;
+
+	generated_type construct() const {
+		return this->self().construct();
+	}
+};
+
+// For this class, we only use child_t::factory_type inside
+// a templated member type, so at the time of its instantiation,
+// child_t is complete and child_t::factory_type is valid.
+template <typename child_t>
+class pipe_nonterm_base : public pipe_base<child_t> {
+public:
+	template <typename dest_t>
+	struct generated {
+		typedef typename child_t::factory_type::template generated<dest_t>::type type;
+	};
+
+	template <typename dest_t>
+	typename generated<dest_t>::type construct(const dest_t & dest) const {
+		return this->self().factory.construct(dest);
+	}
+};
+
 } // namespace bits
 
 template <typename fact_t>
-class pipe_end : public bits::pipe_base<pipe_end<fact_t> > {
+class pipe_end : public bits::pipe_term_base<pipe_end<fact_t>, fact_t> {
 public:
 	typedef fact_t factory_type;
 
@@ -84,7 +116,7 @@ public:
 ///                factory_1, etc. helpers.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-class pipe_middle : public bits::pipe_base<pipe_middle<fact_t> > {
+class pipe_middle : public bits::pipe_nonterm_base<pipe_middle<fact_t> > {
 public:
 	typedef fact_t factory_type;
 
@@ -117,7 +149,7 @@ public:
 };
 
 template <typename fact_t>
-class pipe_begin : public bits::pipe_base<pipe_begin<fact_t> > {
+class pipe_begin : public bits::pipe_nonterm_base<pipe_begin<fact_t> > {
 public:
 	typedef fact_t factory_type;
 
@@ -143,7 +175,7 @@ public:
 };
 
 template <typename fact_t>
-class pullpipe_end : public bits::pipe_base<pullpipe_end<fact_t> > {
+class pullpipe_end : public bits::pipe_nonterm_base<pullpipe_end<fact_t> > {
 public:
 	typedef fact_t factory_type;
 
@@ -157,7 +189,7 @@ public:
 };
 
 template <typename fact_t>
-class pullpipe_middle : public bits::pipe_base<pullpipe_middle<fact_t> > {
+class pullpipe_middle : public bits::pipe_nonterm_base<pullpipe_middle<fact_t> > {
 public:
 	typedef fact_t factory_type;
 
@@ -183,12 +215,9 @@ public:
 };
 
 template <typename fact_t>
-class pullpipe_begin : public bits::pipe_base<pullpipe_begin<fact_t> > {
+class pullpipe_begin : public bits::pipe_term_base<pullpipe_begin<fact_t>, fact_t> {
 public:
 	typedef fact_t factory_type;
-
-	typedef typename factory_type::generated_type generated_type;
-	generated_type construct() const {return factory.construct();}
 
 	inline pullpipe_begin() {
 	}
