@@ -57,6 +57,16 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class node {
 public:
+	enum STATE {
+		STATE_FRESH,
+		STATE_IN_PREPARE,
+		STATE_AFTER_PREPARE,
+		STATE_IN_BEGIN,
+		STATE_AFTER_BEGIN,
+		STATE_IN_END,
+		STATE_AFTER_END
+	};
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
@@ -247,6 +257,14 @@ public:
 		return m_pi;
 	}
 
+	STATE get_state() const {
+		return m_state;
+	}
+
+	void set_state(STATE s) {
+		m_state = s;
+	}
+
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Default constructor, using a new node_token.
@@ -260,6 +278,7 @@ protected:
 		, m_stepsTotal(0)
 		, m_stepsLeft(0)
 		, m_pi(0)
+		, m_state(STATE_FRESH)
 	{
 	}
 
@@ -277,9 +296,13 @@ protected:
 		, m_stepsTotal(other.m_stepsTotal)
 		, m_stepsLeft(other.m_stepsLeft)
 		, m_pi(other.m_pi)
+		, m_state(other.m_state)
 	{
+		if (m_state != STATE_FRESH) 
+			throw call_order_exception(
+				"Tried to copy pipeline node after prepare had been called");
 	}
-
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor using a given fresh node_token.
 	///////////////////////////////////////////////////////////////////////////
@@ -292,6 +315,7 @@ protected:
 		, m_stepsTotal(0)
 		, m_stepsLeft(0)
 		, m_pi(0)
+		, m_state(STATE_FRESH)
 	{
 	}
 
@@ -307,6 +331,9 @@ protected:
 	/// \brief Called by implementers to declare a push destination.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_push_destination(const node & dest) {
+		if (get_state() != STATE_FRESH) {
+			throw call_order_exception("add_push_destination called too late");
+		}
 		add_push_destination(dest.token);
 	}
 
@@ -314,6 +341,9 @@ protected:
 	/// \brief Called by implementers to declare a pull destination.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_pull_destination(const node_token & dest) {
+		if (get_state() != STATE_FRESH) {
+			throw call_order_exception("add_pull_destination called too late");
+		}
 		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::pulls);
 	}
@@ -348,6 +378,9 @@ protected:
 	/// \brief Called by implementers to declare minimum memory requirements.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_minimum_memory(memory_size_type minimumMemory) {
+		if (get_state() != STATE_FRESH && get_state() != STATE_IN_PREPARE) {
+			throw call_order_exception("set_minimum_memory");
+		}
 		m_minimumMemory = minimumMemory;
 	}
 
@@ -366,6 +399,10 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	inline void forward(std::string key, T value, bool explicitForward = true) {
+		if (get_state() == STATE_AFTER_END) {
+			throw call_order_exception("forward");
+		}
+
 		for (size_t i = 0; i < m_successors.size(); ++i) {
 			if (m_successors[i]->m_values.count(key) &&
 				!explicitForward && m_successors[i]->m_values[key].second) return;
@@ -432,6 +469,11 @@ protected:
 	/// \param steps  The number of times step() is called at most.
 	///////////////////////////////////////////////////////////////////////////
 	void set_steps(stream_size_type steps) {
+		if (get_state() != STATE_IN_PREPARE &&
+			get_state() != STATE_IN_BEGIN &&
+			get_state() != STATE_FRESH) {
+			throw call_order_exception("set_steps");
+		}
 		m_stepsTotal = m_stepsLeft = steps;
 	}
 
@@ -440,6 +482,7 @@ protected:
 	/// \param steps  How many steps to step.
 	///////////////////////////////////////////////////////////////////////////
 	void step(stream_size_type steps = 1) {
+		assert(get_state() == STATE_IN_END || get_state() == STATE_AFTER_BEGIN);
 		if (m_stepsLeft < steps) {
 			log_warning() << typeid(*this).name() << " ==== Too many steps!" << std::endl;
 			m_stepsLeft = 0;
@@ -500,6 +543,7 @@ private:
 	stream_size_type m_stepsTotal;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
+	STATE m_state;
 	std::auto_ptr<progress_indicator_base> m_piProxy;
 
 	friend class bits::proxy_progress_indicator;

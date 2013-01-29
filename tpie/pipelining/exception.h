@@ -61,6 +61,11 @@ public:
 	non_authoritative_node_map() : tpie::exception("Non-authoritative node map") {}
 };
 
+class call_order_exception: public tpie::exception {
+public:
+	call_order_exception(std::string msg): tpie::exception(msg) {}
+};
+
 } // namespace pipelining
 
 } // namespace tpie

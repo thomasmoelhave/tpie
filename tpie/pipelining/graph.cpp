@@ -231,7 +231,13 @@ void phase::assign_memory(memory_size_type m) const {
 		dfs.dfs();
 		std::vector<node *> order = dfs.toposort();
 		for (size_t i = 0; i < order.size(); ++i) {
+			if (order[i]->get_state() != node::STATE_FRESH) {
+				throw call_order_exception(
+					"Tried to call prepare on an none fresh node");
+			}
+			order[i]->set_state(node::STATE_IN_PREPARE);
 			order[i]->prepare();
+			order[i]->set_state(node::STATE_AFTER_PREPARE);
 		}
 	}
 
@@ -389,15 +395,25 @@ void phase::go(progress_indicator_base & pi) {
 	}
 	stream_size_type totalSteps = 0;
 	for (size_t i = 0; i < beginOrder.size(); ++i) {
+		if (beginOrder[i]->get_state() != node::STATE_AFTER_PREPARE) {
+			throw call_order_exception("Invalid state for begin");
+		}
+		beginOrder[i]->set_state(node::STATE_IN_BEGIN);
 		beginOrder[i]->begin();
 		if (beginOrder[i]->get_progress_indicator() == 0)
 			beginOrder[i]->set_progress_indicator(&pi);
 		totalSteps += beginOrder[i]->get_steps();
+		beginOrder[i]->set_state(node::STATE_AFTER_BEGIN);
 	}
 	pi.init(totalSteps);
 	m_initiator->go();
 	for (size_t i = 0; i < endOrder.size(); ++i) {
+		if (endOrder[i]->get_state() != node::STATE_AFTER_BEGIN) {
+			throw call_order_exception("Invalid state for end");
+		}
+		endOrder[i]->set_state(node::STATE_IN_END);
 		endOrder[i]->end();
+		endOrder[i]->set_state(node::STATE_AFTER_END);
 	}
 	pi.done();
 }
