@@ -128,9 +128,7 @@ public:
 	/// node::begin() on a node after its pull destinations and
 	/// before its push destination.
 	///
-	/// The default implementation just calls forward_all(), and an
-	/// implementation is not required to call the parent begin() if this is
-	/// not the wanted behavior.
+	/// The default implementation does nothing.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void begin() {
 	}
@@ -363,14 +361,16 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
+	/// If explicitForward is false, the data will not override data forwarded
+	/// with explicitForward == true.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	inline void forward(std::string key, T value, bool expl=true) {
+	inline void forward(std::string key, T value, bool explicitForward = true) {
 		for (size_t i = 0; i < m_successors.size(); ++i) {
 			if (m_successors[i]->m_values.count(key) &&
-				!expl && m_successors[i]->m_values[key].second) return;
+				!explicitForward && m_successors[i]->m_values[key].second) return;
 			m_successors[i]->m_values[key].first = value;
-			m_successors[i]->m_values[key].second = expl;
+			m_successors[i]->m_values[key].second = explicitForward;
 			m_successors[i]->forward(key, value, false);
 		}
 	}
@@ -398,17 +398,17 @@ protected:
 	inline T fetch(std::string key) {
 		if (m_values.count(key) == 0) {
 			std::stringstream ss;
-			ss << "Tried to fetch none existing key '" << key 
+			ss << "Tried to fetch nonexistent key '" << key
 			   << "' of type " << typeid(T).name();
 			throw invalid_argument_exception(ss.str());
 		}
 		try {
 			return boost::any_cast<T>(m_values[key].first);
-		} catch(boost::bad_any_cast m) {
+		} catch (boost::bad_any_cast m) {
 			std::stringstream ss;
 			ss << "Trying to fetch key '" << key << "' of type "
-			   << typeid(T).name() << " but forward was of type " 
-			   << m_values[key].first.type().name() << " message was: " << m.what();
+			   << typeid(T).name() << " but forwarded data was of type "
+			   << m_values[key].first.type().name() << ". Message was: " << m.what();
 			throw invalid_argument_exception(ss.str());
 		}
 	}
