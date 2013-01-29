@@ -388,7 +388,13 @@ protected:
 	/// representation).
 	///////////////////////////////////////////////////////////////////////////
 	inline boost::any fetch_any(std::string key) {
-		return m_values[key].first;
+		if (m_values.count(key) != 0) {
+			return m_values[key].first;
+		} else {
+			std::stringstream ss;
+			ss << "Tried to fetch nonexistent key '" << key << '\'';
+			throw invalid_argument_exception(ss.str());
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
