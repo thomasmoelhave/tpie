@@ -105,10 +105,15 @@ private:
 	friend class tpie::job;
 };
 
+memory_size_type default_worker_count() {
+	memory_size_type workers = boost::thread::hardware_concurrency();
+	if (workers > 3) --workers; // spare a CPU for the UI
+	return workers;
+}
+
 void init_job() {
 	the_job_manager = tpie_new<job_manager>();
-	size_t workers = boost::thread::hardware_concurrency();
-	if (workers > 3) --workers; // spare a CPU for the UI
+	memory_size_type workers = default_worker_count();
 	the_job_manager->init_pool(workers);
 }
 

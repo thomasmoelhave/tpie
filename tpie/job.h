@@ -26,6 +26,7 @@
 
 #include <stddef.h>
 #include <boost/thread.hpp>
+#include <tpie/types.h>
 
 namespace tpie {
 
@@ -107,6 +108,18 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	friend class job_manager;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return the number of job threads initialized by the job framework
+/// in init_job().
+///
+/// When hardware concurrency is less than four, for instance on a dual-core
+/// processor without hyperthreading, or a single-core processor, the number of
+/// threads launched is equal to the number of cores. When hardware concurrency
+/// is four or greater, the job framework spares one core for the user
+/// interface.
+///////////////////////////////////////////////////////////////////////////////
+memory_size_type default_worker_count();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the job subsystem.
