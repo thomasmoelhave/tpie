@@ -85,6 +85,26 @@ public:
 		}
 	}
 
+	void init_sub_node(node & r) const {
+		if (m_set) r.set_memory_fraction(memory());
+		if (m_breadcrumbs.empty()) {
+			if (m_name.empty()) {
+				// no op
+			} else {
+				r.set_breadcrumb(m_name);
+			}
+		} else {
+			if (m_name.empty()) {
+				r.set_breadcrumb(m_breadcrumbs);
+			} else {
+				r.set_breadcrumb(m_breadcrumbs + " | " + m_name);
+			}
+		}
+		for (size_t i = 0; i < m_hooks.size(); ++i) {
+			m_hooks[i]->init_node(r);
+		}
+	}
+
 	inline void name(const std::string & n, priority_type p) {
 		m_name = n;
 		m_namePriority = p;
