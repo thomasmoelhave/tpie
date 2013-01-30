@@ -1123,13 +1123,15 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Runs a pipeline in multiple threads.
+/// \param maintainOrder  Whether to make sure that items are processed and
+/// output in the order they are input.
 /// \param numJobs  The number of threads to utilize for parallel execution.
 /// \param bufSize  The number of items to store in the buffer sent between
 /// threads.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-inline pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false, size_t numJobs = 4, size_t bufSize = 64) {
+pipe_middle<parallel_bits::factory<fact_t> >
+parallel(const pipe_middle<fact_t> & fact, bool maintainOrder, size_t numJobs, size_t bufSize = 64) {
 	parallel_bits::options opts;
 	opts.maintainOrder = maintainOrder;
 	opts.numJobs = numJobs;
@@ -1137,6 +1139,21 @@ parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false, size_t nu
 	return pipe_middle<parallel_bits::factory<fact_t> >
 		(parallel_bits::factory<fact_t>
 		 (fact.factory, opts));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Runs a pipeline in multiple threads, using the number of threads
+/// reported by tpie::default_worker_count.
+/// \param maintainOrder  Whether to make sure that items are processed and
+/// output in the order they are input.
+/// \param numJobs  The number of threads to utilize for parallel execution.
+/// \param bufSize  The number of items to store in the buffer sent between
+/// threads.
+///////////////////////////////////////////////////////////////////////////////
+template <typename fact_t>
+pipe_middle<parallel_bits::factory<fact_t> >
+parallel(const pipe_middle<fact_t> & fact, bool maintainOrder = false) {
+	return parallel(fact, maintainOrder, default_worker_count());
 }
 
 } // namespace pipelining
