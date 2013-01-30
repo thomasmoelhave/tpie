@@ -54,7 +54,7 @@ public:
 		return self();
 	}
 
-private:
+protected:
 	inline child_t & self() {return *static_cast<child_t*>(this);}
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 };
