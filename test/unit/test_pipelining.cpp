@@ -332,7 +332,7 @@ private:
 bool sort_test(size_t elements) {
 	bool result = false;
 	pipeline p = make_pipe_begin_1<sequence_generator>(elements)
-		| pipesort()
+		| pipesort().name("Test")
 		| make_pipe_end_2<sequence_verifier, size_t, bool &>(elements, result);
 	p.plot(log_info());
 	p();
