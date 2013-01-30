@@ -306,35 +306,50 @@ private:
 	sort_calc_t<T, pred_t> dest;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Sort factory using std::less<T> as comparator.
-///////////////////////////////////////////////////////////////////////////////
-class default_pred_sort_factory : public factory_base {
+template <typename child_t>
+class sort_factory_base : public factory_base {
+	const child_t & self() const { return *static_cast<const child_t *>(this); }
 public:
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Declare generated type based on destination type.
-	///////////////////////////////////////////////////////////////////////////
 	template <typename dest_t>
 	struct generated {
 	private:
 		/** Type of items sorted. */
 		typedef typename dest_t::item_type item_type;
 	public:
-		typedef sort_input_t<item_type, std::less<item_type> > type;
+		typedef typename child_t::template predicate<item_type>::type pred_type;
+		typedef sort_input_t<item_type, pred_type> type;
 	};
 
 	template <typename dest_t>
-	inline typename generated<dest_t>::type construct(const dest_t & dest) const {
+	typename generated<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
-		typedef std::less<item_type> pred_type;
-		sort_output_t<pred_type, dest_t> output(dest, pred_type());
-		this->init_node(output);
+		typedef typename generated<dest_t>::pred_type pred_type;
+
+		sort_output_t<pred_type, dest_t> output(dest, self().template get_pred<item_type>());
+		this->init_sub_node(output);
 		sort_calc_t<item_type, pred_type> calc(output);
-		this->init_node(calc);
+		this->init_sub_node(calc);
 		sort_input_t<item_type, pred_type> input(calc);
-		this->init_node(input);
+		this->init_sub_node(input);
+
 		return input;
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort factory using std::less<T> as comparator.
+///////////////////////////////////////////////////////////////////////////////
+class default_pred_sort_factory : public sort_factory_base<default_pred_sort_factory> {
+public:
+	template <typename item_type>
+	class predicate {
+	public:
+		typedef std::less<item_type> type;
+	};
+
+	template <typename T>
+	std::less<T> get_pred() const {
+		return std::less<T>();
 	}
 };
 
@@ -342,32 +357,22 @@ public:
 /// \brief Sort factory using the given predicate as comparator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
-class sort_factory : public factory_base {
+class sort_factory : public sort_factory_base<sort_factory<pred_t> > {
 public:
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Declare generated type based on destination type.
-	///////////////////////////////////////////////////////////////////////////
-	template <typename dest_t>
-	struct generated {
-		typedef sort_input_t<typename dest_t::item_type, pred_t> type;
+	template <typename Dummy>
+	class predicate {
+	public:
+		typedef pred_t type;
 	};
-
-	template <typename dest_t>
-	inline typename generated<dest_t>::type construct(const dest_t & dest) const {
-		typedef typename dest_t::item_type item_type;
-		sort_output_t<pred_t, dest_t> output(dest, pred);
-		this->init_node(output);
-		sort_calc_t<item_type, pred_t> calc(output);
-		this->init_node(calc);
-		sort_input_t<item_type, pred_t> input(calc);
-		this->init_node(input);
-		return input;
-	}
 
 	sort_factory(const pred_t & p)
 		: pred(p)
 	{
+	}
+
+	template <typename T>
+	pred_t get_pred() const {
+		return pred;
 	}
 
 private:
@@ -382,7 +387,7 @@ private:
 inline pipe_middle<bits::default_pred_sort_factory>
 pipesort() {
 	typedef bits::default_pred_sort_factory fact;
-	return pipe_middle<fact>(fact()).breadcrumb("Sort");
+	return pipe_middle<fact>(fact()).name("Sort");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -392,7 +397,7 @@ template <typename pred_t>
 inline pipe_middle<bits::sort_factory<pred_t> >
 pipesort(const pred_t & p) {
 	typedef bits::sort_factory<pred_t> fact;
-	return pipe_middle<fact>(fact(p)).breadcrumb("Sort");
+	return pipe_middle<fact>(fact(p)).name("Sort");
 }
 
 template <typename T, typename pred_t>
