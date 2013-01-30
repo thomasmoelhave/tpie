@@ -32,44 +32,44 @@ of typedefs that are overly verbose and somewhat unmaintainable.
 The pipelining framework provides compile-time polymorphism along with high
 maintainability, high testability and low verbosity.
 
-\section sec_pipe_segment Pipe segments
+\section sec_node Nodes
 
-The unit of currency in pipelining is the pipe_segment implementations.
-Each pipe_segment performs either a general-purpose or specialized operation
+The unit of currency in pipelining is the node implementations.
+Each pipelining node performs either a general-purpose or specialized operation
 that is used in streaming algorithms.
-An implementation must derive from tpie::pipelining::pipe_segment and
+An implementation must derive from tpie::pipelining::node and
 implement either \c push() or the \c pull() / \c can_pull() pair. In the first
-case, the pipe segment is called a <em>push segment</em>, and in the second
-case, it is called a <em>pull segment</em>. The exception to this rule is the
-<em>initiator</em> pipe_segment which instead overrides the virtual \c go() method.
+case, the node is called a <em>push node</em>, and in the second
+case, it is called a <em>pull node</em>. The exception to this rule is the
+<em>initiator</em> node which instead overrides the virtual \c go() method.
 Furthermore, any implementation may request memory using the
 \c set_minimum_memory() and \c set_memory_fraction() methods in either its
 constructor or in an overridden virtual \c prepare() method; it may override
 \c begin() and \c end() to do initialization and finalization related to its
 computation.
 
-- A pipe_segment SHOULD aggregate the pipe_segment(s) it pushes to or pulls from,
-  and thus a pipe_segment is usually templated on its destination type.
+- A node SHOULD aggregate the node(s) it pushes to or pulls from,
+  and thus a node is usually templated on its destination type.
 
-- A pipe_segment SHOULD be copyable such that any other copyable pipe_segment
+- A node SHOULD be copyable such that any other copyable node
   may aggregate it.
 
-- A push/pull pipe_segment MUST declare a public typedef \c item_type, the type of
+- A push/pull node MUST declare a public typedef \c item_type, the type of
   item accepted by \c push or returned by \c pull. This is used by built-in type
-  generic segments such as the sorter or the reverser.
+  generic nodes such as the sorter or the reverser.
 
-- At runtime, it MUST declare the pipe_segment(s) it pushes to or pulls from by
-  calling the methods \c pipe_segment::add_push_destination and
-  \c pipe_segment::add_pull_destination.
+- At runtime, it MUST declare the node(s) it pushes to or pulls from by
+  calling the methods \c node::add_push_destination and
+  \c node::add_pull_destination.
 
 - At runtime, it SHOULD declare a name by calling the method
-  \c pipe_segment::set_name.
+  \c node::set_name.
 
-Thus, a \c pipe_segment implementation of a push segment may look as follows:
+Thus, a \c node implementation of a push node may look as follows:
 
 \code
 template <typename dest_t>
-class hello_world_type : public tpie::pipelining::pipe_segment {
+class hello_world_type : public tpie::pipelining::node {
 	dest_t dest;
 public:
 	typedef tpie::memory_size_type item_type;
@@ -81,7 +81,7 @@ public:
 		                            // dest and not the member
 		                            // this->dest, but in this case
 		                            // the framework does not care
-		set_name("My first pipe segment");
+		set_name("My first pipelining node");
 	}
 
 	void push(const item_type & item) {
@@ -98,7 +98,7 @@ public:
 
 Since the C++ language does not infer template arguments to constructor calls,
 but does infer template arguments to functions and methods, we use factories to
-instantiate the pipe_segment implementations.
+instantiate the node implementations.
 Usually, the built-in factories contained in \c factory_helpers.h will suffice:
 
 \code
@@ -120,17 +120,17 @@ public:
 	template <typename dest_t>
 	hello_world_type<dest_t> construct(const dest_t & dest) {
 		hello_world_type<dest_t> hw(dest);
-		this->init_segment(hw);
+		this->init_node(hw);
 		return hw;
 	}
 };
 \endcode
 
-For a terminating pipe_segment, which doesn't have a destination, we would
+For a terminating node, which doesn't have a destination, we would
 implement a so called termfactory as follows:
 
 \code
-class goodbye_world_type : public tpie::pipelining::pipe_segment {
+class goodbye_world_type : public tpie::pipelining::node {
 public:
 	typedef tpie::memory_size_type item_type;
 	void push(item_type) {}
@@ -142,7 +142,7 @@ public:
 
 	goodbye_world_type construct() {
 		goodbye_world_type gw;
-		this->init_segment(gw);
+		this->init_node(gw);
 		return gw;
 	}
 };
@@ -205,7 +205,7 @@ Consider the following implementation of a reverser:
 
 \code
 template <typename dest_t>
-class reverser_type : public tpie::pipelining::pipe_segment {
+class reverser_type : public tpie::pipelining::node {
 	tpie::stack<point3d> points;
 	dest_t dest;
 public:
@@ -224,7 +224,6 @@ public:
 	}
 
 	void end() {
-		pipe_segment::end();
 		// Pushing items in end() is bad!
 		while (!points.empty()) {
 			dest.push(points.pop());
@@ -236,20 +235,20 @@ public:
 This implementation seems innocuous at first, but it is in fact very wasteful.
 Note that the reverser needs to know the entire stream before it can push
 anything to its destination. This means that when all items have been pushed to
-it, we could as well deallocate all the item buffers that earlier pipe segments
+it, we could as well deallocate all the item buffers that earlier nodes
 may have used while processing. As well, we could have waited until the stack
-was ready to push before initializing later pipe segments in the pipeline.
+was ready to push before initializing later nodes in the pipeline.
 
-This is what pipelining phases are for. Phases are collections of pipe segments
-that do not have to operate synchronously. Pipe segments may establish an
-ordering of pipelining phases by adding dependencies to pipe segments in other
+This is what pipelining phases are for. Phases are collections of nodes
+that do not have to operate synchronously. Nodes may establish an
+ordering of pipelining phases by adding dependencies to nodes in other
 phases.
 
 Common buffering operations that give rise to new phases are sorting and
 reversing, and these are already implemented in the pipelining framework.
 
-For an idea of how to properly implement a buffering pipe segment such as a
-reverser using \c pipe_segment::add_dependency, see
+For an idea of how to properly implement a buffering node such as a
+reverser using \c node::add_dependency, see
 \c tpie/pipelining/reverser.h.
 
 \section sec_chunks Virtual chunks
@@ -257,14 +256,14 @@ reverser using \c pipe_segment::add_dependency, see
 So far, all pipelining code we have seen has been heavily templated, and in
 practice, debugging and compiler errors will not be easy on the eyes.
 Also, with the current setup we have seen, it is not easy (if at all possible)
-to distribute pipe_segment implementations across compiled objects.
+to distribute node implementations across compiled objects.
 
 However, the pipelining framework supports <em>virtual chunks</em> which
 operate on the same level as, but are orthogonal to, pipeline phases as
 discussed in the previous section.
 
 Whereas phases are computed at runtime and define the runtime order in which
-the pipe segment implementations have begin, go and end called, virtual chunks
+the node implementations have begin, go and end called, virtual chunks
 exist at compile time and are fused together at runtime.
 
 Let us look at an example of how to use virtual chunks. The following is an
@@ -327,13 +326,13 @@ p(); // invoking the pipeline as without chunks
 \endcode
 
 Usually, supporting virtual chunks requires no additional work on the
-pipe segment end, as long as the pipe segment is templated to accept any
-pipe segment as destination.
+node end, as long as the node is templated to accept any
+node as destination.
 
 In addition to constructing virtual chunks inline from pipe_bases, virtual
 chunks may be returned from a function in an implementation object out into a
-using object. This way, the using object does not have to define the pipe
-segment implementations - all it has to know is the type of object passed
+using object. This way, the using object does not have to define the node
+implementations - all it has to know is the type of object passed
 between the virtual chunks.
 
 If the above options were implemented using compile-time switching on template
@@ -351,8 +350,8 @@ url.empty().
    - \c evacuate (in which case \c can_evacuate should be overridden to return true)
    - \c set_available_memory
 
-1. The \c pipe_segment is constructed, and \c prepare() is called. The
-   constructor should call any of the following pipe_segment protected methods
+1. The \c node is constructed, and \c prepare() is called. The
+   constructor should call any of the following node protected methods
    as appropriate:
 
    - \c set_name
@@ -365,37 +364,37 @@ url.empty().
    - \c set_minimum_memory
 
 2. Virtual method \c set_available_memory is called. If overridden, the overriding
-   implementation must call \c pipe_segment::set_available_memory with the same
+   implementation must call \c node::set_available_memory with the same
    argument.
 
-3. \c begin() is called on all pipe_segments in the current phase in topological
-   order, beginning with the initiator segment.
+3. \c begin() is called on all nodes in the current phase in topological
+   order, beginning with the initiator node.
    At this point, the implementation may <tt>fetch<>()</tt> auxiliary data from its
    predecessors and \c forward() auxiliary data to its successors.
    The default implementation of \c begin() forwards all auxiliary data that was
-   forwarded to this segment. If this behavior is wanted (and in most cases it
+   forwarded to this node. If this behavior is wanted (and in most cases it
    is), the implementation should first call the super method, that is,
-   \c pipe_segment::begin().
-   If the segment does not push as many items as are pushed into it, it should
+   \c node::begin().
+   If the node does not push as many items as are pushed into it, it should
    check using \c can_fetch() whether <tt>"items"</tt> has been forwarded.
-   <tt>"items"</tt> is a stream_size_type, and the pipe_segment should forward
+   <tt>"items"</tt> is a stream_size_type, and the node should forward
    the expected number of items being pushed to the destination.
    If the implementation wants to report progress information, it should call
    \c set_steps() in begin.
 
 4. Either \c push() or \c pull() is called any number of times.
 
-5. \c end() is called on the pipe_segment in the current phase in an order such
-   that it has \c end() called before the pipe_segments it pushes to or pulls
+5. \c end() is called on the node in the current phase in an order such
+   that it has \c end() called before the nodes it pushes to or pulls
    from. The default implementation of \c end() does nothing, so there is no
    reason to perform a super call.
 
 6. If \c can_evacuate() is overridden to return true, and evacuation is
-   necessary, \c evacuate() is called, in which case the pipe_segment should
-   deallocate all internal buffers shared between this segment and a depending
-   segment.
+   necessary, \c evacuate() is called, in which case the node should
+   deallocate all internal buffers shared between this node and a depending
+   node.
 
-\section sec_initiators Initiator segments
+\section sec_initiators Initiator nodes
 
 You will rarely need to implement initiators. For an initiator, instead of
 \c push(), the virtual \c go() method must be overridden, and this is called once.
@@ -404,7 +403,7 @@ the expected number of items being pushed.
 
 \section sec_troubleshooting Implementation troubleshooting
 
-Common faults in pipe_segment implementations include
+Common faults in node implementations include
 
 - Missing \c add_push_destination/add_pull_destination/add_dependency. If
   \c pipeline::plot does not yield a graph containing all the nodes you expect,
@@ -439,7 +438,7 @@ increases the memory overhead.
 
 \section sec_library Pipelining library
 
-The pipelining framework comes with a library of pipe_segment implementations.
+The pipelining framework comes with a library of node implementations.
 
 \subsection ssec_buffer Buffer
 
@@ -474,7 +473,7 @@ To read and entire file_stream and push its contents, define a \c file_stream
 variable, for instance <tt>file_stream<size_t> foo;</tt> and use it in your
 pipeline as \c input(foo). For a pull pipe, use \c pull_input(foo).
 Similarly, for outputting to a file_stream, there are the \c output(foo) and
-\c pull_output(foo) pipe_segments.
+\c pull_output(foo) nodes.
 To write the item stream to a file_stream and push it on to another
 destination, use \c tee(foo).
 
