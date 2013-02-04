@@ -69,9 +69,9 @@ class pipe_term_base : public pipe_base<child_t> {
 public:
 	typedef typename fact_t::generated_type generated_type;
 
-	generated_type construct() const {
-		return this->self().construct();
-	}
+	//generated_type construct() const {
+	//	return this->self().construct();
+	//}
 };
 
 // For this class, we only use child_t::factory_type inside
@@ -238,6 +238,10 @@ public:
 	}
 
 	fact_t factory;
+	
+	typename factory_type::generated_type construct() const {
+		return factory.construct();
+	}
 };
 
 } // namespace pipelining
