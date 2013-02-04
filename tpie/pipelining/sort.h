@@ -400,7 +400,7 @@ pipesort(const pred_t & p) {
 	return pipe_middle<fact>(fact(p)).name("Sort");
 }
 
-template <typename T, typename pred_t>
+template <typename T, typename pred_t=std::less<T> >
 class passive_sorter;
 
 namespace bits {
