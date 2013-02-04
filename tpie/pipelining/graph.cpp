@@ -140,8 +140,6 @@ public:
 phase::phase()
 	: itemFlowGraph(new node_graph)
 	, actorGraph(new node_graph)
-	, m_memoryFraction(0.0)
-	, m_minimumMemory(0)
 	, m_initiator(0)
 {
 }
@@ -152,8 +150,6 @@ phase::phase(const phase & other)
 	: itemFlowGraph(new node_graph(*other.itemFlowGraph))
 	, actorGraph(new node_graph(*other.actorGraph))
 	, m_nodes(other.m_nodes)
-	, m_memoryFraction(other.m_memoryFraction)
-	, m_minimumMemory(other.m_minimumMemory)
 	, m_initiator(other.m_initiator)
 {
 }
@@ -162,8 +158,6 @@ phase & phase::operator=(const phase & other) {
 	itemFlowGraph.reset(new node_graph(*other.itemFlowGraph));
 	actorGraph.reset(new node_graph(*other.actorGraph));
 	m_nodes = other.m_nodes;
-	m_memoryFraction = other.m_memoryFraction;
-	m_minimumMemory = other.m_minimumMemory;
 	m_initiator = other.m_initiator;
 	return *this;
 }
@@ -178,8 +172,6 @@ void phase::add(node * s) {
 	if (count(s)) return;
 	if (is_initiator(s)) set_initiator(s);
 	m_nodes.push_back(s);
-	m_memoryFraction += s->get_memory_fraction();
-	m_minimumMemory += s->get_minimum_memory();
 	itemFlowGraph->finish_times[s] = 0;
 	actorGraph->finish_times[s] = 0;
 }
@@ -241,13 +233,19 @@ void phase::assign_memory(memory_size_type m) const {
 		}
 	}
 
-	if (m < minimum_memory()) {
-		TP_LOG_WARNING_ID("Not enough memory for this phase. We have " << m << " but we require " << minimum_memory() << '.');
+	double fraction = 0.0;
+	memory_size_type minimumMemory = 0;
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		fraction += m_nodes[i]->get_memory_fraction();
+		minimumMemory += m_nodes[i]->get_minimum_memory();
+	}
+
+	if (m < minimumMemory) {
+		TP_LOG_WARNING_ID("Not enough memory for this phase. We have " << m << " but we require " << minimumMemory << '.');
 		assign_minimum_memory();
 		return;
 	}
 	memory_size_type remaining = m;
-	double fraction = memory_fraction();
 	if (fraction < 1e-9) {
 		assign_minimum_memory();
 		return;

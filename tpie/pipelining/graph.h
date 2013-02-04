@@ -68,14 +68,6 @@ public:
 
 	void evacuate_all() const;
 
-	inline double memory_fraction() const {
-		return m_memoryFraction;
-	}
-
-	inline memory_size_type minimum_memory() const {
-		return m_minimumMemory;
-	}
-
 	void assign_memory(memory_size_type m) const;
 
 	const std::string & get_name() const;
@@ -94,8 +86,6 @@ private:
 	/** a pointer is a weak reference to something that isn't reference counted. */
 	std::vector<node *> m_nodes;
 
-	double m_memoryFraction;
-	memory_size_type m_minimumMemory;
 	node * m_initiator;
 
 	void assign_minimum_memory() const;
@@ -110,22 +100,6 @@ public:
 	static memory_size_type memory_usage(size_t phases);
 
 	graph_traits(const node_map & map);
-
-	double sum_memory() {
-		double sum = 0.0;
-		for (size_t i = 0; i < m_phases.size(); ++i) {
-			sum += m_phases[i].memory_fraction();
-		}
-		return sum;
-	}
-
-	memory_size_type sum_minimum_memory() {
-		memory_size_type sum = 0;
-		for (size_t i = 0; i < m_phases.size(); ++i) {
-			sum += m_phases[i].minimum_memory();
-		}
-		return sum;
-	}
 
 	const phases_t & phases() {
 		return m_phases;
