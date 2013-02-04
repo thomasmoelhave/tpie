@@ -43,6 +43,7 @@ protected:
 	/** Number of elements pushed to the structure. */
 	size_t m_size;
 public:
+	typedef T value_type;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc tpie::linear_memory_structure_doc::memory_coefficient()
