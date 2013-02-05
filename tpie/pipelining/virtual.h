@@ -28,6 +28,16 @@ namespace tpie {
 
 namespace pipelining {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Virtual base class for extra data to go with virtual chunks.
+/// When given to a virtual_chunk constructor, it will be automatically
+/// std::deleted the virtual chunk is garbage collected.
+///////////////////////////////////////////////////////////////////////////////
+class virtual_container {
+public:
+	virtual ~virtual_container() {}
+};
+
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -133,6 +143,7 @@ public:
 
 private:
 	std::auto_ptr<node> m_pipeSegment;
+	std::auto_ptr<virtual_container> m_container;
 	ptr m_left;
 	ptr m_right;
 
@@ -156,6 +167,14 @@ public:
 		n->m_right = right;
 		ptr res(n);
 		return res;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Set and/or reset the virtual_container assigned to this virtual
+	/// node.
+	///////////////////////////////////////////////////////////////////////////
+	void set_container(virtual_container * ctr) {
+		m_container.reset(ctr);
 	}
 };
 
@@ -202,6 +221,10 @@ public:
 
 	virtual_chunk_base(node_map::ptr segmap) {
 		this->m_segmap = segmap;
+	}
+
+	void set_container(virtual_container * ctr) {
+		m_node->set_container(ctr);
 	}
 
 	operator bool() { return m_node; }
@@ -268,8 +291,9 @@ public:
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk_end(const pipe_end<fact_t> & pipe) {
+	virtual_chunk_end(const pipe_end<fact_t> & pipe, virtual_container * ctr = 0) {
 		*this = pipe;
+		set_container(ctr);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -328,8 +352,9 @@ public:
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk(const pipe_middle<fact_t> & pipe) {
+	virtual_chunk(const pipe_middle<fact_t> & pipe, virtual_container * ctr = 0) {
 		*this = pipe;
+		set_container(ctr);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -424,8 +449,9 @@ public:
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk_begin(const pipe_begin<fact_t> & pipe) {
+	virtual_chunk_begin(const pipe_begin<fact_t> & pipe, virtual_container * ctr = 0) {
 		*this = pipe;
+		set_container(ctr);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
