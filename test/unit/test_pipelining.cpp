@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2011, The TPIE development team
+// Copyright 2011, 2012, 2013 The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -384,15 +384,131 @@ bool uniq_test() {
 	return check_test_vectors();
 }
 
-bool memory_test() {
-	pipeline p = input_vector(inputvector).memory(1.1) | multiply(3).memory(3.2) | multiply(2).memory(3.3) | output_vector(outputvector).memory(2.3);
-	p();
-	tpie::pipelining::bits::graph_traits g(*p.get_node_map());
-	double fractions = g.sum_memory();
-	memory_size_type memory = g.sum_minimum_memory();
-	log_info() << fractions << std::endl << memory << std::endl;
-	double d = fractions-(1.1+3.2+3.3+2.3);
-	return d*d < 0.0001;
+struct memtest {
+	size_t totalMemory;
+	size_t mem1;
+	size_t mem2;
+	double frac1;
+	double frac2;
+
+	size_t assigned1;
+	size_t assigned2;
+};
+
+template <typename dest_t>
+class memtest_1 : public node {
+	dest_t dest;
+	memtest & settings;
+
+public:
+	memtest_1(const dest_t & dest, memtest & settings)
+		: dest(dest)
+		, settings(settings)
+	{
+		add_push_destination(dest);
+		set_name("Memory test");
+	}
+
+	void prepare() {
+		set_minimum_memory(settings.mem1);
+		set_memory_fraction(settings.frac1);
+	}
+
+	virtual void set_available_memory(memory_size_type m) /*override*/ {
+		node::set_available_memory(m);
+		settings.assigned1 = m;
+	}
+
+	virtual void go() /*override*/ {
+	}
+};
+
+class memtest_2 : public node {
+	memtest & settings;
+
+public:
+	memtest_2(memtest & settings)
+		: settings(settings)
+	{
+	}
+
+	void prepare() {
+		set_minimum_memory(settings.mem2);
+		set_memory_fraction(settings.frac2);
+	}
+
+	virtual void set_available_memory(memory_size_type m) /*override*/ {
+		node::set_available_memory(m);
+		settings.assigned2 = m;
+	}
+};
+
+bool memory_test(memtest settings) {
+	if (settings.mem1 + settings.mem2 > settings.totalMemory) {
+		throw tpie::exception("Memory requirements too high");
+	}
+
+	const memory_size_type NO_MEM = std::numeric_limits<memory_size_type>::max();
+	settings.assigned1 = settings.assigned2 = NO_MEM;
+
+	progress_indicator_null pi;
+
+	pipeline p =
+		make_pipe_begin_1<memtest_1, memtest &>(settings)
+		| make_pipe_end_1<memtest_2, memtest &>(settings);
+	p(0, pi, settings.totalMemory);
+
+	log_debug() << "totalMemory " << settings.totalMemory << '\n'
+	            << "mem1        " << settings.mem1 << '\n'
+	            << "mem2        " << settings.mem2 << '\n'
+	            << "frac1       " << settings.frac1 << '\n'
+	            << "frac2       " << settings.frac2 << '\n'
+	            << "assigned1   " << settings.assigned1 << '\n'
+	            << "assigned2   " << settings.assigned2 << std::endl;
+
+	if (settings.assigned1 == NO_MEM || settings.assigned2 == NO_MEM) {
+		log_error() << "No memory assigned" << std::endl;
+		return false;
+	}
+
+	if (settings.assigned1 + settings.assigned2 > settings.totalMemory) {
+		log_error() << "Too much memory assigned" << std::endl;
+		return false;
+	}
+
+	if (settings.assigned1 < settings.mem1 || settings.assigned2 < settings.mem2) {
+		log_error() << "Too little memory assigned" << std::endl;
+		return false;
+	}
+
+	const double EPS = 1e-9;
+	if (settings.mem1 == 0 && settings.mem2 == 0
+		&& abs(settings.assigned1 * settings.frac2 - settings.assigned2 * settings.frac1) > EPS)
+	{
+		log_error() << "Fractions not honored" << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+void memory_test_shorthand(teststream & ts, size_t totalMemory, size_t mem1, size_t mem2, double frac1, double frac2) {
+	ts << "(" << totalMemory << ", " << mem1 << ", " << mem2 << ", " << frac1 << ", " << frac2 << ")";
+	memtest settings;
+	settings.totalMemory = totalMemory;
+	settings.mem1 = mem1;
+	settings.mem2 = mem2;
+	settings.frac1 = frac1;
+	settings.frac2 = frac2;
+	ts << result(memory_test(settings));
+}
+
+void memory_test_multi(teststream & ts) {
+	memory_test_shorthand(ts,  2000,     0,     0,   1.0,   1.0);
+	memory_test_shorthand(ts,  2000,   800,   800,   1.0,   1.0);
+	memory_test_shorthand(ts,  4000,  1000,  1000,   0.0,   0.0);
+	memory_test_shorthand(ts,  2000,     0,     0,   0.0,   1.0);
+	memory_test_shorthand(ts,  2000,   500,     0,   0.0,   1.0);
 }
 
 bool fork_test() {
@@ -1006,7 +1122,7 @@ int main(int argc, char ** argv) {
 	.test(sort_test_large, "sortbig")
 	.test(operator_test, "operators")
 	.test(uniq_test, "uniq")
-	.test(memory_test, "memory")
+	.multi_test(memory_test_multi, "memory")
 	.test(fork_test, "fork")
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
