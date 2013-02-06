@@ -396,8 +396,14 @@ public:
 	}
 
 	/// Shared state, must have mutex to use.
-	void set_state(size_t idx, worker_state st) {
-		m_states[idx] = st;
+	void transition_state(size_t idx, worker_state from, worker_state to) {
+		if (m_states[idx] != from) {
+			std::stringstream ss;
+			ss << "Invalid state transition " << from << " -> " << to << "; current state is " << m_states[idx];
+			log_error() << ss.str() << std::endl;
+			throw exception(ss.str());
+		}
+		m_states[idx] = to;
 	}
 
 protected:
@@ -586,7 +592,7 @@ private:
 		if (m_buffer->m_outputSize == 0)
 			return;
 		lock_t lock(st.mutex);
-		st.set_state(parId, OUTPUTTING);
+		st.transition_state(parId, PROCESSING, OUTPUTTING);
 		// notify producer that output is ready
 		st.producerCond.notify_one();
 		while (!is_done()) {
@@ -698,10 +704,10 @@ private:
 		// virtual invocation
 		st.output(parId).worker_initialize();
 
-		st.set_state(parId, IDLE);
+		st.transition_state(parId, INITIALIZING, IDLE);
 		running_signal _(st.runningWorkers, st.producerCond);
 		while (true) {
-			// wait for state = processing
+			// wait for transition IDLE -> PROCESSING
 			while (!ready()) {
 				if (st.done) {
 					return;
@@ -994,7 +1000,7 @@ private:
 					item_type * last = first + written;
 					parallel_input_buffer<T1> & dest = *st->m_inputBuffers[readyIdx];
 					dest.set_input(array_view<T1>(first, last));
-					st->set_state(readyIdx, PROCESSING);
+					st->transition_state(readyIdx, IDLE, PROCESSING);
 					st->workerCond[readyIdx].notify_one();
 					written = 0;
 					if (st->opts.maintainOrder)
@@ -1007,7 +1013,7 @@ private:
 					// Receive buffer (virtual invocation)
 					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 
-					st->set_state(readyIdx, IDLE);
+					st->transition_state(readyIdx, OUTPUTTING, IDLE);
 					st->workerCond[readyIdx].notify_one();
 					if (st->opts.maintainOrder) {
 						if (m_outputOrder.front() != readyIdx) {
@@ -1045,7 +1051,7 @@ public:
 			// virtual invocation
 			cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 
-			st->set_state(readyIdx, IDLE);
+			st->transition_state(readyIdx, OUTPUTTING, IDLE);
 			if (st->opts.maintainOrder) {
 				if (m_outputOrder.front() != readyIdx) {
 					log_error() << "Producer: Expected " << readyIdx << " in front; got "
