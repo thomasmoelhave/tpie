@@ -71,6 +71,27 @@
 /// since we get deadlocks if some of the workers are allowed to wait for a
 /// ready tpie::job worker. Instead, we use boost::threads directly.
 ///
+/// Parallel worker states. The main thread has a condition variable
+/// (producerCond) which is signalled every time a worker changes its own
+/// state. Each worker thread has a condition variable (workerCond[]) which is
+/// signalled when the main thread changes the worker's state.
+///
+/// Initializing: Before the input/output buffers are initialized.
+/// -> Idle (worker thread)
+///
+/// Idle: Input/output buffers are empty.
+/// -> Processing (main thread)
+///
+/// Processing: Input buffer is full; output buffer is empty.
+/// -> Partial output (worker thread; signals main)
+/// -> Outputting (worker thread)
+///
+/// Partial output: Output buffer is full; input buffer is non-empty.
+/// -> Processing (main thread)
+///
+/// Outputting: Output buffer is full; input buffer is empty.
+/// -> Idle (main thread)
+///
 /// TODO at some future point: Optimize code for the case where the buffer size
 /// is one.
 ///////////////////////////////////////////////////////////////////////////////
