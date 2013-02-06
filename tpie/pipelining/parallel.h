@@ -113,6 +113,10 @@ enum worker_state {
 	/** The worker is writing output. */
 	PROCESSING,
 
+	/** The worker has filled its output buffer, but has not yet consumed the
+	 * input buffer. */
+	PARTIAL_OUTPUT,
+
 	/** The output is being read by the consumer. */
 	OUTPUTTING
 };
@@ -311,8 +315,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Called by before::worker after a batch of items has
 	/// been pushed.
+	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void flush_buffer() = 0;
+	virtual void flush_buffer(bool complete) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -547,12 +552,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void push(const T & item) {
 		if (m_buffer->m_outputSize >= m_buffer->m_outputBuffer.size())
-			throw std::runtime_error("Buffer overrun in after");
+			flush_buffer_impl(false);
 
 		m_buffer->m_outputBuffer[m_buffer->m_outputSize++] = item;
-
-		if (m_buffer->m_outputSize >= m_buffer->m_outputBuffer.size())
-			flush_buffer_impl();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -566,9 +568,10 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Invoked by before::push_all when all input items have been
 	/// pushed.
+	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void flush_buffer() {
-		flush_buffer_impl();
+	virtual void flush_buffer(bool complete) {
+		flush_buffer_impl(complete);
 	}
 
 private:
@@ -579,24 +582,27 @@ private:
 			case IDLE:
 				return true;
 			case PROCESSING:
-				// This case is reached if our state changes from Outputting to
-				// Idle to Processing and we miss a state change
+				// The main thread may transition us from Outputting to Idle to
+				// Processing without us noticing, or it may transition us from
+				// Partial_Output to Processing. In either case, we are done
+				// flushing the buffer.
 				return true;
+			case PARTIAL_OUTPUT:
 			case OUTPUTTING:
 				return false;
 		}
 		throw std::runtime_error("Unknown state");
 	}
 
-	void flush_buffer_impl() {
+	void flush_buffer_impl(bool complete) {
 		if (m_buffer->m_outputSize == 0)
 			return;
 		lock_t lock(st.mutex);
-		st.transition_state(parId, PROCESSING, OUTPUTTING);
+		st.transition_state(parId, PROCESSING, complete ? OUTPUTTING : PARTIAL_OUTPUT);
 		// notify producer that output is ready
 		st.producerCond.notify_one();
 		while (!is_done()) {
-			if (st.done) return;
+			if (st.done) break;
 			st.workerCond[parId].wait(lock);
 		}
 		m_buffer->m_outputSize = 0;
@@ -660,6 +666,8 @@ private:
 				return false;
 			case PROCESSING:
 				return true;
+			case PARTIAL_OUTPUT:
+				throw std::runtime_error("State 'partial_output' was not expected in before::ready");
 			case OUTPUTTING:
 				throw std::runtime_error("State 'outputting' was not expected in before::ready");
 		}
@@ -757,7 +765,7 @@ public:
 		}
 
 		// virtual invocation
-		this->st.output(this->parId).flush_buffer();
+		this->st.output(this->parId).flush_buffer(true);
 	}
 };
 
@@ -844,6 +852,7 @@ private:
 				case INITIALIZING:
 				case PROCESSING:
 					break;
+				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
 					// If we have to maintain order of items, the only
 					// outputting worker we consider to be waiting is the
@@ -876,6 +885,7 @@ private:
 				case IDLE:
 				case PROCESSING:
 					break;
+				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
 					if (st->opts.maintainOrder && m_outputOrder.front() != i)
 						break;
@@ -901,6 +911,7 @@ private:
 			switch (st->get_state(i)) {
 				case INITIALIZING:
 				case IDLE:
+				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
 					break;
 				case PROCESSING:
@@ -1009,6 +1020,12 @@ private:
 				}
 				case PROCESSING:
 					throw std::runtime_error("State 'processing' not expected at this point");
+				case PARTIAL_OUTPUT:
+					// Receive buffer (virtual invocation)
+					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
+					st->transition_state(readyIdx, PARTIAL_OUTPUT, PROCESSING);
+					st->workerCond[readyIdx].notify_one();
+					break;
 				case OUTPUTTING:
 					// Receive buffer (virtual invocation)
 					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
@@ -1051,6 +1068,11 @@ public:
 			// virtual invocation
 			cons->consume(st->m_outputBuffers[readyIdx]->get_output());
 
+			if (st->get_state(readyIdx) == PARTIAL_OUTPUT) {
+				st->transition_state(readyIdx, PARTIAL_OUTPUT, PROCESSING);
+				st->workerCond[readyIdx].notify_one();
+				continue;
+			}
 			st->transition_state(readyIdx, OUTPUTTING, IDLE);
 			if (st->opts.maintainOrder) {
 				if (m_outputOrder.front() != readyIdx) {
