@@ -1027,6 +1027,98 @@ bool parallel_ordered_test(size_t modulo) {
 }
 
 template <typename dest_t>
+class Monotonic : public node {
+	dest_t dest;
+	test_t sum;
+	test_t chunkSize;
+public:
+	typedef test_t item_type;
+	Monotonic(const dest_t & dest, test_t sum, test_t chunkSize)
+		: dest(dest)
+		, sum(sum)
+		, chunkSize(chunkSize)
+	{
+		add_push_destination(dest);
+		set_name("Monotonic");
+	}
+
+	virtual void go() /*override*/ {
+		while (sum > chunkSize) {
+			dest.push(chunkSize);
+			sum -= chunkSize;
+		}
+		if (sum > 0) {
+			dest.push(sum);
+			sum = 0;
+		}
+	}
+};
+
+pipe_begin<factory_2<Monotonic, test_t, test_t> >
+monotonic(test_t sum, test_t chunkSize) {
+	return factory_2<Monotonic, test_t, test_t>(sum, chunkSize);
+}
+
+template <typename dest_t>
+class Splitter : public node {
+	dest_t dest;
+public:
+	typedef test_t item_type;
+	Splitter(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+		set_name("Splitter");
+	}
+
+	void push(test_t item) {
+		while (item > 0) {
+			dest.push(1);
+			--item;
+		}
+	}
+};
+
+pipe_middle<factory_0<Splitter> >
+splitter() {
+	return factory_0<Splitter>();
+}
+
+class Summer : public node {
+	test_t & result;
+public:
+	typedef test_t item_type;
+	Summer(test_t & result)
+		: result(result)
+	{
+		set_name("Summer");
+	}
+
+	void push(test_t item) {
+		result += item;
+	}
+};
+
+pipe_end<termfactory_1<Summer, test_t &> >
+summer(test_t & result) {
+	return termfactory_1<Summer, test_t &>(result);
+}
+
+bool parallel_multiple_test() {
+	test_t sumInput = 1000;
+	test_t sumOutput = 0;
+	pipeline p = monotonic(sumInput, 5) | parallel(splitter()) | summer(sumOutput);
+	p.plot();
+	p();
+	if (sumInput != sumOutput) {
+		log_error() << "Expected sum " << sumInput << ", got " << sumOutput << std::endl;
+		return false;
+	} else {
+		return true;
+	}
+}
+
+template <typename dest_t>
 class step_begin_type : public node {
 	dest_t dest;
 	static const size_t items = 256*1024*1024;
@@ -1134,5 +1226,6 @@ int main(int argc, char ** argv) {
 	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(20011))
 	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(20011))
 	.test(parallel_step_test, "parallel_step")
+	.test(parallel_multiple_test, "parallel_multiple")
 	;
 }
