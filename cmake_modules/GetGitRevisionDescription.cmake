@@ -91,6 +91,14 @@ function(get_git_head_revision _refspecvar _hashvar)
 		file(MAKE_DIRECTORY "${GIT_DATA}")
 	endif()
 	set(HEAD_FILE "${GIT_DATA}/HEAD")
+	if(NOT IS_DIRECTORY ${GIT_DIR}) 
+	  file(STRINGS ${GIT_DIR} GIT_DIR LIMIT_COUNT 1 REGEX "gitdir: (.*)")
+	  string(REGEX REPLACE "gitdir: (.*)" "\\1" GIT_DIR "${GIT_DIR}")
+	endif()
+	if(NOT IS_DIRECTORY ${GIT_DIR}) 
+	  message("Git dir ${GIT_DIR} is not a directory")
+	endif()
+
 	configure_file("${GIT_DIR}/HEAD" "${HEAD_FILE}" COPYONLY)
 
 	configure_file("${_gitdescmoddir}/GetGitRevisionDescription.cmake.in"
