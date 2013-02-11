@@ -32,7 +32,7 @@
 namespace tpie {
 
 template <typename child_t>
-class stream_crtp {
+class TPIE_PUBLIC stream_crtp {
 public:
 	/** Type describing how we should interpret the offset supplied to seek. */
 	enum offset_type {

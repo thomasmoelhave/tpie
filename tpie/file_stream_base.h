@@ -29,7 +29,7 @@
 
 namespace tpie {
 
-class file_stream_base: public file_base_crtp<file_stream_base>, public stream_crtp<file_stream_base> {
+class TPIE_PUBLIC  file_stream_base: public file_base_crtp<file_stream_base>, public stream_crtp<file_stream_base> {
 public:
 	typedef file_base_crtp<file_stream_base> p_t;
 	typedef stream_crtp<file_stream_base> s_t;

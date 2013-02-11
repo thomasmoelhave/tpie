@@ -45,12 +45,12 @@ TPIE_DEPRECATED(inline void decrement_open_file_count()) {
 /// \brief Return the current number of open files.
 /// \return The current number of open files.
 ////////////////////////////////////////////////////////////////////////////////
-memory_size_type open_file_count();
+TPIE_PUBLIC memory_size_type open_file_count();
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Return the additional number of files that can be opened before
 /// running out of file descriptors.
 ////////////////////////////////////////////////////////////////////////////////
-memory_size_type available_files();
+TPIE_PUBLIC memory_size_type available_files();
 }
 #endif //__TPIE_FILE_CONUT_H__

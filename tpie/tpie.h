@@ -61,7 +61,7 @@ enum subsystem {
 /// \brief Initialize the given subsystems of TPIE.
 /// \param subsystems Logical OR of \ref subsystem entries.
 ///////////////////////////////////////////////////////////////////////////////
-void tpie_init(int subsystems=ALL);
+TPIE_PUBLIC void tpie_init(int subsystems=ALL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Deinitialize the given subsystems of TPIE.
@@ -69,7 +69,7 @@ void tpie_init(int subsystems=ALL);
 /// tpie_init.
 /// \param subsystems Logical OR of \ref subsystem entries.
 ///////////////////////////////////////////////////////////////////////////////
-void tpie_finish(int subsystems=ALL);
+TPIE_PUBLIC void tpie_finish(int subsystems=ALL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Get the TPIE block size.
@@ -78,14 +78,14 @@ void tpie_finish(int subsystems=ALL);
 ///
 /// The default is 2 MiB (2**21 bytes).
 ///////////////////////////////////////////////////////////////////////////////
-memory_size_type get_block_size();
+TPIE_PUBLIC memory_size_type get_block_size();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Set the TPIE block size.
 ///
 /// It is not safe to change the block size once TPIE has been initialized.
 ///////////////////////////////////////////////////////////////////////////////
-void set_block_size(memory_size_type block_size);
+TPIE_PUBLIC void set_block_size(memory_size_type block_size);
 
 } //namespace tpie
 

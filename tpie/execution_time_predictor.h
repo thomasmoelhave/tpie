@@ -38,15 +38,15 @@ typedef boost::uint64_t time_type;
 /// \internal \brief Used by tpie_init to initialize the execution time
 /// database.
 ///////////////////////////////////////////////////////////////////////////////
-void init_execution_time_db();
+TPIE_PUBLIC void init_execution_time_db();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the execution time
 /// database.
 ///////////////////////////////////////////////////////////////////////////////
-void finish_execution_time_db();
+TPIE_PUBLIC void finish_execution_time_db();
 
-class unique_id_type {
+class TPIE_PUBLIC unique_id_type {
 public:
     inline unique_id_type & operator << (const std::type_info & type) {
 		ss << type.name() << ";"; return *this;
@@ -63,23 +63,23 @@ private:
 };
 
 
-class execution_time_predictor {
+class TPIE_PUBLIC  execution_time_predictor {
 public:
-	execution_time_predictor(const std::string & id=std::string());
-	~execution_time_predictor();
+	TPIE_PUBLIC execution_time_predictor(const std::string & id=std::string());
+	TPIE_PUBLIC ~execution_time_predictor();
 	///////////////////////////////////////////////////////////////////////////
 	/// Estimate execution time.
 	/// \param n Input size
 	/// \param confidence (output) Confidence (between 0.0 and 1.0)
 	///////////////////////////////////////////////////////////////////////////
-	time_type estimate_execution_time(stream_size_type n, double & confidence);
-	void start_execution(stream_size_type n);
-	time_type end_execution();
-	std::string estimate_remaining_time(double progress);
+	TPIE_PUBLIC time_type estimate_execution_time(stream_size_type n, double & confidence);
+	TPIE_PUBLIC void start_execution(stream_size_type n);
+	TPIE_PUBLIC time_type end_execution();
+	TPIE_PUBLIC std::string estimate_remaining_time(double progress);
 
-	static void start_pause();
-	static void end_pause();
-	static void disable_time_storing();
+	TPIE_PUBLIC static void start_pause();
+	TPIE_PUBLIC static void end_pause();
+	TPIE_PUBLIC static void disable_time_storing();
 
 	//Used by fractional_time_perdictor
 	//TPIE_OS_OFFSET m_aux1;

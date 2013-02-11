@@ -36,7 +36,7 @@ namespace bits {
 /// \class pipeline_base
 /// Virtual superclass for pipelines implementing the function call operator.
 ///////////////////////////////////////////////////////////////////////////////
-class pipeline_base {
+class TPIE_PUBLIC pipeline_base {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
@@ -133,7 +133,7 @@ private:
 /// This class is used to avoid writing the template argument in the
 /// pipeline_impl type.
 ///////////////////////////////////////////////////////////////////////////////
-class pipeline {
+class TPIE_PUBLIC pipeline {
 public:
 	pipeline() {}
 

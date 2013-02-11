@@ -41,50 +41,50 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the fraction database.
 ///////////////////////////////////////////////////////////////////////////////
-void init_fraction_db(bool capture_progress = false);
+TPIE_PUBLIC void init_fraction_db(bool capture_progress = false);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the fraction database.
 ///////////////////////////////////////////////////////////////////////////////
-void finish_fraction_db();
+TPIE_PUBLIC void finish_fraction_db();
 
 class fractional_progress;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Subindicator for fractional progress reporting.
 ///////////////////////////////////////////////////////////////////////////////
-class fractional_subindicator: public progress_indicator_subindicator {
+class TPIE_PUBLIC fractional_subindicator: public progress_indicator_subindicator {
 public:
-	fractional_subindicator(fractional_progress & fp);
+	TPIE_PUBLIC fractional_subindicator(fractional_progress & fp);
 	
-	fractional_subindicator(fractional_progress & fp,
-							const char * id,
-							const char * file,
-							const char * function,
-							stream_size_type n,
-							const char * crumb=0,
-							description_importance importance=IMPORTANCE_MAJOR,
-							bool enabled=true);
-
-	void setup(const char * id,
-			   const char * file,
-			   const char * function,
-			   stream_size_type n,
-			   const char * crumb=0,
-			   description_importance importance=IMPORTANCE_MAJOR,
-			   bool enabled=true);
-
-	~fractional_subindicator();
+	TPIE_PUBLIC fractional_subindicator(fractional_progress & fp,
+											const char * id,
+											const char * file,
+											const char * function,
+											stream_size_type n,
+											const char * crumb=0,
+											description_importance importance=IMPORTANCE_MAJOR,
+											bool enabled=true);
+	
+	TPIE_PUBLIC void setup(const char * id,
+							   const char * file,
+							   const char * function,
+							   stream_size_type n,
+							   const char * crumb=0,
+							   description_importance importance=IMPORTANCE_MAJOR,
+							   bool enabled=true);
+	
+	TPIE_PUBLIC  ~fractional_subindicator();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_subindicator::init
 	///////////////////////////////////////////////////////////////////////////
-	virtual void init(stream_size_type range);
+	TPIE_PUBLIC virtual void init(stream_size_type range);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_subindicator::done
 	///////////////////////////////////////////////////////////////////////////
-	virtual void done();
+	TPIE_PUBLIC virtual void done();
 private:
 #ifndef TPIE_NDEBUG
 	bool m_init_called;
@@ -104,31 +104,31 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Fractional progress reporter.
 ///////////////////////////////////////////////////////////////////////////////
-class fractional_progress {
+class TPIE_PUBLIC  fractional_progress {
 public:
-	fractional_progress(progress_indicator_base * pi);
-	~fractional_progress();
+	TPIE_PUBLIC fractional_progress(progress_indicator_base * pi);
+	TPIE_PUBLIC ~fractional_progress();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_base::done
 	///////////////////////////////////////////////////////////////////////////
-	void done();
+	TPIE_PUBLIC void done();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_base::init
 	///////////////////////////////////////////////////////////////////////////
-	void init(stream_size_type range=0);
+	TPIE_PUBLIC void init(stream_size_type range=0);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return this progress indicator's unique id.
 	///////////////////////////////////////////////////////////////////////////
-	unique_id_type & id();
+	TPIE_PUBLIC unique_id_type & id();
 
-	void push_breadcrumb(const char * crumb, description_importance importance) {
+	TPIE_PUBLIC void push_breadcrumb(const char * crumb, description_importance importance) {
 		if (m_pi) m_pi->push_breadcrumb(crumb, importance);
 	}
 
-	void pop_breadcrumb() {
+	TPIE_PUBLIC void pop_breadcrumb() {
 		if (m_pi) m_pi->pop_breadcrumb();
 	}
 
@@ -157,9 +157,9 @@ private:
 	friend class fractional_subindicator;
 };
 
-void update_fractions(const char * name, float frac, stream_size_type n);
-void load_fractions(const std::string & path);
-void save_fractions(const std::string & path, bool force = false);
+TPIE_PUBLIC void update_fractions(const char * name, float frac, stream_size_type n);
+TPIE_PUBLIC void load_fractions(const std::string & path);
+TPIE_PUBLIC void save_fractions(const std::string & path, bool force = false);
 
 }
 #endif //__TPIE_FRACTIONAL_PROGRESS__

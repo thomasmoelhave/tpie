@@ -42,7 +42,7 @@
 
 namespace tpie {
 
-class file_base: public file_base_crtp<file_base> {
+class TPIE_PUBLIC file_base: public file_base_crtp<file_base> {
 	typedef file_base_crtp<file_base> p_t;
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Stream in file. We support multiple streams per file.
 	///////////////////////////////////////////////////////////////////////////
-	class stream: public stream_crtp<stream> {
+	class TPIE_PUBLIC  stream: public stream_crtp<stream> {
 	private:
 		typedef stream_crtp<stream> p_t;
 

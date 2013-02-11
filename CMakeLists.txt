@@ -116,6 +116,7 @@ option(COMPILE_TEST "Compile test programs" ON)
 option(TPL_LOGGING "Enable tpie logging." ON)
 option(TPIE_DEPRECATED_WARNINGS "Enable warnings for deprecated classes, methods and typedefs" OFF)
 option(TPIE_PARALLEL_SORT "Enable parallel quick sort implementation" ON)
+option(TPIE_SHARED "Build tpie as a shared library" OFF)
 
 if (COMPILE_TEST)
 	ENABLE_TESTING()

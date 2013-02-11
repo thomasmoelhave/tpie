@@ -91,4 +91,15 @@
 #endif
 #endif
 
+#if defined _WIN32
+  #if BUILDING_TPIE_DLL
+    #define TPIE_PUBLIC __declspec(dllexport)
+  #else
+    #define TPIE_PUBLIC __declspec(dllimport)
+  #endif
+#else
+  #define TPIE_PUBLIC __attribute__ ((visibility ("default")))
+#endif
+
+
 #endif // _CONFIG_H 

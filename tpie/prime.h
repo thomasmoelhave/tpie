@@ -31,13 +31,13 @@ namespace tpie {
 /// \internal \brief Used by tpie_init to initialize the prime number
 /// database.
 ///////////////////////////////////////////////////////////////////////////////
-void init_prime();
+TPIE_PUBLIC void init_prime();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the prime number
 /// database.
 ///////////////////////////////////////////////////////////////////////////////
-void finish_prime();
+TPIE_PUBLIC void finish_prime();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Check if i is a prime.
@@ -45,7 +45,7 @@ void finish_prime();
 /// \param i number to check, must be less then 4294967295.
 /// \return true if and only if i is a prime number.
 ///////////////////////////////////////////////////////////////////////////////
-bool is_prime(size_type i);
+TPIE_PUBLIC bool is_prime(size_type i);
 
 typedef boost::uint64_t hash_type;
 
@@ -55,14 +55,14 @@ typedef boost::uint64_t hash_type;
 /// \param s The string to hash.
 /// \return The hash value.
 ///////////////////////////////////////////////////////////////////////////////
-hash_type prime_hash(const std::string & s);
+TPIE_PUBLIC hash_type prime_hash(const std::string & s);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Get next prime.
 /// \param i Subject to same restrictions as in is_prime.
 /// \returns Least prime greater than or equal to i.
 ///////////////////////////////////////////////////////////////////////////////
-size_t next_prime(size_t i);
+TPIE_PUBLIC size_t next_prime(size_t i);
 }
 
 #endif //__TPIE_PRIME_H__

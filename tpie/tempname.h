@@ -39,7 +39,7 @@
 
 namespace tpie {
 
-	struct tempfile_error: public std::runtime_error {
+	struct TPIE_PUBLIC tempfile_error: public std::runtime_error {
 		explicit tempfile_error(const std::string & what): std::runtime_error(what) {}
 	};
 
@@ -47,7 +47,7 @@ namespace tpie {
 	/// \brief Static methods for generating temporary file names and finding
 	/// temporary file directories.
 	///////////////////////////////////////////////////////////////////////////
-	class tempname {
+	class TPIE_PUBLIC tempname {
 	public:
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Generate path for a new temporary file.
@@ -184,7 +184,7 @@ namespace tpie {
 	/// When all temp_file objects to a file go out of scope and are not set 
 	/// to persistent, the associated temporary file will be deleted.
 	///////////////////////////////////////////////////////////////////////////
-	class temp_file {
+	class TPIE PUBLIC temp_file {
 	public:
 		///////////////////////////////////////////////////////////////////////////////
 		/// \brief Create a temp_file associated with a temporary file

@@ -34,7 +34,7 @@
 namespace tpie {
 
 /** A simple logger that writes messages to a tpie temporary file */
-class file_log_target: public log_target {
+class TPIE_PUBLIC file_log_target: public log_target {
 private:
 	std::stack<std::string> groups;
 public:
@@ -68,7 +68,7 @@ private:
 };
 
 /** A simple logger that writes messages to stderr */
-class stderr_log_target: public log_target {
+class TPIE_PUBLIC stderr_log_target: public log_target {
 private:
 	std::stack<std::string> groups;
 public:
@@ -107,12 +107,12 @@ private:
 /// \brief Returns the file name of the log stream.
 /// This assumes that init_default_log has been called.
 ///////////////////////////////////////////////////////////////////////////
-const std::string& log_name();
+TPIE_PUBLIC const std::string& log_name();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the log subsystem.
 ///////////////////////////////////////////////////////////////////////////////
-void init_default_log();
+TPIE_PUBLIC void init_default_log();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the log subsystem.

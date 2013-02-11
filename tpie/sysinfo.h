@@ -35,16 +35,16 @@ namespace tpie {
 
 /** \brief The Git commit hash (40 hexadecimal characters) that TPIE was built
  * from. */
-extern const char * git_commit;
+TPIE_PUBLIC extern const char * git_commit;
 
 /** The Git refspec that TPIE was built from. Usually of the form
  * \c "refs/heads/"+branch, for instance \c "refs/heads/master". */
-extern const char * git_refspec;
+TPIE_PUBLIC extern const char * git_refspec;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Class providing system and platform info.
 ///////////////////////////////////////////////////////////////////////////////
-struct sysinfo {
+struct TPIE_PUBLIC sysinfo {
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Default constructor.
 	///////////////////////////////////////////////////////////////////////////

@@ -46,17 +46,17 @@ namespace tpie {
 /// When the memory limit is exceeded and the memory limit enforcement policy
 /// is set to THROW, this error is thrown by the memory subsystem.
 ///////////////////////////////////////////////////////////////////////////////
-struct out_of_memory_error : public std::bad_alloc {
+struct TPIE_PUBLIC  out_of_memory_error : public std::bad_alloc {
 	const char * msg;
-	out_of_memory_error(const char * s) : msg(s) { }
-	virtual const char* what() const throw() {return msg;}
+	TPIE_PUBLIC out_of_memory_error(const char * s) : msg(s) { }
+	TPIE_PUBLIC virtual const char* what() const throw() {return msg;}
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Memory management object used to track memory usage.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_manager {
+class TPIE_PUBLIC memory_manager {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Memory limit enforcement policies.
@@ -77,12 +77,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the current amount of memory used.
 	///////////////////////////////////////////////////////////////////////////
-	size_t used() const throw();
+	TPIE_PUBLIC size_t used() const throw();
    
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the amount of memory still available to allocation.
 	///////////////////////////////////////////////////////////////////////////
-	size_t available() const throw();
+	TPIE_PUBLIC size_t available() const throw();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the memory limit.
@@ -95,13 +95,13 @@ public:
 	/// no exception will be thrown.
 	/// \param new_limit The new memory limit in bytes.
 	///////////////////////////////////////////////////////////////////////////
-	void set_limit(size_t new_limit);
+	TPIE_PUBLIC void set_limit(size_t new_limit);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Set the memory limit enforcement policy.
 	/// \param e The new enforcement policy.
 	///////////////////////////////////////////////////////////////////////////
-	void set_enforcement(enforce_t e);
+	TPIE_PUBLIC void set_enforcement(enforce_t e);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the current memory limit enforcement policy.
@@ -114,19 +114,19 @@ public:
 	/// Possibly throws a warning or an exception if the memory limit is
 	/// exceeded, depending on the enforcement.
 	///////////////////////////////////////////////////////////////////////////
-	void register_allocation(size_t bytes);
+	TPIE_PUBLIC void register_allocation(size_t bytes);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
 	/// Register that some memory has been freed.
 	///////////////////////////////////////////////////////////////////////////
-	void register_deallocation(size_t bytes);
+	TPIE_PUBLIC void register_deallocation(size_t bytes);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
 	/// Construct the memory manager object.
 	///////////////////////////////////////////////////////////////////////////
-	memory_manager();	
+	TPIE_PUBLIC memory_manager();	
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
@@ -137,10 +137,10 @@ public:
 #ifndef TPIE_NDEBUG
 	// The following methods take the mutex before calling the private doubly
 	// underscored equivalent.
-	void register_pointer(void * p, size_t size, const std::type_info & t);
-	void unregister_pointer(void * p, size_t size, const std::type_info & t);
-	void assert_tpie_ptr(void * p);
-	void complain_about_unfreed_memory();
+	TPIE_PUBLIC void register_pointer(void * p, size_t size, const std::type_info & t);
+	TPIE_PUBLIC void unregister_pointer(void * p, size_t size, const std::type_info & t);
+	TPIE_PUBLIC void assert_tpie_ptr(void * p);
+	TPIE_PUBLIC void complain_about_unfreed_memory();
 #endif
 
 
@@ -167,19 +167,19 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the memory manager.
 ///////////////////////////////////////////////////////////////////////////////
-void init_memory_manager();
+TPIE_PUBLIC void init_memory_manager();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the memory manager.
 ///////////////////////////////////////////////////////////////////////////////
-void finish_memory_manager();
+TPIE_PUBLIC void finish_memory_manager();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return a reference to the memory manager.
 /// May only be called when init_memory_manager has been called.
 /// See \ref tpie_init().
 ///////////////////////////////////////////////////////////////////////////////
-memory_manager & get_memory_manager();
+TPIE_PUBLIC memory_manager & get_memory_manager();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal
@@ -562,7 +562,7 @@ inline bool operator!=(const tpie::allocator<T>&, const tpie::allocator<T>&) {re
 /// \brief Find the largest amount of memory that can be allocated as a single
 /// chunk.
 ///////////////////////////////////////////////////////////////////////////////
-size_t consecutive_memory_available(size_t granularity=5*1024*1024);
+TPIE_PUBLIC size_t consecutive_memory_available(size_t granularity=5*1024*1024);
 
 } //namespace tpie
 

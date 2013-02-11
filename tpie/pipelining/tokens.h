@@ -95,7 +95,7 @@ enum node_relation {
 	no_forward_depends
 };
 
-class node_map {
+class TPIE_PUBLIC node_map {
 public:
 	typedef uint64_t id_t;
 	typedef node * val_t;
@@ -228,7 +228,7 @@ private:
 
 } // namespace bits
 
-class node_token {
+class TPIE_PUBLIC node_token {
 public:
 	typedef bits::node_map::id_t id_t;
 	typedef bits::node_map::val_t val_t;
