@@ -138,8 +138,9 @@ static bool array_test() {
 static bool truncate_test() {
 	typedef int test_t;
 	Stream<test_t> fs;
-	fs.file().open("tmp");
-	for (size_t i = 0; i < 1000000; ++i)
+	tpie::temp_file tempFile;
+	fs.file().open(tempFile);
+	for (size_t i = 0; i < 10000000; ++i)
 		fs.stream().write(42);
 	bool res = true;
 	try {
@@ -149,7 +150,12 @@ static bool truncate_test() {
 		res = false;
 	}
 	fs.close_stream();
+	tpie::stream_size_type tempFileUsage = tpie::get_temp_file_usage();
 	fs.file().truncate(42);
+	if (tempFileUsage <= tpie::get_temp_file_usage()) {
+		tpie::log_error() << "Temp file usage did not decrease from " << tempFileUsage << std::endl;
+		res = false;
+	}
 	for (size_t i = 0; i < 42; ++i) {
 		if (!fs.stream().can_read()) {
 			tpie::log_error() << "Cannot read item " << i << std::endl;
