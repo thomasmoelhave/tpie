@@ -72,6 +72,8 @@ public:
 		m_index = std::numeric_limits<memory_size_type>::max();
 		m_size = size;
 		m_fileAccessor->truncate(size);
+		if (m_tempFile)
+			m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 		seek(std::min(o, size));
 	}
 

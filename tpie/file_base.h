@@ -182,6 +182,8 @@ public:
 		}
 		m_size = s;
 		m_fileAccessor->truncate(s);
+		if (m_tempFile)
+			m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
