@@ -1199,6 +1199,26 @@ bool parallel_step_test() {
 	return true;
 }
 
+class virtual_cref_item_type_test_helper {
+public:
+	template <typename In, typename Expect>
+	class t {
+		typedef typename tpie::pipelining::bits::maybe_add_const_ref<In>::type Out;
+	public:
+		typedef typename boost::enable_if<boost::is_same<Out, Expect>, int>::type u;
+	};
+};
+
+bool virtual_cref_item_type_test() {
+	typedef virtual_cref_item_type_test_helper t;
+	typename t::t<int, const int &>::u t1 = 1;
+	typename t::t<int *, int *>::u t2 = 2;
+	typename t::t<int &, int &>::u t3 = 3;
+	typename t::t<const int *, const int *>::u t4 = 4;
+	typename t::t<const int &, const int &>::u t5 = 5;
+	return t1 + t2 + t3 + t4 + t5 > 0;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -1219,6 +1239,7 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
+	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
 	.test(prepare_test, "prepare")
 	.test(end_time::test, "end_time")
 	.test(pull_iterator_test, "pull_iterator")

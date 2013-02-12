@@ -40,7 +40,7 @@ add_unittest(serialization unsafe safe)
 add_unittest(stats simple)
 add_unittest(stream basic array odd truncate extend backwards array_file odd_file truncate_file extend_file backwards_file user_data user_data_file)
 add_unittest(stream_exception basic)
-add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple)
+add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual virtual_cref_item_type prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple)
 
 add_fulltest(ami_stream stress)
 add_fulltest(disjoint_set large large_cycle very_large medium ovelflow)
