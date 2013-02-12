@@ -59,7 +59,10 @@ class virtsrc_impl : public virtsrc<typename dest_t::item_type> {
 public:
 	typedef typename dest_t::item_type item_type;
 
+private:
 	dest_t dest;
+
+public:
 	virtsrc_impl(const dest_t & dest)
 		: dest(dest)
 	{
