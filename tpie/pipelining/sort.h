@@ -109,6 +109,17 @@ public:
 		return this->m_sorter->pull();
 	}
 
+	// Despite this go() implementation, a sort_pull_output_t CANNOT be used as
+	// an initiator node. Normally, it is a type error to have a phase without
+	// an initiator, but with a passive_sorter you can circumvent this
+	// mechanism. Thus we customize the error message printed (but throw the
+	// same type of exception.)
+	virtual void go() /*override*/ {
+		log_warning() << "Passive sorter used without an initiator in the final merge and output phase.\n"
+			<< "Define an initiator and pair it up with the pipe from passive_sorter::output()." << std::endl;
+		throw not_initiator_node();
+	}
+
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
 		node::set_available_memory(availableMemory);
