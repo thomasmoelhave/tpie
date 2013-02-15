@@ -181,16 +181,6 @@ struct counter {
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Given a serializable, serialize it and measure its serialized size.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-size_t serialized_size(const T & v) {
-	bits::counter c;
-	serialize(c, v);
-	return c.size;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Serialize an array of serializables.
 ///
 /// This uses direct memory copying for POD typed arrays, and tpie::serialize
@@ -254,6 +244,16 @@ void unserialize(S & src, std::basic_string<T> & v) {
 	tpie::unserialize(src, s);
 	v.resize(s);
 	tpie::unserialize(src, v.begin(), v.end());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Given a serializable, serialize it and measure its serialized size.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+size_t serialized_size(const T & v) {
+	bits::counter c;
+	serialize(c, v);
+	return c.size;
 }
 
 } // namespace tpie
