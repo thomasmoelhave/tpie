@@ -499,8 +499,18 @@ public:
 	template <typename ...TT>
 	inline void construct(T * p, TT &&...x) {a.construct(p, x...);}
 #else
+	#ifdef __clang__
+		//push the current warning state
+		#pragma clang diagnostic push
+		//disable warning about "rvalue references are a C++11 extension
+		#pragma clang diagnostic ignored "-Wc++11-extensions" 
+	#endif
 	template <typename TT>
 	inline void construct(T * p, TT && val) {a.construct(p, val);}
+	#ifdef __clang__
+		//restore the warning state
+		#pragma clang diagnostic pop
+	#endif
 #endif
 #endif
 	inline void construct(T * p) {
