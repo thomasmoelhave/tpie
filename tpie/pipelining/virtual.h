@@ -109,7 +109,6 @@ public:
 	}
 
 	void begin() {
-		tpie::log_info() << this << " begin " << m_virtdest << std::endl;
 		node::begin();
 		if (m_virtdest == 0) {
 			throw tpie::exception("No virtual destination");
