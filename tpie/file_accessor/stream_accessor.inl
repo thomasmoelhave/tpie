@@ -142,6 +142,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	m_itemSize=itemSize;
 	m_blockSize=blockSize;
 	m_blockItems=blockSize/itemSize;
+	m_userDataSize=0;
 	m_maxUserDataSize=maxUserDataSize;
 	m_size=0;
 	m_fileAccessor.set_cache_hint(cacheHint);
