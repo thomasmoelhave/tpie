@@ -389,7 +389,7 @@ public:
 	/// \brief Construct a copy of another array.
 	/// \param other The array to copy.
 	/////////////////////////////////////////////////////////
-	array(const array & other): m_elements(0), m_size(other.m_size) {
+	array(const array & other): m_elements(0), m_size(other.m_size), m_tss_used(false) {
 		if (other.size() == 0) return;
 		alloc_copy(other.m_elements);
 	}	
