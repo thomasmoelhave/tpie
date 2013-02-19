@@ -92,7 +92,7 @@ public:
 		add_dependency(pred);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		uhTmp = fetch<TP::temp_file *>("uhTmp");
 		lh = fetch<TP::stack<Pt> *>("lh");
 		uh = TP::tpie_new<TP::file_stream<Pt> >();
@@ -104,7 +104,7 @@ public:
 		forward<TP::stream_size_type>("items", items);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		while (uh->can_read()) {
 			dest.push(uh->read());
 			step();
@@ -115,7 +115,7 @@ public:
 		}
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		using TP::tpie_delete;
 		tpie_delete(lh);
 		tpie_delete(uh);
@@ -154,7 +154,7 @@ public:
 						   + 2*TP::stack<Pt>::memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		using TP::tpie_new;
 		uhTmp = tpie_new<TP::temp_file>();
 		uh = tpie_new<TP::stack<Pt> >(*uhTmp);
@@ -174,7 +174,7 @@ public:
 		}
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		TP::tpie_delete(uh);
 	}
 

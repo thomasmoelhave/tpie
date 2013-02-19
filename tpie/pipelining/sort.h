@@ -94,7 +94,7 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		this->set_steps(this->m_sorter->item_count());
 		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
@@ -114,14 +114,14 @@ public:
 	// an initiator, but with a passive_sorter you can circumvent this
 	// mechanism. Thus we customize the error message printed (but throw the
 	// same type of exception.)
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		log_warning() << "Passive sorter used without an initiator in the final merge and output phase.\n"
 			<< "Define an initiator and pair it up with the pipe from passive_sorter::output()." << std::endl;
 		throw not_initiator_node();
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
+	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
 		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
@@ -154,13 +154,13 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		this->set_steps(this->m_sorter->item_count());
 		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		while (this->m_sorter->can_pull()) {
 			dest.push(this->m_sorter->pull());
 			this->step();
@@ -168,7 +168,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
+	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
 		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
@@ -222,21 +222,21 @@ public:
 		set_memory_fraction(1.0);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		set_steps(1000);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
 		m_sorter->calc(*pi);
 	}
 
-	virtual bool can_evacuate() /*override*/ {
+	virtual bool can_evacuate() override {
 		return true;
 	}
 
-	virtual void evacuate() /*override*/ {
+	virtual void evacuate() override {
 		m_sorter->evacuate_before_reporting();
 	}
 
@@ -249,7 +249,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
+	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
 		m_sorter->set_phase_2_memory(availableMemory);
 	}
@@ -284,7 +284,7 @@ public:
 		set_memory_fraction(1.0);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		m_sorter->begin();
 	}
@@ -293,21 +293,21 @@ public:
 		m_sorter->push(item);
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		node::end();
 		m_sorter->end();
 	}
 
-	virtual bool can_evacuate() /*override*/ {
+	virtual bool can_evacuate() override {
 		return true;
 	}
 
-	virtual void evacuate() /*override*/ {
+	virtual void evacuate() override {
 		m_sorter->evacuate_before_merging();
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) /*override*/ {
+	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
 		m_sorter->set_phase_1_memory(availableMemory);
 	}

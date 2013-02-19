@@ -45,7 +45,7 @@ struct multiply_t : public node {
 		set_name("Multiply");
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		log_debug() << "multiply begin with memory " << this->get_available_memory() << std::endl;
 	}
@@ -257,13 +257,13 @@ struct sequence_generator : public node {
 		set_name("Generate integers", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		forward("items", static_cast<stream_size_type>(elements));
 		set_steps(elements);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		if (reverse) {
 			for (size_t i = elements; i > 0; --i) {
 				dest.push(i);
@@ -295,7 +295,7 @@ struct sequence_verifier : public node {
 		set_name("Verify integers", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		if (!can_fetch("items")) {
 			log_error() << "Sorter did not forward number of items" << std::endl;
 			bad = true;
@@ -312,7 +312,7 @@ struct sequence_verifier : public node {
 		++expect;
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		if (can_fetch("items")
 			&& static_cast<stream_size_type>(elements) != fetch<stream_size_type>("items")) {
 
@@ -414,12 +414,12 @@ public:
 		set_memory_fraction(settings.frac1);
 	}
 
-	virtual void set_available_memory(memory_size_type m) /*override*/ {
+	virtual void set_available_memory(memory_size_type m) override {
 		node::set_available_memory(m);
 		settings.assigned1 = m;
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 	}
 };
 
@@ -437,7 +437,7 @@ public:
 		set_memory_fraction(settings.frac2);
 	}
 
-	virtual void set_available_memory(memory_size_type m) /*override*/ {
+	virtual void set_available_memory(memory_size_type m) override {
 		node::set_available_memory(m);
 		settings.assigned2 = m;
 	}
@@ -600,13 +600,13 @@ struct FF1 : public node {
 		add_push_destination(dest);
 		set_name("FF1");
 	}
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		my_item i;
 		i.v1 = 1;
 		forward("my_item", i);
 	}
-	virtual void go() /*override*/ {
+	virtual void go() override {
 	}
 };
 
@@ -625,7 +625,7 @@ struct FF3 : public node {
 	FF3() {
 		set_name("FF3");
 	}
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		if (!can_fetch("my_item")) {
 			log_error() << "Cannot fetch my_item" << std::endl;
 			fetch_forward_result = false;
@@ -723,30 +723,30 @@ public:
 		set_name("Begin", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void prepare() /*override*/ {
+	virtual void prepare() override {
 		log_debug() << "Prepare 1" << std::endl;
 		r.prep1 = r.t++;
 		set_minimum_memory(r.memWanted1);
 		forward("t", r.t);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		log_debug() << "Begin 1" << std::endl;
 		r.begin1 = r.t++;
 		r.memGotten1 = get_available_memory();
 		forward("t", r.t);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		// We don't test go()/push() in this unit test.
 	}
 
-	virtual void set_available_memory(memory_size_type mem) /*override*/ {
+	virtual void set_available_memory(memory_size_type mem) override {
 		node::set_available_memory(mem);
 		log_debug() << "Begin memory " << mem << std::endl;
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		r.end1 = r.t++;
 	}
 };
@@ -771,7 +771,7 @@ public:
 		set_name("Middle", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void prepare() /*override*/ {
+	virtual void prepare() override {
 		log_debug() << "Prepare 2" << std::endl;
 		if (!can_fetch("t")) {
 			log_error() << "Couldn't fetch time variable in middle::prepare" << std::endl;
@@ -783,7 +783,7 @@ public:
 		forward("t", r.t);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		log_debug() << "Begin 2" << std::endl;
 		if (!can_fetch("t")) {
 			log_error() << "Couldn't fetch time variable in middle::begin" << std::endl;
@@ -795,7 +795,7 @@ public:
 		forward("t", r.t);
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		r.end2 = r.t++;
 	}
 };
@@ -816,7 +816,7 @@ public:
 		set_name("End", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void prepare() /*override*/ {
+	virtual void prepare() override {
 		log_debug() << "Prepare 3" << std::endl;
 		if (!can_fetch("t")) {
 			log_error() << "Couldn't fetch time variable in end::prepare" << std::endl;
@@ -827,7 +827,7 @@ public:
 		set_minimum_memory(r.memWanted3);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		log_debug() << "Begin 3" << std::endl;
 		if (!can_fetch("t")) {
 			log_error() << "Couldn't fetch time variable in end::begin" << std::endl;
@@ -838,7 +838,7 @@ public:
 		r.memGotten3 = get_available_memory();
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		r.end3 = r.t++;
 	}
 };
@@ -902,7 +902,7 @@ public:
 		set_name("Begin", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		r.end1 = r.t++;
 	}
 };
@@ -923,10 +923,10 @@ public:
 		set_name("End", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		r.end2 = r.t++;
 	}
 };
@@ -1042,7 +1042,7 @@ public:
 		set_name("Monotonic");
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		while (sum > chunkSize) {
 			dest.push(chunkSize);
 			sum -= chunkSize;
@@ -1132,12 +1132,12 @@ public:
 		add_push_destination(dest);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		forward<stream_size_type>("items", items);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		for (size_t i = 0; i < items; ++i) {
 			dest.push(item_type());
 		}
@@ -1162,7 +1162,7 @@ public:
 		add_push_destination(dest);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		if (!can_fetch("items")) throw tpie::exception("Cannot fetch items");
 		set_steps(fetch<stream_size_type>("items"));

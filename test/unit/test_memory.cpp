@@ -168,7 +168,7 @@ class memory_user : public tpie::job {
 public:
 	memory_user(size_t times, size_t capacity) : times(times), pointers(capacity) {}
 
-	virtual void operator()() /*override*/ {
+	virtual void operator()() override {
 		for (size_t i = 0; i < times; ++i) {
 			if (pointers.empty() ||
 				(!pointers.full() && urnd(rnd) <= (cos(static_cast<double>(i) * 60.0 / static_cast<double>(pointers.size())) + 1.0)/2.0)) {

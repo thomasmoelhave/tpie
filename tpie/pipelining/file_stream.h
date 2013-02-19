@@ -47,7 +47,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		if (fs.is_open()) {
 			forward("items", fs.size());
@@ -57,7 +57,7 @@ public:
 		set_steps(fs.size());
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		if (fs.is_open()) {
 			while (fs.can_read()) {
 				dest.push(fs.read());
@@ -86,7 +86,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		forward("items", fs.size());
 		set_steps(fs.size());
 	}
@@ -141,7 +141,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		source.begin();
 		while (source.can_pull()) {
 			fs.write(source.pull());
