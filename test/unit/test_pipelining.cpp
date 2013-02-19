@@ -1018,7 +1018,7 @@ bool parallel_test(size_t modulo) {
 bool parallel_ordered_test(size_t modulo) {
 	bool result = false;
 	pipeline p = make_pipe_begin_2<sequence_generator>(modulo-1, false)
-		| parallel(multiplicative_inverter(modulo) | multiplicative_inverter(modulo), true)
+		| parallel(multiplicative_inverter(modulo) | multiplicative_inverter(modulo), maintain_order)
 		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);
