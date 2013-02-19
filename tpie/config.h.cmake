@@ -33,6 +33,11 @@
 
 #cmakedefine TPIE_CPP_VARIADIC_TEMPLATES
 #cmakedefine TPIE_CPP_RVALUE_REFERENCE
+#cmakedefine TPIE_CPP_OVERRIDE_KEYWORD
+
+#ifndef TPIE_CPP_OVERRIDE_KEYWORD
+	#define override
+#endif
 
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings
