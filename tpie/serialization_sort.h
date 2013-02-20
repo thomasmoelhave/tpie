@@ -34,6 +34,28 @@
 
 namespace tpie {
 
+struct serialization_sort_parameters {
+	/** Memory available while forming sorted runs. */
+	memory_size_type memoryPhase1;
+	/** Memory available while merging runs. */
+	memory_size_type memoryPhase2;
+	/** Memory available during output phase. */
+	memory_size_type memoryPhase3;
+	/** Minimum size of serialized items. */
+	memory_size_type minimumItemSize;
+	/** Directory in which temporary files are stored. */
+	std::string tempDir;
+
+	void dump(std::ostream & out) const {
+		out << "Serialization merge sort parameters\n"
+			<< "Phase 1 memory:              " << memoryPhase1 << '\n'
+			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
+			<< "Phase 3 memory:              " << memoryPhase3 << '\n'
+			<< "Minimum item size:           " << minimumItemSize << '\n'
+			<< "Temporary directory:         " << tempDir << '\n';
+	}
+};
+
 template <typename T, typename pred_t>
 class serialization_internal_sort {
 	array<T> m_buffer;
@@ -141,33 +163,44 @@ public:
 
 template <typename T, typename pred_t>
 class serialization_sort {
+public:
+	typedef boost::shared_ptr<serialization_sort> ptr;
+
+private:
+	enum sorter_state { state_initial, state_1, state_2, state_3 };
+
+	sorter_state m_state;
 	serialization_internal_sort<T, pred_t> m_sorter;
 	memory_size_type m_sortedRunsCount;
 	memory_size_type m_sortedRunsOffset;
-	memory_size_type m_memAvail;
-	memory_size_type m_runSize;
-	memory_size_type m_minimumItemSize;
+	serialization_sort_parameters m_params;
+	bool m_parametersSet;
 	serialization_reader m_reader;
 	bool m_open;
 	pred_t m_pred;
 
+	stream_size_type m_items;
+
 	memory_size_type m_firstFileUsed;
 	memory_size_type m_lastFileUsed;
 
-	std::string m_tempDir;
-
 public:
-	serialization_sort(memory_size_type memAvail, memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
-		: m_sorter(pred)
+	serialization_sort(memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
+		: m_state(state_initial)
+		, m_sorter(pred)
 		, m_sortedRunsCount(0)
 		, m_sortedRunsOffset(0)
-		, m_memAvail(memAvail)
-		, m_minimumItemSize(minimumItemSize)
+		, m_parametersSet(false)
 		, m_open(false)
 		, m_pred(pred)
+		, m_items(0)
 		, m_firstFileUsed(0)
 		, m_lastFileUsed(0)
 	{
+		m_params.memoryPhase1 = 0;
+		m_params.memoryPhase2 = 0;
+		m_params.memoryPhase3 = 0;
+		m_params.minimumItemSize = minimumItemSize;
 	}
 
 	~serialization_sort() {
@@ -186,29 +219,142 @@ public:
 		}
 	}
 
-	void calc_sorter_params(memory_size_type memAvail) {
-		if (memAvail <= serialization_writer::memory_usage()) {
-			log_error() << "Not enough memory for run formation; have " << memAvail
+private:
+	// set_phase_?_memory helper
+	inline void maybe_calculate_parameters() {
+		if (m_state != state_initial)
+			throw tpie::exception("Bad state in maybe_calculate_parameters");
+		if (m_params.memoryPhase1 > 0 &&
+			m_params.memoryPhase2 > 0 &&
+			m_params.memoryPhase3 > 0)
+
+			calculate_parameters();
+	}
+
+public:
+	void set_phase_1_memory(memory_size_type m1) {
+		m_params.memoryPhase1 = m1;
+		maybe_calculate_parameters();
+	}
+
+	void set_phase_2_memory(memory_size_type m2) {
+		m_params.memoryPhase2 = m2;
+		maybe_calculate_parameters();
+	}
+
+	void set_phase_3_memory(memory_size_type m3) {
+		m_params.memoryPhase3 = m3;
+		maybe_calculate_parameters();
+	}
+
+	void set_available_memory(memory_size_type m) {
+		set_phase_1_memory(m);
+		set_phase_2_memory(m);
+		set_phase_3_memory(m);
+	}
+
+	static memory_size_type minimum_memory_phase_1() {
+		return serialization_writer::memory_usage()*2;
+	}
+
+	static memory_size_type minimum_memory_phase_2() {
+		return serialization_writer::memory_usage()
+			+ 2*serialization_reader::memory_usage();
+	}
+
+	static memory_size_type minimum_memory_phase_3() {
+		return 2*serialization_reader::memory_usage();
+	}
+
+private:
+	void calculate_parameters() {
+		if (m_state != state_initial)
+			throw tpie::exception("Bad state in calculate_parameters");
+
+		memory_size_type memAvail1 = m_params.memoryPhase1;
+		if (memAvail1 <= serialization_writer::memory_usage()) {
+			log_error() << "Not enough memory for run formation; have " << memAvail1
 				<< " bytes but " << serialization_writer::memory_usage()
 				<< " is required for writing a run." << std::endl;
 			throw exception("Not enough memory for run formation");
 		}
-		memAvail -= serialization_writer::memory_usage();
 
-		m_sorter.begin(memAvail);
+		memory_size_type memAvail2 = m_params.memoryPhase2;
+
+		// We have to keep a writer open no matter what.
+		if (memAvail2 <= serialization_writer::memory_usage()) {
+			log_error() << "Not enough memory for merging. "
+				<< "mem avail = " << memAvail2
+				<< ", writer usage = " << serialization_writer::memory_usage()
+				<< std::endl;
+			throw exception("Not enough memory for merging.");
+		}
+
+		memory_size_type memAvail3 = m_params.memoryPhase3;
+
+		// We have to keep a writer open no matter what.
+		if (memAvail2 <= serialization_writer::memory_usage()) {
+			log_error() << "Not enough memory for outputting. "
+				<< "mem avail = " << memAvail3
+				<< ", writer usage = " << serialization_writer::memory_usage()
+				<< std::endl;
+			throw exception("Not enough memory for outputting.");
+		}
+
+		memory_size_type memForMerge = std::min(memAvail2, memAvail3);
+
+		// We do not yet know the serialized size of the largest item,
+		// so this calculation has to be redone.
+		// Instead, we assume that all items have minimum size.
+
+		// We have to keep a writer open no matter what.
+		memory_size_type fanoutMemory = memForMerge - serialization_writer::memory_usage();
+
+		// This is a lower bound on the memory used per fanout.
+		memory_size_type perFanout = m_params.minimumItemSize + serialization_reader::memory_usage();
+
+		// Floored division to compute the largest possible fanout.
+		memory_size_type fanout = fanoutMemory / perFanout;
+		if (fanout < 2) {
+			log_error() << "Not enough memory for merging, even when minimum item size is assumed. "
+				<< "mem avail = " << memForMerge
+				<< ", fanout memory = " << fanoutMemory
+				<< ", per fanout >= " << perFanout
+				<< std::endl;
+			throw exception("Not enough memory for merging.");
+		}
+
+		m_params.tempDir = tempname::tpie_dir_name();
+
+		log_info() << "Calculated serialization_sort parameters.\n";
+		m_params.dump(log_info());
+		log_info() << std::flush;
+
+		m_parametersSet = true;
 	}
 
+public:
 	void begin() {
+		if (!m_parametersSet)
+			throw tpie::exception("Parameters not set in serialization_sorter");
+		if (m_state != state_initial)
+			throw tpie::exception("Bad state in begin");
+		m_state = state_1;
+
 		log_info() << "Before begin; mem usage = "
 			<< get_memory_manager().used() << std::endl;
-		calc_sorter_params(m_memAvail);
+		m_sorter.begin(m_params.memoryPhase1 - serialization_writer::memory_usage());
 		log_info() << "After internal sorter begin; mem usage = "
 			<< get_memory_manager().used() << std::endl;
-		m_tempDir = tempname::tpie_dir_name();
-		boost::filesystem::create_directory(m_tempDir);
+		boost::filesystem::create_directory(m_params.tempDir);
 	}
 
 	void push(const T & item) {
+		if (m_state != state_1)
+			throw tpie::exception("Bad state in push");
+
+		++m_items;
+
 		if (m_sorter.push(item)) return;
 		end_run();
 		if (!m_sorter.push(item)) {
@@ -217,33 +363,57 @@ public:
 	}
 
 	void end() {
+		if (m_state != state_1)
+			throw tpie::exception("Bad state in end");
+
 		end_run();
 		m_sorter.end();
 		log_info() << "After internal sorter end; mem usage = "
 			<< get_memory_manager().used() << std::endl;
+
+		m_state = state_2;
+	}
+
+	stream_size_type item_count() {
+		return m_items;
+	}
+
+	void evacuate_before_merging() {
+		throw tpie::exception("evacuate_before_merging not implemented yet");
+	}
+
+	void evacuate_before_reporting() {
+		throw tpie::exception("evacuate_before_reporting not implemented yet");
+	}
+
+	void merge_runs() {
+		if (m_state != state_2)
+			throw tpie::exception("Bad state in end");
+
 		memory_size_type largestItem = m_sorter.get_largest_item_size();
 		if (largestItem == 0) {
 			log_warning() << "Largest item is 0 bytes; doing nothing." << std::endl;
+			m_state = state_3;
 			return;
 		}
-		if (m_memAvail <= serialization_writer::memory_usage()) {
-			log_error() << "Not enough memory for merging. "
-				<< "mem avail = " << m_memAvail
-				<< ", writer usage = " << serialization_writer::memory_usage()
-				<< std::endl;
+
+		if (m_params.memoryPhase2 <= serialization_writer::memory_usage())
 			throw exception("Not enough memory for merging.");
-		}
+
+		// Perform almost the same computation as in calculate_parameters.
+		// Only change the item size to largestItem rather than minimumItemSize.
+		memory_size_type fanoutMemory = m_params.memoryPhase2 - serialization_writer::memory_usage();
 		memory_size_type perFanout = largestItem + serialization_reader::memory_usage();
-		memory_size_type fanoutMemory = m_memAvail - serialization_writer::memory_usage();
 		memory_size_type fanout = fanoutMemory / perFanout;
 		if (fanout < 2) {
 			log_error() << "Not enough memory for merging. "
-				<< "mem avail = " << m_memAvail
+				<< "mem avail = " << m_params.memoryPhase2
 				<< ", fanout memory = " << fanoutMemory
 				<< ", per fanout = " << perFanout
 				<< std::endl;
 			throw exception("Not enough memory for merging.");
 		}
+
 		while (m_sortedRunsCount > 1) {
 			memory_size_type newCount = 0;
 			for (size_t i = 0; i < m_sortedRunsCount; i += fanout, ++newCount) {
@@ -254,12 +424,13 @@ public:
 			m_sortedRunsOffset += m_sortedRunsCount;
 			m_sortedRunsCount = newCount;
 		}
+		m_state = state_3;
 	}
 
 private:
 	std::string sorted_run_path(memory_size_type idx) {
 		std::stringstream ss;
-		ss << m_tempDir << '/' << (m_sortedRunsOffset + idx) << ".tpie";
+		ss << m_params.tempDir << '/' << (m_sortedRunsOffset + idx) << ".tpie";
 		return ss.str();
 	}
 
