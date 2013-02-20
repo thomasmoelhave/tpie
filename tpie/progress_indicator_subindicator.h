@@ -56,7 +56,7 @@ protected:
 	progress_indicator_base * m_parent;
 	stream_size_type m_outerRange;
 	stream_size_type m_oldValue;
-	char m_crumb[40];
+	std::string m_crumb;
 	description_importance m_importance;
 #ifndef TPIE_NDEBUG
 	bool m_init_called;

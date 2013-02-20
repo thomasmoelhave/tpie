@@ -62,12 +62,10 @@ void progress_indicator_subindicator::setup(progress_indicator_base * parent,
 	m_init_called = false;
 	m_done_called = false;
 #endif
-	if (crumb == 0) 
-		m_crumb[0] = 0;
-	else {
-		strncpy(m_crumb, crumb, 39);
-		m_crumb[39] = 0;
-	}
+	if (crumb == 0)
+		m_crumb = "";
+	else
+		m_crumb = crumb;
 }
 
 
@@ -101,7 +99,7 @@ void progress_indicator_subindicator::init(stream_size_type range) {
 	softassert(!m_init_called && "Init called twice");
 	m_init_called=true;
 #endif
-	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb, IMPORTANCE_MAJOR);
+	if (!m_crumb.empty() && m_parent) m_parent->push_breadcrumb(m_crumb.c_str(), IMPORTANCE_MAJOR);
 	progress_indicator_base::init(range);
 }
 
@@ -111,7 +109,7 @@ void progress_indicator_subindicator::done() {
 	softassert(!m_done_called);
 	m_done_called=true;
 #endif
-	if (m_crumb[0] && m_parent) m_parent->pop_breadcrumb();
+	if (!m_crumb.empty() && m_parent) m_parent->pop_breadcrumb();
 	progress_indicator_base::done();
 	m_current = m_range; 
 	refresh();
