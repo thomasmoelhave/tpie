@@ -123,6 +123,13 @@ void finish_job() {
 	the_job_manager = 0;
 }
 
+job::job()
+	: m_dependencies(0)
+	, m_parent(0)
+	, m_state(job_idle)
+{
+}
+
 void job::join() {
 	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
 	while (m_dependencies) {
@@ -136,10 +143,15 @@ bool job::is_done() {
 }
 
 void job::enqueue(job * parent) {
+	if (m_state != job_idle)
+		throw tpie::exception("Bad job state");
+
+	m_state = job_enqueued;
+
 	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
 	if (the_job_manager->m_kill_job_pool) throw job_manager_exception();
 	m_parent = parent;
-	tp_assert(m_dependencies == 1, "");
+	m_dependencies = 1;
 	if (m_parent) ++m_parent->m_dependencies;
 	if (the_job_manager->m_jobs.full()) {
 		lock.unlock();
@@ -151,14 +163,25 @@ void job::enqueue(job * parent) {
 }
 
 void job::run() {
+	if (m_state != job_enqueued)
+		throw tpie::exception("Bad job state");
+
+	m_state = job_running;
+
 	(*this)();
 	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
 	done();
 }
 
 void job::done() {
+	if (m_state != job_running)
+		throw tpie::exception("Bad job state");
+
 	--m_dependencies;
 	if (m_dependencies) return;
+
+	m_state = job_idle;
+
 	if (m_parent) m_parent->done();
 	m_done.notify_all();
 	on_done();
