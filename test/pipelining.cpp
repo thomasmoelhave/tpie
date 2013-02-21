@@ -93,7 +93,7 @@ public:
 		set_steps(nodes);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		static boost::mt19937 mt;
 		static boost::uniform_int<> dist(0, nodes-1);
 		dest.begin();
@@ -130,7 +130,7 @@ public:
 		set_name("Count items");
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		tpie::auto_ptr< ::node> buf(0);
 		while (byid.can_pull()) {
 			node_output cur = byid.pull();
@@ -209,11 +209,11 @@ public:
 		set_name("Output");
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		TP::log_info() << "Begin output" << std::endl;
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		TP::log_info() << "End output" << std::endl;
 		TP::log_info() << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
 	}

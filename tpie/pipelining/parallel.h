@@ -230,7 +230,7 @@ protected:
 		{
 		}
 
-		virtual void init_node(node & r) /*override*/ {
+		virtual void init_node(node & r) override {
 			r.set_progress_indicator(t->m_progressIndicators.get(index));
 		}
 
@@ -669,7 +669,7 @@ protected:
 public:
 	typedef T item_type;
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		boost::thread t(run_worker, this);
 		m_worker.swap(t);
@@ -832,7 +832,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push all items from output buffer to the rest of the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void consume(array_view<item_type> a) /*override*/ {
+	virtual void consume(array_view<item_type> a) override {
 		for (size_t i = 0; i < a.size(); ++i) {
 			dest.push(a[i]);
 		}
@@ -988,7 +988,7 @@ public:
 		}
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		inputBuffer.resize(st->opts.bufSize);
 	}
@@ -1067,7 +1067,7 @@ private:
 	}
 
 public:
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		state_base::lock_t lock(st->mutex);
 
 		flush_steps();

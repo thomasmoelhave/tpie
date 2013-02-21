@@ -41,7 +41,7 @@ public:
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		int in;
 		while (scanf("%d", &in) == 1) {
 			dest.push(in);

@@ -40,11 +40,11 @@ public:
 		add_push_destination(dest);
 		set_name("Log", PRIORITY_INSIGNIFICANT);
 	}
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		begun = true;
 	}
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		node::end();
 		ended = true;
 	}
@@ -269,7 +269,7 @@ public:
 			add_push_destination(dest);
 		}
 
-		virtual void go() /*override*/ {
+		virtual void go() override {
 			while (i != till) {
 				dest.push(*i);
 				++i;
@@ -331,7 +331,7 @@ public:
 			add_pull_destination(dest);
 		}
 
-		virtual void go() /*override*/ {
+		virtual void go() override {
 			while (dest.can_pull()) {
 				*i = dest.pull();
 				++i;

@@ -70,7 +70,7 @@ public:
 			set_name("Output reversed items", PRIORITY_INSIGNIFICANT);
 		}
 
-		virtual void begin() /*override*/ {
+		virtual void begin() override {
 			forward("items", static_cast<stream_size_type>(buffer.size()));
 		}
 
@@ -125,7 +125,7 @@ public:
 		set_minimum_memory(this->the_stack->memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		the_stack = tpie_new<stack<item_type> >();
 		forward("stack", the_stack);
@@ -152,20 +152,20 @@ public:
 		set_minimum_memory(this->the_stack->memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		the_stack = fetch<stack<item_type> *>("stack");
 		forward("items", the_stack->size());
 		set_steps(the_stack->size());
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		while (!the_stack->empty()) {
 			dest.push(the_stack->pop());
 			step();
 		}
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		tpie_delete(the_stack);
 	}
 

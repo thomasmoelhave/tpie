@@ -45,7 +45,7 @@ public:
 		set_name("Count consecutive", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		node::end();
 		flush();
 	}

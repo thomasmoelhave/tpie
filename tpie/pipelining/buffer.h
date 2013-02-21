@@ -49,7 +49,7 @@ public:
 		set_minimum_memory(queue.memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		queue.open();
 	}
@@ -80,7 +80,7 @@ public:
 		set_minimum_memory(queue.memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		queue.seek(0);
 		forward("items", queue.size());
@@ -94,7 +94,7 @@ public:
 		return queue.read();
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		queue.close();
 	}
 };
@@ -114,7 +114,7 @@ public:
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		m_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
 		m_queue->open();
@@ -146,13 +146,13 @@ public:
 		set_name("Fetching items", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		m_queue = fetch<tpie::file_stream<item_type> *>("queue");
 		forward("items", m_queue->size());
 		set_steps(m_queue->size());
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		m_queue->seek(0);
 		while (m_queue->can_read()) {
 			dest.push(m_queue->read());
@@ -160,7 +160,7 @@ public:
 		}
 	}
 
-	virtual void end() /*override*/ {
+	virtual void end() override {
 		tpie::tpie_delete(m_queue);
 	}
 

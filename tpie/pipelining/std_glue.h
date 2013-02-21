@@ -42,13 +42,13 @@ public:
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() /*override*/ {
+	virtual void begin() override {
 		node::begin();
 		forward("items", static_cast<stream_size_type>(input.size()));
 		set_steps(input.size());
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		typedef typename std::vector<item_type>::const_iterator IT;
 		for (IT i = input.begin(); i != input.end(); ++i) {
 			dest.push(*i);
