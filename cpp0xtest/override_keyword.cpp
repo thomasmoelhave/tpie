@@ -9,4 +9,4 @@ public:
 	void foo() override;
 };
 
-int main() {}
+int main() { return 0; }
