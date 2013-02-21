@@ -41,14 +41,46 @@ public:
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief The maybe_add_const_ref helper struct adds const & to a type unless
+/// the type is already const, reference or pointer type.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct maybe_add_const_ref {
+	typedef const T & type;
+};
+
+template <typename T>
+struct maybe_add_const_ref<const T &> {
+	typedef const T & type;
+};
+
+template <typename T>
+struct maybe_add_const_ref<const T *> {
+	typedef const T * type;
+};
+
+template <typename T>
+struct maybe_add_const_ref<T &> {
+	typedef T & type;
+};
+
+template <typename T>
+struct maybe_add_const_ref<T *> {
+	typedef T * type;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Virtual base node that is injected into the beginning of a
-/// virtual chunk.
+/// virtual chunk. For efficiency, the push method accepts a const reference
+/// type unless the item type is already const/ref/pointer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input>
 class virtsrc : public node {
+	typedef typename maybe_add_const_ref<Input>::type input_type;
+
 public:
 	virtual const node_token & get_token() = 0;
-	virtual void push(Input v) = 0;
+	virtual void push(input_type v) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,6 +92,7 @@ public:
 	typedef typename dest_t::item_type item_type;
 
 private:
+	typedef typename maybe_add_const_ref<item_type>::type input_type;
 	dest_t dest;
 
 public:
@@ -74,7 +107,7 @@ public:
 		return node::get_token();
 	}
 
-	void push(item_type v) {
+	void push(input_type v) {
 		dest.push(v);
 	}
 };
@@ -115,7 +148,7 @@ public:
 		}
 	}
 
-	void push(Output v) {
+	void push(typename maybe_add_const_ref<Output>::type v) {
 		m_virtdest->push(v);
 	}
 
