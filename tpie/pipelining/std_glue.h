@@ -60,12 +60,12 @@ private:
 	const std::vector<item_type> & input;
 };
 
-template <typename T>
+template <typename T, typename allocator_t = std::allocator<T> >
 class output_vector_t : public node {
 public:
 	typedef T item_type;
 
-	inline output_vector_t(std::vector<T> & output) : output(output) {
+	inline output_vector_t(std::vector<T, allocator_t> & output) : output(output) {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
@@ -73,7 +73,7 @@ public:
 		output.push_back(item);
 	}
 private:
-	std::vector<item_type> & output;
+	std::vector<item_type, allocator_t> & output;
 };
 
 } // namespace bits
@@ -83,9 +83,9 @@ inline pipe_begin<factory_1<bits::input_vector_t, const std::vector<T> &> > inpu
 	return factory_1<bits::input_vector_t, const std::vector<T> &>(input);
 }
 
-template <typename T>
-inline pipe_end<termfactory_1<bits::output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
-	return termfactory_1<bits::output_vector_t<T>, std::vector<T> &>(output);
+template <typename T, typename allocator_t = std::allocator<T> >
+inline pipe_end<termfactory_1<bits::output_vector_t<T>, std::vector<T, allocator_t> &> > output_vector(std::vector<T, allocator_t> & output) {
+	return termfactory_1<bits::output_vector_t<T,allocator_t>, std::vector<T,allocator_t> &>(output);
 }
 
 } // namespace pipelining
