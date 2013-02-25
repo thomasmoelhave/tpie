@@ -202,6 +202,89 @@ bool stress_test() {
 	return false;
 }
 
+template <size_t fields>
+struct padded_item {
+	padded_item<fields-1> rest;
+
+	int n;
+
+	bool operator<(const padded_item<fields> & other) const {
+		return n < other.n;
+	}
+
+	bool operator>(const padded_item<fields> & other) const {
+		return n > other.n;
+	}
+};
+
+template <>
+struct padded_item<0> {
+	int n;
+
+	bool operator<(const padded_item<0> & other) const {
+		return n < other.n;
+	}
+
+	bool operator>(const padded_item<0> & other) const {
+		return n > other.n;
+	}
+};
+
+template <typename item>
+bool large_item_test(size_t mb) {
+	size_t items = mb*1024*1024 / sizeof(item);
+	boost::rand48 prng(42);
+	tpie::log_info() << "Generating array of " << items << " items, each size " << sizeof(item) << std::endl;
+	std::vector<item> arr(items);
+	for (size_t i = 0; i < items; ++i) {
+		arr[i].n = prng();
+	}
+	tpie::log_info() << "Invoke TPIE parallel sort" << std::endl;
+	tpie::parallel_sort(arr.begin(), arr.end(), std::less<item>());
+	tpie::log_info() << "Check that array is sorted" << std::endl;
+	if (std::adjacent_find(arr.begin(), arr.end(), std::greater<item>()) != arr.end()) {
+		tpie::log_error() << "Array not sorted" << std::endl;
+		return false;
+	} else {
+		return true;
+	}
+}
+
+template <size_t lo, size_t hi>
+struct large_item_test_helper {
+	static bool go(size_t mb, size_t itemSize) {
+		if (itemSize == sizeof(padded_item<lo>)) {
+			return large_item_test<padded_item<lo> >(mb);
+		} else {
+			return large_item_test_helper<lo+1, hi>::go(mb, itemSize);
+		}
+	}
+};
+
+template <size_t lo>
+struct large_item_test_helper<lo, lo> {
+	static bool go(size_t mb, size_t itemSize) {
+		if (itemSize != sizeof(padded_item<lo>)) {
+			tpie::log_warning() << "Item size too large; using " << sizeof(padded_item<lo>) << " instead." << std::endl;
+		}
+		return large_item_test<padded_item<lo> >(mb);
+	}
+};
+
+bool large_item_test_chooser(size_t mb, size_t itemSize) {
+	if (itemSize % sizeof(int) != 0) {
+		itemSize -= itemSize % sizeof(int);
+		if (itemSize >= sizeof(padded_item<0>)) {
+			tpie::log_warning() << "Item size not a multiple of sizeof(int); using " << itemSize << " instead" << std::endl;
+		}
+	}
+	if (itemSize < sizeof(padded_item<0>)) {
+		itemSize = sizeof(padded_item<0>);
+		tpie::log_warning() << "Item size too small; using " << itemSize << " instead" << std::endl;
+	}
+	return large_item_test_helper<0, 8>::go(mb, itemSize);
+}
+
 template <size_t stdsort_limit>
 struct sort_tester {
 	bool operator()(size_t n) {
@@ -219,5 +302,7 @@ int main(int argc, char **argv) {
 		.test(adversarial<make_equal_elements_data>(), "equal_elements", "n", 1234567, "seconds", 1.0)
 		.test(bad_case, "bad_case", "n", 1024*1024, "seconds", 1.0)
 		.test(adversarial<make_random_data>(), "general2", "n", 1024*1024, "seconds", 1.0)
-		.test(stress_test, "stress_test");
+		.test(stress_test, "stress_test")
+		.test(large_item_test_chooser, "large_item", "mb", static_cast<size_t>(2048), "item-size", static_cast<size_t>(32))
+		;
 }
