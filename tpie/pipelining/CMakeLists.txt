@@ -6,6 +6,7 @@ set (PIPE_HEADERS
 	file_stream.h
 	graph.h
 	helpers.h
+	maintain_order_type.h
 	merge.h
 	merge_sorter.h
 	merger.h

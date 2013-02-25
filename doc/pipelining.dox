@@ -437,7 +437,7 @@ For CPU intensive computations in which the function of one item does not
 depend on the previous item such as point projection, one simply wraps the part of the pipeline to be parallelized in a call to \c parallel() as such:
 
 \code
-bool maintainOrder = false;
+maintain_order_type maintainOrder = arbitrary_order; // or maintain_order
 size_t numJobs = 4;
 size_t bufSize = 1024;
 
