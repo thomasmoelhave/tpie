@@ -323,7 +323,7 @@ public:
 	/// been pushed.
 	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void flush_buffer(bool complete) = 0;
+	virtual void flush_buffer() = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -574,10 +574,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Invoked by before::push_all when all input items have been
 	/// pushed.
-	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void flush_buffer(bool complete) {
-		flush_buffer_impl(complete);
+	virtual void flush_buffer() override {
+		flush_buffer_impl(true);
 	}
 
 private:
@@ -600,9 +599,28 @@ private:
 		throw std::runtime_error("Unknown state");
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Send a signal to the main thread that the output buffer must
+	/// be emptied.
+	///
+	/// If this is in response to a full output buffer before the input buffer
+	/// has been processed, `complete == false`. In this case, we transition
+	/// to PARTIAL_OUTPUT and the main thread will transition us to PROCESSING
+	/// after consuming our output buffer.
+	///
+	/// If this is in response to an empty input buffer, `complete == true`,
+	/// and we transition to OUTPUTTING and the main thread will transition us
+	/// to IDLE.
+	///
+	/// \param  complete  Whether the entire input has been processed.
+	///////////////////////////////////////////////////////////////////////////
 	void flush_buffer_impl(bool complete) {
-		if (m_buffer->m_outputSize == 0)
-			return;
+		// At this point, we could check if the output buffer is empty and
+		// short-circuit when it is without acquiring the lock; however, we
+		// must do a full PROCESSING -> OUTPUTTING -> IDLE transition in this
+		// case to let the main thread know that we are done processing the
+		// input.
+
 		lock_t lock(st.mutex);
 		st.transition_state(parId, PROCESSING, complete ? OUTPUTTING : PARTIAL_OUTPUT);
 		// notify producer that output is ready
@@ -771,7 +789,7 @@ public:
 		}
 
 		// virtual invocation
-		this->st.output(this->parId).flush_buffer(true);
+		this->st.output(this->parId).flush_buffer();
 	}
 };
 
