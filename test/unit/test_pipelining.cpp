@@ -1158,6 +1158,63 @@ bool parallel_multiple_test() {
 }
 
 template <typename dest_t>
+class buffering_accumulator_type : public node {
+	dest_t dest;
+	test_t inputs;
+
+public:
+	static const test_t bufferSize = 8;
+
+	typedef test_t item_type;
+
+	buffering_accumulator_type(dest_t dest)
+		: dest(dest)
+		, inputs(0)
+	{
+		add_push_destination(dest);
+	}
+
+	void push(test_t item) {
+		inputs += item;
+		if (inputs >= bufferSize) flush_buffer();
+	}
+
+	virtual void end() override {
+		if (inputs > 0) flush_buffer();
+	}
+
+private:
+	void flush_buffer() {
+		while (inputs > 0) {
+			dest.push(1);
+			--inputs;
+		}
+	}
+};
+
+pipe_middle<factory_0<buffering_accumulator_type> >
+buffering_accumulator() {
+	return factory_0<buffering_accumulator_type>();
+}
+
+bool parallel_own_buffer_test() {
+	test_t sumInput = 64;
+	test_t sumOutput = 0;
+	pipeline p =
+		monotonic(sumInput, 1)
+		| parallel(buffering_accumulator(), arbitrary_order, 1, 2)
+		| summer(sumOutput);
+	p.plot();
+	p();
+	if (sumInput != sumOutput) {
+		log_error() << "Expected sum " << sumInput << ", got " << sumOutput << std::endl;
+		return false;
+	} else {
+		return true;
+	}
+}
+
+template <typename dest_t>
 class step_begin_type : public node {
 	dest_t dest;
 	static const size_t items = 256*1024*1024;
@@ -1288,5 +1345,6 @@ int main(int argc, char ** argv) {
 	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(20011))
 	.test(parallel_step_test, "parallel_step")
 	.test(parallel_multiple_test, "parallel_multiple")
+	.test(parallel_own_buffer_test, "parallel_own_buffer")
 	;
 }
