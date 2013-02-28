@@ -76,6 +76,50 @@ private:
 	std::vector<item_type> & output;
 };
 
+template <typename F>
+class lambda_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	public:
+		typedef typename F::argument_type item_type;
+		
+		type(const dest_t & dest, const F & f): f(f), dest(dest) {
+			set_name("Lambda", PRIORITY_INSIGNIFICANT);
+		}
+		
+		void push(const item_type & item) {
+			dest.push(f(item));
+		}
+	private:
+		F f;
+		dest_t dest;
+	};
+};
+
+template <typename F>
+class exclude_lambda_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	public:
+		typedef typename F::argument_type item_type;
+		
+		type(const dest_t & dest, const F & f): f(f), dest(dest) {
+			set_name("Lambda", PRIORITY_INSIGNIFICANT);
+		}
+		
+		void push(const item_type & item) {
+			typename F::result_type t=f(item);
+			if (t.second) dest.push(t.first);
+		}
+	private:
+		F f;
+		dest_t dest;
+	};
+};
+
+
 } // namespace bits
 
 template<typename T>
@@ -87,6 +131,17 @@ template <typename T>
 inline pipe_end<termfactory_1<bits::output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
 	return termfactory_1<bits::output_vector_t<T>, std::vector<T> &>(output);
 }
+
+template <typename F>
+inline pipe_middle<tempfactory_1<bits::lambda_t<F>, F> > lambda(const F & f) {
+	return tempfactory_1<bits::lambda_t<F>, F>(f);
+}
+
+template <typename F>
+inline pipe_middle<tempfactory_1<bits::exclude_lambda_t<F>, F> > exclude_lambda(const F & f) {
+	return tempfactory_1<bits::exclude_lambda_t<F>, F>(f);
+}
+
 
 } // namespace pipelining
 
