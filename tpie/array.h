@@ -90,11 +90,7 @@ namespace bits {
 /// This is almost the same as a real C-style T array but the memory management
 /// is better.
 ///
-/// Do not instantiate this class directly. Instead, use tpie::array or
-/// tpie::segmented_array.
-///
 /// \tparam T The type of element to contain.
-/// \tparam segmented Whether to use segmented arrays.
 /// \tparam alloc_t Allocator.
 ///////////////////////////////////////////////////////////////////////////////
 // ASIDE about the C++ language: A type is said to be trivially constructible
