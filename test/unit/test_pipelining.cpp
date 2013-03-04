@@ -1307,11 +1307,11 @@ public:
 
 bool virtual_cref_item_type_test() {
 	typedef virtual_cref_item_type_test_helper t;
-	typename t::t<int, const int &>::u t1 = 1;
-	typename t::t<int *, int *>::u t2 = 2;
-	typename t::t<int &, int &>::u t3 = 3;
-	typename t::t<const int *, const int *>::u t4 = 4;
-	typename t::t<const int &, const int &>::u t5 = 5;
+	t::t<int, const int &>::u t1 = 1;
+	t::t<int *, int *>::u t2 = 2;
+	t::t<int &, int &>::u t3 = 3;
+	t::t<const int *, const int *>::u t4 = 4;
+	t::t<const int &, const int &>::u t5 = 5;
 	return t1 + t2 + t3 + t4 + t5 > 0;
 }
 
