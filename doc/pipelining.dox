@@ -362,19 +362,19 @@ url.empty().
    Furthermore, the constructor and/or \c prepare() may call the following:
    - \c set_memory_fraction
    - \c set_minimum_memory
+   - \c fetch
+   - \c forward
 
 2. Virtual method \c set_available_memory is called. If overridden, the overriding
    implementation must call \c node::set_available_memory with the same
    argument.
 
 3. \c begin() is called on all nodes in the current phase in topological
-   order, beginning with the initiator node.
+   order of the item flow graph, beginning with the initiator node.
    At this point, the implementation may <tt>fetch<>()</tt> auxiliary data from its
    predecessors and \c forward() auxiliary data to its successors.
-   The default implementation of \c begin() forwards all auxiliary data that was
-   forwarded to this node. If this behavior is wanted (and in most cases it
-   is), the implementation should first call the super method, that is,
-   \c node::begin().
+   The default implementation of \c begin() is empty, so it is not necessary to
+   perform a super call.
    If the node does not push as many items as are pushed into it, it should
    check using \c can_fetch() whether <tt>"items"</tt> has been forwarded.
    <tt>"items"</tt> is a stream_size_type, and the node should forward
@@ -384,9 +384,10 @@ url.empty().
 
 4. Either \c push() or \c pull() is called any number of times.
 
-5. \c end() is called on the node in the current phase in an order such
-   that it has \c end() called before the nodes it pushes to or pulls
-   from. The default implementation of \c end() does nothing, so there is no
+5. \c end() is called on all nodes in the current phase in topological
+   order of the actor graph, such that it is permitted to call \c push
+   and \c pull in \c end().
+   The default implementation of \c end() does nothing, so there is no
    reason to perform a super call.
 
 6. If \c can_evacuate() is overridden to return true, and evacuation is
@@ -447,11 +448,14 @@ input_points()
 | output_points();
 \endcode
 
-The three extra parameters, \c maintainOrder (def. false), \c numJobs (def. 4)
-and \c bufSize (def. 64), are optional. If \c maintainOrder is set, the
+The three extra parameters, \c maintainOrder (def. arbitrary_order), \c numJobs
+(def. tpie::default_worker_count) and \c bufSize (def. 64), are optional.
+If \c maintainOrder is set to maintain_order, the
 framework will make sure that the output is produced in the same order as the
 input, which may incur a performance penalty in some cases when the execution
-time varies per item. \c numJobs declares the number of worker threads to utilize.
+time varies per item.
+\c numJobs declares the number of worker threads to utilize. It defaults to the
+same number of worker threads as used by e.g. parallel internal sorting.
 \c bufSize is the number of items that are sent to a thread at a time. There is
 an overhead associated to each buffer sent (a couple virtual calls and a thread
 switch), so you should not set this too low. On the other hand, a larger buffer
