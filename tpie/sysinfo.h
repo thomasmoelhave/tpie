@@ -185,7 +185,15 @@ inline std::ostream & operator<<(std::ostream & s, const sysinfo & info) {
 		<< "Git branch:     " << info.refspec() << '\n'
 		<< "Git commit:     " << info.commit() << '\n'
 		<< "Local time:     " << info.localtime() << '\n'
-		<< "Block size:     " << info.blocksize() << '\n';
+		<< "Block size:     " << info.blocksize() << '\n'
+		<< "Parallel sort:  "
+#ifdef TPIE_PARALLEL_SORT
+		<< "Enabled"
+#else
+		<< "Disabled"
+#endif
+		<< '\n'
+		;
 }
 
 }
