@@ -320,7 +320,17 @@ public:
 
 	static memory_size_type memory_usage() { return block_size(); }
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Size of file in bytes, including the header.
+	///////////////////////////////////////////////////////////////////////////
 	stream_size_type file_size();
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Size of file in bytes, not including the header.
+	///
+	/// For progress reporting.
+	///////////////////////////////////////////////////////////////////////////
+	stream_size_type size();
 };
 
 } // namespace bits
@@ -341,6 +351,13 @@ public:
 		if (m_index < m_blockSize) return true;
 		return m_blockNumber * block_size() + m_index < m_size;
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Number of bytes read, not including the header.
+	///
+	/// For progress reporting.
+	///////////////////////////////////////////////////////////////////////////
+	stream_size_type offset();
 };
 
 class serialization_reverse_reader : public bits::serialization_reader_base {
@@ -359,6 +376,13 @@ public:
 		if (m_index < m_blockSize) return true;
 		return m_blockNumber > 0;
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Number of bytes read, not including the header.
+	///
+	/// For progress reporting.
+	///////////////////////////////////////////////////////////////////////////
+	stream_size_type offset();
 };
 
 }

@@ -297,6 +297,10 @@ stream_size_type serialization_reader_base::file_size() {
 	return serialization_header::header_size() + m_size;
 }
 
+stream_size_type serialization_reader_base::size() {
+	return m_size;
+}
+
 } // namespace bits
 
 void serialization_reader::next_block() /*override*/ {
@@ -318,6 +322,13 @@ void serialization_reader::open(std::string path) {
 	m_blockNumber = 0;
 }
 
+stream_size_type serialization_reader::offset() {
+	if (m_blockSize == 0)
+		return 0;
+
+	return m_blockNumber * block_size() + m_index;
+}
+
 void serialization_reverse_reader::next_block() /*override*/ {
 	if (m_blockNumber == 0)
 		throw end_of_stream_exception();
@@ -334,6 +345,15 @@ serialization_reverse_reader::serialization_reverse_reader()
 void serialization_reverse_reader::open(std::string path) {
 	p_t::open(path, true);
 	m_blockNumber = (m_size + (block_size() - 1)) / block_size();
+}
+
+stream_size_type serialization_reverse_reader::offset() {
+	if (m_blockSize == 0)
+		return size();
+
+	// size of blocks not read at all
+	stream_size_type remainingBlocks = m_blockNumber * block_size();
+	return size() - remainingBlocks - m_blockSize + m_index;
 }
 
 } // namespace tpie
