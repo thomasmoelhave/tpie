@@ -324,6 +324,11 @@ public:
 	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_buffer() = 0;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  For internal use in order to construct the pipeline graph.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void set_consumer(node *) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -542,6 +547,10 @@ public:
 	{
 		state.set_output_ptr(parId, this);
 		set_name("Parallel after", PRIORITY_INSIGNIFICANT);
+	}
+
+	virtual void set_consumer(node * cons) override {
+		this->add_push_destination(*cons);
 	}
 
 	after(const after & other)
@@ -828,7 +837,7 @@ public:
 		this->add_push_destination(dest);
 		this->set_name("Parallel output", PRIORITY_INSIGNIFICANT);
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
-			this->add_pull_destination(st->output(i));
+			st->output(i).set_consumer(this);
 		}
 	}
 
@@ -984,7 +993,6 @@ public:
 			+ st->opts.bufSize * sizeof(item_type) // our buffer
 			;
 		this->set_minimum_memory(usage);
-		this->add_push_destination(cons);
 
 		if (st->opts.maintainOrder) {
 			m_outputOrder.resize(st->opts.numJobs);
