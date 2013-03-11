@@ -103,8 +103,8 @@ public:
 	}
 
 	inline bool is_depending(size_t depender, size_t dependee) {
-		for (size_t i = 0; i < edges[depender].size(); ++i) {
-			if (edges[depender][i] == dependee) return true;
+		for (size_t i = 0; i < edges[dependee].size(); ++i) {
+			if (edges[dependee][i] == depender) return true;
 		}
 		return false;
 	}
