@@ -410,7 +410,7 @@ public:
 	void transition_state(size_t idx, worker_state from, worker_state to) {
 		if (m_states[idx] != from) {
 			std::stringstream ss;
-			ss << "Invalid state transition " << from << " -> " << to << "; current state is " << m_states[idx];
+			ss << idx << " Invalid state transition " << from << " -> " << to << "; current state is " << m_states[idx];
 			log_error() << ss.str() << std::endl;
 			throw exception(ss.str());
 		}
