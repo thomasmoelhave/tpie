@@ -1183,7 +1183,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, maintain_order_type maintainOrder, size_t numJobs, size_t bufSize = 64) {
+parallel(const pipe_middle<fact_t> & fact, maintain_order_type maintainOrder, size_t numJobs, size_t bufSize = 2048) {
 	parallel_bits::options opts;
 	switch (maintainOrder) {
 		case arbitrary_order:
@@ -1217,7 +1217,7 @@ parallel(const pipe_middle<fact_t> & fact, maintain_order_type maintainOrder = a
 
 template <typename fact_t>
 pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, bool maintainOrder, size_t numJobs, size_t bufSize = 64) {
+parallel(const pipe_middle<fact_t> & fact, bool maintainOrder, size_t numJobs, size_t bufSize = 2048) {
 	log_fatal() << "The second argument to tpie::pipelining::parallel has changed.\n"
 		<< "Use maintain_order instead of true and arbitrary_order instead of false."
 		<< std::endl;
