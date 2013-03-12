@@ -124,7 +124,10 @@ enum worker_state {
 	PARTIAL_OUTPUT,
 
 	/** The output is being read by the consumer. */
-	OUTPUTTING
+	OUTPUTTING,
+
+	/** The worker thread is done. */
+	DONE
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -369,9 +372,6 @@ public:
 	 */
 	cond_t * workerCond;
 
-	/** Are we done? Shared state, must have mutex to write. */
-	bool done;
-
 	/** Shared state, must have mutex to write. */
 	size_t runningWorkers;
 
@@ -429,7 +429,6 @@ protected:
 
 	state_base(const options opts)
 		: opts(opts)
-		, done(false)
 		, runningWorkers(0)
 		, m_inputs(opts.numJobs, 0)
 		, m_outputs(opts.numJobs, 0)
@@ -604,6 +603,8 @@ private:
 			case PARTIAL_OUTPUT:
 			case OUTPUTTING:
 				return false;
+			case DONE:
+				return true;
 		}
 		throw std::runtime_error("Unknown state");
 	}
@@ -635,7 +636,6 @@ private:
 		// notify producer that output is ready
 		st.producerCond.notify_one();
 		while (!is_done()) {
-			if (st.done) break;
 			st.workerCond[parId].wait(lock);
 		}
 		m_buffer->m_outputSize = 0;
@@ -703,6 +703,8 @@ private:
 				throw std::runtime_error("State 'partial_output' was not expected in before::ready");
 			case OUTPUTTING:
 				throw std::runtime_error("State 'outputting' was not expected in before::ready");
+			case DONE:
+				return false;
 		}
 		throw std::runtime_error("Unknown state");
 	}
@@ -750,7 +752,7 @@ private:
 		while (true) {
 			// wait for transition IDLE -> PROCESSING
 			while (!ready()) {
-				if (st.done) {
+				if (st.get_state(parId) == DONE) {
 					return;
 				}
 				st.workerCond[parId].wait(lock);
@@ -903,6 +905,8 @@ private:
 				case IDLE:
 					readyIdx = i;
 					return true;
+				case DONE:
+					throw tpie::exception("State DONE not expected in has_ready_pipe().");
 			}
 		}
 		return false;
@@ -931,6 +935,8 @@ private:
 						break;
 					readyIdx = i;
 					return true;
+				case DONE:
+					throw tpie::exception("State DONE not expected in has_outputting_pipe().");
 			}
 		}
 		return false;
@@ -956,6 +962,8 @@ private:
 					break;
 				case PROCESSING:
 					return true;
+				case DONE:
+					throw tpie::exception("State DONE not expected in has_processing_pipe().");
 			}
 		}
 		return false;
@@ -1080,6 +1088,8 @@ private:
 						m_outputOrder.pop();
 					}
 					break;
+				case DONE:
+					throw tpie::exception("State 'DONE' not expected at this point");
 			}
 		}
 	}
@@ -1123,8 +1133,8 @@ public:
 			}
 		}
 		// Notify all workers that all processing is done
-		st->done = true;
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
+			st->transition_state(i, IDLE, DONE);
 			st->workerCond[i].notify_one();
 		}
 		while (st->runningWorkers > 0) {
