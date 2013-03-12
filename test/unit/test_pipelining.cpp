@@ -1253,7 +1253,7 @@ public:
 
 	virtual void end() override {
 		for (test_t i = 0; i < 100; ++i) {
-			dest.push(i);
+			dest.push(1);
 		}
 	}
 };
@@ -1264,12 +1264,17 @@ push_in_end() {
 }
 
 bool parallel_push_in_end_test() {
+	test_t sumOutput = 0;
 	pipeline p =
 		noop_initiator()
 		| parallel(push_in_end(), arbitrary_order, 1, 10)
-		| bitbucket<test_t>(0);
+		| summer(sumOutput);
 	p.plot(log_info());
 	p();
+	if (sumOutput != 100) {
+		log_error() << "Wrong result, expected 100, got " << sumOutput << std::endl;
+		return false;
+	}
 	return true;
 }
 
