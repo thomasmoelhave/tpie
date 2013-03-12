@@ -1215,6 +1215,65 @@ bool parallel_own_buffer_test() {
 }
 
 template <typename dest_t>
+class noop_initiator_type : public node {
+	dest_t dest;
+public:
+	noop_initiator_type(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+		set_name("No-op initiator");
+	}
+
+	virtual void go() override {
+		// noop
+	}
+};
+
+pipe_begin<factory_0<noop_initiator_type> >
+noop_initiator() {
+	return factory_0<noop_initiator_type>();
+}
+
+template <typename dest_t>
+class push_in_end_type : public node {
+	dest_t dest;
+public:
+	typedef test_t item_type;
+
+	push_in_end_type(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+		set_name("Push in end");
+	}
+
+	void push(item_type) {
+	}
+
+	virtual void end() override {
+		for (test_t i = 0; i < 100; ++i) {
+			dest.push(i);
+		}
+	}
+};
+
+pipe_middle<factory_0<push_in_end_type> >
+push_in_end() {
+	return factory_0<push_in_end_type>();
+}
+
+bool parallel_push_in_end_test() {
+	pipeline p =
+		noop_initiator()
+		| parallel(push_in_end(), arbitrary_order, 1, 10)
+		| bitbucket<test_t>(0);
+	p.plot(log_info());
+	p();
+	return true;
+}
+
+template <typename dest_t>
 class step_begin_type : public node {
 	dest_t dest;
 	static const size_t items = 256*1024*1024;
@@ -1346,5 +1405,6 @@ int main(int argc, char ** argv) {
 	.test(parallel_step_test, "parallel_step")
 	.test(parallel_multiple_test, "parallel_multiple")
 	.test(parallel_own_buffer_test, "parallel_own_buffer")
+	.test(parallel_push_in_end_test, "parallel_push_in_end")
 	;
 }
