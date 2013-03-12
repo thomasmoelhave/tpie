@@ -841,6 +841,13 @@ public:
 		}
 	}
 
+	virtual void begin() override {
+		state_base::lock_t lock(st->mutex);
+		while (st->runningWorkers != st->opts.numJobs) {
+			st->producerCond.wait(lock);
+		}
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push all items from output buffer to the rest of the pipeline.
 	///////////////////////////////////////////////////////////////////////////
