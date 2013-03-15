@@ -44,30 +44,6 @@ template <typename T1, typename T2>
 class state;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief  States of the parallel worker state machine.
-///////////////////////////////////////////////////////////////////////////////
-enum worker_state {
-	/** The input is being written by the producer. */
-	INITIALIZING,
-
-	/** The input is being written by the producer. */
-	IDLE,
-
-	/** The worker is writing output. */
-	PROCESSING,
-
-	/** The worker has filled its output buffer, but has not yet consumed the
-	 * input buffer. */
-	PARTIAL_OUTPUT,
-
-	/** The output is being read by the consumer. */
-	OUTPUTTING,
-
-	/** The worker thread is done. */
-	DONE
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief  Aligned, uninitialized storage.
 ///
 /// This class provides access to an array of items aligned to any boundary

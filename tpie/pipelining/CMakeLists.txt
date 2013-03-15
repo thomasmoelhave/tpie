@@ -15,6 +15,7 @@ set (PIPE_HEADERS
 	numeric.h
 	parallel.h
 	parallel/options.h
+	parallel/worker_state.h
 	parallel/base.h
 	parallel/factory.h
 	parallel/pipes.h
