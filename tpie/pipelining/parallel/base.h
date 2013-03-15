@@ -26,61 +26,6 @@
 #include <boost/shared_ptr.hpp>
 #include <tpie/pipelining/maintain_order_type.h>
 
-///////////////////////////////////////////////////////////////////////////////
-/// \file parallel.h  Parallel execution of nodes.
-///
-/// Given a sequential computation as a partial pipeline, this parallel
-/// framework naively parallelizes it by having multiple thread handle some
-/// items each.
-///
-/// Throughout the code, the input type is named T1, and the output type is
-/// named T2.
-///
-/// Each worker has a pipeline instance of a parallel_bits::before pushing items to
-/// the user-supplied pipeline which pushes to an instance of parallel_bits::after.
-///
-/// The producer sits in the main thread and distributes item buffers to
-/// parallel_bits::befores running in different threads, and the consumer
-/// receives the items pushed to each after instance.
-///
-/// All nodes have access to a single parallel_bits::state instance
-/// which has the mutex and the necessary condition variables.
-///    It also has pointers to the parallel_bits::before and
-/// parallel_bits::after instances and it holds an array of worker states (of
-/// enum type parallel_bits::worker_state).
-///    It also has a options struct which contains the user-supplied
-/// parameters to the framework (size of item buffer and number of concurrent
-/// workers).
-///
-/// The TPIE job framework is insufficient for this parallelization code,
-/// since we get deadlocks if some of the workers are allowed to wait for a
-/// ready tpie::job worker. Instead, we use boost::threads directly.
-///
-/// Parallel worker states. The main thread has a condition variable
-/// (producerCond) which is signalled every time a worker changes its own
-/// state. Each worker thread has a condition variable (workerCond[]) which is
-/// signalled when the main thread changes the worker's state.
-///
-/// Initializing: Before the input/output buffers are initialized.
-/// -> Idle (worker thread)
-///
-/// Idle: Input/output buffers are empty.
-/// -> Processing (main thread)
-///
-/// Processing: Input buffer is full; output buffer is empty.
-/// -> Partial output (worker thread; signals main)
-/// -> Outputting (worker thread)
-///
-/// Partial output: Output buffer is full; input buffer is non-empty.
-/// -> Processing (main thread)
-///
-/// Outputting: Output buffer is full; input buffer is empty.
-/// -> Idle (main thread)
-///
-/// TODO at some future point: Optimize code for the case where the buffer size
-/// is one.
-///////////////////////////////////////////////////////////////////////////////
-
 namespace tpie {
 
 namespace pipelining {
