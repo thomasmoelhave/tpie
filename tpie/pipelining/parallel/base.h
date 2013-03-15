@@ -1173,66 +1173,6 @@ public:
 
 } // namespace parallel_bits
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief  Runs a pipeline in multiple threads.
-/// \param maintainOrder  Whether to make sure that items are processed and
-/// output in the order they are input.
-/// \param numJobs  The number of threads to utilize for parallel execution.
-/// \param bufSize  The number of items to store in the buffer sent between
-/// threads.
-///////////////////////////////////////////////////////////////////////////////
-template <typename fact_t>
-pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, maintain_order_type maintainOrder, size_t numJobs, size_t bufSize = 2048) {
-	parallel_bits::options opts;
-	switch (maintainOrder) {
-		case arbitrary_order:
-			opts.maintainOrder = false;
-			break;
-		case maintain_order:
-			opts.maintainOrder = true;
-			break;
-	}
-	opts.numJobs = numJobs;
-	opts.bufSize = bufSize;
-	return pipe_middle<parallel_bits::factory<fact_t> >
-		(parallel_bits::factory<fact_t>
-		 (fact.factory, opts));
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief  Runs a pipeline in multiple threads, using the number of threads
-/// reported by tpie::default_worker_count.
-/// \param maintainOrder  Whether to make sure that items are processed and
-/// output in the order they are input.
-/// \param numJobs  The number of threads to utilize for parallel execution.
-/// \param bufSize  The number of items to store in the buffer sent between
-/// threads.
-///////////////////////////////////////////////////////////////////////////////
-template <typename fact_t>
-pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, maintain_order_type maintainOrder = arbitrary_order) {
-	return parallel(fact, maintainOrder, default_worker_count());
-}
-
-template <typename fact_t>
-pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, bool maintainOrder, size_t numJobs, size_t bufSize = 2048) {
-	log_fatal() << "The second argument to tpie::pipelining::parallel has changed.\n"
-		<< "Use maintain_order instead of true and arbitrary_order instead of false."
-		<< std::endl;
-	return parallel(fact, maintainOrder ? maintain_order : arbitrary_order, numJobs, bufSize);
-}
-
-template <typename fact_t>
-pipe_middle<parallel_bits::factory<fact_t> >
-parallel(const pipe_middle<fact_t> & fact, bool maintainOrder) {
-	log_fatal() << "The second argument to tpie::pipelining::parallel has changed.\n"
-		<< "Use maintain_order instead of true and arbitrary_order instead of false."
-		<< std::endl;
-	return parallel(fact, maintainOrder ? maintain_order : arbitrary_order);
-}
-
 } // namespace pipelining
 
 } // namespace tpie

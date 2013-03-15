@@ -15,6 +15,7 @@ set (PIPE_HEADERS
 	numeric.h
 	parallel.h
 	parallel/base.h
+	parallel/pipes.h
 	pair_factory.h
 	pipe_base.h
 	pipeline.h
