@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_PARALLEL_H__
-#define __TPIE_PIPELINING_PARALLEL_H__
+#ifndef __TPIE_PIPELINING_PARALLEL_BASE_H__
+#define __TPIE_PIPELINING_PARALLEL_BASE_H__
 
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_base.h>
