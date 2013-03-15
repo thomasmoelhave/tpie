@@ -76,6 +76,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/pipelining/parallel/base.h>
+#include <tpie/pipelining/parallel/factory.h>
 #include <tpie/pipelining/parallel/pipes.h>
 
 #endif // __TPIE_PIPELINING_PARALLEL_H__
