@@ -14,6 +14,7 @@ set (PIPE_HEADERS
 	node_map_dump.h
 	numeric.h
 	parallel.h
+	parallel/options.h
 	parallel/base.h
 	parallel/factory.h
 	parallel/pipes.h

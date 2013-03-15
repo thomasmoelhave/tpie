@@ -25,6 +25,7 @@
 #include <tpie/array_view.h>
 #include <boost/shared_ptr.hpp>
 #include <tpie/pipelining/maintain_order_type.h>
+#include <tpie/pipelining/parallel/options.h>
 
 namespace tpie {
 
@@ -41,15 +42,6 @@ template <typename T>
 class after;
 template <typename T1, typename T2>
 class state;
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief  User-supplied options to the parallelism framework.
-///////////////////////////////////////////////////////////////////////////////
-struct options {
-	bool maintainOrder;
-	size_t numJobs;
-	size_t bufSize;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  States of the parallel worker state machine.

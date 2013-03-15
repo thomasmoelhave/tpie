@@ -75,6 +75,7 @@
 /// is one.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/pipelining/parallel/options.h>
 #include <tpie/pipelining/parallel/base.h>
 #include <tpie/pipelining/parallel/factory.h>
 #include <tpie/pipelining/parallel/pipes.h>
