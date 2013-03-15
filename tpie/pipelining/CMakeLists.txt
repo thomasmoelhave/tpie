@@ -13,6 +13,7 @@ set (PIPE_HEADERS
 	node.h
 	node_map_dump.h
 	numeric.h
+	parallel.h
 	pair_factory.h
 	pipe_base.h
 	pipeline.h
