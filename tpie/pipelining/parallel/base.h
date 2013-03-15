@@ -44,61 +44,6 @@ template <typename T1, typename T2>
 class state;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief  Aligned, uninitialized storage.
-///
-/// This class provides access to an array of items aligned to any boundary
-/// (mostly useful for powers of two).
-/// They are not constructed or destructed; only the memory resource is
-/// handled.
-/// This is used for the nodes that are instantiated once for each
-/// parallel thread of pipeline computation. They should be stored in an array
-/// aligned to a cache line, to avoid cache lock contention.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T, size_t Align>
-class aligned_array {
-	// Compute the size of an item with alignment padding (round up to nearest
-	// multiple of Align).
-	static const size_t aligned_size = (sizeof(T)+Align-1)/Align*Align;
-
-	uint8_t * m_data;
-	size_t m_size;
-
-	void dealloc() {
-		delete[] m_data;
-		m_size = 0;
-	}
-
-public:
-	aligned_array() : m_data(0), m_size(0) {}
-
-	~aligned_array() { realloc(0); }
-
-	T * get(size_t idx) {
-		const size_t addr = (size_t) m_data;
-
-		// Find the aligned base of the array by rounding the pointer up to the
-		// nearest multiple of Align.
-		const size_t alignedBase = (addr + Align - 1)/Align*Align;
-
-		// Find the address of the element.
-		const size_t elmAddress = alignedBase + aligned_size * idx;
-
-		return (T *) elmAddress;
-	}
-
-	void realloc(size_t elms) {
-		dealloc();
-		m_size = elms;
-		// The buffer we get is not guaranteed to be aligned to any boundary.
-		// Request Align extra bytes to ensure we can find an aligned buffer of
-		// size aligned_size*elms.
-		m_data = m_size ? new uint8_t[aligned_size * elms + Align] : 0;
-	}
-
-	size_t size() const { return m_size; }
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Class containing an array of node instances. We cannot use
 /// tpie::array or similar, since we need to construct the elements in a
 /// special way. This class is non-copyable since it resides in the refcounted

@@ -16,6 +16,7 @@ set (PIPE_HEADERS
 	parallel.h
 	parallel/options.h
 	parallel/worker_state.h
+	parallel/aligned_array.h
 	parallel/base.h
 	parallel/factory.h
 	parallel/pipes.h
