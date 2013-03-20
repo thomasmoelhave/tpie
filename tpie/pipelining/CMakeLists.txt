@@ -14,6 +14,12 @@ set (PIPE_HEADERS
 	node_map_dump.h
 	numeric.h
 	parallel.h
+	parallel/options.h
+	parallel/worker_state.h
+	parallel/aligned_array.h
+	parallel/base.h
+	parallel/factory.h
+	parallel/pipes.h
 	pair_factory.h
 	pipe_base.h
 	pipeline.h
