@@ -124,7 +124,10 @@ enum worker_state {
 	PARTIAL_OUTPUT,
 
 	/** The output is being read by the consumer. */
-	OUTPUTTING
+	OUTPUTTING,
+
+	/** The worker thread is done. */
+	DONE
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,6 +327,11 @@ public:
 	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_buffer() = 0;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  For internal use in order to construct the pipeline graph.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void set_consumer(node *) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -363,9 +371,6 @@ public:
 	 * par_consumer, when output has been read (sets state to IDLE).
 	 */
 	cond_t * workerCond;
-
-	/** Are we done? Shared state, must have mutex to write. */
-	bool done;
 
 	/** Shared state, must have mutex to write. */
 	size_t runningWorkers;
@@ -424,7 +429,6 @@ protected:
 
 	state_base(const options opts)
 		: opts(opts)
-		, done(false)
 		, runningWorkers(0)
 		, m_inputs(opts.numJobs, 0)
 		, m_outputs(opts.numJobs, 0)
@@ -491,6 +495,22 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief  Node running in main thread, accepting an output buffer
+/// from the managing producer and forwards them down the pipe. The overhead
+/// concerned with switching threads dominates the overhead of a virtual method
+/// call, so this class only depends on the output type and leaves the pushing
+/// of items to a virtual subclass.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class consumer : public node {
+public:
+	typedef T item_type;
+
+	virtual void consume(array_view<T>) = 0;
+	// node has virtual dtor
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief State subclass containing the item type specific state, i.e. the
 /// input/output buffers and the concrete pipes.
 ///////////////////////////////////////////////////////////////////////////////
@@ -505,6 +525,8 @@ public:
 	array<parallel_input_buffer<T1> *> m_inputBuffers;
 	array<parallel_output_buffer<T2> *> m_outputBuffers;
 
+	consumer<T2> * m_cons;
+
 	std::auto_ptr<threads<T1, T2> > pipes;
 
 	template <typename fact_t>
@@ -512,9 +534,18 @@ public:
 		: state_base(opts)
 		, m_inputBuffers(opts.numJobs)
 		, m_outputBuffers(opts.numJobs)
+		, m_cons(0)
 	{
 		typedef threads_impl<T1, T2, fact_t> pipes_impl_t;
 		pipes.reset(new pipes_impl_t(fact, *this));
+	}
+
+	void set_consumer_ptr(consumer<T2> * cons) {
+		m_cons = cons;
+	}
+
+	consumer<T2> * const * get_consumer_ptr_ptr() const {
+		return &m_cons;
 	}
 };
 
@@ -529,6 +560,7 @@ protected:
 	std::auto_ptr<parallel_output_buffer<T> > m_buffer;
 	array<parallel_output_buffer<T> *> & m_outputBuffers;
 	typedef state_base::lock_t lock_t;
+	consumer<T> * const * m_cons;
 
 public:
 	typedef T item_type;
@@ -539,9 +571,16 @@ public:
 		: st(state)
 		, parId(parId)
 		, m_outputBuffers(state.m_outputBuffers)
+		, m_cons(state.get_consumer_ptr_ptr())
 	{
 		state.set_output_ptr(parId, this);
 		set_name("Parallel after", PRIORITY_INSIGNIFICANT);
+		if (m_cons == 0) throw tpie::exception("Unexpected nullptr");
+		if (*m_cons != 0) throw tpie::exception("Expected nullptr");
+	}
+
+	virtual void set_consumer(node * cons) override {
+		this->add_push_destination(*cons);
 	}
 
 	after(const after & other)
@@ -549,8 +588,11 @@ public:
 		, st(other.st)
 		, parId(other.parId)
 		, m_outputBuffers(other.m_outputBuffers)
+		, m_cons(other.m_cons)
 	{
 		st.set_output_ptr(parId, this);
+		if (m_cons == 0) throw tpie::exception("Unexpected nullptr in copy");
+		if (*m_cons != 0) throw tpie::exception("Expected nullptr in copy");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -561,6 +603,10 @@ public:
 			flush_buffer_impl(false);
 
 		m_buffer->m_outputBuffer[m_buffer->m_outputSize++] = item;
+	}
+
+	virtual void end() override {
+		flush_buffer_impl(true);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -595,6 +641,8 @@ private:
 			case PARTIAL_OUTPUT:
 			case OUTPUTTING:
 				return false;
+			case DONE:
+				return true;
 		}
 		throw std::runtime_error("Unknown state");
 	}
@@ -622,12 +670,17 @@ private:
 		// input.
 
 		lock_t lock(st.mutex);
-		st.transition_state(parId, PROCESSING, complete ? OUTPUTTING : PARTIAL_OUTPUT);
-		// notify producer that output is ready
-		st.producerCond.notify_one();
-		while (!is_done()) {
-			if (st.done) break;
-			st.workerCond[parId].wait(lock);
+		if (st.get_state(parId) == DONE) {
+			if (*m_cons == 0) throw tpie::exception("Unexpected nullptr in flush_buffer");
+			array_view<T> out = m_buffer->get_output();
+			(*m_cons)->consume(out);
+		} else {
+			st.transition_state(parId, PROCESSING, complete ? OUTPUTTING : PARTIAL_OUTPUT);
+			// notify producer that output is ready
+			st.producerCond.notify_one();
+			while (!is_done()) {
+				st.workerCond[parId].wait(lock);
+			}
 		}
 		m_buffer->m_outputSize = 0;
 	}
@@ -694,6 +747,8 @@ private:
 				throw std::runtime_error("State 'partial_output' was not expected in before::ready");
 			case OUTPUTTING:
 				throw std::runtime_error("State 'outputting' was not expected in before::ready");
+			case DONE:
+				return false;
 		}
 		throw std::runtime_error("Unknown state");
 	}
@@ -741,7 +796,7 @@ private:
 		while (true) {
 			// wait for transition IDLE -> PROCESSING
 			while (!ready()) {
-				if (st.done) {
+				if (st.get_state(parId) == DONE) {
 					return;
 				}
 				st.workerCond[parId].wait(lock);
@@ -794,22 +849,6 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief  Node running in main thread, accepting an output buffer
-/// from the managing producer and forwards them down the pipe. The overhead
-/// concerned with switching threads dominates the overhead of a virtual method
-/// call, so this class only depends on the output type and leaves the pushing
-/// of items to a virtual subclass.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-class consumer : public node {
-public:
-	typedef T item_type;
-
-	virtual void consume(array_view<T>) = 0;
-	// node has virtual dtor
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Concrete consumer implementation.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output, typename dest_t>
@@ -828,7 +867,14 @@ public:
 		this->add_push_destination(dest);
 		this->set_name("Parallel output", PRIORITY_INSIGNIFICANT);
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
-			this->add_pull_destination(st->output(i));
+			st->output(i).set_consumer(this);
+		}
+	}
+
+	virtual void begin() override {
+		state_base::lock_t lock(st->mutex);
+		while (st->runningWorkers != st->opts.numJobs) {
+			st->producerCond.wait(lock);
 		}
 	}
 
@@ -887,6 +933,8 @@ private:
 				case IDLE:
 					readyIdx = i;
 					return true;
+				case DONE:
+					throw tpie::exception("State DONE not expected in has_ready_pipe().");
 			}
 		}
 		return false;
@@ -915,6 +963,8 @@ private:
 						break;
 					readyIdx = i;
 					return true;
+				case DONE:
+					throw tpie::exception("State DONE not expected in has_outputting_pipe().");
 			}
 		}
 		return false;
@@ -940,6 +990,8 @@ private:
 					break;
 				case PROCESSING:
 					return true;
+				case DONE:
+					throw tpie::exception("State DONE not expected in has_processing_pipe().");
 			}
 		}
 		return false;
@@ -984,7 +1036,6 @@ public:
 			+ st->opts.bufSize * sizeof(item_type) // our buffer
 			;
 		this->set_minimum_memory(usage);
-		this->add_push_destination(cons);
 
 		if (st->opts.maintainOrder) {
 			m_outputOrder.resize(st->opts.numJobs);
@@ -1065,6 +1116,8 @@ private:
 						m_outputOrder.pop();
 					}
 					break;
+				case DONE:
+					throw tpie::exception("State 'DONE' not expected at this point");
 			}
 		}
 	}
@@ -1076,6 +1129,10 @@ public:
 		flush_steps();
 
 		empty_input_buffer(lock);
+
+		inputBuffer.resize(0);
+
+		st->set_consumer_ptr(cons.get());
 
 		bool done = false;
 		while (!done) {
@@ -1108,8 +1165,8 @@ public:
 			}
 		}
 		// Notify all workers that all processing is done
-		st->done = true;
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
+			st->transition_state(i, IDLE, DONE);
 			st->workerCond[i].notify_one();
 		}
 		while (st->runningWorkers > 0) {
@@ -1118,8 +1175,6 @@ public:
 		// All workers terminated
 
 		flush_steps();
-
-		inputBuffer.resize(0);
 	}
 };
 
