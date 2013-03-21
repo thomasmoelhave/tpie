@@ -372,20 +372,25 @@ public:
 	/// \param s The number of elements in the array.
 	/// \param value Each entry of the array is initialized with this value.
 	///////////////////////////////////////////////////////////////////////////
-	array(size_type s, const T & value): m_elements(0), m_size(0), m_tss_used(false) {resize(s, value);}
+	array(size_type s, const T & value,
+		  const Allocator & alloc=Allocator()
+		): m_elements(0), m_size(0), m_tss_used(false), m_allocator(alloc)
+		{resize(s, value);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
 	///
 	/// \param s The number of elements in the array.
 	///////////////////////////////////////////////////////////////////////////
-	array(size_type s=0): m_elements(0), m_size(0), m_tss_used(false) {resize(s);}
+	array(size_type s=0, const Allocator & alloc=
+		  Allocator()): m_elements(0), m_size(0), m_tss_used(false),
+						m_allocator(alloc) {resize(s);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array.
 	/// \param other The array to copy.
 	/////////////////////////////////////////////////////////
-	array(const array & other): m_elements(0), m_size(other.m_size), m_tss_used(false) {
+	array(const array & other): m_elements(0), m_size(other.m_size), m_tss_used(false), m_allocator(other.m_allocator) {
 		if (other.size() == 0) return;
 		alloc_copy(other.m_elements);
 	}
@@ -438,6 +443,7 @@ public:
 	/// \brief Swap two arrays.
 	///////////////////////////////////////////////////////////////////////////
 	void swap(array & other) {
+		std::swap(m_allocator, other.m_allocator);
 		std::swap(m_elements, other.m_elements);
 		std::swap(m_size, other.m_size);
 		std::swap(m_tss_used, other.m_tss_used);
