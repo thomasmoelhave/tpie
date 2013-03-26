@@ -161,6 +161,87 @@ public:
 	}
 };
 
+namespace serialization_bits {
+
+template <typename T, typename pred_t>
+class merger {
+	class mergepred_t {
+		pred_t m_pred;
+
+	public:
+		typedef std::pair<T, size_t> item_type;
+
+		mergepred_t(const pred_t & pred) : m_pred(pred) {}
+
+		// Used with std::priority_queue, so invert the original relation.
+		bool operator()(const item_type & a, const item_type & b) const {
+			return m_pred(b.first, a.first);
+		}
+	};
+
+	typedef typename mergepred_t::item_type item_type;
+
+	pred_t pred;
+	std::vector<serialization_reader> rd;
+	typedef std::priority_queue<item_type, std::vector<item_type>, mergepred_t> priority_queue_type;
+	priority_queue_type pq;
+
+public:
+	merger(const pred_t & pred)
+		: pred(pred)
+		, pq(mergepred_t(pred))
+	{
+	}
+
+	void init(size_t fanout) {
+		rd.resize(fanout);
+	}
+
+	void open(size_t idx, const std::string & path) {
+		rd[idx].open(path);
+		push_from(idx);
+	}
+
+	void close(size_t idx) {
+		rd[idx].close();
+	}
+
+	bool can_pull() {
+		return !pq.empty();
+	}
+
+	T pull() {
+		T v = pq.top().first;
+		size_t idx = pq.top().second;
+		pq.pop();
+		push_from(idx);
+		return v;
+	}
+
+	void free() {
+		{
+			priority_queue_type tmp(pred);
+			std::swap(pq, tmp);
+		}
+		rd.resize(0);
+	}
+
+	stream_size_type file_size(size_t idx) {
+		return rd[idx].file_size();
+	}
+
+private:
+	void push_from(size_t idx) {
+		if (rd[idx].can_read()) {
+			T item;
+			rd[idx].unserialize(item);
+			pq.push(std::make_pair(item, idx));
+		}
+	}
+};
+
+} // namespace serialization_bits
+
 template <typename T, typename pred_t>
 class serialization_sort {
 public:
@@ -178,6 +259,7 @@ private:
 	serialization_reader m_reader;
 	bool m_open;
 	pred_t m_pred;
+	serialization_bits::merger<T, pred_t> m_merger;
 
 	stream_size_type m_items;
 
@@ -193,6 +275,7 @@ public:
 		, m_parametersSet(false)
 		, m_open(false)
 		, m_pred(pred)
+		, m_merger(pred)
 		, m_items(0)
 		, m_firstFileUsed(0)
 		, m_lastFileUsed(0)
@@ -366,6 +449,7 @@ public:
 		if (m_state != state_1)
 			throw tpie::exception("Bad state in end");
 
+		// TODO: Check if we can keep the result in memory
 		end_run();
 		m_sorter.end();
 		log_info() << "After internal sorter end; mem usage = "
@@ -405,6 +489,7 @@ public:
 		memory_size_type fanoutMemory = m_params.memoryPhase2 - serialization_writer::memory_usage();
 		memory_size_type perFanout = largestItem + serialization_reader::memory_usage();
 		memory_size_type fanout = fanoutMemory / perFanout;
+
 		if (fanout < 2) {
 			log_error() << "Not enough memory for merging. "
 				<< "mem avail = " << m_params.memoryPhase2
@@ -414,7 +499,21 @@ public:
 			throw exception("Not enough memory for merging.");
 		}
 
-		while (m_sortedRunsCount > 1) {
+		memory_size_type finalFanoutMemory = m_params.memoryPhase3;
+		memory_size_type finalFanout =
+			std::min(fanout,
+					 finalFanoutMemory / perFanout);
+
+		if (finalFanout < 2) {
+			log_error() << "Not enough memory for merging (final fanout < 2). "
+				<< "mem avail = " << m_params.memoryPhase3
+				<< ", final fanout memory = " << finalFanoutMemory
+				<< ", per fanout = " << perFanout
+				<< std::endl;
+			throw exception("Not enough memory for merging.");
+		}
+
+		while (m_sortedRunsCount > finalFanout) {
 			memory_size_type newCount = 0;
 			for (size_t i = 0; i < m_sortedRunsCount; i += fanout, ++newCount) {
 				size_t till = std::min(m_sortedRunsCount, i + fanout);
@@ -424,6 +523,7 @@ public:
 			m_sortedRunsOffset += m_sortedRunsCount;
 			m_sortedRunsCount = newCount;
 		}
+
 		m_state = state_3;
 	}
 
@@ -452,55 +552,36 @@ private:
 		m_sorter.reset();
 	}
 
-	class mergepred {
-		pred_t m_pred;
-
-	public:
-		typedef std::pair<T, size_t> item_type;
-
-		mergepred(const pred_t & pred) : m_pred(pred) {}
-
-		// Used with std::priority_queue, so invert the original relation.
-		bool operator()(const item_type & a, const item_type & b) const {
-			return m_pred(b.first, a.first);
+	void initialize_merger(memory_size_type a, memory_size_type b) {
+		m_merger.init(b-a);
+		size_t i = 0;
+		for (memory_size_type p = a; p != b; ++p, ++i) {
+			m_merger.open(i, sorted_run_path(p));
 		}
-	};
+	}
+
+	void free_merger_and_files(memory_size_type a, memory_size_type b) {
+		size_t i = 0;
+		for (memory_size_type p = a; p != b; ++p, ++i) {
+			increment_temp_file_usage(-static_cast<stream_offset_type>(m_merger.file_size(i)));
+			log_info() << "- " << (p+m_sortedRunsOffset) << ' ' << m_merger.file_size(i) << std::endl;
+			m_merger.close(i);
+			boost::filesystem::remove(sorted_run_path(p));
+		}
+		m_merger.free();
+		if (m_firstFileUsed == m_sortedRunsOffset + a) m_firstFileUsed = m_sortedRunsOffset + b;
+	}
 
 	void merge_runs(memory_size_type a, memory_size_type b, memory_size_type dst) {
 		log_info() << "Merge runs [" << a << ", " << b << ") into " << dst << std::endl;
 		serialization_writer wr;
 		wr.open(sorted_run_path(dst));
 		m_lastFileUsed = std::max(m_lastFileUsed, m_sortedRunsOffset + dst);
-		std::vector<serialization_reader> rd(b-a);
-		mergepred p(m_pred);
-		std::priority_queue<typename mergepred::item_type, std::vector<typename mergepred::item_type>, mergepred> pq(p);
-		size_t i = 0;
-		for (memory_size_type p = a; p != b; ++p, ++i) {
-			rd[i].open(sorted_run_path(p));
-			if (rd[i].can_read()) {
-				T item;
-				rd[i].unserialize(item);
-				pq.push(std::make_pair(item, i));
-			}
+		initialize_merger(a, b);
+		while (m_merger.can_pull()) {
+			wr.serialize(m_merger.pull());
 		}
-		while (!pq.empty()) {
-			wr.serialize(pq.top().first);
-			size_t i = pq.top().second;
-			pq.pop();
-			if (rd[i].can_read()) {
-				T item;
-				rd[i].unserialize(item);
-				pq.push(std::make_pair(item, i));
-			}
-		}
-		i = 0;
-		for (memory_size_type p = a; p != b; ++p, ++i) {
-			increment_temp_file_usage(-static_cast<stream_offset_type>(rd[i].file_size()));
-			log_info() << "- " << (p+m_sortedRunsOffset) << ' ' << rd[i].file_size() << std::endl;
-			rd[i].close();
-			boost::filesystem::remove(sorted_run_path(p));
-		}
-		if (m_firstFileUsed == m_sortedRunsOffset + a) m_firstFileUsed = m_sortedRunsOffset + b;
+		free_merger_and_files(a, b);
 		wr.close();
 		log_info() << "+ " << (dst+m_sortedRunsOffset) << ' ' << wr.file_size() << std::endl;
 		increment_temp_file_usage(static_cast<stream_offset_type>(wr.file_size()));
@@ -508,18 +589,23 @@ private:
 
 public:
 	T pull() {
-		T item;
 		if (!m_open) {
-			m_reader.open(sorted_run_path(0));
+			initialize_merger(0, m_sortedRunsCount);
 			m_open = true;
 		}
-		m_reader.unserialize(item);
+
+		T item = m_merger.pull();
+
+		if (!m_merger.can_pull()) {
+			free_merger_and_files(0, m_sortedRunsCount);
+		}
+
 		return item;
 	}
 
 	bool can_pull() {
-		if (!m_open) return true;
-		return m_reader.can_read();
+		if (!m_open) return m_items > 0;
+		return m_merger.can_pull();
 	}
 };
 
