@@ -73,7 +73,7 @@ set(__get_git_revision_description YES)
 get_filename_component(_gitdescmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 
 function(get_git_head_revision _refspecvar _hashvar)
-	set(GIT_PARENT_DIR "${CMAKE_SOURCE_DIR}")
+	set(GIT_PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	set(GIT_DIR "${GIT_PARENT_DIR}/.git")
 	while(NOT EXISTS "${GIT_DIR}")	# .git dir not found, search parent directories
 		set(GIT_PREVIOUS_PARENT "${GIT_PARENT_DIR}")
@@ -91,6 +91,14 @@ function(get_git_head_revision _refspecvar _hashvar)
 		file(MAKE_DIRECTORY "${GIT_DATA}")
 	endif()
 	set(HEAD_FILE "${GIT_DATA}/HEAD")
+	if(NOT IS_DIRECTORY ${GIT_DIR}) 
+	  file(STRINGS ${GIT_DIR} GIT_DIR LIMIT_COUNT 1 REGEX "gitdir: (.*)")
+	  string(REGEX REPLACE "gitdir: (.*)" "\\1" GIT_DIR "${GIT_DIR}")
+	endif()
+	if(NOT IS_DIRECTORY ${GIT_DIR}) 
+	  message("Git dir ${GIT_DIR} is not a directory")
+	endif()
+
 	configure_file("${GIT_DIR}/HEAD" "${HEAD_FILE}" COPYONLY)
 
 	configure_file("${_gitdescmoddir}/GetGitRevisionDescription.cmake.in"
