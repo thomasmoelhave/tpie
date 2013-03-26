@@ -40,9 +40,6 @@
 #include <tpie/job.h>
 #include <tpie/config.h>
 
-namespace {
-
-}
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -185,6 +182,13 @@ public:
 			// Does nothing.
 		}
 
+		~qsort_job() {
+			for (size_t i = 0; i < children.size(); ++i) {
+				delete children[i];
+			}
+			children.resize(0);
+		}
+
 		///////////////////////////////////////////////////////////////////////
 		/// Running a job with iterators a and b will repeatedly partition
 		/// [a,b), spawn a job on the left part and recurse on the right part,
@@ -199,24 +203,24 @@ public:
 				//qsort_job * j = tpie_new<qsort_job>(a, pivot, comp, this);
 				qsort_job * j = new qsort_job(a, pivot, comp, this, progress);
 				j->enqueue(this);
+				children.push_back(j);
 				a = pivot+1;
 			}
 			std::sort(a, b, comp);
 			add_progress(sortWork(b - a));
 		}
+
 	protected:
-		virtual void on_done() {
-			if (parent) parent->child_done(this);
-			else {
+		virtual void on_done() override {
+			// Unfortunately, it might not be safe to delete our children at
+			// this point, as other threads might in theory wait for them to
+			// .join(). It is safer to postpone deletion until our own
+			// deletion.
+			if (!parent) {
 				boost::mutex::scoped_lock lock(progress.mutex);
 				progress.work_estimate = progress.total_work_estimate;
 				progress.cond.notify_one();
 			}
-		}
-
-		void child_done(job * /*job*/) {
-			//tpie_delete(job);
-			//delete job;
 		}
 
 	private:
@@ -225,6 +229,8 @@ public:
 		comp_type comp;
 		qsort_job * parent;
 		progress_t & progress;
+
+		std::vector<qsort_job *> children;
 
 		void add_progress(boost::uint64_t amount) {
 			boost::mutex::scoped_lock lock(progress.mutex);
