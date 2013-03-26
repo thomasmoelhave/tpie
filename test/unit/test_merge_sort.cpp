@@ -71,6 +71,35 @@ private:
 	memory_size_type m_extraMemory;
 };
 
+bool sort_upper_bound_test() {
+	memory_size_type m1 = 100 *1024*1024;
+	memory_size_type m2 = 20  *1024*1024;
+	memory_size_type m3 = 20  *1024*1024;
+	memory_size_type dataSize = 15*1024*1024;
+	memory_size_type dataUpperBound = 80*1024*1024;
+
+	memory_size_type items = dataSize / sizeof(test_t);
+
+	stream_size_type io = get_bytes_written();
+
+	relative_memory_usage m;
+	merge_sorter<test_t, false> s;
+	s.set_available_memory(m1, m2, m3);
+	s.set_items(dataUpperBound / sizeof(test_t));
+
+	m.set_threshold(m1);
+	s.begin();
+	for (stream_size_type i = 0; i < items; ++i) {
+		s.push(i);
+	}
+	s.end();
+	dummy_progress_indicator pi;
+	s.calc(pi);
+	while (s.can_pull()) s.pull();
+
+	return io == get_bytes_written();
+}
+
 bool sort_test(memory_size_type m1,
 			   memory_size_type m2,
 			   memory_size_type m3,
@@ -184,5 +213,6 @@ int main(int argc, char ** argv) {
 		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.5)
 		.test(evacuate_before_merge_test, "evacuate_before_merge")
 		.test(evacuate_before_report_test, "evacuate_before_report")
+		.test(sort_upper_bound_test, "sort_upper_bound")
 		;
 }

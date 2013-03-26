@@ -573,6 +573,38 @@ private:
 			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
 	}
 
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Set upper bound on number of items pushed.
+	///
+	/// If the number of items to push is less than the size of a single run,
+	/// this method will decrease the run size to that.
+	/// This may make it easier for the sorter to go into internal reporting
+	/// mode.
+	///////////////////////////////////////////////////////////////////////////
+	void set_items(stream_size_type n) {
+		if (!m_parametersSet)
+			throw exception("Wrong state in set_items: parameters not set");
+		if (m_state != stParameters)
+			throw exception("Wrong state in set_items: state is not stParameters");
+
+		if (n < p.runLength) {
+			log_debug() << "Decreasing run length from " << p.runLength
+				<< " to " << n << std::endl;
+
+			p.runLength = n;
+
+			// Mirror the restriction from calculate_parameters.
+			if (p.internalReportThreshold > p.runLength)
+				p.internalReportThreshold = p.runLength;
+
+			log_debug() << "New merge sort parameters\n";
+			p.dump(log_debug());
+			log_debug() << std::endl;
+		}
+	}
+
+private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Figure out the index in m_runFiles of the given run.
 	/// \param mergeLevel  Distance from leaves of merge tree.

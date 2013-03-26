@@ -288,6 +288,8 @@ public:
 
 	virtual void begin() override {
 		node::begin();
+		if (this->can_fetch("items"))
+			m_sorter->set_items(this->fetch<stream_size_type>("items"));
 		m_sorter->begin();
 	}
 
