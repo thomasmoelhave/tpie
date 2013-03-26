@@ -167,10 +167,11 @@ serialization_writer_base::serialization_writer_base()
 	: m_blocksWritten(0)
 	, m_size(0)
 	, m_open(false)
+	, m_tempFile(0)
 {
 }
 
-void serialization_writer_base::open(std::string path, bool reverse) {
+void serialization_writer_base::open_inner(std::string path, bool reverse) {
 	close(reverse);
 	m_fileAccessor.set_cache_hint(access_sequential);
 	m_fileAccessor.open_wo(path);
@@ -184,6 +185,16 @@ void serialization_writer_base::open(std::string path, bool reverse) {
 	guard.commit();
 }
 
+void serialization_writer_base::open(std::string path, bool reverse) {
+	m_tempFile = 0;
+	open_inner(path, reverse);
+}
+
+void serialization_writer_base::open(temp_file & tempFile, bool reverse) {
+	m_tempFile = &tempFile;
+	open_inner(tempFile.path(), reverse);
+}
+
 void serialization_writer_base::write_block(const char * const s, const memory_size_type n) {
 	assert(n <= block_size());
 	stream_size_type offset = m_blocksWritten * block_size();
@@ -191,6 +202,8 @@ void serialization_writer_base::write_block(const char * const s, const memory_s
 	m_fileAccessor.write_i(s, n);
 	++m_blocksWritten;
 	m_size = offset + n;
+	if (m_tempFile)
+		m_tempFile->update_recorded_size(m_size);
 }
 
 void serialization_writer_base::close(bool reverse) {
@@ -201,6 +214,7 @@ void serialization_writer_base::close(bool reverse) {
 	header.write(true);
 	m_fileAccessor.close_i();
 	m_open = false;
+	m_tempFile = 0;
 }
 
 stream_size_type serialization_writer_base::file_size() {
@@ -216,6 +230,12 @@ void serialization_writer::write_block() {
 
 void serialization_writer::open(std::string path) {
 	p_t::open(path, false);
+	m_block.resize(block_size());
+	m_index = 0;
+}
+
+void serialization_writer::open(temp_file & tempFile) {
+	p_t::open(tempFile, false);
 	m_block.resize(block_size());
 	m_index = 0;
 }
@@ -236,6 +256,12 @@ void serialization_reverse_writer::write_block() {
 
 void serialization_reverse_writer::open(std::string path) {
 	p_t::open(path, true);
+	m_block.resize(block_size());
+	m_index = 0;
+}
+
+void serialization_reverse_writer::open(temp_file & tempFile) {
+	p_t::open(tempFile, true);
 	m_block.resize(block_size());
 	m_index = 0;
 }
@@ -322,6 +348,10 @@ void serialization_reader::open(std::string path) {
 	m_blockNumber = 0;
 }
 
+void serialization_reader::open(temp_file & tempFile) {
+	open(tempFile.path());
+}
+
 stream_size_type serialization_reader::offset() {
 	if (m_blockSize == 0)
 		return 0;
@@ -345,6 +375,10 @@ serialization_reverse_reader::serialization_reverse_reader()
 void serialization_reverse_reader::open(std::string path) {
 	p_t::open(path, true);
 	m_blockNumber = (m_size + (block_size() - 1)) / block_size();
+}
+
+void serialization_reverse_reader::open(temp_file & tempFile) {
+	open(tempFile.path());
 }
 
 stream_size_type serialization_reverse_reader::offset() {

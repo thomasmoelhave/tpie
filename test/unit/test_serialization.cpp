@@ -273,6 +273,40 @@ bool stream_reverse_test() {
 	return result;
 }
 
+bool stream_temp_test() {
+	stream_size_type tmpUsage1, tmpUsage2, tmpUsage3, tmpUsage4;
+	tmpUsage1 = get_temp_file_usage();
+	{
+		tpie::temp_file f;
+		{
+			serialization_writer wr;
+			wr.open(f);
+			tmpUsage2 = get_temp_file_usage();
+			wr.serialize(1);
+			wr.serialize(2);
+			wr.serialize(3);
+			wr.close();
+		}
+		tmpUsage3 = get_temp_file_usage();
+		{
+			serialization_reader rd;
+			int i;
+			rd.open(f);
+			rd.unserialize(i);
+			rd.close();
+		}
+	}
+	tmpUsage4 = get_temp_file_usage();
+	log_info()
+		<< "Usage before open:    " << tmpUsage1 << '\n'
+		<< "Usage after open:     " << tmpUsage2 << '\n'
+		<< "Usage after close:    " << tmpUsage3 << '\n'
+		<< "Usage after destruct: " << tmpUsage4 << std::endl;
+	return tmpUsage1 == tmpUsage2
+		&& tmpUsage1 == tmpUsage4
+		&& tmpUsage3 > tmpUsage2;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(safe_test, "safe")
@@ -280,5 +314,6 @@ int main(int argc, char ** argv) {
 		.test(testSer2, "serialization2")
 		.test(stream_test, "stream")
 		.test(stream_reverse_test, "stream_reverse")
+		.test(stream_temp_test, "stream_temp")
 		;
 }

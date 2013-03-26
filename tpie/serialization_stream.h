@@ -29,6 +29,7 @@
 #include <memory>
 #include <tpie/access_type.h>
 #include <tpie/array.h>
+#include <tpie/tempname.h>
 
 namespace tpie {
 
@@ -46,11 +47,18 @@ private:
 	stream_size_type m_size;
 	bool m_open;
 
+	temp_file * m_tempFile;
+
 protected:
 	serialization_writer_base();
 
 	void open(std::string path, bool reverse);
+	void open(temp_file & tempFile, bool reverse);
 
+private:
+	void open_inner(std::string path, bool reverse);
+
+protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Write n bytes from memory area s to next block in stream.
 	///
@@ -109,6 +117,7 @@ private:
 
 public:
 	void open(std::string path);
+	void open(temp_file & tempFile);
 
 	void close();
 
@@ -198,6 +207,7 @@ class serialization_reverse_writer : public bits::serialization_writer_base {
 
 public:
 	void open(std::string path);
+	void open(temp_file & tempFile);
 
 	void close();
 
@@ -346,6 +356,7 @@ public:
 	serialization_reader();
 
 	void open(std::string path);
+	void open(temp_file & tempFile);
 
 	bool can_read() {
 		if (m_index < m_blockSize) return true;
@@ -371,6 +382,7 @@ public:
 	serialization_reverse_reader();
 
 	void open(std::string path);
+	void open(temp_file & tempFile);
 
 	bool can_read() {
 		if (m_index < m_blockSize) return true;
