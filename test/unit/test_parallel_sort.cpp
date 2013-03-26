@@ -52,7 +52,7 @@ template<bool Progress, size_t min_size>
 bool basic1(const size_t elements, typename progress_types<Progress>::base * pi) {
 	typedef progress_types<Progress> P;
 
-	const size_t stepevery = elements / 16;
+	const size_t stepevery = std::max(static_cast<size_t>(1), elements / 16);
 	boost::rand48 prng(42);
 	std::vector<int> v1(elements);
 	std::vector<int> v2(elements);
