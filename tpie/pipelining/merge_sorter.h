@@ -24,6 +24,7 @@
 #include <tpie/pipelining/merger.h>
 #include <tpie/pipelining/exception.h>
 #include <tpie/dummy_progress.h>
+#include <tpie/array_view.h>
 
 namespace tpie {
 
@@ -150,10 +151,28 @@ public:
 	inline void end() {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		sort_current_run();
-		if (m_finishedRuns == 0 && m_currentRunItemCount <= p.internalReportThreshold) {
+
+		if (m_finishedRuns == 0 && m_currentRunItems.size() <= p.internalReportThreshold) {
+			// Our current buffer fits within the memory requirements of phase 2.
 			m_reportInternal = true;
 			m_itemsPulled = 0;
 			log_debug() << "Got " << m_currentRunItemCount << " items. Internal reporting mode." << std::endl;
+
+		} else if (m_finishedRuns == 0
+				   && m_currentRunItemCount <= p.internalReportThreshold
+				   && array<T>::memory_usage(m_currentRunItemCount) <= get_memory_manager().available()) {
+			// Our current buffer does not fit within the memory requirements
+			// of phase 2, but we have enough temporary memory to copy and
+			// resize the buffer.
+
+			array<T> currentRun(array_view<T>(m_currentRunItems, 0, m_currentRunItemCount));
+			m_currentRunItems.swap(currentRun);
+
+			m_reportInternal = true;
+			m_itemsPulled = 0;
+			log_debug() << "Got " << m_currentRunItemCount << " items. Internal reporting mode "
+				<< "after resizing item buffer." << std::endl;
+
 		} else {
 			m_reportInternal = false;
 			empty_current_run();
