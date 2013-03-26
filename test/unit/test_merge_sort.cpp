@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2012, The TPIE development team
+// Copyright 2012, 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -29,8 +29,10 @@ using namespace tpie::pipelining;
 typedef uint64_t test_t;
 
 struct relative_memory_usage {
-	inline relative_memory_usage()
+	inline relative_memory_usage(memory_size_type extraMemory)
 		: m_startMemory(actual_used())
+		, m_threshold(0)
+		, m_extraMemory(extraMemory)
 	{
 	}
 
@@ -40,7 +42,7 @@ struct relative_memory_usage {
 
 	inline void set_threshold(memory_size_type threshold) {
 		m_threshold = threshold;
-		get_memory_manager().set_limit(m_startMemory + m_threshold);
+		get_memory_manager().set_limit(m_startMemory + m_threshold + m_extraMemory);
 	}
 
 	inline bool below(memory_size_type threshold) {
@@ -66,22 +68,25 @@ private:
 
 	memory_size_type m_startMemory;
 	memory_size_type m_threshold;
+	memory_size_type m_extraMemory;
 };
 
 bool sort_test(memory_size_type m1,
 			   memory_size_type m2,
 			   memory_size_type m3,
 			   double mb_data,
+			   memory_size_type extraMemory = 0,
 			   bool evacuateBeforeMerge = false,
 			   bool evacuateBeforeReport = false)
 {
 	m1 *= 1024*1024;
 	m2 *= 1024*1024;
 	m3 *= 1024*1024;
+	extraMemory *= 1024*1024;
 	stream_size_type items = static_cast<stream_size_type>(mb_data*1024/sizeof(test_t)*1024);
 	log_debug() << "sort_test with " << items << " items\n";
 	boost::rand48 rng;
-	relative_memory_usage m;
+	relative_memory_usage m(extraMemory);
 	merge_sorter<test_t, false> s;
 	s.set_available_memory(m1, m2, m3);
 
@@ -146,6 +151,10 @@ bool internal_report_test() {
 	return sort_test(100,100,100,50);
 }
 
+bool internal_report_after_resize_test() {
+	return sort_test(100,80,80,50, 100);
+}
+
 bool one_run_external_report_test() {
 	return sort_test(100,7,7,7);
 }
@@ -159,16 +168,17 @@ bool small_final_fanout_test(double mb) {
 }
 
 bool evacuate_before_merge_test() {
-	return sort_test(20,20,20,10, true, false);
+	return sort_test(20,20,20,10, 0, true, false);
 }
 
 bool evacuate_before_report_test() {
-	return sort_test(20,20,20,50, false, true);
+	return sort_test(20,20,20,50, 0, false, true);
 }
 
 int main(int argc, char ** argv) {
 	return tests(argc, argv)
 		.test(internal_report_test, "internal_report")
+		.test(internal_report_after_resize_test, "internal_report_after_resize")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
 		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.5)
