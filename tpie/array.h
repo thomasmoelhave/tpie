@@ -388,7 +388,25 @@ public:
 	array(const array & other): m_elements(0), m_size(other.m_size), m_tss_used(false) {
 		if (other.size() == 0) return;
 		alloc_copy(other.m_elements);
-	}	
+	}
+
+	array(const array_view_base<T> & view)
+		: m_elements(0)
+		, m_size(view.size())
+		, m_tss_used(false)
+	{
+		if (view.size() == 0) return;
+		alloc_copy(&*view.begin());
+	}
+
+	array(const array_view_base<const T> & view)
+		: m_elements(0)
+		, m_size(view.size())
+		, m_tss_used(false)
+	{
+		if (view.size() == 0) return;
+		alloc_copy(&*view.begin());
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Free up all memory used by the array.
@@ -467,7 +485,7 @@ private:
 	/// Effect: Allocates the m_elements buffer.
 	/// \param copy_from  Source elements in [copy_from, copy_from+m_size)
 	///////////////////////////////////////////////////////////////////////////
-	inline void alloc_copy(T * copy_from) { bits::allocator_usage<T, Allocator>::alloc_copy(*this, copy_from); }
+	inline void alloc_copy(const T * copy_from) { bits::allocator_usage<T, Allocator>::alloc_copy(*this, copy_from); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Allocate m_size elements and copy construct contents with
@@ -497,18 +515,13 @@ private:
 	bool m_tss_used;
 
 	Allocator m_allocator;
-
-public:
-	array(array_view_base<const T> & view) {
-		std::copy(view.begin(), view.end(), this->begin());
-	}
 };
 
 namespace bits {
 
 template <typename T>
 struct allocator_usage<T, allocator<T> > {
-	static void alloc_copy(array<T, allocator<T> > & host, T * copy_from) {
+	static void alloc_copy(array<T, allocator<T> > & host, const T * copy_from) {
 		host.m_elements = host.m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(host.m_size)) : 0;
 		host.m_tss_used = true;
 		std::uninitialized_copy(copy_from+0, copy_from+host.m_size, host.m_elements+0);
@@ -544,7 +557,7 @@ struct allocator_usage<T, allocator<T> > {
 
 template <typename T, typename Allocator>
 struct allocator_usage {
-	static void alloc_copy(array<T, Allocator> & host, T * copy_from) {
+	static void alloc_copy(array<T, Allocator> & host, const T * copy_from) {
 		host.m_elements = host.m_size ? host.m_allocator.allocate(host.m_size) : 0;
 		for (size_t i = 0; i < host.m_size; ++i) {
 			host.m_allocator.construct(host.m_elements+i, copy_from[i]);

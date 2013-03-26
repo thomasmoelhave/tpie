@@ -432,6 +432,20 @@ bool copy_test() {
 	return true;
 }
 
+bool from_view_test() {
+	size_t bufSz = 20;
+	size_t viewOffset = 2;
+	size_t viewSize = 10;
+	array<size_t> orig(bufSz);
+	for (size_t i = 0; i < bufSz; ++i) orig[i] = i;
+	array<size_t> copied(array_view<size_t>(orig, viewOffset, viewOffset + viewSize));
+	if (copied.size() != viewSize) return false;
+	for (size_t i = 0; i < viewSize; ++i) {
+		if (copied[i] != orig[i + viewOffset]) return false;
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
@@ -456,5 +470,6 @@ int main(int argc, char **argv) {
 		.test(swap_test, "swap")
 		.test(allocator_test, "allocator")
 		.test(copy_test, "copy")
+		.test(from_view_test, "from_view")
 		;
 }
