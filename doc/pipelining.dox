@@ -431,6 +431,10 @@ Common faults in node implementations include
   \c pipeline::plot does not yield a graph containing all the nodes you expect,
   this is probably the problem.
 
+- Non-public inheritance of the \c node base class. This usually leads to an
+  error that <tt>tpie::pipelining::bits::node_map::ptr
+  tpie::pipelining::node::get_node_map() const</tt> is inaccessible.
+
 \section sec_parallel Parallel execution
 
 The pipelining framework provides transparent parallel execution of pipelines.
