@@ -20,29 +20,61 @@
 #include <iostream>
 
 #include <tpie/tpie.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/pipelining.h>
+
+namespace tp = tpie::pipelining;
+
+template <typename dest_t>
+class line_reader_type : public tp::node {
+	dest_t dest;
+
+public:
+	line_reader_type(const dest_t & dest)
+		: dest(dest)
+	{
+		this->add_push_destination(dest);
+	}
+
+	void go() {
+		std::string line;
+		while (std::getline(std::cin, line)) {
+			dest.push(line);
+		}
+	}
+};
+
+tp::pipe_begin<tp::factory_0<line_reader_type> >
+line_reader() {
+	return tp::factory_0<line_reader_type>();
+}
+
+class line_writer_type : public tp::node {
+public:
+	typedef std::string item_type;
+
+	line_writer_type() {
+	}
+
+	void push(const std::string & line) {
+		std::cout << line << '\n';
+	}
+};
+
+tp::pipe_end<tp::termfactory_0<line_writer_type> >
+line_writer() {
+	return tp::termfactory_0<line_writer_type>();
+}
 
 int main() {
-	tpie::tpie_init(tpie::ALL & ~tpie::JOB_MANAGER);
-	const tpie::memory_size_type memory = 10*1024*1024;
+	tpie::tpie_init();
+	const tpie::memory_size_type memory = 100*1024*1024;
 	tpie::get_memory_manager().set_limit(memory);
 	{
-	tpie::serialization_sort<std::string, std::less<std::string> >
-		sorter(memory - tpie::get_memory_manager().used());
-	std::string line;
-	sorter.begin();
-	while (std::getline(std::cin, line)) {
-		sorter.push(line);
+	tp::pipeline p = line_reader() | tp::serialization_pipesort() | line_writer();
+	p.plot(std::clog);
+	p();
 	}
 	tpie::log_info() << "Temp file usage: " << tpie::get_temp_file_usage() << std::endl;
-	sorter.end();
-	tpie::log_info() << "Temp file usage: " << tpie::get_temp_file_usage() << std::endl;
-	while (sorter.can_pull()) {
-		std::cout << sorter.pull() << '\n';
-	}
-	tpie::log_info() << "Temp file usage: " << tpie::get_temp_file_usage() << std::endl;
-	}
-	tpie::log_info() << "Temp file usage: " << tpie::get_temp_file_usage() << std::endl;
-	tpie::tpie_finish(tpie::ALL & ~tpie::JOB_MANAGER);
+	tpie::tpie_finish();
 	return 0;
 }
