@@ -209,6 +209,39 @@ bool stream_test() {
 	return result;
 }
 
+bool stream_reopen_test() {
+	temp_file f;
+	const int src = 42;
+	int dest;
+	{
+		serialization_writer wr;
+		wr.open(f);
+		wr.serialize(src);
+		wr.close();
+	}
+	{
+		serialization_reader rd;
+		rd.open(f);
+		if (!rd.can_read()) {
+			log_error() << "Expected can_read()" << std::endl;
+			return false;
+		}
+		rd.unserialize(dest);
+		if (rd.can_read()) {
+			log_error() << "Expected !can_read()" << std::endl;
+			return false;
+		}
+		rd.close();
+		rd.open(f);
+		if (!rd.can_read()) {
+			log_error() << "Expected can_read()" << std::endl;
+			return false;
+		}
+		rd.close();
+	}
+	return true;
+}
+
 bool stream_reverse_test() {
 	bool result = true;
 
@@ -313,6 +346,7 @@ int main(int argc, char ** argv) {
 		.test(unsafe_test, "unsafe")
 		.test(testSer2, "serialization2")
 		.test(stream_test, "stream")
+		.test(stream_reopen_test, "stream_reopen")
 		.test(stream_reverse_test, "stream_reverse")
 		.test(stream_temp_test, "stream_temp")
 		;
