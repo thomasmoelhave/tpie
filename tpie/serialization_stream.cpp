@@ -289,6 +289,8 @@ void serialization_reader_base::open(std::string path, bool reverse) {
 	m_fileAccessor.open_ro(path);
 	open_guard guard(m_open, m_fileAccessor);
 	m_block.resize(block_size());
+	m_index = 0;
+	m_blockSize = 0;
 
 	bits::serialization_header header(m_fileAccessor);
 	header.read();
