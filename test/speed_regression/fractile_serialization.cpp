@@ -27,8 +27,12 @@ class fractile_serialization {
 
 public:
 	fractile_serialization()
-		: sorter(tpie::get_memory_manager().available() - tpie::serialization_reader::memory_usage())
+		: sorter()
 	{
+		tpie::memory_size_type mem =
+			tpie::get_memory_manager().available()
+			- tpie::serialization_reader::memory_usage();
+		sorter.set_available_memory(mem);
 	}
 
 	void open(std::string path) {
@@ -44,6 +48,7 @@ public:
 		}
 		input.close();
 		sorter.end();
+		sorter.merge_runs();
 	}
 	void close() {
 	}
