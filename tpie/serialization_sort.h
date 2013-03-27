@@ -163,6 +163,208 @@ public:
 
 namespace serialization_bits {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  File handling for merge sort.
+///
+/// This class abstracts away the details of numbering run files; tracking the
+/// number of runs in each merge level; informing the TPIE stats framework of
+/// the temporary size; deleting run files after use.
+///
+/// The important part of the state is the tuple consisting of
+/// (a, b, c) := (fileOffset, nextLevelFileOffset, nextFileOffset).
+/// `a` is the first file in the level currently being merged;
+/// `b` is the first file in the level being merged into;
+/// `c` is the next file to write output to.
+///
+/// ## Transition system
+///
+/// We let remainingRuns := b - a, and nextLevelRuns := c - b.
+///
+/// The tuple (remainingRuns, nextLevelRuns) has the following transitions:
+/// On open_new_writer(): (x, y) -> (x, 1+y),
+/// On open_readers(fanout): (fanout+x, y) -> (fanout+x, y),
+/// On open_readers(fanout): (0, fanout+y) -> (fanout+y, 0),
+/// On close_readers_and_delete(): (fanout+x, y) -> (x, y).
+///
+/// ## Merge sorter usage
+///
+/// During run formation (the first phase of merge sort), we repeatedly call
+/// open_new_writer() and close_writer() to write out runs to the disk.
+///
+/// After run formation, we call open_readers(fanout) to advance into the first
+/// level of the merge heap (so one can think of run formation as a "zeroth
+/// level" in the merge heap).
+///
+/// As a slight optimization, when remaining_runs() == 1, one may call
+/// move_last_reader_to_next_level() to move the remaining run into the next
+/// merge level without scanning through and copying the single remaining run.
+///
+/// See serialization_sort::merge_runs() for the logic involving
+/// next_level_runs() and remaining_runs() in a loop.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class file_handler {
+	// Physical index of the run file with logical index 0.
+	size_t m_fileOffset;
+	// Physical index of the run file that begins the next run.
+	size_t m_nextLevelFileOffset;
+	// Physical index of the next run file to write
+	size_t m_nextFileOffset;
+
+	bool m_writerOpen;
+	size_t m_readersOpen;
+
+	serialization_writer m_writer;
+	stream_size_type m_currentWriterByteSize;
+
+	array<serialization_reader> m_readers;
+
+	std::string m_tempDir;
+
+	std::string run_file(size_t physicalIndex) {
+		if (m_tempDir.size() == 0) throw exception("run_file: temp dir is the empty string");
+		std::stringstream ss;
+		ss << m_tempDir << '/' << physicalIndex << ".tpie";
+		return ss.str();
+	}
+
+public:
+	file_handler()
+		: m_fileOffset(0)
+		, m_nextLevelFileOffset(0)
+		, m_nextFileOffset(0)
+
+		, m_writerOpen(false)
+		, m_readersOpen(0)
+
+		, m_writer()
+		, m_currentWriterByteSize(0)
+	{
+	}
+
+	~file_handler() {
+		reset();
+	}
+
+	void set_temp_dir(const std::string & tempDir) {
+		if (m_nextFileOffset != 0)
+			throw exception("set_temp_dir: trying to change path after files already open");
+		m_tempDir = tempDir;
+	}
+
+	void open_new_writer() {
+		if (m_writerOpen) throw exception("open_new_writer: Writer already open");
+		m_writer.open(run_file(m_nextFileOffset++));
+		m_currentWriterByteSize = m_writer.file_size();
+		m_writerOpen = true;
+	}
+
+	void write(const T & v) {
+		if (!m_writerOpen) throw exception("write: No writer open");
+		m_writer.serialize(v);
+	}
+
+	void close_writer() {
+		if (!m_writerOpen) throw exception("close_writer: No writer open");
+		m_writer.close();
+		stream_size_type sz = m_writer.file_size();
+		increase_usage(m_nextFileOffset-1, static_cast<stream_offset_type>(sz));
+		m_writerOpen = false;
+	}
+
+	size_t remaining_runs() {
+		return m_nextLevelFileOffset - m_fileOffset;
+	}
+
+	size_t next_level_runs() {
+		return m_nextFileOffset - m_nextLevelFileOffset;
+	}
+
+	bool readers_open() {
+		return m_readersOpen > 0;
+	}
+
+	void open_readers(size_t fanout) {
+		if (m_readersOpen != 0) throw exception("open_readers: readers already open");
+		if (fanout == 0) throw exception("open_readers: fanout == 0");
+		if (remaining_runs() == 0) {
+			if (m_writerOpen) throw exception("Writer open while moving to next merge level");
+			m_nextLevelFileOffset = m_nextFileOffset;
+		}
+		if (fanout > remaining_runs()) throw exception("open_readers: fanout out of bounds");
+
+		if (m_readers.size() < fanout) m_readers.resize(fanout);
+		for (size_t i = 0; i < fanout; ++i) {
+			m_readers[i].open(run_file(m_fileOffset + i));
+		}
+		m_readersOpen = fanout;
+	}
+
+	bool can_read(size_t idx) {
+		if (m_readersOpen == 0) throw exception("can_read: no readers open");
+		if (m_readersOpen < idx) throw exception("can_read: index out of bounds");
+		return m_readers[idx].can_read();
+	}
+
+	T read(size_t idx) {
+		if (m_readersOpen == 0) throw exception("read: no readers open");
+		if (m_readersOpen < idx) throw exception("read: index out of bounds");
+		T res;
+		m_readers[idx].unserialize(res);
+		return res;
+	}
+
+	void close_readers_and_delete() {
+		if (m_readersOpen == 0) throw exception("close_readers_and_delete: no readers open");
+
+		for (size_t i = 0; i < m_readersOpen; ++i) {
+			decrease_usage(m_fileOffset + i, m_readers[i].file_size());
+			m_readers[i].close();
+			boost::filesystem::remove(run_file(m_fileOffset + i));
+		}
+		m_fileOffset += m_readersOpen;
+		m_readersOpen = 0;
+	}
+
+	void move_last_reader_to_next_level() {
+		if (remaining_runs() != 1)
+			throw exception("move_last_reader_to_next_level: remaining_runs != 1");
+		m_nextLevelFileOffset = m_fileOffset;
+	}
+
+private:
+	void reset() {
+		if (m_readersOpen > 0) {
+			log_debug() << "reset: Close readers" << std::endl;
+			close_readers_and_delete();
+		}
+		if (m_writerOpen) {
+			log_debug() << "reset: Close writer" << std::endl;
+			close_writer();
+		}
+		log_debug() << "Remove " << m_fileOffset << " through " << m_nextFileOffset << std::endl;
+		for (size_t i = m_fileOffset; i < m_nextFileOffset; ++i) {
+			std::string runFile = run_file(i);
+			serialization_reader rd;
+			rd.open(runFile);
+			decrease_usage(i, rd.file_size());
+			rd.close();
+			boost::filesystem::remove(runFile);
+		}
+		m_fileOffset = m_nextLevelFileOffset = m_nextFileOffset = 0;
+	}
+
+	void increase_usage(size_t idx, stream_size_type sz) {
+		log_debug() << "+ " << idx << ' ' << sz << std::endl;
+		increment_temp_file_usage(static_cast<stream_offset_type>(sz));
+	}
+
+	void decrease_usage(size_t idx, stream_size_type sz) {
+		log_debug() << "- " << idx << ' ' << sz << std::endl;
+		increment_temp_file_usage(-static_cast<stream_offset_type>(sz));
+	}
+};
+
 template <typename T, typename pred_t>
 class merger {
 	class mergepred_t {
@@ -181,29 +383,25 @@ class merger {
 
 	typedef typename mergepred_t::item_type item_type;
 
+	file_handler<T> & files;
 	pred_t pred;
 	std::vector<serialization_reader> rd;
 	typedef std::priority_queue<item_type, std::vector<item_type>, mergepred_t> priority_queue_type;
 	priority_queue_type pq;
 
 public:
-	merger(const pred_t & pred)
-		: pred(pred)
+	merger(file_handler<T> & files, const pred_t & pred)
+		: files(files)
+		, pred(pred)
 		, pq(mergepred_t(pred))
 	{
 	}
 
+	// Assume files.open_readers(fanout) has just been called
 	void init(size_t fanout) {
 		rd.resize(fanout);
-	}
-
-	void open(size_t idx, const std::string & path) {
-		rd[idx].open(path);
-		push_from(idx);
-	}
-
-	void close(size_t idx) {
-		rd[idx].close();
+		for (size_t i = 0; i < fanout; ++i)
+			push_from(i);
 	}
 
 	bool can_pull() {
@@ -218,6 +416,7 @@ public:
 		return v;
 	}
 
+	// files.close_readers_and_delete() should be called after this
 	void free() {
 		{
 			priority_queue_type tmp(pred);
@@ -226,16 +425,10 @@ public:
 		rd.resize(0);
 	}
 
-	stream_size_type file_size(size_t idx) {
-		return rd[idx].file_size();
-	}
-
 private:
 	void push_from(size_t idx) {
-		if (rd[idx].can_read()) {
-			T item;
-			rd[idx].unserialize(item);
-			pq.push(std::make_pair(item, idx));
+		if (files.can_read(idx)) {
+			pq.push(std::make_pair(files.read(idx), idx));
 		}
 	}
 };
@@ -252,54 +445,26 @@ private:
 
 	sorter_state m_state;
 	serialization_internal_sort<T, pred_t> m_sorter;
-	memory_size_type m_sortedRunsCount;
-	memory_size_type m_sortedRunsOffset;
 	serialization_sort_parameters m_params;
 	bool m_parametersSet;
-	serialization_reader m_reader;
-	bool m_open;
-	pred_t m_pred;
+	serialization_bits::file_handler<T> m_files;
 	serialization_bits::merger<T, pred_t> m_merger;
 
 	stream_size_type m_items;
-
-	memory_size_type m_firstFileUsed;
-	memory_size_type m_lastFileUsed;
 
 public:
 	serialization_sort(memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
 		: m_state(state_initial)
 		, m_sorter(pred)
-		, m_sortedRunsCount(0)
-		, m_sortedRunsOffset(0)
 		, m_parametersSet(false)
-		, m_open(false)
-		, m_pred(pred)
-		, m_merger(pred)
+		, m_files()
+		, m_merger(m_files, pred)
 		, m_items(0)
-		, m_firstFileUsed(0)
-		, m_lastFileUsed(0)
 	{
 		m_params.memoryPhase1 = 0;
 		m_params.memoryPhase2 = 0;
 		m_params.memoryPhase3 = 0;
 		m_params.minimumItemSize = minimumItemSize;
-	}
-
-	~serialization_sort() {
-		m_sortedRunsOffset = 0;
-		log_info() << "Remove " << m_firstFileUsed << " through " << m_lastFileUsed << std::endl;
-		for (memory_size_type i = m_firstFileUsed; i <= m_lastFileUsed; ++i) {
-			std::string path = sorted_run_path(i);
-			if (!boost::filesystem::exists(path)) continue;
-
-			serialization_reader rd;
-			rd.open(path);
-			log_info() << "- " << i << ' ' << rd.file_size() << std::endl;
-			increment_temp_file_usage(-static_cast<stream_offset_type>(rd.file_size()));
-			rd.close();
-			boost::filesystem::remove(path);
-		}
 	}
 
 private:
@@ -408,6 +573,7 @@ private:
 		}
 
 		m_params.tempDir = tempname::tpie_dir_name();
+		m_files.set_temp_dir(m_params.tempDir);
 
 		log_info() << "Calculated serialization_sort parameters.\n";
 		m_params.dump(log_info());
@@ -513,98 +679,85 @@ public:
 			throw exception("Not enough memory for merging.");
 		}
 
-		while (m_sortedRunsCount > finalFanout) {
-			memory_size_type newCount = 0;
-			for (size_t i = 0; i < m_sortedRunsCount; i += fanout, ++newCount) {
-				size_t till = std::min(m_sortedRunsCount, i + fanout);
-				merge_runs(i, till, m_sortedRunsCount + newCount);
+		while (m_files.next_level_runs() > finalFanout) {
+			if (m_files.remaining_runs() != 0)
+				throw exception("m_files.remaining_runs() != 0");
+			for (size_t remainingRuns = m_files.next_level_runs(); remainingRuns > 0;) {
+				size_t f = std::min(fanout, remainingRuns);
+				merge_runs(f);
+				remainingRuns -= f;
+				if (remainingRuns != m_files.remaining_runs())
+					throw exception("remainingRuns != m_files.remaining_runs()");
 			}
-			log_info() << "Advance offset by " << m_sortedRunsCount << std::endl;
-			m_sortedRunsOffset += m_sortedRunsCount;
-			m_sortedRunsCount = newCount;
 		}
 
 		m_state = state_3;
 	}
 
 private:
-	std::string sorted_run_path(memory_size_type idx) {
-		std::stringstream ss;
-		ss << m_params.tempDir << '/' << (m_sortedRunsOffset + idx) << ".tpie";
-		return ss.str();
-	}
-
 	void end_run() {
 		m_sorter.sort();
 		if (!m_sorter.can_read()) return;
-		log_info() << "Write run " << m_sortedRunsCount << std::endl;
-		serialization_writer ser;
-		m_lastFileUsed = std::max(m_lastFileUsed, m_sortedRunsCount + m_sortedRunsOffset);
-		ser.open(sorted_run_path(m_sortedRunsCount++));
+		m_files.open_new_writer();
 		T item;
 		while (m_sorter.can_read()) {
 			m_sorter.pull(item);
-			ser.serialize(item);
+			m_files.write(item);
 		}
-		ser.close();
-		log_info() << "+ " << (m_sortedRunsCount-1 + m_sortedRunsOffset) << ' ' << ser.file_size() << std::endl;
-		increment_temp_file_usage(static_cast<stream_offset_type>(ser.file_size()));
+		m_files.close_writer();
 		m_sorter.reset();
 	}
 
-	void initialize_merger(memory_size_type a, memory_size_type b) {
-		m_merger.init(b-a);
-		size_t i = 0;
-		for (memory_size_type p = a; p != b; ++p, ++i) {
-			m_merger.open(i, sorted_run_path(p));
-		}
+	void initialize_merger(size_t fanout) {
+		if (fanout == 0) throw exception("initialize_merger: fanout == 0");
+		m_files.open_readers(fanout);
+		m_merger.init(fanout);
 	}
 
-	void free_merger_and_files(memory_size_type a, memory_size_type b) {
-		size_t i = 0;
-		for (memory_size_type p = a; p != b; ++p, ++i) {
-			increment_temp_file_usage(-static_cast<stream_offset_type>(m_merger.file_size(i)));
-			log_info() << "- " << (p+m_sortedRunsOffset) << ' ' << m_merger.file_size(i) << std::endl;
-			m_merger.close(i);
-			boost::filesystem::remove(sorted_run_path(p));
-		}
+	void free_merger_and_files() {
 		m_merger.free();
-		if (m_firstFileUsed == m_sortedRunsOffset + a) m_firstFileUsed = m_sortedRunsOffset + b;
+		m_files.close_readers_and_delete();
 	}
 
-	void merge_runs(memory_size_type a, memory_size_type b, memory_size_type dst) {
-		log_info() << "Merge runs [" << a << ", " << b << ") into " << dst << std::endl;
-		serialization_writer wr;
-		wr.open(sorted_run_path(dst));
-		m_lastFileUsed = std::max(m_lastFileUsed, m_sortedRunsOffset + dst);
-		initialize_merger(a, b);
-		while (m_merger.can_pull()) {
-			wr.serialize(m_merger.pull());
+	void merge_runs(size_t fanout) {
+		if (fanout == 0) throw exception("merge_runs: fanout == 0");
+
+		if (fanout == 1 && m_files.remaining_runs() == 1) {
+			m_files.move_last_reader_to_next_level();
+			return;
 		}
-		free_merger_and_files(a, b);
-		wr.close();
-		log_info() << "+ " << (dst+m_sortedRunsOffset) << ' ' << wr.file_size() << std::endl;
-		increment_temp_file_usage(static_cast<stream_offset_type>(wr.file_size()));
+
+		initialize_merger(fanout);
+		m_files.open_new_writer();
+		while (m_merger.can_pull()) {
+			m_files.write(m_merger.pull());
+		}
+		free_merger_and_files();
+		m_files.close_writer();
 	}
 
 public:
 	T pull() {
-		if (!m_open) {
-			initialize_merger(0, m_sortedRunsCount);
-			m_open = true;
+		if (!can_pull())
+			throw exception("pull: !can_pull");
+
+		if (!m_files.readers_open()) {
+			if (m_files.next_level_runs() == 0)
+				throw exception("pull: next_level_runs == 0");
+			initialize_merger(m_files.next_level_runs());
 		}
 
 		T item = m_merger.pull();
 
 		if (!m_merger.can_pull()) {
-			free_merger_and_files(0, m_sortedRunsCount);
+			free_merger_and_files();
 		}
 
 		return item;
 	}
 
 	bool can_pull() {
-		if (!m_open) return m_items > 0;
+		if (!m_files.readers_open()) return m_files.next_level_runs() > 0;
 		return m_merger.can_pull();
 	}
 };
