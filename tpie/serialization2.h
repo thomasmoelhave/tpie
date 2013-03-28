@@ -133,7 +133,8 @@ template <typename D, typename T,
 		  bool is_pointer=boost::is_pointer<typename std::iterator_traits<T>::value_type>::value>
 struct array_encode_magic {
 	void operator()(D & dst, T start, T end) {
-		for (T i=start; i != end; ++i) tpie::serialize(dst, *i);
+		using tpie::serialize;
+		for (T i=start; i != end; ++i) serialize(dst, *i);
 	}
 };
 
@@ -156,7 +157,8 @@ template <typename D, typename T,
 		  bool is_pointer=boost::is_pointer<typename std::iterator_traits<T>::value_type>::value>
 struct array_decode_magic {
 	void operator()(D & dst, T start, T end) {
-		for (T i=start; i != end; ++i) tpie::unserialize(dst, *i);
+		using tpie::unserialize;
+		for (T i=start; i != end; ++i) unserialize(dst, *i);
 	}
 };
 
@@ -209,8 +211,9 @@ void unserialize(D & dst, T start, T end) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename D, typename T, typename alloc_t>
 void serialize(D & dst, const std::vector<T, alloc_t> & v) {
-	tpie::serialize(dst, v.size());
-	tpie::serialize(dst, v.begin(), v.end());
+	using tpie::serialize;
+	serialize(dst, v.size());
+	serialize(dst, v.begin(), v.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -219,9 +222,10 @@ void serialize(D & dst, const std::vector<T, alloc_t> & v) {
 template <typename S, typename T, typename alloc_t>
 void unserialize(S & src, std::vector<T, alloc_t> & v) {
 	typename std::vector<T>::size_type s;
-	tpie::unserialize(src, s);
+	using tpie::unserialize;
+	unserialize(src, s);
 	v.resize(s);
-	tpie::unserialize(src, v.begin(), v.end());
+	unserialize(src, v.begin(), v.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,8 +234,9 @@ void unserialize(S & src, std::vector<T, alloc_t> & v) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename D, typename T>
 void serialize(D & dst, const std::basic_string<T> & v) {
-	tpie::serialize(dst, v.size());
-	tpie::serialize(dst, v.begin(), v.end());
+	using tpie::serialize;
+	serialize(dst, v.size());
+	serialize(dst, v.begin(), v.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -241,9 +246,10 @@ void serialize(D & dst, const std::basic_string<T> & v) {
 template <typename S, typename T>
 void unserialize(S & src, std::basic_string<T> & v) {
 	typename std::basic_string<T>::size_type s;
-	tpie::unserialize(src, s);
+	using tpie::unserialize;
+	unserialize(src, s);
 	v.resize(s);
-	tpie::unserialize(src, v.begin(), v.end());
+	unserialize(src, v.begin(), v.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -251,6 +257,7 @@ void unserialize(S & src, std::basic_string<T> & v) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 size_t serialized_size(const T & v) {
+	using tpie::serialize;
 	bits::counter c;
 	serialize(c, v);
 	return c.size;
