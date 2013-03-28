@@ -391,7 +391,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining sorter using std::less.
 ///////////////////////////////////////////////////////////////////////////////
-pipe_middle<serialization_bits::default_pred_sort_factory>
+inline pipe_middle<serialization_bits::default_pred_sort_factory>
 serialization_pipesort() {
 	typedef serialization_bits::default_pred_sort_factory fact;
 	return pipe_middle<fact>(fact()).name("Sort");

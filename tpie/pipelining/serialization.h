@@ -100,7 +100,7 @@ struct output_factory {
 } // namespace serialization_bits
 
 pipe_begin<serialization_bits::input_factory>
-serialization_input(serialization_reader & rd) {
+inline serialization_input(serialization_reader & rd) {
 	return serialization_bits::input_factory(&rd);
 }
 
@@ -208,7 +208,7 @@ typedef bits::pair_factory<rev_input_factory, rev_output_factory> reverse_factor
 } // namespace serialization_bits
 
 pipe_middle<serialization_bits::reverse_factory>
-serialization_reverser() {
+inline serialization_reverser() {
 	serialization_bits::rev_input_factory i;
 	serialization_bits::rev_output_factory o;
 	return serialization_bits::reverse_factory(i, o);
