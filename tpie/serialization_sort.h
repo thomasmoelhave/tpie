@@ -628,12 +628,8 @@ public:
 		return m_items;
 	}
 
-	void evacuate_before_merging() {
-		throw tpie::exception("evacuate_before_merging not implemented yet");
-	}
-
-	void evacuate_before_reporting() {
-		throw tpie::exception("evacuate_before_reporting not implemented yet");
+	void evacuate() {
+		throw tpie::exception("evacuate not implemented yet");
 	}
 
 	void merge_runs() {

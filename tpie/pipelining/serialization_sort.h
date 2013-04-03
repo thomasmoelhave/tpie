@@ -233,7 +233,7 @@ public:
 	}
 
 	virtual void evacuate() override {
-		m_sorter->evacuate_before_reporting();
+		m_sorter->evacuate();
 	}
 
 	sorterptr get_sorter() const {
@@ -297,7 +297,7 @@ public:
 	}
 
 	virtual void evacuate() override {
-		m_sorter->evacuate_before_merging();
+		m_sorter->evacuate();
 	}
 
 protected:
