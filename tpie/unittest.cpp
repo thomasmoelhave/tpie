@@ -272,4 +272,48 @@ tests::operator int() {
 	return EXIT_SUCCESS;
 }
 
+namespace bits {
+
+	test_runner::test_runner(tests * t, const std::string & name)
+		: t(t)
+		, result(false)
+	{
+		t->start_test(name);
+	}
+
+	test_runner::~test_runner() {
+		t->end_test(result);
+	}
+
+	void test_runner::set_result(bool result) {
+		this->result = result;
+	}
+
+	void test_runner::exception() {
+		try {
+			throw;
+		} catch (const tpie::job_manager_exception & e) {
+			log_error() << "Unexpected job_manager_exception: [" << e.what() << "]\n";
+		} catch (const tpie::end_of_stream_exception & e) {
+			log_error() << "Unexpected end_of_stream_exception: [" << e.what() << "]\n";
+		} catch (const tpie::invalid_file_exception & e) {
+			log_error() << "Unexpected invalid_file_exception: [" << e.what() << "]\n";
+		} catch (const tpie::out_of_space_exception & e) {
+			log_error() << "Unexpected out_of_space_exception: [" << e.what() << "]\n";
+		} catch (const tpie::io_exception & e) {
+			log_error() << "Unexpected io_exception: [" << e.what() << "]\n";
+		} catch (const tpie::stream_exception & e) {
+			log_error() << "Unexpected stream_exception: [" << e.what() << "]\n";
+		} catch (const tpie::invalid_argument_exception & e) {
+			log_error() << "Unexpected invalid_argument_exception: [" << e.what() << "]\n";
+		} catch (const tpie::exception & e) {
+			log_error() << "Unexpected TPIE exception: [" << e.what() << "]\n";
+		} catch (const std::runtime_error & e) {
+			log_error() << "Unexpected std::runtime_error: [" << e.what() << "]\n";
+		}
+		set_result(false);
+	}
+
+} // namespace bits
+
 } //namespace tpie

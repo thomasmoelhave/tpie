@@ -86,6 +86,24 @@ testmanip<bool> failure();
 		}																\
 	}																	
 	
+
+class tests;
+
+namespace bits {
+	class test_runner {
+		tests * t;
+		bool result;
+
+	public:
+		test_runner(tests * t, const std::string & name);
+
+		void set_result(bool result);
+		void exception();
+
+		~test_runner();
+	};
+} // namespace bits
+
 class tests {
 public:
 	static const size_t lineLength = 79;
@@ -266,6 +284,8 @@ private:
 	std::vector<func *> finishs;
 	test_log_target log;
 	std::vector<std::string> m_tests;
+
+	friend class bits::test_runner;
 };
 
 template <typename src, typename dst>
@@ -331,8 +351,12 @@ template <typename T>
 tests & tests::test(T fct, const std::string & name) {
 	m_tests.push_back(name);
 	if (testAll || name == test_name) {
-		start_test(name);
-		end_test( fct());
+		bits::test_runner t(this, name);
+		try {
+			t.set_result(fct());
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -342,8 +366,12 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 	m_tests.push_back(name 
 					  + arg_str(p1_name, p1_default));
 	if (testAll || name == test_name) {
-		start_test(name);
-		end_test(fct(get_arg(p1_name, p1_default)));
+		bits::test_runner t(this, name);
+		try {
+			t.set_result(fct(get_arg(p1_name, p1_default)));
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -355,9 +383,13 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 					  + arg_str(p1_name, p1_default) 
 					  + arg_str(p2_name, p2_default));
 	if (testAll || name == test_name) {
-		start_test(name);
-		end_test(fct(get_arg(p1_name, p1_default), 
-					 get_arg(p2_name, p2_default)));
+		bits::test_runner t(this, name);
+		try {
+			t.set_result(fct(get_arg(p1_name, p1_default),
+						 get_arg(p2_name, p2_default)));
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -372,10 +404,14 @@ tests & tests::test(T fct, const std::string & name,
 					  + arg_str(p2_name, p2_default)
 					  + arg_str(p3_name, p3_default));
 	if (testAll || name == test_name) {
-		start_test(name);
-		end_test(fct(get_arg(p1_name, p1_default), 
-					 get_arg(p2_name, p2_default),
-					 get_arg(p3_name, p3_default)));
+		bits::test_runner t(this, name);
+		try {
+			t.set_result(fct(get_arg(p1_name, p1_default),
+						 get_arg(p2_name, p2_default),
+						 get_arg(p3_name, p3_default)));
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 
@@ -393,11 +429,15 @@ tests & tests::test(T fct, const std::string & name,
 					  + arg_str(p3_name, p3_default)
 					  + arg_str(p4_name, p4_default));
 	if (testAll || name == test_name) {
-		start_test(name);
-		end_test(fct(get_arg(p1_name, p1_default), 
-					 get_arg(p2_name, p2_default),
-					 get_arg(p3_name, p3_default),
-					 get_arg(p4_name, p4_default)));
+		bits::test_runner t(this, name);
+		try {
+			t.set_result(fct(get_arg(p1_name, p1_default),
+						 get_arg(p2_name, p2_default),
+						 get_arg(p3_name, p3_default),
+						 get_arg(p4_name, p4_default)));
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -416,12 +456,16 @@ tests & tests::test(T fct, const std::string & name,
 					  + arg_str(p4_name, p4_default)
 					  + arg_str(p5_name, p5_default));
 	if (testAll || name == test_name) {
-		start_test(name);
-		end_test(fct(get_arg(p1_name, p1_default), 
-					 get_arg(p2_name, p2_default),
-					 get_arg(p3_name, p3_default),
-					 get_arg(p4_name, p4_default),
-					 get_arg(p5_name, p5_default)));
+		bits::test_runner t(this, name);
+		try {
+			t.set_result(fct(get_arg(p1_name, p1_default),
+						 get_arg(p2_name, p2_default),
+						 get_arg(p3_name, p3_default),
+						 get_arg(p4_name, p4_default),
+						 get_arg(p5_name, p5_default)));
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -431,10 +475,14 @@ template <typename T>
 tests & tests::multi_test(T fct, const std::string & name) {
 	m_tests.push_back(name);
 	if (testAll || name == test_name) {
-		start_test(name);
-		teststream ts;
-		fct(ts);
-		end_test(ts.success()); 
+		bits::test_runner t(this, name);
+		try {
+			teststream ts;
+			fct(ts);
+			t.set_result(ts.success());
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -443,10 +491,14 @@ template <typename T, typename T1>
 tests & tests::multi_test(T fct, const std::string & name, const std::string & p1_name, T1  p1_default) {
 	m_tests.push_back(name+ arg_str(p1_name, p1_default));
 	if (testAll || name == test_name) {
-		start_test(name);
-		teststream ts;
-		fct(ts, get_arg(p1_name, p1_default));
-		end_test(ts.success()); 
+		bits::test_runner t(this, name);
+		try {
+			teststream ts;
+			fct(ts, get_arg(p1_name, p1_default));
+			t.set_result(ts.success());
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -460,12 +512,16 @@ tests & tests::multi_test(T fct, const std::string & name,
 		arg_str(p2_name, p2_default));
 
 	if (testAll || name == test_name) {
-		start_test(name);
-		teststream ts;
-		fct(ts,
-			get_arg(p1_name, p1_default),
-			get_arg(p2_name, p2_default));
-		end_test(ts.success()); 
+		bits::test_runner t(this, name);
+		try {
+			teststream ts;
+			fct(ts,
+				get_arg(p1_name, p1_default),
+				get_arg(p2_name, p2_default));
+			t.set_result(ts.success());
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -481,13 +537,17 @@ tests & tests::multi_test(T fct, const std::string & name,
 		arg_str(p3_name, p3_default));
 
 	if (testAll || name == test_name) {
-		start_test(name);
-		teststream ts;
-		fct(ts,
-			get_arg(p1_name, p1_default),
-			get_arg(p2_name, p2_default),
-			get_arg(p3_name, p3_default));
-		end_test(ts.success()); 
+		bits::test_runner t(this, name);
+		try {
+			teststream ts;
+			fct(ts,
+				get_arg(p1_name, p1_default),
+				get_arg(p2_name, p2_default),
+				get_arg(p3_name, p3_default));
+			t.set_result(ts.success());
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
@@ -505,14 +565,18 @@ tests & tests::multi_test(T fct, const std::string & name,
 		arg_str(p4_name, p4_default));
 
 	if (testAll || name == test_name) {
-		start_test(name);
-		teststream ts;
-		fct(ts,
-			get_arg(p1_name, p1_default),
-			get_arg(p2_name, p2_default),
-			get_arg(p3_name, p3_default),
-			get_arg(p4_name, p4_default));
-		end_test(ts.success());
+		bits::test_runner t(this, name);
+		try {
+			teststream ts;
+			fct(ts,
+				get_arg(p1_name, p1_default),
+				get_arg(p2_name, p2_default),
+				get_arg(p3_name, p3_default),
+				get_arg(p4_name, p4_default));
+			t.set_result(ts.success());
+		} catch (...) {
+			t.exception();
+		}
 	}
 	return *this;
 }
