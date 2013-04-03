@@ -34,7 +34,9 @@
 
 namespace tpie {
 
-struct serialization_sort_parameters {
+namespace serialization_bits {
+
+struct sort_parameters {
 	/** Memory available while forming sorted runs. */
 	memory_size_type memoryPhase1;
 	/** Memory available while merging runs. */
@@ -57,7 +59,7 @@ struct serialization_sort_parameters {
 };
 
 template <typename T, typename pred_t>
-class serialization_internal_sort {
+class internal_sort {
 	array<T> m_buffer;
 	memory_size_type m_items;
 	memory_size_type m_serializedSize;
@@ -70,7 +72,7 @@ class serialization_internal_sort {
 	bool m_full;
 
 public:
-	serialization_internal_sort(pred_t pred = pred_t())
+	internal_sort(pred_t pred = pred_t())
 		: m_items(0)
 		, m_serializedSize(0)
 		, m_largestItem(sizeof(T))
@@ -157,8 +159,6 @@ public:
 		m_full = false;
 	}
 };
-
-namespace serialization_bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  File handling for merge sort.
@@ -444,8 +444,8 @@ private:
 	enum sorter_state { state_initial, state_1, state_2, state_3 };
 
 	sorter_state m_state;
-	serialization_internal_sort<T, pred_t> m_sorter;
-	serialization_sort_parameters m_params;
+	serialization_bits::internal_sort<T, pred_t> m_sorter;
+	serialization_bits::sort_parameters m_params;
 	bool m_parametersSet;
 	serialization_bits::file_handler<T> m_files;
 	serialization_bits::merger<T, pred_t> m_merger;
