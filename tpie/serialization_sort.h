@@ -638,6 +638,10 @@ public:
 		throw tpie::exception("evacuate not implemented yet");
 	}
 
+	memory_size_type evacuated_memory_usage() const {
+		return 0;
+	}
+
 	void merge_runs() {
 		if (m_state != state_2)
 			throw tpie::exception("Bad state in end");
