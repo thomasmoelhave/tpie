@@ -81,6 +81,14 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the maximum amount of memory declared by this node.
+	/// Defaults to maxint when no maximum has been set.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_maximum_memory() const {
+		return m_maximumMemory;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of memory assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_available_memory() const {
@@ -272,6 +280,7 @@ protected:
 	inline node()
 		: token(this)
 		, m_minimumMemory(0)
+		, m_maximumMemory(std::numeric_limits<memory_size_type>::max())
 		, m_availableMemory(0)
 		, m_memoryFraction(0.0)
 		, m_namePriority(PRIORITY_NO_NAME)
@@ -289,6 +298,7 @@ protected:
 	inline node(const node & other)
 		: token(other.token, this)
 		, m_minimumMemory(other.m_minimumMemory)
+		, m_maximumMemory(other.m_maximumMemory)
 		, m_availableMemory(other.m_availableMemory)
 		, m_memoryFraction(other.m_memoryFraction)
 		, m_name(other.m_name)
@@ -309,6 +319,7 @@ protected:
 	inline node(const node_token & token)
 		: token(token, this, true)
 		, m_minimumMemory(0)
+		, m_maximumMemory(std::numeric_limits<memory_size_type>::max())
 		, m_availableMemory(0)
 		, m_memoryFraction(0.0)
 		, m_namePriority(PRIORITY_NO_NAME)
@@ -382,6 +393,19 @@ protected:
 			throw call_order_exception("set_minimum_memory");
 		}
 		m_minimumMemory = minimumMemory;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare maximum memory requirements.
+	///
+	/// To signal that you don't want any memory, set minimum memory and the
+	/// memory fraction to zero.
+	///////////////////////////////////////////////////////////////////////////
+	inline void set_maximum_memory(memory_size_type maximumMemory) {
+		if (get_state() != STATE_FRESH && get_state() != STATE_IN_PREPARE) {
+			throw call_order_exception("set_maximum_memory");
+		}
+		m_maximumMemory = maximumMemory;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -530,6 +554,7 @@ private:
 	node_token token;
 
 	memory_size_type m_minimumMemory;
+	memory_size_type m_maximumMemory;
 	memory_size_type m_availableMemory;
 	double m_memoryFraction;
 

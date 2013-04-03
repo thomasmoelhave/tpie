@@ -46,6 +46,8 @@ public:
 	typedef boost::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
+	static const memory_size_type maximumFanout = 250; // arbitrary. TODO: run experiments to find threshold
+
 	inline merge_sorter(pred_t pred = pred_t())
 		: m_state(stParameters)
 		, p()
@@ -447,6 +449,10 @@ public:
 		return fanout_memory_usage(calculate_fanout(0));
 	}
 
+	static memory_size_type maximum_memory_phase_3() {
+		return fanout_memory_usage(maximumFanout);
+	}
+
 	inline memory_size_type evacuated_memory_usage() const {
 		return 2*p.fanout*sizeof(temp_file);
 	}
@@ -545,11 +551,11 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type calculate_fanout(memory_size_type availableMemory) {
 		memory_size_type fanout_lo = 2;
-		memory_size_type fanout_hi = 251; // arbitrary. TODO: run experiments to find threshold
+		memory_size_type fanout_hi = maximumFanout + 1;
 		// binary search
 		while (fanout_lo < fanout_hi - 1) {
 			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
-			if (fanout_memory_usage(mid) < availableMemory) {
+			if (fanout_memory_usage(mid) <= availableMemory) {
 				fanout_lo = mid;
 			} else {
 				fanout_hi = mid;
