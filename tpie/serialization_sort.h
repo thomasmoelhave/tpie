@@ -24,6 +24,7 @@
 #include <boost/filesystem.hpp>
 
 #include <tpie/array.h>
+#include <tpie/array_view.h>
 #include <tpie/tempname.h>
 #include <tpie/tpie_log.h>
 #include <tpie/stats.h>
@@ -110,7 +111,7 @@ public:
 			memory_size_type serializedExtra = serSize - sizeof(T);
 
 			// amount of memory not used for the buffer and not used for extra stuff already.
-			memory_size_type memRemainingExtra = m_memAvail - (m_buffer.size() * sizeof(T) + (m_serializedSize - m_items * sizeof(T)));
+			memory_size_type memRemainingExtra = m_memAvail - memory_usage();
 
 			if (serializedExtra > memRemainingExtra) {
 				m_full = true;
@@ -121,6 +122,8 @@ public:
 				m_largestItem = serSize;
 		}
 
+		m_serializedSize += serSize;
+
 		m_buffer[m_items++] = item;
 
 		return true;
@@ -128,6 +131,40 @@ public:
 
 	memory_size_type get_largest_item_size() {
 		return m_largestItem;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Get the serialized size of the items written.
+	///
+	/// This is exactly the size the current run will use when serialized to
+	/// disk.
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type current_serialized_size() {
+		return m_serializedSize;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Compute current memory usage.
+	///
+	/// This includes the item buffer array as well as the extra serialized
+	/// size of the items already written to the buffer.
+	/// This assumes that items use as much primary memory as their serialized
+	/// size. If this assumption does not hold, the memory usage reported may
+	/// be useless. Nevertheless, this is the memory usage we use in our
+	/// calculations.
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type memory_usage() {
+		return m_buffer.size() * sizeof(T)
+			+ (m_serializedSize - m_items * sizeof(T));
+	}
+
+	bool can_shrink_buffer() {
+		return current_serialized_size() <= get_memory_manager().available();
+	}
+
+	void shrink_buffer() {
+		array<T> newBuffer(array_view<const T>(begin(), end()));
+		m_buffer.swap(newBuffer);
 	}
 
 	void sort() {
