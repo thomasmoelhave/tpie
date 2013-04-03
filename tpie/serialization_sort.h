@@ -488,6 +488,8 @@ private:
 	serialization_bits::merger<T, pred_t> m_merger;
 
 	stream_size_type m_items;
+	bool m_reportInternal;
+	const T * m_nextInternalItem;
 
 public:
 	serialization_sort(memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
@@ -497,6 +499,8 @@ public:
 		, m_files()
 		, m_merger(m_files, pred)
 		, m_items(0)
+		, m_reportInternal(false)
+		, m_nextInternalItem(0)
 	{
 		m_params.memoryPhase1 = 0;
 		m_params.memoryPhase2 = 0;
@@ -658,9 +662,41 @@ public:
 		if (m_state != state_1)
 			throw tpie::exception("Bad state in end");
 
-		// TODO: Check if we can keep the result in memory
-		end_run();
-		m_sorter.free();
+		memory_size_type internalThreshold =
+			std::min(m_params.memoryPhase2, m_params.memoryPhase3);
+
+		log_debug() << "m_sorter.memory_usage == " << m_sorter.memory_usage() << '\n'
+			<< "internalThreshold == " << internalThreshold << std::endl;
+
+		if (m_files.next_level_runs() == 0
+			&& m_sorter.memory_usage()
+			   <= internalThreshold) {
+
+			m_sorter.sort();
+			m_reportInternal = true;
+			m_nextInternalItem = m_sorter.begin();
+			log_debug() << "Got " << m_sorter.current_serialized_size()
+				<< " bytes of items. Internal reporting mode." << std::endl;
+		} else if (m_files.next_level_runs() == 0
+				   && m_sorter.current_serialized_size() <= internalThreshold
+				   && m_sorter.can_shrink_buffer()) {
+
+			m_sorter.sort();
+			m_sorter.shrink_buffer();
+			m_reportInternal = true;
+			m_nextInternalItem = m_sorter.begin();
+			log_debug() << "Got " << m_sorter.current_serialized_size()
+				<< " bytes of items. Internal reporting mode after shrinking buffer." << std::endl;
+
+		} else {
+
+			end_run();
+			log_debug() << "Got " << m_files.next_level_runs() << " runs. "
+				<< "External reporting mode." << std::endl;
+			m_sorter.free();
+			m_reportInternal = false;
+		}
+
 		log_info() << "After internal sorter end; mem usage = "
 			<< get_memory_manager().used() << std::endl;
 
@@ -672,7 +708,23 @@ public:
 	}
 
 	void evacuate() {
-		throw tpie::exception("evacuate not implemented yet");
+		switch (m_state) {
+			case state_initial:
+				throw tpie::exception("Cannot evacuate in state initial");
+			case state_1:
+				throw tpie::exception("Cannot evacuate in state 1");
+			case state_2:
+			case state_3:
+				if (m_reportInternal) {
+					end_run();
+					m_sorter.free();
+					m_reportInternal = false;
+					log_debug() << "Evacuate out of internal reporting mode." << std::endl;
+				} else {
+					log_debug() << "Evacuate in external reporting mode - noop." << std::endl;
+				}
+				break;
+		}
 	}
 
 	memory_size_type evacuated_memory_usage() const {
@@ -682,6 +734,12 @@ public:
 	void merge_runs() {
 		if (m_state != state_2)
 			throw tpie::exception("Bad state in end");
+
+		if (m_reportInternal) {
+			log_debug() << "merge_runs: internal reporting; doing nothing." << std::endl;
+			m_state = state_3;
+			return;
+		}
 
 		memory_size_type largestItem = m_sorter.get_largest_item_size();
 		if (largestItem == 0) {
@@ -789,6 +847,15 @@ public:
 		if (!can_pull())
 			throw exception("pull: !can_pull");
 
+		if (m_reportInternal) {
+			T item = *m_nextInternalItem++;
+			if (m_nextInternalItem == m_sorter.end()) {
+				m_sorter.free();
+				m_nextInternalItem = 0;
+			}
+			return item;
+		}
+
 		if (!m_files.readers_open()) {
 			if (m_files.next_level_runs() == 0)
 				throw exception("pull: next_level_runs == 0");
@@ -807,6 +874,7 @@ public:
 	}
 
 	bool can_pull() {
+		if (m_reportInternal) return m_nextInternalItem != 0;
 		if (!m_files.readers_open()) return m_files.next_level_runs() > 0;
 		return !m_merger.empty();
 	}

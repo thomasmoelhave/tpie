@@ -148,11 +148,11 @@ static bool internal_report_test() {
 }
 
 static bool internal_report_after_resize_test() {
-	return sort_test(100,80,80,50, 100);
+	return sort_test(100,80,30,20, 100);
 }
 
 static bool one_run_external_report_test() {
-	return sort_test(100,7,7,7);
+	return sort_test(100,7,7,7.1);
 }
 
 static bool external_report_test() {
@@ -164,7 +164,7 @@ static bool small_final_fanout_test(double mb) {
 }
 
 static bool evacuate_before_merge_test() {
-	return sort_test(20,20,20,10, 0, true, false);
+	return sort_test(20,20,20,8, 0, true, false);
 }
 
 static bool evacuate_before_report_test() {
