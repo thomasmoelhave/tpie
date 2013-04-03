@@ -332,12 +332,12 @@ public:
 		m_nextLevelFileOffset = m_fileOffset;
 	}
 
-private:
 	void reset() {
 		if (m_readersOpen > 0) {
 			log_debug() << "reset: Close readers" << std::endl;
 			close_readers_and_delete();
 		}
+		m_readers.resize(0);
 		if (m_writerOpen) {
 			log_debug() << "reset: Close writer" << std::endl;
 			close_writer();
@@ -354,6 +354,7 @@ private:
 		m_fileOffset = m_nextLevelFileOffset = m_nextFileOffset = 0;
 	}
 
+private:
 	void increase_usage(size_t idx, stream_size_type sz) {
 		log_debug() << "+ " << idx << ' ' << sz << std::endl;
 		increment_temp_file_usage(static_cast<stream_offset_type>(sz));
@@ -757,6 +758,7 @@ public:
 
 		if (!m_merger.can_pull()) {
 			free_merger_and_files();
+			m_files.reset();
 		}
 
 		return item;
