@@ -501,6 +501,12 @@ public:
 		set_phase_3_memory(m);
 	}
 
+	void set_available_memory(memory_size_type m1, memory_size_type m2, memory_size_type m3) {
+		set_phase_1_memory(m1);
+		set_phase_2_memory(m2);
+		set_phase_3_memory(m3);
+	}
+
 	static memory_size_type minimum_memory_phase_1() {
 		return serialization_writer::memory_usage()*2;
 	}
