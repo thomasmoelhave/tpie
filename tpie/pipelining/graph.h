@@ -70,6 +70,8 @@ public:
 
 	void assign_memory(memory_size_type m) const;
 
+	void print_memory(std::ostream & os) const;
+
 	const std::string & get_name() const;
 
 	std::string get_unique_id() const;
@@ -89,6 +91,17 @@ private:
 	node * m_initiator;
 
 	void assign_minimum_memory() const;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Computes the sum of memory assigned given a factor.
+	///
+	/// Used by assign_memory().
+	///
+	/// Let l_i, h_i and f_i be the low memory, high memory and memory fraction
+	/// for node i. This function computes the sum
+	/// max(l_i, min(h_i, f_i * factor)) over all nodes in this phase.
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type sum_assigned_memory(double factor) const;
 };
 
 class graph_traits {

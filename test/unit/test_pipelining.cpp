@@ -386,8 +386,10 @@ bool uniq_test() {
 
 struct memtest {
 	size_t totalMemory;
-	size_t mem1;
-	size_t mem2;
+	size_t minMem1;
+	size_t maxMem1;
+	size_t minMem2;
+	size_t maxMem2;
 	double frac1;
 	double frac2;
 
@@ -410,7 +412,9 @@ public:
 	}
 
 	void prepare() {
-		set_minimum_memory(settings.mem1);
+		set_minimum_memory(settings.minMem1);
+		if (settings.maxMem1 > 0)
+			set_maximum_memory(settings.maxMem1);
 		set_memory_fraction(settings.frac1);
 	}
 
@@ -433,7 +437,9 @@ public:
 	}
 
 	void prepare() {
-		set_minimum_memory(settings.mem2);
+		set_minimum_memory(settings.minMem2);
+		if (settings.maxMem2 > 0)
+			set_maximum_memory(settings.maxMem2);
 		set_memory_fraction(settings.frac2);
 	}
 
@@ -444,7 +450,7 @@ public:
 };
 
 bool memory_test(memtest settings) {
-	if (settings.mem1 + settings.mem2 > settings.totalMemory) {
+	if (settings.minMem1 + settings.minMem2 > settings.totalMemory) {
 		throw tpie::exception("Memory requirements too high");
 	}
 
@@ -459,8 +465,10 @@ bool memory_test(memtest settings) {
 	p(0, pi, settings.totalMemory);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
-	            << "mem1        " << settings.mem1 << '\n'
-	            << "mem2        " << settings.mem2 << '\n'
+	            << "minMem1     " << settings.minMem1 << '\n'
+	            << "maxMem1     " << settings.maxMem1 << '\n'
+	            << "minMem2     " << settings.minMem2 << '\n'
+	            << "maxMem2     " << settings.maxMem2 << '\n'
 	            << "frac1       " << settings.frac1 << '\n'
 	            << "frac2       " << settings.frac2 << '\n'
 	            << "assigned1   " << settings.assigned1 << '\n'
@@ -476,13 +484,19 @@ bool memory_test(memtest settings) {
 		return false;
 	}
 
-	if (settings.assigned1 < settings.mem1 || settings.assigned2 < settings.mem2) {
+	if (settings.assigned1 < settings.minMem1 || settings.assigned2 < settings.minMem2) {
 		log_error() << "Too little memory assigned" << std::endl;
 		return false;
 	}
 
+	if ((settings.maxMem1 != 0 && settings.assigned1 > settings.maxMem1)
+		|| (settings.maxMem2 != 0 && settings.assigned2 > settings.maxMem2)) {
+		log_error() << "Too much memory assigned" << std::endl;
+		return false;
+	}
+
 	const double EPS = 1e-9;
-	if (settings.mem1 == 0 && settings.mem2 == 0
+	if (settings.minMem1 == 0 && settings.maxMem1 == 0 && settings.minMem2 == 0 && settings.maxMem2 == 0
 		&& abs(settings.assigned1 * settings.frac2 - settings.assigned2 * settings.frac1) > EPS)
 	{
 		log_error() << "Fractions not honored" << std::endl;
@@ -492,23 +506,28 @@ bool memory_test(memtest settings) {
 	return true;
 }
 
-void memory_test_shorthand(teststream & ts, size_t totalMemory, size_t mem1, size_t mem2, double frac1, double frac2) {
-	ts << "(" << totalMemory << ", " << mem1 << ", " << mem2 << ", " << frac1 << ", " << frac2 << ")";
+void memory_test_shorthand(teststream & ts, size_t totalMemory, size_t minMem1, size_t maxMem1, size_t minMem2, size_t maxMem2, double frac1, double frac2) {
+	ts << "(" << totalMemory << ", " << minMem1 << ", " << maxMem1 << ", " << minMem2 << ", " << maxMem2 << ", " << frac1 << ", " << frac2 << ")";
 	memtest settings;
 	settings.totalMemory = totalMemory;
-	settings.mem1 = mem1;
-	settings.mem2 = mem2;
+	settings.minMem1 = minMem1;
+	settings.maxMem1 = maxMem1;
+	settings.minMem2 = minMem2;
+	settings.maxMem2 = maxMem2;
 	settings.frac1 = frac1;
 	settings.frac2 = frac2;
 	ts << result(memory_test(settings));
 }
 
 void memory_test_multi(teststream & ts) {
-	memory_test_shorthand(ts,  2000,     0,     0,   1.0,   1.0);
-	memory_test_shorthand(ts,  2000,   800,   800,   1.0,   1.0);
-	memory_test_shorthand(ts,  4000,  1000,  1000,   0.0,   0.0);
-	memory_test_shorthand(ts,  2000,     0,     0,   0.0,   1.0);
-	memory_test_shorthand(ts,  2000,   500,     0,   0.0,   1.0);
+	memory_test_shorthand(ts,  2000,     0,     0,     0,     0,   1.0,   1.0);
+	memory_test_shorthand(ts,  2000,   800,     0,   800,     0,   1.0,   1.0);
+	memory_test_shorthand(ts,  4000,  1000,     0,  1000,     0,   0.0,   0.0);
+	memory_test_shorthand(ts,  2000,     0,     0,     0,     0,   0.0,   1.0);
+	memory_test_shorthand(ts,  2000,   500,     0,     0,     0,   0.0,   1.0);
+	memory_test_shorthand(ts,  2000,   500,   700,     0,     0,   1.0,   1.0);
+	memory_test_shorthand(ts,  2000,     0,   700,     0,   500,   1.0,   1.0);
+	memory_test_shorthand(ts,  2000,     0,  2000,     0,  2000,   1.0,   1.0);
 }
 
 bool fork_test() {

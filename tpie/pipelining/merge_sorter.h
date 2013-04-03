@@ -46,6 +46,8 @@ public:
 	typedef boost::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
+	static const memory_size_type maximumFanout = 250; // arbitrary. TODO: run experiments to find threshold
+
 	inline merge_sorter(pred_t pred = pred_t())
 		: m_state(stParameters)
 		, p()
@@ -447,6 +449,10 @@ public:
 		return fanout_memory_usage(calculate_fanout(0));
 	}
 
+	static memory_size_type maximum_memory_phase_3() {
+		return fanout_memory_usage(maximumFanout);
+	}
+
 	inline memory_size_type evacuated_memory_usage() const {
 		return 2*p.fanout*sizeof(temp_file);
 	}
@@ -545,11 +551,11 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type calculate_fanout(memory_size_type availableMemory) {
 		memory_size_type fanout_lo = 2;
-		memory_size_type fanout_hi = 251; // arbitrary. TODO: run experiments to find threshold
+		memory_size_type fanout_hi = maximumFanout + 1;
 		// binary search
 		while (fanout_lo < fanout_hi - 1) {
 			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
-			if (fanout_memory_usage(mid) < availableMemory) {
+			if (fanout_memory_usage(mid) <= availableMemory) {
 				fanout_lo = mid;
 			} else {
 				fanout_hi = mid;
@@ -567,6 +573,38 @@ private:
 			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
 	}
 
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Set upper bound on number of items pushed.
+	///
+	/// If the number of items to push is less than the size of a single run,
+	/// this method will decrease the run size to that.
+	/// This may make it easier for the sorter to go into internal reporting
+	/// mode.
+	///////////////////////////////////////////////////////////////////////////
+	void set_items(stream_size_type n) {
+		if (!m_parametersSet)
+			throw exception("Wrong state in set_items: parameters not set");
+		if (m_state != stParameters)
+			throw exception("Wrong state in set_items: state is not stParameters");
+
+		if (n < p.runLength) {
+			log_debug() << "Decreasing run length from " << p.runLength
+				<< " to " << n << std::endl;
+
+			p.runLength = n;
+
+			// Mirror the restriction from calculate_parameters.
+			if (p.internalReportThreshold > p.runLength)
+				p.internalReportThreshold = p.runLength;
+
+			log_debug() << "New merge sort parameters\n";
+			p.dump(log_debug());
+			log_debug() << std::endl;
+		}
+	}
+
+private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Figure out the index in m_runFiles of the given run.
 	/// \param mergeLevel  Distance from leaves of merge tree.

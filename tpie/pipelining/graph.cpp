@@ -117,6 +117,12 @@ public:
 	}
 };
 
+tpie::memory_size_type clamp(tpie::memory_size_type lo, tpie::memory_size_type hi, double v) {
+	if (v < lo) return lo;
+	if (v > hi) return hi;
+	return static_cast<tpie::memory_size_type>(v);
+}
+
 } // default namespace
 
 namespace tpie {
@@ -217,6 +223,17 @@ void phase::assign_minimum_memory() const {
 	}
 }
 
+memory_size_type phase::sum_assigned_memory(double factor) const {
+	memory_size_type memoryAssigned = 0;
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		memoryAssigned +=
+			clamp(m_nodes[i]->get_minimum_memory(),
+				  m_nodes[i]->get_maximum_memory(),
+				  factor * m_nodes[i]->get_memory_fraction());
+	}
+	return memoryAssigned;
+}
+
 void phase::assign_memory(memory_size_type m) const {
 	{
 		dfs_traversal<phase::node_graph> dfs(*itemFlowGraph);
@@ -245,38 +262,113 @@ void phase::assign_memory(memory_size_type m) const {
 		assign_minimum_memory();
 		return;
 	}
-	memory_size_type remaining = m;
+
+	// This case is handled specially to avoid dividing by zero later on.
 	if (fraction < 1e-9) {
 		assign_minimum_memory();
 		return;
 	}
-	std::vector<char> assigned(m_nodes.size());
-	while (true) {
-		bool done = true;
-		for (size_t i = 0; i < m_nodes.size(); ++i) {
-			if (assigned[i]) continue;
-			node * s = m_nodes[i];
-			memory_size_type min = s->get_minimum_memory();
-			double frac = s->get_memory_fraction();
-			double to_assign = frac/fraction * remaining;
-			if (to_assign < min) {
-				done = false;
-				s->set_available_memory(min);
-				assigned[i] = true;
-				remaining -= min;
-				fraction -= frac;
-			}
-		}
-		if (!done) continue;
-		for (size_t i = 0; i < m_nodes.size(); ++i) {
-			if (assigned[i]) continue;
-			node * s = m_nodes[i];
-			double frac = s->get_memory_fraction();
-			double to_assign = frac/fraction * remaining;
-			s->set_available_memory(static_cast<memory_size_type>(to_assign));
-		}
-		break;
+
+	std::vector<double> prio(m_nodes.size());
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		prio[i] = m_nodes[i]->get_memory_fraction() / fraction;
 	}
+
+	double c_lo = 0.0;
+	double c_hi = 1.0;
+	// Exponential search
+	memory_size_type oldMemoryAssigned = 0;
+	while (true) {
+		double factor = m * c_hi / fraction;
+		memory_size_type memoryAssigned = sum_assigned_memory(factor);
+		if (memoryAssigned < m && memoryAssigned != oldMemoryAssigned)
+			c_hi *= 2;
+		else
+			break;
+		oldMemoryAssigned = memoryAssigned;
+	}
+
+	log_debug() << "After exponential search, c_hi = " << c_hi << std::endl;
+
+	// Binary search
+	while (c_hi - c_lo > 1e-6) {
+		double c = c_lo + (c_hi-c_lo)/2;
+		double factor = m * c / fraction;
+		memory_size_type memoryAssigned = sum_assigned_memory(factor);
+
+		if (memoryAssigned > m) {
+			c_hi = c;
+		} else {
+			c_lo = c;
+		}
+	}
+
+	log_debug() << "After binary search, c_lo = " << c_lo << std::endl;
+
+	memory_size_type memoryAssigned = 0;
+	double factor = m * c_lo / fraction;
+
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		memory_size_type assign =
+			clamp(m_nodes[i]->get_minimum_memory(),
+				  m_nodes[i]->get_maximum_memory(),
+				  factor * m_nodes[i]->get_memory_fraction());
+		m_nodes[i]->set_available_memory(assign);
+		memoryAssigned += assign;
+
+		if (memoryAssigned < assign) { // overflow
+			log_error() << "Assigned " << assign << " bytes of memory ("
+				<< (memoryAssigned - assign) << " bytes already assigned)"
+				<< std::endl;
+			throw tpie::exception
+				("Overflow when summing memory assigned in pipelining");
+		}
+	}
+
+	if (memoryAssigned > m) {
+		log_warning() << "Too much memory assigned in graph.cpp: Got " << m
+			<< ", but assigned " << memoryAssigned
+			<< " (" << (memoryAssigned-m) << " b too much)" << std::endl;
+	}
+}
+
+void phase::print_memory(std::ostream & os) const {
+	size_t cw = 12;
+	size_t prec_frac = 2;
+	std::string sep(2, ' ');
+
+	os	<< "\nPipelining phase memory assigned\n"
+		<< std::setw(cw) << "Minimum"
+		<< std::setw(cw) << "Maximum"
+		<< std::setw(cw) << "Fraction"
+		<< std::setw(cw) << "Assigned"
+		<< sep << "Name\n";
+
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		std::string fraction;
+		{
+			std::stringstream ss;
+			ss << std::fixed << std::setprecision(prec_frac)
+				<< m_nodes[i]->get_memory_fraction();
+			fraction = ss.str();
+		}
+
+		stream_size_type lo = m_nodes[i]->get_minimum_memory();
+		stream_size_type hi = m_nodes[i]->get_maximum_memory();
+		stream_size_type assigned = m_nodes[i]->get_available_memory();
+
+		os	<< std::setw(cw) << lo;
+		if (hi == std::numeric_limits<stream_size_type>::max()) {
+			os << std::setw(cw) << "inf";
+		} else {
+			os << std::setw(cw) << hi;
+		}
+		os	<< std::setw(cw) << fraction
+			<< std::setw(cw) << assigned
+			<< sep
+			<< m_nodes[i]->get_name().substr(0, 50) << '\n';
+	}
+	os << std::endl;
 }
 
 graph_traits::graph_traits(const node_map & map)

@@ -90,6 +90,7 @@ public:
 		: sort_output_base<T, pred_t>(pred)
 	{
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
+		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 		this->set_memory_fraction(1.0);
 	}
@@ -150,6 +151,7 @@ public:
 	{
 		this->add_push_destination(dest);
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
+		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 		this->set_memory_fraction(1.0);
 	}
@@ -286,6 +288,8 @@ public:
 
 	virtual void begin() override {
 		node::begin();
+		if (this->can_fetch("items"))
+			m_sorter->set_items(this->fetch<stream_size_type>("items"));
 		m_sorter->begin();
 	}
 

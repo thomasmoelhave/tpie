@@ -94,6 +94,7 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 
 	for (it i = phases.begin(); i != phases.end(); ++i) {
 		i->assign_memory(mem);
+		i->print_memory(log_debug());
 	}
 	g.go_all(items, pi);
 }
