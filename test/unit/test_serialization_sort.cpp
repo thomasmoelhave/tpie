@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2012, 2013, The TPIE development team
+// Copyright 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -18,8 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
-#include <tpie/pipelining/merge_sorter.h>
 #include <tpie/parallel_sort.h>
+#include <tpie/serialization_sort.h>
 #include <tpie/sysinfo.h>
 #include <boost/random.hpp>
 
@@ -27,53 +27,19 @@ using namespace tpie;
 
 #include "merge_sort.h"
 
-class use_merge_sort {
+class use_serialization_sort {
 public:
 	typedef uint64_t test_t;
-	typedef merge_sorter<test_t, false> sorter;
+	typedef serialization_sort<test_t, std::less<test_t> > sorter;
 
 	static void merge_runs(sorter & s) {
-		dummy_progress_indicator pi;
-		s.calc(pi);
+		s.merge_runs();
 	}
 };
-
-bool sort_upper_bound_test() {
-	typedef use_merge_sort Traits;
-	typedef Traits::sorter sorter;
-	typedef Traits::test_t test_t;
-
-	memory_size_type m1 = 100 *1024*1024;
-	memory_size_type m2 = 20  *1024*1024;
-	memory_size_type m3 = 20  *1024*1024;
-	memory_size_type dataSize = 15*1024*1024;
-	memory_size_type dataUpperBound = 80*1024*1024;
-
-	memory_size_type items = dataSize / sizeof(test_t);
-
-	stream_size_type io = get_bytes_written();
-
-	relative_memory_usage m(0);
-	sorter s;
-	s.set_available_memory(m1, m2, m3);
-	s.set_items(dataUpperBound / sizeof(test_t));
-
-	m.set_threshold(m1);
-	s.begin();
-	for (stream_size_type i = 0; i < items; ++i) {
-		s.push(i);
-	}
-	s.end();
-	Traits::merge_runs(s);
-	while (s.can_pull()) s.pull();
-
-	return io == get_bytes_written();
-}
 
 int main(int argc, char ** argv) {
 	tests t(argc, argv);
 	return
-		sort_tester<use_merge_sort>::add_all(t)
-		.test(sort_upper_bound_test, "sort_upper_bound")
+		sort_tester<use_serialization_sort>::add_all(t)
 		;
 }
