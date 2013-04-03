@@ -42,6 +42,10 @@ add_executable(sort sort.cpp)
 set_target_properties(sort PROPERTIES FOLDER tpie/test)
 target_link_libraries(sort tpie)
 
+add_executable(lines lines.cpp)
+set_target_properties(lines PROPERTIES FOLDER tpie/test)
+target_link_libraries(lines tpie)
+
 add_executable(test_parallel_sort_threshold test_parallel_sort_threshold.cpp)
 set_target_properties(test_parallel_sort_threshold PROPERTIES FOLDER tpie/test)
 target_link_libraries(test_parallel_sort_threshold tpie)

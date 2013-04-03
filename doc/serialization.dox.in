@@ -1,0 +1,28 @@
+/**
+\page serialization Serialization streams
+
+\section sec_serintro Motivation
+
+If you want to read and write text strings to TPIE streams, you have to set a
+fixed string size if you want to use a \c file_stream.
+In some cases this may be unreasonable:
+space is wasted on strings that are smaller than the given size limit,
+and it may be impossible to give a fixed upper bound on the length of the
+strings a program has to operate on.
+
+For this, TPIE provides a serialization framework with a special set of stream
+readers and writers that support, in essence, variable-length item types, such
+as strings and arrays.
+With the library support for reversing and sorting such serialization streams,
+it becomes reasonably easy to implement external memory algorithms operating on
+variable length items.
+
+\section sec_serusage Usage
+
+The interface and usage is straightforward.
+See the included test program \c lines, the bulk of which is reproduced below.
+
+\code
+@DOCCODE_SERIALIZATION@
+\endcode
+*/

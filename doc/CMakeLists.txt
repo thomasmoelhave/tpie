@@ -54,6 +54,9 @@ configure_file(sorting_internal.dox.in sorting_internal.dox @ONLY)
 
 configure_file(queue.dox.in queue.dox @ONLY)
 
+file(READ code/serialization.inl DOCCODE_SERIALIZATION)
+configure_file(serialization.dox.in serialization.dox @ONLY)
+
 else (DOXYGEN)
     message(STATUS "Doxygen not found, API documentation cannot be generated.") 
 endif(DOXYGEN)

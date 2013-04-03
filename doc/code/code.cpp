@@ -4,6 +4,9 @@
 #include <tpie/parallel_sort.h>
 #include <tpie/priority_queue.h>
 #include <tpie/progress_indicator_arrow.h>
+#include <tpie/serialization2.h>
+#include <tpie/serialization_stream.h>
+#include <tpie/serialization_sort.h>
 #include <tpie/sort.h>
 #include <tpie/stack.h>
 #include <tpie/tpie.h>
@@ -69,6 +72,10 @@ namespace _i {
 
 namespace _j {
 #include "progress3.inl"
+}
+
+namespace _k {
+#include "serialization.inl"
 }
 
 int main() {
