@@ -160,7 +160,7 @@ static bool external_report_test() {
 }
 
 static bool small_final_fanout_test(double mb) {
-	return sort_test(3,10,7,mb);
+	return sort_test(3,12,7,mb);
 }
 
 static bool evacuate_before_merge_test() {
@@ -179,7 +179,7 @@ static tests & add_all(tests & t) {
 		.test(internal_report_after_resize_test, "internal_report_after_resize")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
-		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.5)
+		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.0)
 		.test(evacuate_before_merge_test, "evacuate_before_merge")
 		.test(evacuate_before_report_test, "evacuate_before_report")
 		;
