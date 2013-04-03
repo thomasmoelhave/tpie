@@ -63,7 +63,6 @@ class serialization_internal_sort {
 	memory_size_type m_serializedSize;
 	memory_size_type m_memAvail;
 
-	memory_size_type m_itemsRead;
 	memory_size_type m_largestItem;
 
 	pred_t m_pred;
@@ -74,7 +73,6 @@ public:
 	serialization_internal_sort(pred_t pred = pred_t())
 		: m_items(0)
 		, m_serializedSize(0)
-		, m_itemsRead(0)
 		, m_largestItem(sizeof(T))
 		, m_pred(pred)
 		, m_full(false)
@@ -83,7 +81,7 @@ public:
 
 	void begin(memory_size_type memAvail) {
 		m_buffer.resize(memAvail / sizeof(T) / 2);
-		m_items = m_serializedSize = m_itemsRead = 0;
+		m_items = m_serializedSize = 0;
 		m_largestItem = sizeof(T);
 		m_full = false;
 		m_memAvail = memAvail;
@@ -132,21 +130,20 @@ public:
 
 	void sort() {
 		parallel_sort(m_buffer.get(), m_buffer.get() + m_items, m_pred);
-		m_itemsRead = 0;
 	}
 
-	void pull(T & item) {
-		item = m_buffer[m_itemsRead++];
+	const T * begin() const {
+		return m_buffer.get();
 	}
 
-	bool can_read() {
-		return m_itemsRead < m_items;
+	const T * end() const {
+		return m_buffer.get() + m_items;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Deallocate buffer and call reset().
 	///////////////////////////////////////////////////////////////////////////
-	void end() {
+	void free() {
 		m_buffer.resize(0);
 		reset();
 	}
@@ -156,7 +153,7 @@ public:
 	/// buffer size.
 	///////////////////////////////////////////////////////////////////////////
 	void reset() {
-		m_items = m_serializedSize = m_itemsRead = 0;
+		m_items = m_serializedSize = 0;
 		m_full = false;
 	}
 };
@@ -624,7 +621,7 @@ public:
 
 		// TODO: Check if we can keep the result in memory
 		end_run();
-		m_sorter.end();
+		m_sorter.free();
 		log_info() << "After internal sorter end; mem usage = "
 			<< get_memory_manager().used() << std::endl;
 
@@ -710,12 +707,10 @@ public:
 private:
 	void end_run() {
 		m_sorter.sort();
-		if (!m_sorter.can_read()) return;
+		if (m_sorter.begin() == m_sorter.end()) return;
 		m_files.open_new_writer();
-		T item;
-		while (m_sorter.can_read()) {
-			m_sorter.pull(item);
-			m_files.write(item);
+		for (const T * item = m_sorter.begin(); item != m_sorter.end(); ++item) {
+			m_files.write(*item);
 		}
 		m_files.close_writer();
 		m_sorter.reset();
