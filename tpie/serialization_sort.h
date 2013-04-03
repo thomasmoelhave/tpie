@@ -402,16 +402,18 @@ public:
 			push_from(i);
 	}
 
-	bool can_pull() {
-		return !pq.empty();
+	bool empty() const {
+		return pq.empty();
 	}
 
-	T pull() {
-		T v = pq.top().first;
+	const T & top() const {
+		return pq.top().first;
+	}
+
+	void pop() {
 		size_t idx = pq.top().second;
 		pq.pop();
 		push_from(idx);
-		return v;
 	}
 
 	// files.close_readers_and_delete() should be called after this
@@ -737,8 +739,9 @@ private:
 
 		initialize_merger(fanout);
 		m_files.open_new_writer();
-		while (m_merger.can_pull()) {
-			m_files.write(m_merger.pull());
+		while (!m_merger.empty()) {
+			m_files.write(m_merger.top());
+			m_merger.pop();
 		}
 		free_merger_and_files();
 		m_files.close_writer();
@@ -755,9 +758,10 @@ public:
 			initialize_merger(m_files.next_level_runs());
 		}
 
-		T item = m_merger.pull();
+		T item = m_merger.top();
+		m_merger.pop();
 
-		if (!m_merger.can_pull()) {
+		if (m_merger.empty()) {
 			free_merger_and_files();
 			m_files.reset();
 		}
@@ -767,7 +771,7 @@ public:
 
 	bool can_pull() {
 		if (!m_files.readers_open()) return m_files.next_level_runs() > 0;
-		return m_merger.can_pull();
+		return !m_merger.empty();
 	}
 };
 
