@@ -472,7 +472,7 @@ private:
 
 } // namespace serialization_bits
 
-template <typename T, typename pred_t>
+template <typename T, typename pred_t = std::less<T> >
 class serialization_sort {
 public:
 	typedef boost::shared_ptr<serialization_sort> ptr;
