@@ -502,7 +502,7 @@ private:
 			case DONE:
 				return true;
 		}
-		throw std::runtime_error("Unknown state");
+		throw tpie::exception("Unknown state");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -602,13 +602,13 @@ private:
 			case PROCESSING:
 				return true;
 			case PARTIAL_OUTPUT:
-				throw std::runtime_error("State 'partial_output' was not expected in before::ready");
+				throw tpie::exception("State 'partial_output' was not expected in before::ready");
 			case OUTPUTTING:
-				throw std::runtime_error("State 'outputting' was not expected in before::ready");
+				throw tpie::exception("State 'outputting' was not expected in before::ready");
 			case DONE:
 				return false;
 		}
-		throw std::runtime_error("Unknown state");
+		throw tpie::exception("Unknown state");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -952,7 +952,7 @@ private:
 					break;
 				}
 				case PROCESSING:
-					throw std::runtime_error("State 'processing' not expected at this point");
+					throw tpie::exception("State 'processing' not expected at this point");
 				case PARTIAL_OUTPUT:
 					// Receive buffer (virtual invocation)
 					cons->consume(st->m_outputBuffers[readyIdx]->get_output());
