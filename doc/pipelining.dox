@@ -215,12 +215,12 @@ public:
 		: dest(dest)
 	{
 		add_push_destination(dest);
+		set_name("Reverser",
+		         tpie::pipelining::PRIORITY_SIGNIFICANT);
 	}
 
 	void push(point3d p) {
 		points.push(p);
-		set_name("Reverser",
-		         tpie::pipelining::PRIORITY_SIGNIFICANT);
 	}
 
 	void end() {
