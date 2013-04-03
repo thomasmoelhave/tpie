@@ -686,9 +686,15 @@ public:
 			throw exception("Not enough memory for merging.");
 		}
 
+		log_debug() << "Calculated merge phase parameters for serialization sort.\n"
+			<< "Fanout:       " << fanout << '\n'
+			<< "Final fanout: " << finalFanout << '\n'
+			;
+
 		while (m_files.next_level_runs() > finalFanout) {
 			if (m_files.remaining_runs() != 0)
 				throw exception("m_files.remaining_runs() != 0");
+			log_debug() << "Runs in current level: " << m_files.next_level_runs() << '\n';
 			for (size_t remainingRuns = m_files.next_level_runs(); remainingRuns > 0;) {
 				size_t f = std::min(fanout, remainingRuns);
 				merge_runs(f);
