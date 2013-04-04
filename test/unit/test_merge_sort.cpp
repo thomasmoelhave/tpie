@@ -82,7 +82,7 @@ bool sort_upper_bound_test() {
 
 	stream_size_type io = get_bytes_written();
 
-	relative_memory_usage m;
+	relative_memory_usage m(0);
 	merge_sorter<test_t, false> s;
 	s.set_available_memory(m1, m2, m3);
 	s.set_items(dataUpperBound / sizeof(test_t));
