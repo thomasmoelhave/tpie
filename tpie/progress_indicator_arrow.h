@@ -86,39 +86,51 @@ namespace tpie {
 	    stream_size_type progress = (m_range) ? 
 			l * (m_current)/(m_range) : 0; 
 
+		std::string newStatus;
+		{
+			std::stringstream status;
 
 			//  Don't print the last item.
 			if (progress >= l) progress = l -1;
-			
+
 			//  Go to the beginning of the line and print the description.
-			m_os << '\r' << m_title << " [";
-			
+			status << m_title << " [";
+
 			//  Extend the arrow.
-			
-			m_os << std::string(progress, '=');
-			m_os << '>';
-			
+
+			status << std::string(progress, '=');
+			status << '>';
+
 			//  Print blank space.
-			m_os << std::string(l-progress-1, ' ');
-			m_os << "] ";
-			
-			//  Print either a percentage sign or the maximum range.
-			display_percentage();
+			status << std::string(l-progress-1, ' ');
+			status << "] ";
+
+			status << m_current * 100 / m_range << '%';
 
 			for (std::deque<std::string>::iterator i = m_crumbs.begin(); i != m_crumbs.end(); ++i) {
-				if (i == m_crumbs.begin()) m_os << ' ';
-				else m_os << " > ";
-				m_os << *i;
+				if (i == m_crumbs.begin()) status << ' ';
+				else status << " > ";
+				status << *i;
 			}
-			
-			m_os << ' ' << estimated_remaining_time();
-			m_os << std::flush;
+
+			status << ' ' << estimated_remaining_time();
+
+			newStatus = status.str();
+		}
+
+		if (newStatus != m_status) {
+			m_os << '\r' << newStatus << std::flush;
+			std::swap(newStatus, m_status);
+		}
 	}
 
     protected:
 
 	/** The maximal length of the indicator */
 	stream_size_type m_indicatorLength;
+
+	/** The previously displayed status line. */
+	std::string m_status;
 
 	/** ostream on which to display the progress indicator */
 	std::ostream & m_os;
