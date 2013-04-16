@@ -242,6 +242,7 @@ private:
 			os << msg;
 			m_onNameLine = false;
 			m_onBOL = msg[msg.size()-1] == '\n' || msg[msg.size()-1] == '\r';
+			os << std::flush;
 		}
 
 		void set_threshold(log_level level) {

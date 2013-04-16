@@ -46,7 +46,7 @@ namespace tpie {
 	/// \param  range  The number of times we call step
 	///////////////////////////////////////////////////////////////////////////
 	progress_indicator_arrow(const char * title, stream_size_type range, std::ostream & os = std::cout) :
-	    progress_indicator_terminal(title, range, os) , m_indicatorLength(0), m_progress(0), m_os(os) {
+	    progress_indicator_terminal(title, range, os) , m_indicatorLength(0), m_os(os) {
 	    m_indicatorLength = 110;
 	}
 
@@ -65,7 +65,6 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	virtual void reset() {
 	    m_current  = 0;
-	    m_progress = 0;
 	}
 
 	void push_breadcrumb(const char * crumb, description_importance /*importance*/) {
@@ -87,41 +86,42 @@ namespace tpie {
 	    stream_size_type progress = (m_range) ? 
 			l * (m_current)/(m_range) : 0; 
 
-		
-	    //  Make sure that the first item gets printed.
-	    //if (progress == 0) progress = 1;
-	
-	    //  Only print stuff to std::cout if the indicator needs to be updated.
-	    //if (progress > m_progress) {
+		std::string newStatus;
+		{
+			std::stringstream status;
 
 			//  Don't print the last item.
 			if (progress >= l) progress = l -1;
-			
+
 			//  Go to the beginning of the line and print the description.
-			m_os << '\r' << m_title << " [";
-			
+			status << m_title << " [";
+
 			//  Extend the arrow.
-			
-			m_os << std::string(progress, '=');
-			m_os << '>';
-			
+
+			status << std::string(progress, '=');
+			status << '>';
+
 			//  Print blank space.
-			m_os << std::string(l-progress-1, ' ');
-			m_os << "] ";
-			
-			//  Print either a percentage sign or the maximum range.
-			display_percentage();
+			status << std::string(l-progress-1, ' ');
+			status << "] ";
+
+			status << m_current * 100 / m_range << '%';
 
 			for (std::deque<std::string>::iterator i = m_crumbs.begin(); i != m_crumbs.end(); ++i) {
-				if (i == m_crumbs.begin()) m_os << ' ';
-				else m_os << " > ";
-				m_os << *i;
+				if (i == m_crumbs.begin()) status << ' ';
+				else status << " > ";
+				status << *i;
 			}
-			
-			m_os << ' ' << estimated_remaining_time();
-			m_os << std::flush;
-			m_progress = progress;
-			//}
+
+			status << ' ' << estimated_remaining_time();
+
+			newStatus = status.str();
+		}
+
+		if (newStatus != m_status) {
+			m_os << '\r' << newStatus << std::flush;
+			std::swap(newStatus, m_status);
+		}
 	}
 
     protected:
@@ -129,8 +129,8 @@ namespace tpie {
 	/** The maximal length of the indicator */
 	stream_size_type m_indicatorLength;
 
-	/** The current length of the indicator */
-	stream_size_type m_progress;
+	/** The previously displayed status line. */
+	std::string m_status;
 
 	/** ostream on which to display the progress indicator */
 	std::ostream & m_os;
