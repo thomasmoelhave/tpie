@@ -48,6 +48,13 @@ check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
 
+## Snappy
+option(TPIE_USE_SNAPPY "Use Snappy, a fast compressor/decompressor" ON)
+if(TPIE_USE_SNAPPY)
+	find_package(Snappy REQUIRED)
+	include_directories(${Snappy_INCLUDE_DIR})
+endif(TPIE_USE_SNAPPY)
+
 #### Installation paths
 #Default paths
 set(BIN_INSTALL_DIR bin)
