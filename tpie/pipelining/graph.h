@@ -37,6 +37,11 @@ namespace pipelining {
 
 namespace bits {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Management of a single pipelining phase.
+///
+/// Finds the initiator of the phase and assigns memory to the phase.
+///////////////////////////////////////////////////////////////////////////////
 class phase {
 public:
 	class node_graph;
@@ -104,6 +109,12 @@ private:
 	memory_size_type sum_assigned_memory(double factor) const;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Compute phases and execute pipelining program.
+///
+/// Given the entire pipelining actor graph via a `node_map`, toposorts the
+/// phases and runs them in the right order.
+///////////////////////////////////////////////////////////////////////////////
 class graph_traits {
 public:
 	typedef std::vector<phase> phases_t;
