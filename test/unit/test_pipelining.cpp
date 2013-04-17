@@ -496,8 +496,16 @@ bool memory_test(memtest settings) {
 	}
 
 	const double EPS = 1e-9;
-	if (settings.minMem1 == 0 && settings.maxMem1 == 0 && settings.minMem2 == 0 && settings.maxMem2 == 0
-		&& abs(settings.assigned1 * settings.frac2 - settings.assigned2 * settings.frac1) > EPS)
+	const size_t min1 = settings.minMem1;
+	const size_t max1 = (settings.maxMem1 == 0) ? settings.totalMemory : settings.maxMem1;
+	const size_t min2 = settings.minMem2;
+	const size_t max2 = (settings.maxMem2 == 0) ? settings.totalMemory : settings.maxMem2;
+	const size_t m1 = settings.assigned1;
+	const size_t m2 = settings.assigned2;
+	const double f1 = settings.frac1;
+	const double f2 = settings.frac2;
+	if ((min1 < m1 && m1 < max1) && (min2 < m2 && m2 < max2)
+		&& abs(m1 * f2 - m2 * f1) > EPS)
 	{
 		log_error() << "Fractions not honored" << std::endl;
 		return false;
@@ -520,6 +528,7 @@ void memory_test_shorthand(teststream & ts, size_t totalMemory, size_t minMem1, 
 }
 
 void memory_test_multi(teststream & ts) {
+	//                        total   min1   max1   min2   max2  frac1  frac2
 	memory_test_shorthand(ts,  2000,     0,     0,     0,     0,   1.0,   1.0);
 	memory_test_shorthand(ts,  2000,   800,     0,   800,     0,   1.0,   1.0);
 	memory_test_shorthand(ts,  4000,  1000,     0,  1000,     0,   0.0,   0.0);
@@ -528,6 +537,7 @@ void memory_test_multi(teststream & ts) {
 	memory_test_shorthand(ts,  2000,   500,   700,     0,     0,   1.0,   1.0);
 	memory_test_shorthand(ts,  2000,     0,   700,     0,   500,   1.0,   1.0);
 	memory_test_shorthand(ts,  2000,     0,  2000,     0,  2000,   1.0,   1.0);
+	memory_test_shorthand(ts,  2000,   200,  2000,     0,  2000,   1.0,   1.0);
 }
 
 bool fork_test() {
