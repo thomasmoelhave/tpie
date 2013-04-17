@@ -21,7 +21,7 @@
 #define _AMI_SORT_H
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file sort.h Sorting algorithms.
+/// \file tpie/sort.h Sorting algorithms.
 /// \anchor sortingspace_in_tpie \par In-place Variants for Sorting in TPIE:
 /// TPIE can sort given an input stream and output stream,
 /// or just an input stream. When just an input stream is specified, the
