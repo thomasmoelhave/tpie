@@ -61,6 +61,8 @@ public:
 		STATE_FRESH,
 		STATE_IN_PREPARE,
 		STATE_AFTER_PREPARE,
+		STATE_IN_PROPAGATE,
+		STATE_AFTER_PROPAGATE,
 		STATE_IN_BEGIN,
 		STATE_AFTER_BEGIN,
 		STATE_IN_END,
@@ -136,15 +138,29 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Propagate stream metadata.
+	///
+	/// The implementation may fetch() and forward() metadata such as number of
+	/// items or the size of a single item.
+	///
+	/// The pipelining framework calls propagate() on the nodes in the
+	/// item flow graph in a topological order.
+	///
+	/// The default implementation does nothing.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void propagate() {
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Begin pipeline processing phase.
 	///
 	/// The implementation may pull() from a pull destination in begin(),
-	/// but it is not allowed to push() to a push destination.
+	/// and it may push() to a push destination.
 	///
 	/// The pipelining framework calls begin() on the nodes in the
-	/// pipeline graph in a topological order. The framework calls
-	/// node::begin() on a node after its pull destinations and
-	/// before its push destination.
+	/// actor graph in a reverse topological order. The framework calls
+	/// node::begin() on a node after calling begin() on its pull and push
+	/// destinations.
 	///
 	/// The default implementation does nothing.
 	///////////////////////////////////////////////////////////////////////////
