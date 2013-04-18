@@ -452,8 +452,24 @@ protected:
 	/// \brief See \ref node::forward.
 	///////////////////////////////////////////////////////////////////////////
 	void forward_any(std::string key, boost::any value, bool explicitForward = true) {
-		if (get_state() == STATE_AFTER_END) {
-			throw call_order_exception("forward");
+		switch (get_state()) {
+			case STATE_IN_PREPARE:
+				log_debug() << "forward in prepare" << std::endl;
+				break;
+			case STATE_IN_PROPAGATE:
+				log_debug() << "forward in propagate" << std::endl;
+				break;
+			case STATE_IN_BEGIN:
+				log_debug() << "forward in begin" << std::endl;
+				break;
+			case STATE_AFTER_BEGIN:
+				log_debug() << "forward after begin" << std::endl;
+				break;
+			case STATE_AFTER_END:
+				throw call_order_exception("forward");
+			default:
+				log_debug() << "forward in unknown state " << get_state() << std::endl;
+				break;
 		}
 
 		for (size_t i = 0; i < m_successors.size(); ++i) {
@@ -534,10 +550,17 @@ protected:
 	/// \param steps  The number of times step() is called at most.
 	///////////////////////////////////////////////////////////////////////////
 	void set_steps(stream_size_type steps) {
-		if (get_state() != STATE_IN_PREPARE &&
-			get_state() != STATE_IN_BEGIN &&
-			get_state() != STATE_FRESH) {
-			throw call_order_exception("set_steps");
+		switch (get_state()) {
+			case STATE_FRESH:
+			case STATE_IN_PREPARE:
+			case STATE_IN_PROPAGATE:
+				break;
+			case STATE_IN_BEGIN:
+				log_error() << "set_steps in begin(); use set_steps in propagate() instead." << std::endl;
+				throw call_order_exception("set_steps");
+			default:
+				log_error() << "set_steps in unknown state " << get_state() << std::endl;
+				throw call_order_exception("set_steps");
 		}
 		m_stepsTotal = m_stepsLeft = steps;
 	}
