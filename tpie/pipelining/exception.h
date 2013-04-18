@@ -36,6 +36,11 @@ public:
 	inline not_initiator_node() : tpie::exception("Not an initiator node") {}
 };
 
+class no_initiator_node : tpie::exception {
+public:
+	no_initiator_node() : tpie::exception("Phase has no initiator node") {}
+};
+
 class virtual_chunk_not_ready : tpie::exception {
 public:
 	inline virtual_chunk_not_ready() : tpie::exception("Virtual receiver is missing a destination") {}

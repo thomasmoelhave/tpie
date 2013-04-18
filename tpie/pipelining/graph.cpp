@@ -471,6 +471,9 @@ void graph_traits::calc_phases() {
 }
 
 void phase::go(progress_indicator_base & pi) {
+	if (m_initiator == 0)
+		throw no_initiator_node();
+
 	std::vector<node *> beginOrder;
 	std::vector<node *> endOrder;
 	{
