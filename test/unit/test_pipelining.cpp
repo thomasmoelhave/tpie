@@ -1408,6 +1408,142 @@ bool virtual_cref_item_type_test() {
 	return t1 + t2 + t3 + t4 + t5 > 0;
 }
 
+class nocopy_tag;
+
+static const nocopy_tag & nocopy = *static_cast<const nocopy_tag *>(0);
+
+class node_map_tester : public node {
+	friend class node_map_tester_factory;
+
+	std::auto_ptr<node_map_tester> dest;
+
+public:
+	node_map_tester() {
+		set_name("Node map tester leaf");
+	}
+
+	node_map_tester(const node_map_tester & copy)
+		: node(copy)
+	{
+		if (copy.dest.get())
+			dest.reset(new node_map_tester(*copy.dest));
+	}
+
+	node_map_tester(node_map_tester & copy, const nocopy_tag &)
+		: dest(new node_map_tester(copy))
+	{
+		set_name("Node map tester non-leaf");
+	}
+
+	void add(std::vector<node_map_tester *> & v) {
+		v.push_back(this);
+		if (dest.get()) dest->add(v);
+	}
+
+	virtual void go() override {
+		// Nothing to do.
+	}
+};
+
+class node_map_tester_factory : public factory_base {
+	size_t nodes;
+	std::string edges;
+
+public:
+	typedef node_map_tester generated_type;
+
+	node_map_tester_factory(size_t nodes, const std::string & edges)
+		: nodes(nodes)
+		, edges(edges)
+	{
+		if (edges.size() != nodes*nodes) throw std::invalid_argument("edges has wrong size");
+	}
+
+	node_map_tester construct() const {
+		std::vector<node_map_tester *> nodes;
+		std::auto_ptr<node_map_tester> node;
+		for (size_t i = 0; i < this->nodes; ++i) {
+			node.reset(node.get() ? new node_map_tester(*node, nocopy) : new node_map_tester());
+			this->init_node(*node);
+		}
+		node->add(nodes);
+		for (size_t i = 0, idx = 0; i < this->nodes; ++i) {
+			for (size_t j = 0; j < this->nodes; ++j, ++idx) {
+				switch (edges[idx]) {
+					case '.':
+						break;
+					case '>':
+						log_debug() << i << " pushes to " << j << std::endl;
+						nodes[i]->add_push_destination(*nodes[j]);
+						break;
+					case '<':
+						log_debug() << i << " pulls from " << j << std::endl;
+						nodes[i]->add_pull_destination(*nodes[j]);
+						break;
+					case '-':
+						nodes[i]->add_dependency(*nodes[j]);
+						break;
+					default:
+						throw std::invalid_argument("Bad char");
+				}
+			}
+		}
+		return *node;
+	}
+};
+
+bool node_map_test(size_t nodes, bool hasInitiator, const std::string & edges) {
+	node_map_tester_factory fact(nodes, edges);
+	pipeline p =
+		tpie::pipelining::bits::pipeline_impl<node_map_tester_factory>(fact);
+	p.plot(log_info());
+	try {
+		p();
+	} catch (const no_initiator_node &) {
+		return !hasInitiator;
+	}
+	return hasInitiator;
+}
+
+void node_map_multi_test(teststream & ts) {
+	ts << "push_basic" << result
+		(node_map_test
+		 (4, true,
+		  ".>.."
+		  "..>."
+		  "...>"
+		  "...."));
+	ts << "pull_basic" << result
+		(node_map_test
+		 (4, true,
+		  "...."
+		  "<..."
+		  ".<.."
+		  "..<."));
+	ts << "phase_basic" << result
+		(node_map_test
+		 (3, true,
+		  "..."
+		  "-.."
+		  ".-."));
+	ts << "self_push" << result
+		(node_map_test
+		 (1, false,
+		  ">"));
+
+	ts << "actor_cycle" << result
+		(node_map_test
+		 (2, false,
+		  ".>"
+		  "<."));
+	ts << "item_cycle" << result
+		(node_map_test
+		 (3, true,
+		  ".><"
+		  "..>"
+		  "..."));
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -1440,5 +1576,6 @@ int main(int argc, char ** argv) {
 	.test(parallel_multiple_test, "parallel_multiple")
 	.test(parallel_own_buffer_test, "parallel_own_buffer")
 	.test(parallel_push_in_end_test, "parallel_push_in_end")
+	.multi_test(node_map_multi_test, "node_map")
 	;
 }
