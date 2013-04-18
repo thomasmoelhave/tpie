@@ -52,7 +52,7 @@ public:
 		set_minimum_memory(rd->memory_usage());
 	}
 
-	virtual void begin() override {
+	virtual void propagate() override {
 		set_steps(rd->size());
 	}
 
@@ -134,7 +134,7 @@ public:
 		this->add_push_destination(dest);
 	}
 
-	virtual void begin() override {
+	virtual void propagate() override {
 		if (m_stack == 0)
 			throw tpie::exception("No one created my stack");
 

@@ -47,8 +47,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		if (fs.is_open()) {
 			forward("items", fs.size());
 		} else {
@@ -86,7 +85,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void begin() override {
+	virtual void propagate() override {
 		forward("items", fs.size());
 		set_steps(fs.size());
 	}

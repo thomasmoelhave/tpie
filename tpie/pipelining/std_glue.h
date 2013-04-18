@@ -42,8 +42,7 @@ public:
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		forward("items", static_cast<stream_size_type>(input.size()));
 		set_steps(input.size());
 	}
