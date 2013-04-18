@@ -43,7 +43,14 @@ public:
 	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Generate a GraphViz graph documenting the pipeline flow.
+	/// \brief Generate a GraphViz plot of the actor graph.
+	///
+	/// When rendered with dot, GraphViz will place the nodes in the
+	/// topological order of the item flow graph with items flowing from the
+	/// top downwards.
+	///
+	/// Thus, a downwards arrow in the plot is a push edge, and an upwards
+	/// arrow is a pull edge (assuming no cycles in the item flow graph).
 	///////////////////////////////////////////////////////////////////////////
 	void plot(std::ostream & out);
 
