@@ -143,6 +143,10 @@ static bool sort_test(memory_size_type m1,
 	return true;
 }
 
+static bool empty_input_test() {
+	return sort_test(100,100,100,0);
+}
+
 static bool internal_report_test() {
 	return sort_test(100,100,100,40);
 }
@@ -175,6 +179,7 @@ public:
 
 static tests & add_all(tests & t) {
 	return t
+		.test(empty_input_test, "empty_input")
 		.test(internal_report_test, "internal_report")
 		.test(internal_report_after_resize_test, "internal_report_after_resize")
 		.test(one_run_external_report_test, "one_run_external_report")
