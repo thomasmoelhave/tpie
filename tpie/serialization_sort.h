@@ -668,7 +668,12 @@ public:
 		log_debug() << "m_sorter.memory_usage == " << m_sorter.memory_usage() << '\n'
 			<< "internalThreshold == " << internalThreshold << std::endl;
 
-		if (m_files.next_level_runs() == 0
+		if (m_items == 0) {
+			m_reportInternal = true;
+			m_nextInternalItem = 0;
+			m_sorter.free();
+			log_debug() << "Got no items. Internal reporting mode." << std::endl;
+		} else if (m_files.next_level_runs() == 0
 			&& m_sorter.memory_usage()
 			   <= internalThreshold) {
 
