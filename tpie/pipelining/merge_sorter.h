@@ -154,7 +154,13 @@ public:
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		sort_current_run();
 
-		if (m_finishedRuns == 0 && m_currentRunItems.size() <= p.internalReportThreshold) {
+		if (m_itemCount == 0) {
+			tp_assert(m_currentRunItemCount == 0, "m_itemCount == 0, but m_currentRunItemCount != 0");
+			m_reportInternal = true;
+			m_itemsPulled = 0;
+			m_currentRunItems.resize(0);
+			log_debug() << "Got no items. Internal reporting mode." << std::endl;
+		} else if (m_finishedRuns == 0 && m_currentRunItems.size() <= p.internalReportThreshold) {
 			// Our current buffer fits within the memory requirements of phase 2.
 			m_reportInternal = true;
 			m_itemsPulled = 0;
