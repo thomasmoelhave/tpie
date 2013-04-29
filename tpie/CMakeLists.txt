@@ -123,6 +123,10 @@ add_library(tpie ${HEADERS} ${SOURCES})
 target_link_libraries(tpie ${Boost_LIBRARIES} pipelining)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
+if(TPIE_USE_SNAPPY)
+	target_link_libraries(tpie ${Snappy_LIBRARY})
+endif(TPIE_USE_SNAPPY)
+
 install(TARGETS tpie
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib)
