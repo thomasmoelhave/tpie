@@ -21,7 +21,8 @@ set (HEADERS
 		file_stream_base.h
 		file_accessor/file_accessor.h
 		file_accessor/stream_accessor.h
-		file_accessor/stream_accessor.inl
+		file_accessor/stream_accessor_base.h
+		file_accessor/stream_accessor_base.inl
 		file_count.h
 		execution_time_predictor.h
 		imported/cycle.h

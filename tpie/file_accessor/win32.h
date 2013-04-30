@@ -30,7 +30,7 @@
 #include <windows.h>
 #undef NO_ERROR
 
-#include <tpie/file_accessor/stream_accessor.h>
+#include <tpie/file_accessor/stream_accessor_base.h>
 namespace tpie {
 namespace file_accessor {
 
