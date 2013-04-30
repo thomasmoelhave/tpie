@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef TPIE_FILE_ACCESSOR_STREAM_ACCESSOR_H
-#define TPIE_FILE_ACCESSOR_STREAM_ACCESSOR_H
+#ifndef TPIE_FILE_ACCESSOR_COMPRESSED_STREAM_ACCESSOR_H
+#define TPIE_FILE_ACCESSOR_COMPRESSED_STREAM_ACCESSOR_H
 
 #include <tpie/tpie_log.h>
 #include <tpie/file_accessor/stream_accessor_base.h>
@@ -113,4 +113,4 @@ public:
 } // namespace tpie
 } // namespace file_accessor
 
-#endif // TPIE_FILE_ACCESSOR_STREAM_ACCESSOR_H
+#endif // TPIE_FILE_ACCESSOR_COMPRESSED_STREAM_ACCESSOR_H
