@@ -37,7 +37,7 @@ bool file_count_test() {
 		blockSize = file<int>::block_size(1.0);
 		itemSize = sizeof(int);
 	}
-	array<tpie::file_accessor::file_accessor> fs(avail+1);
+	array<tpie::default_file_accessor> fs(avail+1);
 	for (memory_size_type i = 0; i < avail; ++i) {
 		try {
 			fs[i].open(tmp.path(), true, false, itemSize, blockSize, userDataSize, access_sequential);
