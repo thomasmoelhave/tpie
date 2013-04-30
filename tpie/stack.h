@@ -43,7 +43,8 @@ public:
     /// \brief Initialize anonymous stack.
     ////////////////////////////////////////////////////////////////////
 	inline stack(double blockFactor = 1.0)
-		: m_file_stream(blockFactor)
+		: m_file_stream(blockFactor,
+						new file_accessor::stream_accessor<default_raw_file_accessor>())
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
@@ -57,7 +58,8 @@ public:
     /// \param  block_factor  The block factor to use
     ////////////////////////////////////////////////////////////////////
 	inline stack(const std::string& path, double block_factor = 1.0)
-		: m_file_stream(block_factor)
+		: m_file_stream(block_factor,
+						new file_accessor::stream_accessor<default_raw_file_accessor>())
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
 	{
@@ -73,7 +75,8 @@ public:
     /// \param  block_factor  The block factor to use
     ////////////////////////////////////////////////////////////////////
 	inline stack(temp_file & tempFile, double block_factor = 1.0)
-		: m_file_stream(block_factor)
+		: m_file_stream(block_factor,
+						new file_accessor::stream_accessor<default_raw_file_accessor>())
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
 	{

@@ -24,6 +24,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/file_accessor/compressed_stream_accessor.h>
+#include <tpie/file_accessor/stream_accessor.h>
 
 #ifdef WIN32
 
