@@ -23,7 +23,7 @@
 /// \file file_accessor.h Declare default file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <tpie/file_accessor/stream_accessor.h>
+#include <tpie/file_accessor/compressed_stream_accessor.h>
 
 #ifdef WIN32
 
@@ -31,7 +31,7 @@
 namespace tpie {
 namespace file_accessor {
 typedef win32 raw_file_accessor;
-typedef stream_accessor<win32> file_accessor;
+typedef compressed_stream_accessor<win32> file_accessor;
 }
 }
 
@@ -41,7 +41,7 @@ typedef stream_accessor<win32> file_accessor;
 namespace tpie {
 namespace file_accessor {
 typedef posix raw_file_accessor;
-typedef stream_accessor<posix> file_accessor;
+typedef compressed_stream_accessor<posix> file_accessor;
 }
 }
 

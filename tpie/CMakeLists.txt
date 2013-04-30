@@ -23,6 +23,7 @@ set (HEADERS
 		file_accessor/stream_accessor.h
 		file_accessor/stream_accessor_base.h
 		file_accessor/stream_accessor_base.inl
+		file_accessor/compressed_stream_accessor.h
 		file_count.h
 		execution_time_predictor.h
 		imported/cycle.h
@@ -95,6 +96,7 @@ set (SOURCES
 	file_count.cpp
 	file_stream_base.cpp
 	execution_time_predictor.cpp
+	file_accessor/compressed_stream_accessor.cpp
 	fractional_progress.cpp
 	job.cpp
 	logstream.cpp
