@@ -96,6 +96,10 @@ public:
 		stream_size_type offset = blockNumber*this->block_items();
 		memory_size_type z=itemCount*this->item_size();
 
+		if (offset != this->size()) {
+			throw stream_exception("Overwriting stream blocks is not supported");
+		}
+
 		{
 			std::string compressed;
 			bits::Compress(reinterpret_cast<const char *>(data), z, &compressed);
