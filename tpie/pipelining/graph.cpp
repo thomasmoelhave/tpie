@@ -146,7 +146,6 @@ public:
 phase::phase()
 	: itemFlowGraph(new node_graph)
 	, actorGraph(new node_graph)
-	, m_initiator(0)
 {
 }
 
@@ -156,7 +155,6 @@ phase::phase(const phase & other)
 	: itemFlowGraph(new node_graph(*other.itemFlowGraph))
 	, actorGraph(new node_graph(*other.actorGraph))
 	, m_nodes(other.m_nodes)
-	, m_initiator(other.m_initiator)
 {
 }
 
@@ -164,7 +162,6 @@ phase & phase::operator=(const phase & other) {
 	itemFlowGraph.reset(new node_graph(*other.itemFlowGraph));
 	actorGraph.reset(new node_graph(*other.actorGraph));
 	m_nodes = other.m_nodes;
-	m_initiator = other.m_initiator;
 	return *this;
 }
 
@@ -176,7 +173,6 @@ bool phase::is_initiator(node * s) {
 
 void phase::add(node * s) {
 	if (count(s)) return;
-	if (is_initiator(s)) set_initiator(s);
 	m_nodes.push_back(s);
 	itemFlowGraph->finish_times[s] = 0;
 	actorGraph->finish_times[s] = 0;
@@ -471,9 +467,6 @@ void graph_traits::calc_phases() {
 }
 
 void phase::go(progress_indicator_base & pi) {
-	if (m_initiator == 0)
-		throw no_initiator_node();
-
 	std::vector<node *> beginOrder;
 	std::vector<node *> endOrder;
 	{
@@ -498,8 +491,15 @@ void phase::go(progress_indicator_base & pi) {
 		totalSteps += beginOrder[i]->get_steps();
 		beginOrder[i]->set_state(node::STATE_AFTER_BEGIN);
 	}
+
 	pi.init(totalSteps);
-	m_initiator->go();
+	size_t initiators = 0;
+	for (size_t i = 0; i < beginOrder.size(); ++i) {
+		if (!is_initiator(beginOrder[i])) continue;
+		beginOrder[i]->go();
+		initiators++;
+	}
+
 	for (size_t i = 0; i < endOrder.size(); ++i) {
 		if (endOrder[i]->get_state() != node::STATE_AFTER_BEGIN) {
 			throw call_order_exception("Invalid state for end");
@@ -509,6 +509,10 @@ void phase::go(progress_indicator_base & pi) {
 		endOrder[i]->set_state(node::STATE_AFTER_END);
 	}
 	pi.done();
+
+	if (initiators == 0)
+		throw no_initiator_node();
+
 }
 
 } // namespace bits

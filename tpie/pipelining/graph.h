@@ -51,11 +51,6 @@ public:
 	phase & operator=(const phase &);
 	~phase();
 
-	inline void set_initiator(node * s) {
-		tp_assert(m_initiator == 0, "Initiator set twice");
-		m_initiator = s;
-	}
-
 	bool is_initiator(node * s);
 
 	void add(node * s);
@@ -92,8 +87,6 @@ private:
 
 	/** a pointer is a weak reference to something that isn't reference counted. */
 	std::vector<node *> m_nodes;
-
-	node * m_initiator;
 
 	void assign_minimum_memory() const;
 
