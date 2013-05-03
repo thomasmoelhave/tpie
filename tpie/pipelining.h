@@ -40,6 +40,7 @@
 #include <tpie/pipelining/buffer.h>
 #include <tpie/pipelining/file_stream.h>
 #include <tpie/pipelining/helpers.h>
+#include <tpie/pipelining/join.h>
 #include <tpie/pipelining/merge.h>
 #include <tpie/pipelining/node_map_dump.h>
 #include <tpie/pipelining/numeric.h>
