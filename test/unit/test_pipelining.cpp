@@ -1544,6 +1544,35 @@ void node_map_multi_test(teststream & ts) {
 		  "..."));
 }
 
+bool join_test() {
+	std::vector<int> i(10);
+	std::vector<int> o;
+
+	for (int j = 0; j < 10; ++j) {
+		i[j] = j;
+	}
+
+	join<int> j;
+	pipeline p1 = input_vector(i) | j.sink();
+	pipeline p2 = input_vector(i) | j.sink();
+	pipeline p3 = j.source() | output_vector(o);
+
+	p3.plot(log_info());
+	p3();
+
+	if (o.size() != 20) {
+		log_error() << "Wrong output size " << o.size() << " expected 20" << std::endl;
+		return false;
+	}
+
+	for (int i = 0; i < 20; ++i) {
+		if (o[i] == i % 10) continue;
+		log_error() << "Wrong output item got " << o[i] << " expected " << i%10 << std::endl;
+		return false;
+	}
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -1576,6 +1605,7 @@ int main(int argc, char ** argv) {
 	.test(parallel_multiple_test, "parallel_multiple")
 	.test(parallel_own_buffer_test, "parallel_own_buffer")
 	.test(parallel_push_in_end_test, "parallel_push_in_end")
+	.test(join_test, "join")
 	.multi_test(node_map_multi_test, "node_map")
 	;
 }
