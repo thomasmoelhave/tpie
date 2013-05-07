@@ -97,9 +97,10 @@
   #else
     #define TPIE_PUBLIC __declspec(dllimport)
   #endif
+  #define TPIE_PRIVATE
 #else
   #define TPIE_PUBLIC __attribute__ ((visibility ("default")))
+  #define TPIE_PRIVATE __attribute__ ((visibility ("hidden")))
 #endif
-
 
 #endif // _CONFIG_H 

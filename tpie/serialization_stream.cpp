@@ -272,7 +272,7 @@ void serialization_reverse_writer::write_block() {
 	m_index = 0;
 }
 
-void serialization_reverse_writer::open(std::string path) {
+ void serialization_reverse_writer::open(std::string path) {
 	p_t::open(path, true);
 	m_block.resize(block_size());
 	m_index = 0;

@@ -35,7 +35,7 @@ namespace tpie {
 
 namespace bits {
 
-class serialization_writer_base {
+class TPIE_PUBLIC serialization_writer_base {
 public:
 	static memory_size_type block_size() {
 		return 2*1024*1024;
@@ -79,7 +79,7 @@ public:
 
 } // namespace bits
 
-class serialization_writer : public bits::serialization_writer_base {
+class TPIE_PUBLIC serialization_writer : public bits::serialization_writer_base {
 private:
 	typedef bits::serialization_writer_base p_t;
 
@@ -152,7 +152,7 @@ public:
 	}
 };
 
-class serialization_reverse_writer : public bits::serialization_writer_base {
+class TPIE_PUBLIC serialization_reverse_writer : public bits::serialization_writer_base {
 	typedef bits::serialization_writer_base p_t;
 
 	tpie::array<char> m_block;
@@ -248,7 +248,7 @@ public:
 
 namespace bits {
 
-class serialization_reader_base {
+class TPIE_PUBLIC serialization_reader_base {
 public:
 	static memory_size_type block_size() {
 		return serialization_writer_base::block_size();
@@ -353,7 +353,7 @@ public:
 
 } // namespace bits
 
-class serialization_reader : public bits::serialization_reader_base {
+class TPIE_PUBLIC serialization_reader : public bits::serialization_reader_base {
 	typedef bits::serialization_reader_base p_t;
 	stream_size_type m_blockNumber;
 
@@ -379,7 +379,7 @@ public:
 	stream_size_type offset();
 };
 
-class serialization_reverse_reader : public bits::serialization_reader_base {
+class TPIE_PUBLIC serialization_reverse_reader : public bits::serialization_reader_base {
 	typedef bits::serialization_reader_base p_t;
 	stream_size_type m_blockNumber;
 
