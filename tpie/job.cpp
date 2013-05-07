@@ -48,7 +48,8 @@ public:
 	void init_pool(size_t threads) {
 		m_thread_pool.resize(threads);
 		for (size_t i = 0; i < threads; ++i) {
-			boost::thread t(worker);
+			boost::function<void()> f(worker);
+			boost::thread t(f);
 			// thread is move-constructible
 			m_thread_pool[i].swap(t);
 		}
