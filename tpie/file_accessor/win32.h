@@ -55,6 +55,7 @@ public:
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
+	inline stream_size_type file_size_i();
 	inline void close_i();
 	inline void truncate_i(stream_size_type bytes);
 	inline bool is_open() const;

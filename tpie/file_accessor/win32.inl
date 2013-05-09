@@ -59,6 +59,13 @@ inline void win32::seek_i(stream_size_type size) {
 	if (!SetFilePointerEx(m_fd, i, NULL, 0)) throw_getlasterror();
 }
 
+inline stream_size_type win32::file_size_i() {
+	LARGE_INTEGER i;
+	if (!GetFileSizeEx(m_fd, &i)) throw_getlasterror();
+	// i.QuadPart is a signed long long
+	return static_cast<stream_size_type>(i.QuadPart);
+}
+
 static const DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 
 void win32::set_cache_hint(cache_hint cacheHint) {

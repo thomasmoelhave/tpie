@@ -73,6 +73,13 @@ inline void posix::seek_i(stream_size_type size) {
 	if (::lseek(m_fd, size, SEEK_SET) == -1) throw_errno();
 }
 
+inline stream_size_type posix::file_size_i() {
+	struct stat buf;
+	if (::fstat(m_fd, &buf) == -1) throw_errno();
+	// st_size is a off_t
+	return static_cast<stream_size_type>(buf.st_size);
+}
+
 void posix::open_wo(const std::string & path) {
 	m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
 	if (m_fd == -1) throw_errno();
