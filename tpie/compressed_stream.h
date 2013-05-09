@@ -109,6 +109,10 @@ protected:
 
 };
 
+namespace ami {
+	template <typename T> class cstream;
+}
+
 template <typename T>
 class compressed_stream :
 	public byte_stream_accessor_holder,
@@ -116,6 +120,8 @@ class compressed_stream :
 {
 	using compressed_stream_base::seek_state;
 	using compressed_stream_base::buffer_state;
+
+	friend class ami::cstream<T>;
 
 	static const file_stream_base::offset_type beginning = file_stream_base::beginning;
 	static const file_stream_base::offset_type end = file_stream_base::end;
@@ -130,6 +136,7 @@ public:
 		, compressed_stream_base(sizeof(T), blockFactor, fileAccessor)
 		, m_seekState(seek_state::beginning)
 		, m_bufferState(buffer_state::write_only)
+		, m_offset(0)
 	{
 	}
 
@@ -153,19 +160,47 @@ public:
 				m_bufferState = buffer_state::read_only;
 			else
 				m_bufferState = buffer_state::write_only;
+			m_offset = 0;
 		} else if (whence == end && offset == 0) {
 			m_seekState = seek_state::end;
 			m_bufferState = buffer_state::write_only;
+			m_offset = size();
 		} else {
 			throw stream_exception("Random seeks are not supported");
 		}
 	}
 
-	T read() {
+	stream_size_type offset() const {
+		return m_offset;
+	}
+
+	stream_size_type size() const {
+		return m_fileAccessor->size();
+	}
+
+	void truncate(stream_size_type offset) {
+		if (offset == size()) return;
+		if (offset != 0)
+			throw stream_exception("Arbitrary truncate is not supported");
+		m_fileAccessor->truncate(0);
+		seek(0);
+	}
+
+private:
+	const T & read_ref() {
 		if (m_seekState != seek_state::none) perform_seek();
 		if (!can_read()) throw stream_exception("!can_read()");
 		if (m_nextItem == m_lastItem) read_next_block();
 		return *m_nextItem++;
+	}
+
+public:
+	T read() {
+		return read_ref();
+	}
+
+	void read(T * const a, T * const b) {
+		for (T * i = a; i != b; ++i) *i = read();
 	}
 
 	bool can_read() {
@@ -197,6 +232,10 @@ public:
 		}
 		*m_nextItem++ = item;
 		this->m_bufferDirty = true;
+	}
+
+	void write(const T * const a, const T * const b) {
+		for (const T * i = a; i != b; ++i) write(*i);
 	}
 
 protected:
@@ -291,6 +330,8 @@ private:
 	 */
 	stream_size_type m_nextReadOffset;
 	stream_size_type m_nextBlockSize;
+
+	stream_size_type m_offset;
 };
 
 } // namespace tpie
