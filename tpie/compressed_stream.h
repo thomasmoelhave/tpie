@@ -91,7 +91,7 @@ protected:
 		p_t::close();
 	}
 
-	virtual void init_buffer() = 0;
+	virtual void post_open() = 0;
 
 	void open_inner(const std::string & path,
 					access_type accessType,
@@ -100,7 +100,7 @@ protected:
 	{
 		p_t::open_inner(path, accessType, userDataSize, cacheHint);
 
-		this->init_buffer();
+		this->post_open();
 	}
 
 	bool m_bufferDirty;
@@ -137,10 +137,12 @@ public:
 		this->close();
 	}
 
-	virtual void init_buffer() override {
+	virtual void post_open() override {
 		m_buffer.resize(this->block_size());
 		m_nextItem = m_buffer.begin();
 		m_lastItem = m_buffer.begin();
+
+		seek(0);
 	}
 
 	void seek(stream_offset_type offset, offset_type whence=beginning) {
