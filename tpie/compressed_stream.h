@@ -155,13 +155,13 @@ public:
 			m_seekState = seek_state::end;
 			m_bufferState = buffer_state::write_only;
 		} else {
-			throw exception("Random seeks are not supported");
+			throw stream_exception("Random seeks are not supported");
 		}
 	}
 
 	T read() {
 		if (m_seekState != seek_state::none) perform_seek();
-		if (!can_read()) throw exception("!can_read()");
+		if (!can_read()) throw stream_exception("!can_read()");
 		if (m_nextItem == m_lastItem) read_next_block();
 		return *m_nextItem++;
 	}
@@ -188,7 +188,7 @@ public:
 	void write(const T & item) {
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_bufferState != buffer_state::write_only)
-			throw exception("Non-appending write attempted");
+			throw stream_exception("Non-appending write attempted");
 		if (m_nextItem == m_buffer.end()) {
 			flush_block();
 			m_nextItem = m_buffer.begin();
@@ -239,7 +239,7 @@ protected:
 			m_byteStreamAccessor->read(0, &m_nextBlockSize, sizeof(m_nextBlockSize));
 			m_nextReadOffset += sizeof(m_nextBlockSize);
 			if (m_nextBlockSize == 0)
-				throw exception("Internal error; the block size was unexpectedly zero");
+				throw stream_exception("Internal error; the block size was unexpectedly zero");
 		} else if (m_nextBlockSize == 0) {
 			throw end_of_stream_exception();
 		}
@@ -256,9 +256,9 @@ protected:
 		if (!snappy::GetUncompressedLength(scratch.get(),
 										   scratch.size() - sizeof(m_nextBlockSize),
 										   &uncompressedLength))
-			throw exception("Internal error; snappy::GetUncompressedLength failed");
+			throw stream_exception("Internal error; snappy::GetUncompressedLength failed");
 		if (uncompressedLength > m_buffer.size() * sizeof(T))
-			throw exception("Internal error; snappy::GetUncompressedLength exceeds the block size");
+			throw stream_exception("Internal error; snappy::GetUncompressedLength exceeds the block size");
 		snappy::RawUncompress(scratch.get(),
 							  scratch.size() - sizeof(m_nextBlockSize),
 							  reinterpret_cast<char *>(m_buffer.get()));
