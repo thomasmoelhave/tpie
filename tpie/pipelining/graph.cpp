@@ -459,6 +459,9 @@ void graph_traits::calc_phases() {
 		}
 	}
 
+	typedef std::map<node *, size_t> degree_map;
+	degree_map inDegree;
+	degree_map outDegree;
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second == depends) continue;
 
@@ -467,12 +470,26 @@ void graph_traits::calc_phases() {
 
 		if (i->second.second == pulls) std::swap(from, to);
 
+		outDegree[from]++;
+		inDegree[to]++;
+
 		node * representative = map.get(ids_inv[phases.find_set(ids[i->first])]);
 		for (size_t j = 0; j < m_phases.size(); ++j) {
 			if (m_phases[j].count(representative)) {
 				m_phases[j].add_successor(from, to, i->second.second == pushes);
 				break;
 			}
+		}
+	}
+
+	for (node_map::mapit i = map.begin(); i != map.end(); ++i) {
+		if (!inDegree.count(i->second)) {
+			m_itemSources.push_back(i->second);
+			break;
+		}
+		if (!outDegree.count(i->second)) {
+			m_itemSinks.push_back(i->second);
+			break;
 		}
 	}
 }

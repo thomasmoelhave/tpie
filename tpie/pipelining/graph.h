@@ -112,6 +112,8 @@ class graph_traits {
 public:
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::iterator phaseit;
+	typedef std::vector<node *> nodes_t;
+	typedef nodes_t::iterator nodeit;
 	typedef progress_types<true> Progress;
 
 	static memory_size_type memory_usage(size_t phases);
@@ -122,12 +124,22 @@ public:
 		return m_phases;
 	}
 
+	const nodes_t & item_sources() {
+		return m_itemSources;
+	}
+
+	const nodes_t & item_sinks() {
+		return m_itemSinks;
+	}
+
 	void go_all(stream_size_type n, Progress::base & pi);
 
 private:
 	const node_map & map;
 	phases_t m_phases;
 	std::vector<bool> m_evacuatePrevious;
+	nodes_t m_itemSources;
+	nodes_t m_itemSinks;
 
 	void calc_phases();
 
