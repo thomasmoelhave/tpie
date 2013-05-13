@@ -422,24 +422,31 @@ void graph_traits::calc_phases() {
 
 	phasegraph g(phases, nextid);
 
-	// establish phase relationships
-	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second == depends) g.depends(phases.find_set(ids[i->first]), phases.find_set(ids[i->second.first]));
+	{
+		// establish phase relationships
+		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+			if (i->second.second == depends) {
+				size_t depender = phases.find_set(ids[i->first]);
+				size_t dependee = phases.find_set(ids[i->second.first]);
+				g.depends(depender, dependee);
+			}
+		}
+
+		// toposort the phase graph and find the phase numbers in the execution order
+		std::vector<size_t> internalexec = g.execution_order();
+		m_phases.resize(internalexec.size());
+		m_evacuatePrevious.resize(internalexec.size(), false);
+
+		std::vector<bool>::iterator j = m_evacuatePrevious.begin();
+		for (size_t i = 0; i < internalexec.size(); ++i, ++j) {
+			// all nodes with phase number internalexec[i] should be executed in phase i
+
+			// first, insert phase representatives
+			m_phases[i].add(map.get(ids_inv[internalexec[i]]));
+			*j = i > 0 && !g.is_depending(internalexec[i], internalexec[i-1]);
+		}
 	}
 
-	// toposort the phase graph and find the phase numbers in the execution order
-	std::vector<size_t> internalexec = g.execution_order();
-	m_phases.resize(internalexec.size());
-	m_evacuatePrevious.resize(internalexec.size(), false);
-
-	std::vector<bool>::iterator j = m_evacuatePrevious.begin();
-	for (size_t i = 0; i < internalexec.size(); ++i, ++j) {
-		// all nodes with phase number internalexec[i] should be executed in phase i
-
-		// first, insert phase representatives
-		m_phases[i].add(map.get(ids_inv[internalexec[i]]));
-		*j = i > 0 && !g.is_depending(internalexec[i], internalexec[i-1]);
-	}
 	for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
 		node * representative = map.get(ids_inv[phases.find_set(i->first)]);
 		node * current = map.get(i->second);
@@ -451,11 +458,15 @@ void graph_traits::calc_phases() {
 			}
 		}
 	}
+
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 		if (i->second.second == depends) continue;
+
 		node * from = map.get(i->first);
 		node * to = map.get(i->second.first);
+
 		if (i->second.second == pulls) std::swap(from, to);
+
 		node * representative = map.get(ids_inv[phases.find_set(ids[i->first])]);
 		for (size_t j = 0; j < m_phases.size(); ++j) {
 			if (m_phases[j].count(representative)) {
