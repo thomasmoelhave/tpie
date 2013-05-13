@@ -421,6 +421,12 @@ protected:
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
 	///////////////////////////////////////////////////////////////////////////
+	// Implementation note: If the type of the `value` parameter is changed
+	// from `T` to `const T &`, this will yield linker errors if an application
+	// attempts to pass a const reference to a static data member inside a
+	// templated class.
+	// See http://stackoverflow.com/a/5392050
+	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	inline void forward(std::string key, T value, bool explicitForward = true) {
 		if (get_state() == STATE_AFTER_END) {
