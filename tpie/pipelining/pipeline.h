@@ -20,6 +20,7 @@
 #ifndef __TPIE_PIPELINING_PIPELINE_H__
 #define __TPIE_PIPELINING_PIPELINE_H__
 
+#include <boost/any.hpp>
 #include <tpie/types.h>
 #include <iostream>
 #include <tpie/pipelining/tokens.h>
@@ -66,6 +67,12 @@ public:
 	node_map::ptr get_node_map() const {
 		return m_segmap;
 	}
+
+	void forward_any(std::string key, const boost::any & value);
+
+	bool can_fetch(std::string key);
+
+	boost::any fetch_any(std::string key);
 
 protected:
 	node_map::ptr m_segmap;
@@ -145,6 +152,28 @@ public:
 	}
 	inline bits::node_map::ptr get_node_map() const {
 		return p->get_node_map();
+	}
+
+	bool can_fetch(std::string key) {
+		return p->can_fetch(key);
+	}
+
+	boost::any fetch_any(std::string key) {
+		return p->fetch_any(key);
+	}
+
+	template <typename T>
+	T fetch(std::string key) {
+		return boost::any_cast<T>(fetch_any(key));
+	}
+
+	void forward_any(std::string key, const boost::any & value) {
+		return p->forward_any(key, value);
+	}
+
+	template <typename T>
+	void forward(std::string key, T value) {
+		forward_any(key, boost::any(value));
 	}
 
 	void output_memory(std::ostream & o) const;

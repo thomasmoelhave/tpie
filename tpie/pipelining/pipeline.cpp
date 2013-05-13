@@ -99,6 +99,47 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 	g.go_all(items, pi);
 }
 
+void pipeline_base::forward_any(std::string key, const boost::any & value) {
+	typedef graph_traits::nodes_t nodes_t;
+	typedef graph_traits::nodeit it;
+
+	node_map::ptr map = m_segmap->find_authority();
+	graph_traits g(*map);
+	const nodes_t & sources = g.item_sources();
+	for (size_t j = 0; j < sources.size(); ++j) {
+		sources[j]->add_forwarded_data(key, value);
+	}
+}
+
+bool pipeline_base::can_fetch(std::string key) {
+	typedef graph_traits::nodes_t nodes_t;
+	typedef graph_traits::nodeit it;
+
+	node_map::ptr map = m_segmap->find_authority();
+	graph_traits g(*map);
+	const nodes_t & sinks = g.item_sinks();
+	for (size_t j = 0; j < sinks.size(); ++j) {
+		if (sinks[j]->can_fetch(key)) return true;
+	}
+	return false;
+}
+
+boost::any pipeline_base::fetch_any(std::string key) {
+	typedef graph_traits::nodes_t nodes_t;
+	typedef graph_traits::nodeit it;
+
+	node_map::ptr map = m_segmap->find_authority();
+	graph_traits g(*map);
+	const nodes_t & sinks = g.item_sinks();
+	for (size_t j = 0; j < sinks.size(); ++j) {
+		if (sinks[j]->can_fetch(key)) return sinks[j]->fetch_any(key);
+	}
+
+	std::stringstream ss;
+	ss << "Tried to fetch nonexistent key '" << key << '\'';
+	throw invalid_argument_exception(ss.str());
+}
+
 } // namespace bits
 
 void pipeline::output_memory(std::ostream & o) const {
@@ -109,7 +150,6 @@ void pipeline::output_memory(std::ostream & o) const {
 
 	}
 }
-
 
 } // namespace pipelining
 
