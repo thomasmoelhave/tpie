@@ -106,7 +106,7 @@ public:
 	{
 	}
 
-	inline ~stream_accessor_base() {close();}
+	virtual ~stream_accessor_base() {close();}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Open file for reading and/or writing.
