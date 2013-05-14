@@ -1012,7 +1012,7 @@ class end_type : public node {
 
 public:
 	end_type(dest_t dest, result & r) : r(r), dest(dest) {
-		add_pull_destination(dest);
+		add_pull_source(dest);
 		set_name("End", PRIORITY_INSIGNIFICANT);
 	}
 
@@ -1501,7 +1501,7 @@ public:
 						break;
 					case '<':
 						log_debug() << i << " pulls from " << j << std::endl;
-						nodes[i]->add_pull_destination(*nodes[j]);
+						nodes[i]->add_pull_source(*nodes[j]);
 						break;
 					case '-':
 						nodes[i]->add_dependency(*nodes[j]);

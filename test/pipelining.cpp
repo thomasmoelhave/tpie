@@ -125,8 +125,8 @@ public:
 		: dest(dest), byid(byid), byparent(byparent)
 	{
 		add_push_destination(dest);
-		add_pull_destination(byid);
-		add_pull_destination(byparent);
+		add_pull_source(byid);
+		add_pull_source(byparent);
 		set_name("Count items");
 	}
 

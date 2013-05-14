@@ -91,7 +91,7 @@ public:
 				   "In a node constructor that accepts a destination node,\n"
 				   "a relation should always be established between the current node\n"
 				   "and the destination using one of the member functions add_push_destination,\n"
-				   "add_pull_destination and add_dependency.\n\n"
+				   "add_pull_source and add_dependency.\n\n"
 				   "If this relational graph is not connected, some nodes will not\n"
 				   "be initialized: prepare(), begin(), end() and other methods will never\n"
 				   "be called, and memory will not be assigned.\n"

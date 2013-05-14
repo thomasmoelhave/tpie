@@ -60,7 +60,7 @@ computation.
 
 - At runtime, it MUST declare the node(s) it pushes to or pulls from by
   calling the methods \c node::add_push_destination and
-  \c node::add_pull_destination.
+  \c node::add_pull_source.
 
 - At runtime, it SHOULD declare a name by calling the method
   \c node::set_name.
@@ -356,7 +356,7 @@ url.empty().
 
    - \c set_name
    - \c add_push_destination
-   - \c add_pull_destination
+   - \c add_pull_source
    - \c add_dependency
 
    Furthermore, the constructor and/or \c prepare() may call the following:
@@ -427,7 +427,7 @@ the expected number of items being pushed.
 
 Common faults in node implementations include
 
-- Missing \c add_push_destination/add_pull_destination/add_dependency. If
+- Missing \c add_push_destination/add_pull_source/add_dependency. If
   \c pipeline::plot does not yield a graph containing all the nodes you expect,
   this is probably the problem.
 

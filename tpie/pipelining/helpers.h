@@ -90,7 +90,7 @@ public:
 	typedef typename source_t::item_type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
-		add_pull_destination(source);
+		add_pull_source(source);
 		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
@@ -140,7 +140,7 @@ public:
 			: source(source)
 			, pusher(pushfact.construct(dummydest))
 		{
-			add_pull_destination(source);
+			add_pull_source(source);
 			add_push_destination(pusher);
 		}
 
@@ -175,7 +175,7 @@ public:
 			, puller(pullfact.construct(dummydest))
 		{
 			add_push_destination(dest);
-			add_pull_destination(puller);
+			add_pull_source(puller);
 		}
 
 		inline void push(const item_type & item) {
@@ -328,7 +328,7 @@ public:
 			, dest(dest)
 		{
 			set_name("Output iterator", PRIORITY_INSIGNIFICANT);
-			add_pull_destination(dest);
+			add_pull_source(dest);
 		}
 
 		virtual void go() override {
