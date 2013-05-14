@@ -164,12 +164,12 @@ template <typename byid_t, typename byparent_t>
 class count_factory : public P::factory_base {
 	typedef typename byid_t::factory_type byid_fact_t;
 	typedef typename byparent_t::factory_type byparent_fact_t;
-	typedef typename byid_fact_t::generated_type byid_gen_t;
-	typedef typename byparent_fact_t::generated_type byparent_gen_t;
+	typedef typename byid_fact_t::constructed_type byid_gen_t;
+	typedef typename byparent_fact_t::constructed_type byparent_gen_t;
 
 public:
 	template <typename dest_t>
-	struct generated {
+	struct constructed {
 		typedef count_t<dest_t, byid_gen_t, byparent_gen_t> type;
 	};
 

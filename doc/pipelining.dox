@@ -113,7 +113,7 @@ We could implement a \c hello_world_factory as follows:
 class hello_world_factory : public tpie::pipelining::factory_base {
 public:
 	template <typename dest_t>
-	struct generated {
+	struct constructed {
 		typedef hello_world_type<dest_t> type;
 	};
 
@@ -138,7 +138,7 @@ public:
 
 class goodbye_world_factory : public tpie::pipelining::factory_base {
 public:
-	typedef goodbye_world generated_type;
+	typedef goodbye_world constructed_type;
 
 	goodbye_world_type construct() {
 		goodbye_world_type gw;
@@ -152,7 +152,7 @@ The main differences between an ordinary factory and a termfactory:
 
 - Instead of a templated \c construct() accepting the destination as its first
   parameter, the \c construct() method takes no parameters, and
-- <tt>generated<dest_t>::type</tt> is replaced by the simpler \c generated_type
+- <tt>constructed<dest_t>::type</tt> is replaced by the simpler \c constructed_type
   typedef.
 
 \section sec_pipe_base Factory concatenation

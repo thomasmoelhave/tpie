@@ -130,7 +130,7 @@ public:
 	public:
 
 		typedef typename source_t::item_type item_type;
-		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;
+		typedef typename pushfact_t::template constructed<dummydest_t<item_type> >::type pusher_t;
 
 		source_t source;
 		dummydest_t<item_type> dummydest;
@@ -164,7 +164,7 @@ public:
 	class pusher_t : public node {
 	public:
 		typedef typename dest_t::item_type item_type;
-		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
+		typedef typename pullfact_t::template constructed<dummydest_t<item_type> >::type puller_t;
 
 		dest_t dest;
 		dummydest_t<item_type> dummydest;
@@ -198,7 +198,7 @@ public:
 template <typename fact2_t>
 class fork_t {
 public:
-	typedef typename fact2_t::generated_type dest2_t;
+	typedef typename fact2_t::constructed_type dest2_t;
 
 	template <typename dest_t>
 	class type : public node {

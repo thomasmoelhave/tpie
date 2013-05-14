@@ -67,9 +67,9 @@ protected:
 template <typename child_t, typename fact_t>
 class pipe_term_base : public pipe_base<child_t> {
 public:
-	typedef typename fact_t::generated_type generated_type;
+	typedef typename fact_t::constructed_type constructed_type;
 
-	generated_type construct() const {
+	constructed_type construct() const {
 		return this->self().factory.construct();
 	}
 };
@@ -81,12 +81,12 @@ template <typename child_t>
 class pipe_nonterm_base : public pipe_base<child_t> {
 public:
 	template <typename dest_t>
-	struct generated {
-		typedef typename child_t::factory_type::template generated<dest_t>::type type;
+	struct constructed {
+		typedef typename child_t::factory_type::template constructed<dest_t>::type type;
 	};
 
 	template <typename dest_t>
-	typename generated<dest_t>::type construct(const dest_t & dest) const {
+	typename constructed<dest_t>::type construct(const dest_t & dest) const {
 		return this->self().factory.construct(dest);
 	}
 };

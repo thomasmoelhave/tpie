@@ -39,7 +39,7 @@ using namespace std;
 template <typename src_pipe_t>
 class add_t {
 	typedef typename src_pipe_t::factory_type src_fact_t;
-	typedef typename src_fact_t::generated_type src_t;
+	typedef typename src_fact_t::constructed_type src_t;
 
 public:
 	template <typename dest_t>

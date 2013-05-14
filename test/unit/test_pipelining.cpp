@@ -1473,7 +1473,7 @@ class node_map_tester_factory : public factory_base {
 	std::string edges;
 
 public:
-	typedef node_map_tester generated_type;
+	typedef node_map_tester constructed_type;
 
 	node_map_tester_factory(size_t nodes, const std::string & edges)
 		: nodes(nodes)

@@ -313,7 +313,7 @@ class sort_factory_base : public factory_base {
 	const child_t & self() const { return *static_cast<const child_t *>(this); }
 public:
 	template <typename dest_t>
-	struct generated {
+	struct constructed {
 	private:
 		/** Type of items sorted. */
 		typedef typename dest_t::item_type item_type;
@@ -324,10 +324,10 @@ public:
 	};
 
 	template <typename dest_t>
-	typename generated<dest_t>::type construct(const dest_t & dest) const {
+	typename constructed<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
-		typedef typename generated<dest_t>::pred_type pred_type;
-		typedef typename generated<dest_t>::Traits Traits;
+		typedef typename constructed<dest_t>::pred_type pred_type;
+		typedef typename constructed<dest_t>::Traits Traits;
 
 		sort_output_t<Traits, dest_t> output(dest, self().template get_pred<item_type>());
 		this->init_sub_node(output);
@@ -418,7 +418,7 @@ public:
 	typedef sort_pull_output_t<Traits> output_t;
 	typedef sort_calc_t<Traits> calc_t;
 	typedef sort_input_t<Traits> input_t;
-	typedef input_t generated_type;
+	typedef input_t constructed_type;
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
@@ -427,7 +427,7 @@ public:
 	{
 	}
 
-	generated_type construct() const {
+	constructed_type construct() const {
 		calc_t calc(output->get_sorter());
 		output->set_calc_node(calc);
 		this->init_node(calc);
@@ -447,14 +447,14 @@ template <typename Traits>
 class passive_sorter_factory_2 : public factory_base {
 public:
 	typedef sort_pull_output_t<Traits> output_t;
-	typedef output_t generated_type;
+	typedef output_t constructed_type;
 
 	passive_sorter_factory_2(const passive_sorter<Traits> & sorter)
 		: m_sorter(sorter)
 	{
 	}
 
-	inline generated_type construct() const;
+	constructed_type construct() const;
 
 private:
 	const passive_sorter<Traits> & m_sorter;
@@ -517,9 +517,9 @@ private:
 namespace serialization_bits {
 
 template <typename Traits>
-typename passive_sorter_factory_2<Traits>::generated_type
+typename passive_sorter_factory_2<Traits>::constructed_type
 passive_sorter_factory_2<Traits>::construct() const {
-	generated_type res = m_sorter.m_output;
+	constructed_type res = m_sorter.m_output;
 	init_node(res);
 	return res;
 }

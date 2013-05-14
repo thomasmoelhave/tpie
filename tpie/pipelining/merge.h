@@ -39,7 +39,7 @@ namespace bits {
 template <typename fact_t>
 class merge_t {
 public:
-	typedef typename fact_t::generated_type pull_t;
+	typedef typename fact_t::constructed_type pull_t;
 
 	template <typename dest_t>
 	class type : public node {

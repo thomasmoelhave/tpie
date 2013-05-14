@@ -115,7 +115,7 @@ private:
 	typedef typename p_t::pi_t pi_t;
 
 	typedef after<Output> after_t;
-	typedef typename fact_t::template generated<after_t>::type worker_t;
+	typedef typename fact_t::template constructed<after_t>::type worker_t;
 	typedef typename worker_t::item_type T1;
 	typedef Output T2;
 	typedef before_impl<worker_t> before_t;

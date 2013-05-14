@@ -87,7 +87,7 @@ protected:
 template <typename fact_t>
 class pipeline_impl : public pipeline_base {
 public:
-	typedef typename fact_t::generated_type gen_t;
+	typedef typename fact_t::constructed_type gen_t;
 
 	inline pipeline_impl(const fact_t & factory)
 		: r(factory.construct())

@@ -350,8 +350,8 @@ public:
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
 
-		typedef typename fact_t::generated_type generated_type;
-		m_src = new bits::virtsrc_impl<generated_type>(pipe.factory.construct());
+		typedef typename fact_t::constructed_type constructed_type;
+		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct());
 		this->m_node = bits::virt_node::take_own(m_src);
 		this->m_segmap = m_src->get_node_map();
 
@@ -415,9 +415,9 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template generated<recv_type>::type generated_type;
+		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
-		m_src = new bits::virtsrc_impl<generated_type>(pipe.factory.construct(temp));
+		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct(temp));
 		this->m_node = bits::virt_node::take_own(m_src);
 		this->m_segmap = temp.get_node_map();
 
@@ -512,9 +512,9 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template generated<recv_type>::type generated_type;
+		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
-		this->m_node = bits::virt_node::take_own(new generated_type(pipe.factory.construct(temp)));
+		this->m_node = bits::virt_node::take_own(new constructed_type(pipe.factory.construct(temp)));
 		this->m_segmap = m_recv->get_node_map();
 		return *this;
 	}
