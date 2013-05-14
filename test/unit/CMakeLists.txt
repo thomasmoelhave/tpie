@@ -40,7 +40,7 @@ add_unittest(packed_array basic1 basic2 basic4)
 add_unittest(parallel_sort basic1 basic2 general equal_elements bad_case)
 add_unittest(serialization unsafe safe)
 add_unittest(stats simple)
-add_unittest(stream basic array odd truncate extend backwards array_file odd_file truncate_file extend_file backwards_file user_data user_data_file)
+add_unittest(stream basic array odd truncate extend backwards array_file odd_file truncate_file extend_file backwards_file user_data user_data_file array_compressed odd_compressed)
 add_unittest(stream_exception basic)
 add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual_ref virtual virtual_cref_item_type prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple parallel_own_buffer parallel_push_in_end)
 

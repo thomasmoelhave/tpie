@@ -35,6 +35,7 @@
 
 #include <tpie/array.h>
 #include <tpie/file_stream.h>
+#include <tpie/compressed_stream.h>
 #include <tpie/util.h>
 
 using tpie::uint64_t;
@@ -105,6 +106,24 @@ struct file_stream {
 	}
 
 	tpie::file_stream<T> & stream() {
+		return m_fs;
+	}
+
+	inline void close_stream() {
+		m_fs.seek(0);
+	}
+};
+
+template <typename T>
+struct compressed_stream {
+	tpie::compressed_stream<T> m_fs;
+	typedef tpie::compressed_stream<T> stream_type;
+
+	tpie::compressed_stream<T> & file() {
+		return m_fs;
+	}
+
+	tpie::compressed_stream<T> & stream() {
 		return m_fs;
 	}
 
@@ -683,9 +702,11 @@ int main(int argc, char **argv) {
 		.finish(remove_temp)
 		.test(stream_tester<file_stream>::array_test, "array")
 		.test(stream_tester<file_colon_colon_stream>::array_test, "array_file")
+		.test(stream_tester<compressed_stream>::array_test, "array_compressed")
 		.test(swap_test, "basic")
 		.test(stream_tester<file_stream>::odd_block_test, "odd")
 		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
+		.test(stream_tester<compressed_stream>::odd_block_test, "odd_compressed")
 		.test(stream_tester<file_stream>::truncate_test, "truncate")
 		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
 		.test(stream_tester<file_stream>::extend_test, "extend")
