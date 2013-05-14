@@ -199,8 +199,9 @@ public:
 		return read_ref();
 	}
 
-	void read(T * const a, T * const b) {
-		for (T * i = a; i != b; ++i) *i = read();
+	template <typename IT>
+	void read(IT const a, IT const b) {
+		for (IT i = a; i != b; ++i) *i = read();
 	}
 
 	bool can_read() {
@@ -234,8 +235,9 @@ public:
 		this->m_bufferDirty = true;
 	}
 
-	void write(const T * const a, const T * const b) {
-		for (const T * i = a; i != b; ++i) write(*i);
+	template <typename IT>
+	void write(IT const a, IT const b) {
+		for (IT i = a; i != b; ++i) write(*i);
 	}
 
 protected:
