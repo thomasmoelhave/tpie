@@ -26,6 +26,8 @@
 #include <sstream>
 #include <locale>
 #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace {
 using namespace tpie;
@@ -41,7 +43,7 @@ public:
 	inline fraction_db_impl(bool capture) : capture(capture) {
 	}
 
-	void update(const char * name, float frac, stream_size_type n) {
+	void update(std::string name, float frac, stream_size_type n) {
 		i_t i =db.find(name);
 		if (i != db.end() && i->second.second > n) return;
 		db[name] = std::make_pair(frac, n);
@@ -54,12 +56,15 @@ public:
 		std::fstream f;
 		f.open(path.c_str(), std::fstream::in | std::fstream::binary);
 		if (f.is_open()) {
-			std::string skip;
-			std::string name;
-			float frac;
-			stream_size_type n_;
-			while (f >> skip >> name >> skip >> frac >> skip >> n_ >> skip)
-				update(name.substr(1,name.size()-2).c_str() , frac, n_);
+			std::string line;
+			boost::regex lineExp("tpie::update_fractions\\([ ]*\"([^\"]+)\"[ ]*,[ ]*([^, ]+)[ ]*,[ ]*([^\\) ]+)[ ]*\\);.*", boost::regex::extended);
+			boost::smatch matches;
+			while (f) {
+				std::getline(f, line);
+				if (boost::regex_match(line, matches, lineExp) && matches.size() == 4) {
+					update(matches.str(1), boost::lexical_cast<float>(matches.str(2)), boost::lexical_cast<stream_size_type>(matches.str(3)));
+				}
+			}
 		}
 		dirty=false;
 		f.close();
@@ -76,7 +81,7 @@ public:
 			if (!f.is_open()) return;
 
 			for (i_t i=db.begin(); i != db.end(); ++i)
-				f << "tpie::update_fractions( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
+				f << "tpie::update_fractions(\"" << i->first << "\", " << i->second.first << ", " << i->second.second << ");\n";
 		}
 		atomic_rename(tmp, path);
 	}
