@@ -676,8 +676,14 @@ bool fetch_forward_test() {
 		| make_pipe_end_0<FF3>()
 		;
 	p.plot(log_info());
+	p.forward<int>("test", 42);
 	p();
-	return fetch_forward_result;
+	if (!fetch_forward_result) return false;
+	if (p.fetch<int>("test") != 42) {
+		log_error() << "Something went wrong" << std::endl;
+		return false;
+	}
+	return true;
 }
 
 // Assume that dest_t::item_type is a reference type.

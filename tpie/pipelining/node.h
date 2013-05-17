@@ -428,18 +428,36 @@ protected:
 	// See http://stackoverflow.com/a/5392050
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	inline void forward(std::string key, T value, bool explicitForward = true) {
+	void forward(std::string key, T value, bool explicitForward = true) {
+		forward_any(key, boost::any(value), explicitForward);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief See \ref node::forward.
+	///////////////////////////////////////////////////////////////////////////
+	void forward_any(std::string key, boost::any value, bool explicitForward = true) {
 		if (get_state() == STATE_AFTER_END) {
 			throw call_order_exception("forward");
 		}
 
 		for (size_t i = 0; i < m_successors.size(); ++i) {
-			if (m_successors[i]->m_values.count(key) &&
-				!explicitForward && m_successors[i]->m_values[key].second) return;
-			m_successors[i]->m_values[key].first = value;
-			m_successors[i]->m_values[key].second = explicitForward;
-			m_successors[i]->forward(key, value, false);
+			m_successors[i]->add_forwarded_data(key, value, explicitForward);
 		}
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by users to add forwarded data to this node and
+	/// recursively to its successors.
+	/// If explicitForward is false, the data will not override data forwarded
+	/// with explicitForward == true.
+	///////////////////////////////////////////////////////////////////////////
+	void add_forwarded_data(std::string key, boost::any value, bool explicitForward = true) {
+		if (m_values.count(key) &&
+			!explicitForward && m_values[key].second) return;
+		m_values[key].first = value;
+		m_values[key].second = explicitForward;
+		forward_any(key, value, false);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -486,6 +504,7 @@ protected:
 		}
 	}
 
+protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the node_token that maps this node's ID to a pointer
 	/// to this.
