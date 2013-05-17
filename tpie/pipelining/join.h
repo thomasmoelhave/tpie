@@ -59,7 +59,7 @@ public:
 			, dest(dest)
 		{
 			this->set_name("Join source", PRIORITY_INSIGNIFICANT);
-			add_push_destination(dest);
+			this->add_push_destination(dest);
 		}
 
 		virtual void prepare() override {

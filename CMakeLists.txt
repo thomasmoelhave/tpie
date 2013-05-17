@@ -29,7 +29,7 @@ set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
 	set(Boost_USE_STATIC_LIBS    ON)
 endif(WIN32)
-find_package(Boost COMPONENTS date_time thread filesystem system)
+find_package(Boost COMPONENTS date_time thread filesystem system regex)
 
 if(TPIE_FRACTIONDB_DIR_INL) 
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
