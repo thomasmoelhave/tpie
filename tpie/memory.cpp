@@ -126,35 +126,41 @@ size_t memory_manager::available() const throw() {
 	return 0;
 }
 
+} // namespace tpie
+
+namespace {
+	void print_memory_complaint(std::ostream & os, size_t bytes, size_t usage, size_t limit) {
+		os << "Memory limit exceeded by " << (usage - limit)
+		   << " bytes, while trying to allocate " << bytes << " bytes."
+		   << " Limit is " << limit << ", but " << usage << " would be used.";
+	}
+}
+
+namespace tpie {
+
 void memory_manager::register_allocation(size_t bytes) {
 	switch(m_enforce) {
 	case ENFORCE_IGNORE:
 		m_used->add(bytes);
 		break;
 	case ENFORCE_THROW: {
-		size_t usage = m_used->fetch_and_add(bytes);
-		if ((usage + bytes) > m_limit && m_limit > 0) {
+		size_t usage = m_used->add_and_fetch(bytes);
+		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
-			ss << "Memory allocation error, memory limit exceeded. "
-			   <<"Allocation request \""
-			   << bytes
-			   << "\" plus previous allocation \""
-			   << usage
-			   << "\" exceeds user-defined limit \""
-			   << m_limit
-			   << "\"";
+			print_memory_complaint(ss, bytes, usage, m_limit);
 			throw out_of_memory_error(ss.str().c_str());
 		}
 		break; }
+	case ENFORCE_DEBUG:
 	case ENFORCE_WARN: {
 		size_t usage = m_used->add_and_fetch(bytes);
 		if (usage > m_limit && usage - m_limit > m_maxExceeded && m_limit > 0) {
 			m_maxExceeded = usage - m_limit;
 			if (m_maxExceeded >= m_nextWarning) {
 				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
-				log_warning() << "Memory limit exceeded by " << m_maxExceeded 
-							  << " bytes, while trying to allocate " << bytes << " bytes."
-							  << " Limit is " << m_limit << ", but " << usage << " would be used. " << std::endl;
+				std::ostream & os = (m_enforce == ENFORCE_DEBUG) ? log_debug() : log_warning();
+				print_memory_complaint(os, bytes, usage, m_limit);
+				os << std::endl;
 			}
 		}
 		break; }
