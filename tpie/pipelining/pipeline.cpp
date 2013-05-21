@@ -92,9 +92,12 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 		mem = 0;
 	}
 
+	log_debug() << "Assigning " << mem << " b memory to each pipelining phase." << std::endl;
 	for (it i = phases.begin(); i != phases.end(); ++i) {
 		i->assign_memory(mem);
+#ifndef TPIE_NDEBUG
 		i->print_memory(log_debug());
+#endif // TPIE_NDEBUG
 	}
 	g.go_all(items, pi);
 }
