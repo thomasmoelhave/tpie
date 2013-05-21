@@ -284,8 +284,6 @@ void phase::assign_memory(memory_size_type m) const {
 		oldMemoryAssigned = memoryAssigned;
 	}
 
-	log_debug() << "After exponential search, c_hi = " << c_hi << std::endl;
-
 	// Binary search
 	while (c_hi - c_lo > 1e-6) {
 		double c = c_lo + (c_hi-c_lo)/2;
@@ -298,8 +296,6 @@ void phase::assign_memory(memory_size_type m) const {
 			c_lo = c;
 		}
 	}
-
-	log_debug() << "After binary search, c_lo = " << c_lo << std::endl;
 
 	memory_size_type memoryAssigned = 0;
 	double factor = m * c_lo / fraction;
@@ -524,6 +520,8 @@ void phase::go(progress_indicator_base & pi) {
 	size_t initiators = 0;
 	for (size_t i = 0; i < beginOrder.size(); ++i) {
 		if (!is_initiator(beginOrder[i])) continue;
+		log_debug() << "Execute initiator " << beginOrder[i]->get_name()
+			<< " (" << beginOrder[i]->get_id() << ")" << std::endl;
 		beginOrder[i]->go();
 		initiators++;
 	}
