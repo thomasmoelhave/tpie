@@ -63,6 +63,9 @@ public:
 	enum enforce_t {
 		/** Ignore when running out of memory. */
 		ENFORCE_IGNORE,
+		/** \brief Log to debug log when the memory limit is exceeded.
+		 * Note that not all violations will be logged. */
+		ENFORCE_DEBUG,
 		/** \brief Log a warning when the memory limit is exceeded. Note that
 		 * not all violations will be logged. */
 		ENFORCE_WARN,
