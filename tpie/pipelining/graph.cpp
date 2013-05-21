@@ -524,6 +524,8 @@ void phase::go(progress_indicator_base & pi) {
 	size_t initiators = 0;
 	for (size_t i = 0; i < beginOrder.size(); ++i) {
 		if (!is_initiator(beginOrder[i])) continue;
+		log_debug() << "Execute initiator " << beginOrder[i]->get_name()
+			<< " (" << beginOrder[i]->get_id() << ")" << std::endl;
 		beginOrder[i]->go();
 		initiators++;
 	}
