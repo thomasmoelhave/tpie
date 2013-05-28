@@ -46,6 +46,9 @@ class compressed_stream_accessor : public stream_accessor_base<file_accessor_t> 
 				<< " but " << blockNumber << " was requested." << std::endl;
 			throw stream_exception("Random seeks are not supported");
 		}
+		// Here, we may seek beyond the file size.
+		// However, lseek(2) specifies that the file will be padded with zeroes in this case,
+		// and on Windows, the file is padded with arbitrary garbage (which is ok).
 		this->m_fileAccessor.seek_i(loc);
 		return loc;
 	}
@@ -89,10 +92,6 @@ public:
 							 memory_size_type itemCount) override
 	{
 		stream_size_type loc = seek(blockNumber);
-		// Here, we may seek beyond the file size.
-		// However, lseek(2) specifies that the file will be padded with zeroes in this case,
-		// and on Windows, the file is padded with arbitrary garbage (which is ok).
-		this->m_fileAccessor.seek_i(loc);
 		stream_size_type offset = blockNumber*this->block_items();
 		memory_size_type z=itemCount*this->item_size();
 
