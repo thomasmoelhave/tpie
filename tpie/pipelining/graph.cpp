@@ -481,11 +481,9 @@ void graph_traits::calc_phases() {
 	for (node_map::mapit i = map.begin(); i != map.end(); ++i) {
 		if (!inDegree.count(i->second)) {
 			m_itemSources.push_back(i->second);
-			break;
 		}
 		if (!outDegree.count(i->second)) {
 			m_itemSinks.push_back(i->second);
-			break;
 		}
 	}
 }
