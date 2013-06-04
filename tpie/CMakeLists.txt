@@ -58,6 +58,9 @@ set (HEADERS
 		progress_indicator_terminal.h
 		queue.h
 		serialization.h
+		serialization2.h
+		serialization_stream.h
+		serialization_sort.h
 		sort.h
 		sort_deprecated.h
 		sort_manager.h
@@ -102,6 +105,7 @@ set (SOURCES
 	prime.cpp
 	progress_indicator_base.cpp
 	progress_indicator_subindicator.cpp
+	serialization_stream.cpp
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
