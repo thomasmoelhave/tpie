@@ -257,8 +257,7 @@ struct sequence_generator : public node {
 		set_name("Generate integers", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		forward("items", static_cast<stream_size_type>(elements));
 		set_steps(elements);
 	}
@@ -295,7 +294,7 @@ struct sequence_verifier : public node {
 		set_name("Verify integers", PRIORITY_INSIGNIFICANT);
 	}
 
-	virtual void begin() override {
+	virtual void propagate() override {
 		if (!can_fetch("items")) {
 			log_error() << "Sorter did not forward number of items" << std::endl;
 			bad = true;
@@ -629,8 +628,7 @@ struct FF1 : public node {
 		add_push_destination(dest);
 		set_name("FF1");
 	}
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		my_item i;
 		i.v1 = 1;
 		forward("my_item", i);
@@ -654,7 +652,7 @@ struct FF3 : public node {
 	FF3() {
 		set_name("FF3");
 	}
-	virtual void begin() override {
+	virtual void propagate() override {
 		if (!can_fetch("my_item")) {
 			log_error() << "Cannot fetch my_item" << std::endl;
 			fetch_forward_result = false;
@@ -753,6 +751,9 @@ struct prepare_result {
 	size_t prep1;
 	size_t prep2;
 	size_t prep3;
+	size_t propagate1;
+	size_t propagate2;
+	size_t propagate3;
 	size_t begin1;
 	size_t begin2;
 	size_t begin3;
@@ -804,11 +805,16 @@ public:
 		forward("t", r.t);
 	}
 
+	virtual void propagate() override {
+		log_debug() << "Propagate 1" << std::endl;
+		r.propagate1 = r.t++;
+		r.memGotten1 = get_available_memory();
+		forward("t", r.t);
+	}
+
 	virtual void begin() override {
 		log_debug() << "Begin 1" << std::endl;
 		r.begin1 = r.t++;
-		r.memGotten1 = get_available_memory();
-		forward("t", r.t);
 	}
 
 	virtual void go() override {
@@ -857,16 +863,21 @@ public:
 		forward("t", r.t);
 	}
 
-	virtual void begin() override {
-		log_debug() << "Begin 2" << std::endl;
+	virtual void propagate() override {
+		log_debug() << "Propagate 2" << std::endl;
 		if (!can_fetch("t")) {
-			log_error() << "Couldn't fetch time variable in middle::begin" << std::endl;
+			log_error() << "Couldn't fetch time variable in middle::propagate" << std::endl;
 		} else if (fetch<size_t>("t") != r.t) {
 			log_error() << "Time is wrong" << std::endl;
 		}
-		r.begin2 = r.t++;
+		r.propagate2 = r.t++;
 		r.memGotten2 = get_available_memory();
 		forward("t", r.t);
+	}
+
+	virtual void begin() override {
+		log_debug() << "Begin 2" << std::endl;
+		r.begin2 = r.t++;
 	}
 
 	virtual void end() override {
@@ -901,15 +912,20 @@ public:
 		set_minimum_memory(r.memWanted3);
 	}
 
-	virtual void begin() override {
-		log_debug() << "Begin 3" << std::endl;
+	virtual void propagate() override {
+		log_debug() << "Propagate 3" << std::endl;
 		if (!can_fetch("t")) {
-			log_error() << "Couldn't fetch time variable in end::begin" << std::endl;
+			log_error() << "Couldn't fetch time variable in end::propagate" << std::endl;
 		} else if (fetch<size_t>("t") != r.t) {
 			log_error() << "Time is wrong" << std::endl;
 		}
-		r.begin3 = r.t++;
+		r.propagate3 = r.t++;
 		r.memGotten3 = get_available_memory();
+	}
+
+	virtual void begin() override {
+		log_debug() << "Begin 3" << std::endl;
+		r.begin3 = r.t++;
 	}
 
 	virtual void end() override {
@@ -933,16 +949,19 @@ bool prepare_test() {
 		| prepare_end(r);
 	p();
 	log_debug() << r << std::endl;
-	TEST_ENSURE(r.prep1  == 0, "Prep 1 time is wrong");
-	TEST_ENSURE(r.prep2  == 1, "Prep 2 time is wrong");
-	TEST_ENSURE(r.prep3  == 2, "Prep 3 time is wrong");
-	TEST_ENSURE(r.begin1 == 3, "Begin 1 time is wrong");
-	TEST_ENSURE(r.begin2 == 4, "Begin 2 time is wrong");
-	TEST_ENSURE(r.begin3 == 5, "Begin 3 time is wrong");
-	TEST_ENSURE(r.end1   == 6, "End 1 time is wrong");
-	TEST_ENSURE(r.end2   == 7, "End 2 time is wrong");
-	TEST_ENSURE(r.end3   == 8, "End 3 time is wrong");
-	TEST_ENSURE(r.t      == 9, "Time is wrong after execution");
+	TEST_ENSURE(r.prep1      == 0,  "Prep 1 time is wrong");
+	TEST_ENSURE(r.prep2      == 1,  "Prep 2 time is wrong");
+	TEST_ENSURE(r.prep3      == 2,  "Prep 3 time is wrong");
+	TEST_ENSURE(r.propagate1 == 3,  "Propagate 1 time is wrong");
+	TEST_ENSURE(r.propagate2 == 4,  "Propagate 2 time is wrong");
+	TEST_ENSURE(r.propagate3 == 5,  "Propagate 3 time is wrong");
+	TEST_ENSURE(r.begin3     == 6,  "Begin 3 time is wrong");
+	TEST_ENSURE(r.begin2     == 7,  "Begin 2 time is wrong");
+	TEST_ENSURE(r.begin1     == 8,  "Begin 1 time is wrong");
+	TEST_ENSURE(r.end1       == 9,  "End 1 time is wrong");
+	TEST_ENSURE(r.end2       == 10, "End 2 time is wrong");
+	TEST_ENSURE(r.end3       == 11, "End 3 time is wrong");
+	TEST_ENSURE(r.t          == 12, "Time is wrong after execution");
 
 	TEST_ENSURE(r.memGotten1 == r.memWanted1, "Memory assigned to 1 is wrong");
 	TEST_ENSURE(r.memGotten2 == r.memWanted2, "Memory assigned to 2 is wrong");
@@ -1327,8 +1346,7 @@ public:
 		add_push_destination(dest);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		forward<stream_size_type>("items", items);
 	}
 
@@ -1357,8 +1375,7 @@ public:
 		add_push_destination(dest);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		if (!can_fetch("items")) throw tpie::exception("Cannot fetch items");
 		set_steps(fetch<stream_size_type>("items"));
 	}

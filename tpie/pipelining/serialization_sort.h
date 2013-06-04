@@ -94,8 +94,7 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		this->set_steps(this->m_sorter->item_count());
 		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
@@ -149,8 +148,7 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		this->set_steps(this->m_sorter->item_count());
 		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
 	}
@@ -214,8 +212,7 @@ public:
 		set_memory_fraction(1.0);
 	}
 
-	virtual void begin() override {
-		node::begin();
+	virtual void propagate() override {
 		set_steps(1000);
 	}
 

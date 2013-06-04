@@ -489,12 +489,19 @@ void graph_traits::calc_phases() {
 }
 
 void phase::go(progress_indicator_base & pi) {
+	std::vector<node *> propagateOrder;
 	std::vector<node *> beginOrder;
 	std::vector<node *> endOrder;
 	{
 		dfs_traversal<phase::node_graph> dfs(*itemFlowGraph);
 		dfs.dfs();
+		propagateOrder = dfs.toposort();
+	}
+	{
+		dfs_traversal<phase::node_graph> dfs(*actorGraph);
+		dfs.dfs();
 		beginOrder = dfs.toposort();
+		std::reverse(beginOrder.begin(), beginOrder.end());
 	}
 	{
 		dfs_traversal<phase::node_graph> dfs(*actorGraph);
@@ -502,19 +509,27 @@ void phase::go(progress_indicator_base & pi) {
 		endOrder = dfs.toposort();
 	}
 	stream_size_type totalSteps = 0;
+	for (size_t i = 0; i < propagateOrder.size(); ++i) {
+		if (propagateOrder[i]->get_state() != node::STATE_AFTER_PREPARE) {
+			throw call_order_exception("Invalid state for propagate");
+		}
+		propagateOrder[i]->set_state(node::STATE_IN_PROPAGATE);
+		propagateOrder[i]->propagate();
+		if (propagateOrder[i]->get_progress_indicator() == 0)
+			propagateOrder[i]->set_progress_indicator(&pi);
+		totalSteps += propagateOrder[i]->get_steps();
+		propagateOrder[i]->set_state(node::STATE_AFTER_PROPAGATE);
+	}
+	pi.init(totalSteps);
 	for (size_t i = 0; i < beginOrder.size(); ++i) {
-		if (beginOrder[i]->get_state() != node::STATE_AFTER_PREPARE) {
+		if (beginOrder[i]->get_state() != node::STATE_AFTER_PROPAGATE) {
 			throw call_order_exception("Invalid state for begin");
 		}
 		beginOrder[i]->set_state(node::STATE_IN_BEGIN);
 		beginOrder[i]->begin();
-		if (beginOrder[i]->get_progress_indicator() == 0)
-			beginOrder[i]->set_progress_indicator(&pi);
-		totalSteps += beginOrder[i]->get_steps();
 		beginOrder[i]->set_state(node::STATE_AFTER_BEGIN);
 	}
 
-	pi.init(totalSteps);
 	size_t initiators = 0;
 	for (size_t i = 0; i < beginOrder.size(); ++i) {
 		if (!is_initiator(beginOrder[i])) continue;
