@@ -39,7 +39,7 @@ namespace bits {
 template <typename fact_t>
 class merge_t {
 public:
-	typedef typename fact_t::generated_type pull_t;
+	typedef typename fact_t::constructed_type pull_t;
 
 	template <typename dest_t>
 	class type : public node {
@@ -48,7 +48,7 @@ public:
 
 		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {
 			add_push_destination(dest);
-			add_pull_destination(with);
+			add_pull_source(with);
 			set_name("Merge", PRIORITY_INSIGNIFICANT);
 		}
 

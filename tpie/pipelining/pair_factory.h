@@ -91,7 +91,7 @@ public:
 				   "In a node constructor that accepts a destination node,\n"
 				   "a relation should always be established between the current node\n"
 				   "and the destination using one of the member functions add_push_destination,\n"
-				   "add_pull_destination and add_dependency.\n\n"
+				   "add_pull_source and add_dependency.\n\n"
 				   "If this relational graph is not connected, some nodes will not\n"
 				   "be initialized: prepare(), begin(), end() and other methods will never\n"
 				   "be called, and memory will not be assigned.\n"
@@ -128,8 +128,8 @@ template <typename fact1_t, typename fact2_t>
 class pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
 public:
 	template <typename dest_t>
-	struct generated {
-		typedef typename fact1_t::template generated<typename fact2_t::template generated<dest_t>::type>::type type;
+	struct constructed {
+		typedef typename fact1_t::template constructed<typename fact2_t::template constructed<dest_t>::type>::type type;
 	};
 
 	inline pair_factory(const fact1_t & fact1, const fact2_t & fact2)
@@ -137,7 +137,7 @@ public:
 	}
 
 	template <typename dest_t>
-	inline typename generated<dest_t>::type
+	typename constructed<dest_t>::type
 	construct(const dest_t & dest) const {
 		return this->record(0, fact1.construct(this->record(1, fact2.construct(dest))));
 	}
@@ -159,7 +159,7 @@ public:
 template <typename fact1_t, typename termfact2_t>
 class termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
 public:
-	typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
+	typedef typename fact1_t::template constructed<typename termfact2_t::constructed_type>::type constructed_type;
 
 	inline termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
 		: fact1(fact1)
@@ -170,7 +170,7 @@ public:
 	fact1_t fact1;
 	termfact2_t fact2;
 
-	inline generated_type construct() const {
+	constructed_type construct() const {
 		return this->record(0, fact1.construct(this->record(1, fact2.construct())));
 	}
 

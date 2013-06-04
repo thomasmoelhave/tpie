@@ -35,11 +35,11 @@ class factory : public factory_base {
 	const options opts;
 public:
 	template <typename dest_t>
-	struct generated {
+	struct constructed {
 		typedef typename dest_t::item_type T2;
 
 		typedef after<T2> after_t;
-		typedef typename fact_t::template generated<after_t>::type processor_t;
+		typedef typename fact_t::template constructed<after_t>::type processor_t;
 		typedef typename processor_t::item_type T1;
 
 		typedef producer<T1, T2> type;
@@ -52,9 +52,9 @@ public:
 	}
 
 	template <typename dest_t>
-	typename generated<dest_t>::type
+	typename constructed<dest_t>::type
 	construct(const dest_t & dest) const {
-		typedef generated<dest_t> gen_t;
+		typedef constructed<dest_t> gen_t;
 
 		typedef typename gen_t::T1 input_type;
 		typedef typename gen_t::T2 output_type;

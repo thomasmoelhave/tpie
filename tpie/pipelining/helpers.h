@@ -90,7 +90,7 @@ public:
 	typedef typename source_t::item_type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
-		add_pull_destination(source);
+		add_pull_source(source);
 		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
@@ -130,7 +130,7 @@ public:
 	public:
 
 		typedef typename source_t::item_type item_type;
-		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;
+		typedef typename pushfact_t::template constructed<dummydest_t<item_type> >::type pusher_t;
 
 		source_t source;
 		dummydest_t<item_type> dummydest;
@@ -140,7 +140,7 @@ public:
 			: source(source)
 			, pusher(pushfact.construct(dummydest))
 		{
-			add_pull_destination(source);
+			add_pull_source(source);
 			add_push_destination(pusher);
 		}
 
@@ -164,7 +164,7 @@ public:
 	class pusher_t : public node {
 	public:
 		typedef typename dest_t::item_type item_type;
-		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
+		typedef typename pullfact_t::template constructed<dummydest_t<item_type> >::type puller_t;
 
 		dest_t dest;
 		dummydest_t<item_type> dummydest;
@@ -175,7 +175,7 @@ public:
 			, puller(pullfact.construct(dummydest))
 		{
 			add_push_destination(dest);
-			add_pull_destination(puller);
+			add_pull_source(puller);
 		}
 
 		inline void push(const item_type & item) {
@@ -198,7 +198,7 @@ public:
 template <typename fact2_t>
 class fork_t {
 public:
-	typedef typename fact2_t::generated_type dest2_t;
+	typedef typename fact2_t::constructed_type dest2_t;
 
 	template <typename dest_t>
 	class type : public node {
@@ -328,7 +328,7 @@ public:
 			, dest(dest)
 		{
 			set_name("Output iterator", PRIORITY_INSIGNIFICANT);
-			add_pull_destination(dest);
+			add_pull_source(dest);
 		}
 
 		virtual void go() override {

@@ -365,21 +365,35 @@ protected:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare a pull destination.
+	/// \brief Called by implementers to declare a pull source.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_pull_destination(const node_token & dest) {
+	void add_pull_source(const node_token & dest) {
 		if (get_state() != STATE_FRESH) {
-			throw call_order_exception("add_pull_destination called too late");
+			throw call_order_exception("add_pull_source called too late");
 		}
 		bits::node_map::ptr m = token.map_union(dest);
 		m->add_relation(token.id(), dest.id(), bits::pulls);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare a pull destination.
+	/// \brief Called by implementers to declare a pull source.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_pull_destination(const node & dest) {
-		add_pull_destination(dest.token);
+	void add_pull_source(const node & dest) {
+		add_pull_source(dest.token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \deprecated \brief Legacy alias of add_pull_source.
+	///////////////////////////////////////////////////////////////////////////
+	void add_pull_destination(const node_token & dest) {
+		add_pull_source(dest);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \deprecated \brief Legacy alias of add_pull_source.
+	///////////////////////////////////////////////////////////////////////////
+	void add_pull_destination(const node & dest) {
+		add_pull_source(dest);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
