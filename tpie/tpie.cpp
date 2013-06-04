@@ -26,7 +26,7 @@
 #include <tpie/job.h>
 
 namespace {
-static tpie::stream_size_type the_block_size=0;
+static tpie::memory_size_type the_block_size=0;
 }
 
 namespace tpie {

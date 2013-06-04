@@ -244,7 +244,7 @@ public:
 	{
 	}
 
-	inline size_t id() const { return m_id; }
+	inline id_t id() const { return m_id; }
 
 	inline bits::node_map::ptr map_union(const node_token & with) {
 		if (m_tokens == with.m_tokens) return m_tokens;
@@ -262,7 +262,7 @@ public:
 
 private:
 	bits::node_map::ptr m_tokens;
-	size_t m_id;
+	id_t m_id;
 	bool m_free;
 };
 

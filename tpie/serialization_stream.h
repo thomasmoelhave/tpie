@@ -37,7 +37,7 @@ namespace bits {
 
 class serialization_writer_base {
 public:
-	static stream_size_type block_size() {
+	static memory_size_type block_size() {
 		return 2*1024*1024;
 	}
 
@@ -242,7 +242,7 @@ namespace bits {
 
 class serialization_reader_base {
 public:
-	static stream_size_type block_size() {
+	static memory_size_type block_size() {
 		return serialization_writer_base::block_size();
 	}
 
@@ -360,7 +360,7 @@ public:
 
 	bool can_read() {
 		if (m_index < m_blockSize) return true;
-		return m_blockNumber * block_size() + m_index < m_size;
+		return m_blockNumber * (stream_size_type)block_size() + m_index < m_size;
 	}
 
 	///////////////////////////////////////////////////////////////////////////

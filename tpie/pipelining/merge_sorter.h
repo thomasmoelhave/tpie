@@ -125,7 +125,7 @@ public:
 		tp_assert(m_state == stParameters, "Merge sorting already begun");
 		if (!m_parametersSet) throw merge_sort_not_ready();
 		log_debug() << "Start forming input runs" << std::endl;
-		m_currentRunItems.resize(p.runLength);
+		m_currentRunItems.resize((size_t)p.runLength);
 		m_runFiles.resize(p.fanout*2);
 		m_currentRunItemCount = 0;
 		m_finishedRuns = 0;
