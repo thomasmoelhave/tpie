@@ -91,6 +91,9 @@
 #endif
 #endif
 
+#cmakedefine TPIE_SHARED
+
+#ifdef TPIE_SHARED
 #if defined _WIN32
   #if BUILDING_TPIE_DLL
     #define TPIE_PUBLIC __declspec(dllexport)
@@ -102,5 +105,9 @@
   #define TPIE_PUBLIC __attribute__ ((visibility ("default")))
   #define TPIE_PRIVATE __attribute__ ((visibility ("hidden")))
 #endif
+#else //TPIE_SHARED
+#define TPIE_PUBLIC
+#define TPIE_PRIVATE
+#endif //TPIE_SHARED
 
 #endif // _CONFIG_H 

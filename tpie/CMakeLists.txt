@@ -206,10 +206,10 @@ if(TPIE_SHARED)
     set_target_properties(tpie PROPERTIES LINK_FLAGS "-fvisibility=hidden")
   endif (WIN32)
 else(TPIE_SHARED)
-  add_library(tpie STATIC ${TPIE_OBJECTS})
+  add_library(tpie STATIC ${SOURCES} ${HEADERS})
 endif(TPIE_SHARED)
 
-target_link_libraries(tpie ${TPIE_LINK})
+target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 if(TPIE_HAS_SNAPPY)
