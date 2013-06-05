@@ -39,6 +39,39 @@ set (HEADERS
 		memory.h
 		memory.inl
 		persist.h
+		pipelining/buffer.h
+		pipelining/exception.h
+		pipelining/factory_base.h
+		pipelining/factory_helpers.h
+		pipelining/file_stream.h
+		pipelining/graph.h
+		pipelining/helpers.h
+		pipelining/join.h
+		pipelining/maintain_order_type.h
+		pipelining/merge.h
+		pipelining/merge_sorter.h
+		pipelining/merger.h
+		pipelining/node.h
+		pipelining/node_map_dump.h
+		pipelining/numeric.h
+		pipelining/pair_factory.h
+		pipelining/parallel.h
+		pipelining/parallel/aligned_array.h
+		pipelining/parallel/base.h
+		pipelining/parallel/factory.h
+		pipelining/parallel/options.h
+		pipelining/parallel/pipes.h
+		pipelining/parallel/worker_state.h
+		pipelining/pipe_base.h
+		pipelining/pipeline.h
+		pipelining/reverse.h
+		pipelining/serialization_sort.h
+		pipelining/sort.h
+		pipelining/std_glue.h
+		pipelining/stdio.h
+		pipelining/tokens.h
+		pipelining/uniq.h
+		pipelining/virtual.h
 		portability.h
 		internal_priority_queue.h
 		priority_queue.inl
@@ -101,6 +134,9 @@ set (SOURCES
 	job.cpp
 	logstream.cpp
 	memory.cpp
+	pipelining/graph.cpp
+	pipelining/pipeline.cpp
+	pipelining/tokens.cpp
 	portability.cpp
 	prime.cpp
 	progress_indicator_base.cpp
@@ -115,8 +151,6 @@ set (SOURCES
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
-add_subdirectory(pipelining)
-
 if (WIN32)
 set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
 else(WIN32)
@@ -124,7 +158,7 @@ set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
 add_library(tpie ${HEADERS} ${SOURCES})
-target_link_libraries(tpie ${Boost_LIBRARIES} pipelining)
+target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 install(TARGETS tpie
