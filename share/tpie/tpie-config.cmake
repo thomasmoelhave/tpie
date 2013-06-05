@@ -19,7 +19,7 @@ set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
 	set(Boost_USE_STATIC_LIBS    ON)
 endif(WIN32)
-find_package(Boost COMPONENTS date_time thread filesystem system)
+find_package(Boost COMPONENTS date_time thread filesystem system regex)
 
 find_path(TPIE_INCLUDE_DIR NAMES tpie/config.h)
 find_library(TPIE_LIBRARIES tpie)
