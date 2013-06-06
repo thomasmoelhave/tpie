@@ -55,9 +55,9 @@ class fractional_progress;
 ///////////////////////////////////////////////////////////////////////////////
 class TPIE_PUBLIC fractional_subindicator: public progress_indicator_subindicator {
 public:
-	TPIE_PUBLIC fractional_subindicator(fractional_progress & fp);
+	fractional_subindicator(fractional_progress & fp);
 	
-	TPIE_PUBLIC fractional_subindicator(fractional_progress & fp,
+	fractional_subindicator(fractional_progress & fp,
 											const char * id,
 											const char * file,
 											const char * function,
@@ -66,7 +66,7 @@ public:
 											description_importance importance=IMPORTANCE_MAJOR,
 											bool enabled=true);
 	
-	TPIE_PUBLIC void setup(const char * id,
+	void setup(const char * id,
 							   const char * file,
 							   const char * function,
 							   stream_size_type n,
@@ -74,17 +74,17 @@ public:
 							   description_importance importance=IMPORTANCE_MAJOR,
 							   bool enabled=true);
 	
-	TPIE_PUBLIC  ~fractional_subindicator();
+	~fractional_subindicator();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_subindicator::init
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_PUBLIC virtual void init(stream_size_type range);
+	virtual void init(stream_size_type range);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_subindicator::done
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_PUBLIC virtual void done();
+	virtual void done();
 private:
 #ifndef TPIE_NDEBUG
 	bool m_init_called;
@@ -106,29 +106,29 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class TPIE_PUBLIC  fractional_progress {
 public:
-	TPIE_PUBLIC fractional_progress(progress_indicator_base * pi);
-	TPIE_PUBLIC ~fractional_progress();
+	fractional_progress(progress_indicator_base * pi);
+	~fractional_progress();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_base::done
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_PUBLIC void done();
+	void done();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc progress_indicator_base::init
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_PUBLIC void init(stream_size_type range=0);
+	void init(stream_size_type range=0);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return this progress indicator's unique id.
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_PUBLIC unique_id_type & id();
+	unique_id_type & id();
 
-	TPIE_PUBLIC void push_breadcrumb(const char * crumb, description_importance importance) {
+	void push_breadcrumb(const char * crumb, description_importance importance) {
 		if (m_pi) m_pi->push_breadcrumb(crumb, importance);
 	}
 
-	TPIE_PUBLIC void pop_breadcrumb() {
+	void pop_breadcrumb() {
 		if (m_pi) m_pi->pop_breadcrumb();
 	}
 
