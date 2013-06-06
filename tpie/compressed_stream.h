@@ -58,40 +58,64 @@ class stream_buffers {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
 
+	const static memory_size_type MAX_BUFFERS = 3;
+
 	stream_buffers(memory_size_type blockSize)
 		: m_bufferCount(0)
 		, m_blockSize(blockSize)
 	{
 	}
 
-	buffer_t get_buffer(stream_size_type blockNumber) {
-		// First, search for the buffer in the map.
-		std::pair<buffermapit, bool> res
-			= m_buffers.insert(std::make_pair(blockNumber, buffer_t()));
-		buffermapit & target = res.first;
-		bool & inserted = res.second;
-		if (!inserted) return target->second;
+	buffer_t get_buffer(compressor_thread_lock & lock, stream_size_type blockNumber) {
+		if (m_buffers.size() >= MAX_BUFFERS) {
+			buffermapit target = m_buffers.find(blockNumber);
+			if (target != m_buffers.end()) return target->second;
 
-		// If not found, find a free buffer and place it in target->second.
+			buffer_t b;
+			while (true) {
+				buffermapit i = m_buffers.begin();
+				while (i != m_buffers.end() && !i->second.unique()) ++i;
+				if (i == m_buffers.end()) {
+					compressor().wait_for_request_done(lock);
+					continue;
+				} else {
+					b.swap(i->second);
+					m_buffers.erase(i);
+					break;
+				}
+			}
 
-		// target->second is the only buffer in the map with use_count() == 0.
-		// If a buffer in the map has use_count() == 1 (that is, unique() == true),
-		// that means only our map (and nobody else) refers to the buffer,
-		// so it is free to be reused.
-		buffermapit i = m_buffers.begin();
-		while (i != m_buffers.end() && !i->second.unique()) ++i;
-
-		if (i == m_buffers.end()) {
-			// No free found: allocate new buffer.
-			target->second.reset(new buffer_t::element_type(block_size()));
-			++m_bufferCount;
+			m_buffers.insert(std::make_pair(blockNumber, b));
+			return b;
 		} else {
-			// Free found: reuse buffer.
-			target->second.swap(i->second);
-			m_buffers.erase(i);
-		}
+			// First, search for the buffer in the map.
+			std::pair<buffermapit, bool> res
+				= m_buffers.insert(std::make_pair(blockNumber, buffer_t()));
+			buffermapit & target = res.first;
+			bool & inserted = res.second;
+			if (!inserted) return target->second;
 
-		return target->second;
+			// If not found, find a free buffer and place it in target->second.
+
+			// target->second is the only buffer in the map with use_count() == 0.
+			// If a buffer in the map has use_count() == 1 (that is, unique() == true),
+			// that means only our map (and nobody else) refers to the buffer,
+			// so it is free to be reused.
+			buffermapit i = m_buffers.begin();
+			while (i != m_buffers.end() && !i->second.unique()) ++i;
+
+			if (i == m_buffers.end()) {
+				// No free found: allocate new buffer.
+				target->second.reset(new buffer_t::element_type(block_size()));
+				++m_bufferCount;
+			} else {
+				// Free found: reuse buffer.
+				target->second.swap(i->second);
+				m_buffers.erase(i);
+			}
+
+			return target->second;
+		}
 	}
 
 	bool empty() const {
@@ -404,7 +428,10 @@ private:
 	const T & read_ref() {
 		if (m_seekState != seek_state::none) perform_seek();
 		if (!can_read()) throw stream_exception("!can_read()");
-		if (m_nextItem == m_lastItem) read_next_block();
+		if (m_nextItem == m_lastItem) {
+			compressor_thread_lock l(compressor());
+			read_next_block(l);
+		}
 		return *m_nextItem++;
 	}
 
@@ -467,21 +494,19 @@ protected:
 			flush_block();
 		}
 
-		{
-			m_buffer.reset();
-			compressor_thread_lock l(compressor());
-			finish_requests(l);
-		}
+		m_buffer.reset();
+		compressor_thread_lock l(compressor());
+		finish_requests(l);
 
 		if (m_seekState == seek_state::beginning
 			&& !m_byteStreamAccessor.empty())
 		{
 			m_nextReadOffset = 0;
-			get_buffer(0);
-			read_next_block();
+			get_buffer(l, 0);
+			read_next_block(l);
 			m_bufferState = buffer_state::read_only;
 		} else {
-			get_buffer(m_streamBlocks++);
+			get_buffer(l, m_streamBlocks++);
 			m_bufferState = buffer_state::write_only;
 			m_nextItem = m_bufferBegin;
 		}
@@ -489,8 +514,8 @@ protected:
 	}
 
 private:
-	void get_buffer(stream_size_type blockNumber) {
-		m_buffer = this->m_buffers.get_buffer(blockNumber);
+	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber) {
+		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
 		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
 		m_bufferEnd = m_bufferBegin + block_items();
 	}
@@ -503,7 +528,7 @@ public:
 		r.set_write_request(m_buffer, &m_byteStreamAccessor, blockItems);
 		compressor_thread_lock lock(compressor());
 		compressor().request(r);
-		get_buffer(m_streamBlocks++);
+		get_buffer(lock, m_streamBlocks++);
 		/*
 		size_t inputLength = sizeof(T) * blockItems;
 		//compressor().append_block(
@@ -520,18 +545,17 @@ public:
 		*/
 	}
 
-	void read_next_block() {
+	void read_next_block(compressor_thread_lock & lock) {
 		compressor_request r;
 		read_request & rr = r.set_read_request(m_buffer, &m_byteStreamAccessor, m_nextReadOffset, m_readComplete);
-		{
-			compressor_thread_lock lock(compressor());
-			compressor().request(r);
-			while (!rr.done()) {
-				rr.wait(lock);
-			}
-			if (rr.end_of_stream())
-				throw end_of_stream_exception();
+
+		compressor().request(r);
+		while (!rr.done()) {
+			rr.wait(lock);
 		}
+		if (rr.end_of_stream())
+			throw end_of_stream_exception();
+
 		m_nextReadOffset = rr.next_read_offset();
 		m_canReadAgain = rr.can_read_again();
 		m_nextItem = m_bufferBegin;
