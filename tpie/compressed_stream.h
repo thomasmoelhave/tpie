@@ -68,9 +68,11 @@ public:
 
 	buffer_t get_buffer(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		if (m_buffers.size() >= MAX_BUFFERS) {
+			// First, search for the buffer in the map.
 			buffermapit target = m_buffers.find(blockNumber);
 			if (target != m_buffers.end()) return target->second;
 
+			// If not found, wait for a free buffer to become available.
 			buffer_t b;
 			while (true) {
 				buffermapit i = m_buffers.begin();
@@ -373,9 +375,10 @@ public:
 		: compressed_stream_base(sizeof(T), blockFactor)
 		, m_seekState(seek_state::beginning)
 		, m_bufferState(buffer_state::write_only)
+		, m_nextReadOffset(0)
+		, m_nextBlockSize(0)
 		, m_offset(0)
 		, m_streamBlocks(0)
-		, m_canReadAgain(false)
 	{
 	}
 
@@ -449,6 +452,9 @@ public:
 		if (!this->m_open)
 			return false;
 
+		if (m_nextReadOffset == 0 && m_byteStreamAccessor.size() > 0)
+			return true;
+
 		if (m_seekState != seek_state::none)
 			perform_seek();
 
@@ -458,11 +464,7 @@ public:
 		if (m_nextItem != m_lastItem)
 			return true;
 
-		if (m_canReadAgain)
-			return true;
-
-		if ((m_nextReadOffset == 0 || m_seekState == seek_state::beginning)
-			&& m_byteStreamAccessor.size() > 0)
+		if (m_nextBlockSize != 0)
 			return true;
 
 		return false;
@@ -547,7 +549,12 @@ public:
 
 	void read_next_block(compressor_thread_lock & lock) {
 		compressor_request r;
-		read_request & rr = r.set_read_request(m_buffer, &m_byteStreamAccessor, m_nextReadOffset, m_readComplete);
+		read_request & rr =
+			r.set_read_request(m_buffer,
+							   &m_byteStreamAccessor,
+							   m_nextReadOffset,
+							   m_nextBlockSize,
+							   m_readComplete);
 
 		compressor().request(r);
 		while (!rr.done()) {
@@ -557,7 +564,7 @@ public:
 			throw end_of_stream_exception();
 
 		m_nextReadOffset = rr.next_read_offset();
-		m_canReadAgain = rr.can_read_again();
+		m_nextBlockSize = rr.next_block_size();
 		m_nextItem = m_bufferBegin;
 		memory_size_type itemsRead = m_buffer->size() / sizeof(T);
 		m_lastItem = m_bufferBegin + itemsRead;

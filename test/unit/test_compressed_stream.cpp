@@ -32,8 +32,11 @@ bool basic_test(size_t n) {
 			tpie::log_error() << "!can_read @ " << i << " out of " << n << std::endl;
 			return false;
 		}
-		if (s.read() != i)
+		size_t r = s.read();
+		if (r != i) {
+			tpie::log_error() << "Read " << r << " at " << i << std::endl;
 			return false;
+		}
 	}
 	if (s.can_read()) {
 		tpie::log_error() << "can_read @ end of stream" << std::endl;

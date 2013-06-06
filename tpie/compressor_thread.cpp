@@ -63,26 +63,32 @@ public:
 
 private:
 	void process_read_request(read_request & rr) {
-		stream_size_type blockSize;
+		stream_size_type blockSize = rr.block_size();
 		stream_size_type readOffset = rr.read_offset();
-		{
+		if (readOffset == 0) {
 			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockSize, sizeof(blockSize));
 			if (nRead != sizeof(blockSize)) {
 				rr.set_end_of_stream();
 				return;
 			}
+			readOffset += sizeof(blockSize);
 		}
 		if (blockSize == 0) {
 			throw exception("Block size was unexpectedly zero");
 		}
-		readOffset += sizeof(blockSize);
 		array<char> scratch(blockSize + sizeof(blockSize));
 		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), blockSize + sizeof(blockSize));
-		if (nRead < blockSize) {
+		if (nRead == blockSize + sizeof(blockSize)) {
+			// This might be unaligned! Watch out.
+			rr.set_next_block_size(*(reinterpret_cast<memory_size_type *>(scratch.get() + blockSize)));
+			rr.set_next_read_offset(readOffset + blockSize + sizeof(blockSize));
+		} else if (nRead == blockSize) {
+			rr.set_next_block_size(0);
+			rr.set_next_read_offset(readOffset + blockSize);
+		} else {
 			rr.set_end_of_stream();
 			return;
 		}
-		rr.set_can_read_again(nRead > blockSize);
 
 		size_t uncompressedLength;
 		if (!snappy::GetUncompressedLength(scratch.get(),
@@ -100,7 +106,6 @@ private:
 
 		compressor_thread_lock::lock_t lock(mutex());
 		rr.set_done();
-		rr.set_next_read_offset(readOffset + blockSize);
 		rr.notify();
 	}
 

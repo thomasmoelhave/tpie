@@ -89,17 +89,22 @@ class read_request {
 		bool done;
 		bool endOfStream;
 		stream_size_type nextReadOffset;
-		bool canReadAgain;
+		stream_size_type nextBlockSize;
 	};
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
 	typedef file_accessor::byte_stream_accessor<default_raw_file_accessor> file_accessor_t;
 	typedef boost::condition_variable condition_t;
 
-	read_request(buffer_t buffer, file_accessor_t * fileAccessor, stream_size_type readOffset, boost::condition_variable & cond)
+	read_request(buffer_t buffer,
+				 file_accessor_t * fileAccessor,
+				 stream_size_type readOffset,
+				 stream_size_type blockSize,
+				 boost::condition_variable & cond)
 		: m_buffer(buffer)
 		, m_fileAccessor(fileAccessor)
 		, m_readOffset(readOffset)
+		, m_blockSize(blockSize)
 		, m_cond(cond)
 		, m_state(new state)
 	{
@@ -142,6 +147,10 @@ public:
 		return m_readOffset;
 	}
 
+	stream_size_type block_size() {
+		return m_blockSize;
+	}
+
 	stream_size_type next_read_offset() {
 		return m_state->nextReadOffset;
 	}
@@ -150,18 +159,27 @@ public:
 		m_state->nextReadOffset = o;
 	}
 
-	bool can_read_again() const {
-		return m_state->canReadAgain;
+	stream_size_type next_block_size() {
+		return m_state->nextBlockSize;
 	}
 
-	void set_can_read_again(bool canReadAgain) {
-		m_state->canReadAgain = canReadAgain;
+	void set_next_block_size(stream_size_type o) {
+		m_state->nextBlockSize = o;
 	}
 
 private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
+	/** If readOffset is zero, the next block to read is the first block and its size is not known.
+	 * In that case, the size of the first block is the first eight bytes, and the first block begins
+	 * after those eight bytes.
+	 * If readOffset and blockSize are both non-zero, the next block begins at the given offset
+	 * and has the given size.
+	 * Otherwise, if readOffset is non-zero and blockSize is zero, we have reached the end of
+	 * the stream.
+	 */
 	const stream_size_type m_readOffset;
+	const stream_size_type m_blockSize;
 	condition_t & m_cond;
 	boost::shared_ptr<state> m_state;
 };
@@ -250,11 +268,12 @@ public:
 	read_request & set_read_request(const read_request::buffer_t & buffer,
 									read_request::file_accessor_t * fileAccessor,
 									stream_size_type readOffset,
+									stream_size_type blockSize,
 									boost::condition_variable & cond)
 	{
 		destruct();
 		m_kind = compressor_request_kind::READ;
-		return *new (m_payload) read_request(buffer, fileAccessor, readOffset, cond);
+		return *new (m_payload) read_request(buffer, fileAccessor, readOffset, blockSize, cond);
 	}
 
 	read_request & set_read_request(const read_request & other) {
