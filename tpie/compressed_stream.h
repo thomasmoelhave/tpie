@@ -30,6 +30,7 @@
 #include <tpie/file_base_crtp.h>
 #include <tpie/file_stream_base.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
+#include <tpie/compressor_thread.h>
 
 namespace tpie {
 
@@ -53,12 +54,82 @@ protected:
 	}
 };
 
-class compressed_stream_base : public file_base_crtp<compressed_stream_base> {
-	typedef file_base_crtp<compressed_stream_base> p_t;
-	friend class file_base_crtp<compressed_stream_base>;
+class stream_buffers {
+public:
+	typedef boost::shared_ptr<compressor_buffer> buffer_t;
+
+	stream_buffers(memory_size_type blockSize)
+		: m_bufferCount(0)
+		, m_blockSize(blockSize)
+	{
+	}
+
+	buffer_t get_buffer(stream_size_type blockNumber) {
+		// First, search for the buffer in the map.
+		std::pair<buffermapit, bool> res
+			= m_buffers.insert(std::make_pair(blockNumber, buffer_t()));
+		buffermapit & target = res.first;
+		bool & inserted = res.second;
+		if (!inserted) return target->second;
+
+		// If not found, find a free buffer and place it in target->second.
+
+		// target->second is the only buffer in the map with use_count() == 0.
+		// If a buffer in the map has use_count() == 1 (that is, unique() == true),
+		// that means only our map (and nobody else) refers to the buffer,
+		// so it is free to be reused.
+		buffermapit i = m_buffers.begin();
+		while (i != m_buffers.end() && !i->second.unique()) ++i;
+
+		if (i == m_buffers.end()) {
+			// No free found: allocate new buffer.
+			target->second.reset(new buffer_t::element_type(block_size()));
+			++m_bufferCount;
+		} else {
+			// Free found: reuse buffer.
+			target->second.swap(i->second);
+			m_buffers.erase(i);
+		}
+
+		return target->second;
+	}
+
+	bool empty() const {
+		return m_buffers.empty();
+	}
+
+	void clean() {
+		buffermapit i = m_buffers.begin();
+		while (i != m_buffers.end()) {
+			buffermapit j = i++;
+			if (j->second.unique() || j->second == buffer_t()) {
+				m_buffers.erase(j);
+			}
+		}
+	}
+
+private:
+	compressor_thread & compressor() {
+		return the_compressor_thread();
+	}
+
+	memory_size_type block_size() const {
+		return m_blockSize;
+	}
+
+	memory_size_type m_bufferCount;
+	memory_size_type m_blockSize;
+
+	typedef std::map<stream_size_type, buffer_t> buffermap_t;
+	typedef buffermap_t::iterator buffermapit;
+	buffermap_t m_buffers;
+};
+
+class compressed_stream_base {
+public:
+	typedef boost::shared_ptr<compressor_buffer> buffer_t;
 
 protected:
-
 	struct seek_state {
 		enum type {
 			none,
@@ -75,21 +146,22 @@ protected:
 	};
 
 	compressed_stream_base(memory_size_type itemSize,
-						   double blockFactor,
-						   file_accessor::file_accessor * fileAccessor)
-		: file_base_crtp(itemSize, blockFactor, fileAccessor)
-		, m_bufferDirty(false)
+						   double blockFactor)
+		: m_bufferDirty(false)
+		, m_blockItems(block_size(blockFactor) / itemSize)
+		, m_blockSize(block_size(blockFactor))
+		, m_canRead(false)
+		, m_canWrite(false)
+		, m_open(false)
+		, m_itemSize(itemSize)
+		, m_ownedTempFile()
+		, m_tempFile(0)
+		, m_size(0)
+		, m_buffers(m_blockSize)
 	{
 	}
 
 	virtual void flush_block() = 0;
-
-	void close() {
-		if (m_bufferDirty) {
-			flush_block();
-		}
-		p_t::close();
-	}
 
 	virtual void post_open() = 0;
 
@@ -98,15 +170,161 @@ protected:
 					memory_size_type userDataSize,
 					cache_hint cacheHint)
 	{
-		p_t::open_inner(path, accessType, userDataSize, cacheHint);
+		if (userDataSize != 0)
+			throw stream_exception("Compressed stream does not support user data");
+
+		m_canRead = accessType == access_read || accessType == access_read_write;
+		m_canWrite = accessType == access_write || accessType == access_read_write;
+		m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
+		m_size = m_byteStreamAccessor.size();
+		m_open = true;
 
 		this->post_open();
 	}
 
-	bool m_bufferDirty;
-
 	stream_size_type size() const;
 
+	compressor_thread & compressor() {
+		return the_compressor_thread();
+	}
+
+public:
+	bool is_readable() const throw() {
+		return m_canRead;
+	}
+
+	bool is_writable() const throw() {
+		return m_canWrite;
+	}
+
+	static memory_size_type block_size(double blockFactor) throw () {
+		return static_cast<memory_size_type>(get_block_size() * blockFactor);
+	}
+
+	static double calculate_block_factor(memory_size_type blockSize) throw () {
+		return (double)blockSize / (double)block_size(1.0);
+	}
+
+	static memory_size_type block_memory_usage(double blockFactor) {
+		return block_size(blockFactor);
+	}
+
+	memory_size_type block_items() const {
+		return m_blockItems;
+	}
+
+	memory_size_type block_size() const {
+		return m_blockSize;
+	}
+
+	template <typename TT>
+	void read_user_data(TT & /*data*/) {
+		throw stream_exception("Compressed stream does not support user data");
+	}
+
+	memory_size_type read_user_data(void * /*data*/, memory_size_type /*count*/) {
+		throw stream_exception("Compressed stream does not support user data");
+	}
+
+	template <typename TT>
+	void write_user_data(const TT & /*data*/) {
+		throw stream_exception("Compressed stream does not support user data");
+	}
+
+	void write_user_data(const void * /*data*/, memory_size_type /*count*/) {
+		throw stream_exception("Compressed stream does not support user data");
+	}
+
+	memory_size_type user_data_size() const {
+		return 0;
+	}
+
+	memory_size_type max_user_data_size() const {
+		return 0;
+	}
+
+	const std::string & path() const {
+		assert(m_open);
+		return m_byteStreamAccessor.path();
+	}
+
+	void open(const std::string & path,
+			  access_type accessType = access_read_write,
+			  memory_size_type userDataSize = 0,
+			  cache_hint cacheHint=access_sequential)
+	{
+		close();
+		open_inner(path, accessType, userDataSize, cacheHint);
+	}
+
+	void open(memory_size_type userDataSize = 0,
+			  cache_hint cacheHint = access_sequential)
+	{
+		close();
+		m_ownedTempFile.reset(tpie_new<temp_file>());
+		m_tempFile = m_ownedTempFile.get();
+		open_inner(m_tempFile->path(), access_read_write, userDataSize, cacheHint);
+	}
+
+	void open(temp_file & file,
+			  access_type accessType = access_read_write,
+			  memory_size_type userDataSize = 0,
+			  cache_hint cacheHint = access_sequential)
+	{
+		close();
+		m_tempFile = &file;
+		open_inner(m_tempFile->path(), accessType, userDataSize, cacheHint);
+	}
+
+	void close() {
+		if (m_open) {
+			if (m_bufferDirty) {
+				flush_block();
+			}
+			m_buffer.reset();
+
+			compressor_thread_lock l(compressor());
+			finish_requests(l);
+
+			m_byteStreamAccessor.close();
+		}
+		m_open = false;
+		m_tempFile = NULL;
+		m_ownedTempFile.reset();
+	}
+
+protected:
+	void finish_requests(compressor_thread_lock & l) {
+		m_buffers.clean();
+		while (!m_buffers.empty()) {
+			compressor().wait_for_request_done(l);
+			m_buffers.clean();
+		}
+	}
+
+public:
+	bool is_open() const {
+		return m_open;
+	}
+
+	stream_size_type file_size() const {
+		return m_size;
+	}
+
+protected:
+	bool m_bufferDirty;
+	memory_size_type m_blockItems;
+	memory_size_type m_blockSize;
+	bool m_canRead;
+	bool m_canWrite;
+	bool m_open;
+	memory_size_type m_itemSize;
+	file_accessor::byte_stream_accessor<default_raw_file_accessor> m_byteStreamAccessor;
+	tpie::auto_ptr<temp_file> m_ownedTempFile;
+	temp_file * m_tempFile;
+	stream_size_type m_size;
+	buffer_t m_buffer;
+	stream_buffers m_buffers;
 };
 
 namespace ami {
@@ -114,10 +332,7 @@ namespace ami {
 }
 
 template <typename T>
-class compressed_stream :
-	public byte_stream_accessor_holder,
-	public compressed_stream_base
-{
+class compressed_stream : public compressed_stream_base {
 	using compressed_stream_base::seek_state;
 	using compressed_stream_base::buffer_state;
 
@@ -130,13 +345,13 @@ public:
 	typedef T item_type;
 	typedef file_stream_base::offset_type offset_type;
 
-	compressed_stream(double blockFactor=1.0,
-					  file_accessor::file_accessor * fileAccessor=NULL)
-		: byte_stream_accessor_holder(fileAccessor)
-		, compressed_stream_base(sizeof(T), blockFactor, fileAccessor)
+	compressed_stream(double blockFactor=1.0)
+		: compressed_stream_base(sizeof(T), blockFactor)
 		, m_seekState(seek_state::beginning)
 		, m_bufferState(buffer_state::write_only)
 		, m_offset(0)
+		, m_streamBlocks(0)
+		, m_canReadAgain(false)
 	{
 	}
 
@@ -145,10 +360,6 @@ public:
 	}
 
 	virtual void post_open() override {
-		m_buffer.resize(this->block_size());
-		m_nextItem = m_buffer.begin();
-		m_lastItem = m_buffer.begin();
-
 		seek(0);
 	}
 
@@ -156,7 +367,7 @@ public:
 		assert(this->is_open());
 		if (whence == beginning && offset == 0) {
 			m_seekState = seek_state::beginning;
-			if (m_fileAccessor->size() > 0)
+			if (size() > 0)
 				m_bufferState = buffer_state::read_only;
 			else
 				m_bufferState = buffer_state::write_only;
@@ -175,15 +386,18 @@ public:
 	}
 
 	stream_size_type size() const {
-		return m_fileAccessor->size();
+		stream_size_type sz = m_byteStreamAccessor.size();
+		if (m_bufferDirty) sz += (m_nextItem - m_bufferBegin);
+		return sz;
 	}
 
 	void truncate(stream_size_type offset) {
-		if (offset == size()) return;
-		if (offset != 0)
-			throw stream_exception("Arbitrary truncate is not supported");
-		m_fileAccessor->truncate(0);
-		seek(0);
+		throw stream_exception("Truncate is not supported");
+		//if (offset == size()) return;
+		//if (offset != 0)
+		//	throw stream_exception("Arbitrary truncate is not supported");
+		//m_byteStreamAccessor.truncate(0);
+		//seek(0);
 	}
 
 private:
@@ -205,19 +419,23 @@ public:
 	}
 
 	bool can_read() {
-		if (!(this->m_open
-			  && m_bufferState == buffer_state::read_only
-			  && m_buffer.size() != 0))
+		if (!this->m_open)
+			return false;
+
+		if (m_seekState != seek_state::none)
+			perform_seek();
+
+		if (m_bufferState != buffer_state::read_only)
 			return false;
 
 		if (m_nextItem != m_lastItem)
 			return true;
 
-		if (m_nextBlockSize != 0)
+		if (m_canReadAgain)
 			return true;
 
 		if ((m_nextReadOffset == 0 || m_seekState == seek_state::beginning)
-			&& m_fileAccessor->size() > 0)
+			&& m_byteStreamAccessor.size() > 0)
 			return true;
 
 		return false;
@@ -227,9 +445,9 @@ public:
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_bufferState != buffer_state::write_only)
 			throw stream_exception("Non-appending write attempted");
-		if (m_nextItem == m_buffer.end()) {
+		if (m_nextItem == m_bufferEnd) {
 			flush_block();
-			m_nextItem = m_buffer.begin();
+			m_nextItem = m_bufferBegin;
 		}
 		*m_nextItem++ = item;
 		this->m_bufferDirty = true;
@@ -249,22 +467,46 @@ protected:
 			flush_block();
 		}
 
+		{
+			m_buffer.reset();
+			compressor_thread_lock l(compressor());
+			finish_requests(l);
+		}
+
 		if (m_seekState == seek_state::beginning
-			&& !m_byteStreamAccessor->empty())
+			&& !m_byteStreamAccessor.empty())
 		{
 			m_nextReadOffset = 0;
+			get_buffer(0);
 			read_next_block();
 			m_bufferState = buffer_state::read_only;
 		} else {
+			get_buffer(m_streamBlocks++);
 			m_bufferState = buffer_state::write_only;
+			m_nextItem = m_bufferBegin;
 		}
-		m_nextItem = m_buffer.begin();
 		m_seekState = seek_state::none;
 	}
 
+private:
+	void get_buffer(stream_size_type blockNumber) {
+		m_buffer = this->m_buffers.get_buffer(blockNumber);
+		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
+		m_bufferEnd = m_bufferBegin + block_items();
+	}
+
+public:
 	virtual void flush_block() override {
-		memory_size_type blockItems = m_nextItem - m_buffer.begin();
+		memory_size_type blockItems = m_nextItem - m_bufferBegin;
+		m_buffer->set_size(blockItems * sizeof(T));
+		compressor_request r;
+		r.set_write_request(m_buffer, &m_byteStreamAccessor, blockItems);
+		compressor_thread_lock lock(compressor());
+		compressor().request(r);
+		get_buffer(m_streamBlocks++);
+		/*
 		size_t inputLength = sizeof(T) * blockItems;
+		//compressor().append_block(
 		memory_size_type blockSize = snappy::MaxCompressedLength(inputLength);
 		array<char> scratch(sizeof(blockSize) + blockSize);
 		snappy::RawCompress(reinterpret_cast<const char *>(m_buffer.get()),
@@ -272,14 +514,34 @@ protected:
 							scratch.get() + sizeof(blockSize),
 							&blockSize);
 		*reinterpret_cast<memory_size_type *>(scratch.get()) = blockSize;
-		m_byteStreamAccessor->append(scratch.get(), sizeof(blockSize) + blockSize);
-		m_byteStreamAccessor->increase_size(blockItems);
+		m_byteStreamAccessor.append(scratch.get(), sizeof(blockSize) + blockSize);
+		m_byteStreamAccessor.increase_size(blockItems);
 		this->m_bufferDirty = false;
+		*/
 	}
 
 	void read_next_block() {
+		compressor_request r;
+		read_request & rr = r.set_read_request(m_buffer, &m_byteStreamAccessor, m_nextReadOffset, m_readComplete);
+		{
+			compressor_thread_lock lock(compressor());
+			compressor().request(r);
+			while (!rr.done()) {
+				rr.wait(lock);
+			}
+			if (rr.end_of_stream())
+				throw end_of_stream_exception();
+		}
+		m_nextReadOffset = rr.next_read_offset();
+		m_canReadAgain = rr.can_read_again();
+		m_nextItem = m_bufferBegin;
+		memory_size_type itemsRead = m_buffer->size() / sizeof(T);
+		m_lastItem = m_bufferBegin + itemsRead;
+		m_bufferState = buffer_state::read_only;
+
+		/*
 		if (m_nextReadOffset == 0) {
-			m_byteStreamAccessor->read(0, &m_nextBlockSize, sizeof(m_nextBlockSize));
+			m_byteStreamAccessor.read(0, &m_nextBlockSize, sizeof(m_nextBlockSize));
 			m_nextReadOffset += sizeof(m_nextBlockSize);
 			if (m_nextBlockSize == 0)
 				throw stream_exception("Internal error; the block size was unexpectedly zero");
@@ -287,7 +549,7 @@ protected:
 			throw end_of_stream_exception();
 		}
 		array<char> scratch(m_nextBlockSize + sizeof(m_nextBlockSize));
-		memory_size_type nRead = m_byteStreamAccessor->read(m_nextReadOffset, scratch.get(), scratch.size());
+		memory_size_type nRead = m_byteStreamAccessor.read(m_nextReadOffset, scratch.get(), scratch.size());
 		if (nRead == scratch.size()) {
 			m_nextReadOffset += scratch.size();
 			m_nextBlockSize = *(reinterpret_cast<memory_size_type *>(scratch.get() + scratch.size())-1);
@@ -308,6 +570,7 @@ protected:
 		m_nextItem = m_buffer.begin();
 		m_lastItem = m_nextItem + (uncompressedLength / sizeof(T));
 		m_bufferState = buffer_state::read_only;
+		*/
 	}
 
 private:
@@ -315,25 +578,34 @@ private:
 
 	buffer_state::type m_bufferState;
 
-	array<T> m_buffer;
+	T * m_bufferBegin;
+	T * m_bufferEnd;
 
 	/** Next item in buffer to read/write. */
-	typename array<T>::iterator m_nextItem;
+	T * m_nextItem;
 	/** In read mode only: End of readable buffer. */
-	typename array<T>::iterator m_lastItem;
+	T * m_lastItem;
 
-	/** If nextReadOffset is zero, the next block to read is the first block and its size is not known.
-	 * In that case, the size of the first block is the first eight bytes, and the first block begins
-	 * after those eight bytes.
-	 * If nextReadOffset and nextBlockSize are both non-zero, the next block begins at the given offset
-	 * and has the given size.
-	 * Otherwise, if nextReadOffset is non-zero and nextBlockSize is zero, we have reached the end of
-	 * the stream.
+	/** If nextReadOffset is zero,
+	 * the next block to read is the first block and its size is not known.
+	 * In that case, the size of the first block is the first eight bytes,
+	 * and the first block begins after those eight bytes.
+	 * If nextReadOffset and nextBlockSize are both non-zero,
+	 * the next block begins at the given offset and has the given size.
+	 * Otherwise, if nextReadOffset is non-zero and nextBlockSize is zero,
+	 * we have reached the end of the stream.
 	 */
 	stream_size_type m_nextReadOffset;
 	stream_size_type m_nextBlockSize;
 
 	stream_size_type m_offset;
+
+	stream_size_type m_streamBlocks;
+
+	bool m_canReadAgain;
+
+	/** Condition variable indicating a read request is complete. */
+	read_request::condition_t m_readComplete;
 };
 
 } // namespace tpie

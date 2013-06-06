@@ -94,6 +94,7 @@ set (HEADERS
 set (SOURCES
 	backtrace.cpp
 	compressed_stream_base.cpp
+	compressor_thread.cpp
 	cpu_timer.cpp
 	file_base.cpp
 	file_count.cpp

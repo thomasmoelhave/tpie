@@ -28,6 +28,7 @@ namespace file_accessor {
 
 template <typename file_accessor_t>
 class byte_stream_accessor : public stream_accessor_base<file_accessor_t> {
+	typedef stream_accessor_base<file_accessor_t> p_t;
 public:
 	virtual memory_size_type read_block(void * /*data*/,
 										stream_size_type /*blockNumber*/,
@@ -73,6 +74,14 @@ public:
 		this->m_fileAccessor.seek_i(position);
 		this->m_fileAccessor.read_i(data, size);
 		return size;
+	}
+
+	memory_size_type block_items() const {
+		return p_t::block_items();
+	}
+
+	memory_size_type block_size() const {
+		return p_t::block_size();
 	}
 };
 

@@ -26,6 +26,4 @@ stream_size_type compressed_stream_base::size() const {
 	return this->file_size();
 }
 
-template class file_base_crtp<compressed_stream_base>;
-
 } // namespace tpie
