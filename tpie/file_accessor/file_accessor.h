@@ -50,7 +50,7 @@ typedef stream_accessor_base<posix> file_accessor;
 
 namespace tpie {
 typedef file_accessor::raw_file_accessor default_raw_file_accessor;
-typedef file_accessor::compressed_stream_accessor<default_raw_file_accessor> default_file_accessor;
+typedef file_accessor::stream_accessor<default_raw_file_accessor> default_file_accessor;
 } // namespace tpie
 
 #endif //__tpie_file_accessor_file_accossor_h__
