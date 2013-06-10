@@ -48,6 +48,10 @@
 
 #include <tpie/progress_indicator_base.h>
 #include <tpie/progress_indicator_null.h>
+#include <tpie/fractional_progress.h>
+
+#include <tpie/pipelining/merge_sorter.h>
+#include <tpie/compressed_stream.h>
 
 namespace tpie {
 
@@ -93,6 +97,40 @@ template<typename T, typename Compare>
 void sort(file_stream<T> &instream, Compare comp,
 		  progress_indicator_base & indicator) {
 	sort(instream, instream, comp, indicator);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream in-place using the given STL-style
+/// comparator object.
+///////////////////////////////////////////////////////////////////////////////
+template<typename T, typename Compare>
+void sort(compressed_stream<T> &instream, Compare comp,
+		  progress_indicator_base & indicator) {
+	stream_size_type sz = instream.size();
+
+	fractional_progress fp(&indicator);
+	fractional_subindicator push(fp, "sort", TPIE_FSI, sz, "Write sorted runs");
+	fractional_subindicator merge(fp, "sort", TPIE_FSI, sz, "Perform merge heap");
+	fractional_subindicator output(fp, "sort", TPIE_FSI, sz, "Write sorted output");
+	fp.init(sz);
+
+	merge_sorter<T, true, Compare> s(comp);
+	s.begin();
+	push.init(sz);
+	while (instream.can_read()) s.push(instream.read()), push.step();
+	push.done();
+	s.end();
+
+	std::string path = instream.path();
+	instream.close();
+	boost::filesystem::remove(path);
+
+	s.calc(merge);
+
+	instream.open(path);
+	output.init(sz);
+	while (s.can_pull()) instream.write(s.pull()), output.step();
+	output.done();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
