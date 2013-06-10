@@ -438,6 +438,7 @@ private:
 		if (!can_read()) throw stream_exception("!can_read()");
 		if (m_nextItem == m_lastItem) {
 			compressor_thread_lock l(compressor());
+			get_buffer(l, m_streamBlocks++);
 			read_next_block(l);
 		}
 		return *m_nextItem++;
