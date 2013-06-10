@@ -662,8 +662,10 @@ private:
 
 	array<temp_file> m_runFiles;
 
-	// number of runs already written to disk.
-	stream_size_type m_finishedRuns;
+	// Number of runs already written to disk.
+	// On 32-bit systems, we could in principle support more than 2^32 finished runs,
+	// but keeping this as a memory_size_type is nicer when doing the actual merges.
+	memory_size_type m_finishedRuns;
 
 	// current run buffer. size 0 before begin(), size runLength after begin().
 	array<T> m_currentRunItems;
