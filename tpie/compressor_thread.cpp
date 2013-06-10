@@ -150,6 +150,7 @@ namespace {
 
 tpie::compressor_thread the_compressor_thread;
 boost::thread the_compressor_thread_handle;
+bool compressor_thread_already_finished = false;
 
 void run_the_compressor_thread() {
 	the_compressor_thread.run();
@@ -170,11 +171,16 @@ void init_compressor() {
 	}
 	boost::thread t(run_the_compressor_thread);
 	the_compressor_thread_handle.swap(t);
+	compressor_thread_already_finished = false;
 }
 
 void finish_compressor() {
 	if (the_compressor_thread_handle == boost::thread()) {
-		log_debug() << "Attempted to finish compressor thread that was never initiated" << std::endl;
+		if (compressor_thread_already_finished) {
+			log_debug() << "Compressor thread already finished" << std::endl;
+		} else {
+			log_debug() << "Attempted to finish compressor thread that was never initiated" << std::endl;
+		}
 		return;
 	}
 	{
@@ -183,6 +189,7 @@ void finish_compressor() {
 	}
 	boost::thread t;
 	the_compressor_thread_handle.swap(t);
+	compressor_thread_already_finished = true;
 }
 
 compressor_thread::compressor_thread()
