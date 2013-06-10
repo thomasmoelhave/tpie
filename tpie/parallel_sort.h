@@ -31,7 +31,6 @@
 #include <boost/iterator/iterator_traits.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/random/mersenne_twister.hpp>
 #include <cmath>
 #include <functional>
 #include <tpie/progress_indicator_base.h>
@@ -55,7 +54,6 @@ template <typename iterator_type, typename comp_type, bool Progress,
 class parallel_sort_impl {
 private:
 	typedef progress_types<Progress> P;
-	boost::mt19937 rng;	
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Internal class for parallel progress reporting.

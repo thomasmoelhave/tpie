@@ -20,6 +20,7 @@
 #include "common.h"
 #include <tpie/pipelining.h>
 #include <tpie/serialization_stream.h>
+#include <boost/random/mersenne_twister.hpp>
 
 using namespace tpie;
 using namespace tpie::pipelining;
