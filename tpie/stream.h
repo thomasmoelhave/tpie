@@ -370,6 +370,7 @@ private:
 		try {
 			m_stream.open( m_temp );
 		} catch(const stream_exception &e) {
+			tpie::unused(e);
 			TP_LOG_FATAL_ID("Open failed: " << e.what());
 			return;
 		}
@@ -387,6 +388,7 @@ private:
 			m_stream.open(m_temp, st==READ_STREAM ? access_read: access_read_write);
 			if (st == APPEND_STREAM) m_stream.seek(0, file_stream_base::end);
 		} catch(const stream_exception &e) {
+			tpie::unused(e);
 			TP_LOG_FATAL_ID("Open failed: " <<  e.what());
 			return;
 		}
@@ -420,6 +422,7 @@ private:
 		try {
 			m_stream.seek(offset);
 		} catch(const stream_exception &e) {
+			tpie::unused(e);
 			TP_LOG_WARNING_ID("BTE error - seek failed: " << e.what());
 			return BTE_ERROR;
 		}
@@ -432,6 +435,7 @@ private:
 		try {
 			m_stream.truncate(offset);
 		} catch(const stream_exception & e) {
+			tpie::unused(e);
 			TP_LOG_WARNING_ID("BTE error - truncate failed: " << e.what());
 			return BTE_ERROR;
 		}
