@@ -65,17 +65,16 @@ public:
 	// and runLength items are read from each stream (unless end of stream
 	// occurs earlier).
 	// Precondition: !can_pull()
-	inline void reset(array<file_stream<T> > & inputs, size_t runLength) {
+	void reset(array<file_stream<T> > & inputs, stream_size_type runLength) {
 		this->runLength = runLength;
 		tp_assert(pq.empty(), "Reset before we are done");
-		n = inputs.size();
 		in.swap(inputs);
-		pq.resize(n);
-		for (size_t i = 0; i < n; ++i) {
+		pq.resize(in.size());
+		for (size_t i = 0; i < in.size(); ++i) {
 			pq.unsafe_push(std::make_pair(in[i].read(), i));
 		}
 		pq.make_safe();
-		itemsRead.resize(n, 1);
+		itemsRead.resize(in.size(), 1);
 	}
 
 	inline static memory_size_type memory_usage(memory_size_type fanout) {
@@ -114,9 +113,8 @@ public:
 private:
 	internal_priority_queue<std::pair<T, size_t>, predwrap> pq;
 	array<file_stream<T> > in;
-	array<size_t> itemsRead;
-	size_t runLength;
-	size_t n;
+	array<stream_size_type> itemsRead;
+	stream_size_type runLength;
 };
 
 } // namespace tpie
