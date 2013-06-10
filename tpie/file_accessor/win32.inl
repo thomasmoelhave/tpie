@@ -43,7 +43,12 @@ win32::win32()
 
 inline void win32::read_i(void * data, memory_size_type size) {
 	DWORD bytesRead = 0;
-	if (!ReadFile(m_fd, data, (DWORD)size, &bytesRead, 0) || bytesRead != size) throw_getlasterror();
+	if (!ReadFile(m_fd, data, (DWORD)size, &bytesRead, 0)) throw_getlasterror();
+	if (bytesRead != size) {
+		std::stringstream ss;
+		ss << "Wrong number of bytes read: Expected " << size << " but got " << bytesRead;
+		throw io_exception(ss.str());
+	}
 	increment_bytes_read(size);
 }
 
