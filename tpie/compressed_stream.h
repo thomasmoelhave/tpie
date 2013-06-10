@@ -419,12 +419,17 @@ public:
 	}
 
 	void truncate(stream_size_type offset) {
-		throw stream_exception("Truncate is not supported");
-		//if (offset == size()) return;
-		//if (offset != 0)
-		//	throw stream_exception("Arbitrary truncate is not supported");
-		//m_byteStreamAccessor.truncate(0);
-		//seek(0);
+		if (offset == size()) return;
+		if (offset != 0)
+			throw stream_exception("Arbitrary truncate is not supported");
+
+		// No need to flush block
+		m_buffer.reset();
+		compressor_thread_lock l(compressor());
+		finish_requests(l);
+
+		m_byteStreamAccessor.truncate(0);
+		seek(0);
 	}
 
 private:
