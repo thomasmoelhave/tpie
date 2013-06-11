@@ -50,11 +50,13 @@ public:
 	typedef boost::condition_variable condition_t;
 
 	read_request(buffer_t buffer,
+				 stream_buffers & bufferSource,
 				 file_accessor_t * fileAccessor,
 				 stream_size_type readOffset,
 				 stream_size_type blockSize,
-				 boost::condition_variable & cond)
+				 boost::condition_variable * cond)
 		: m_buffer(buffer)
+		, m_bufferSource(bufferSource)
 		, m_fileAccessor(fileAccessor)
 		, m_readOffset(readOffset)
 		, m_blockSize(blockSize)
@@ -69,11 +71,15 @@ public:
 	void wait(compressor_thread_lock & lock);
 
 	void notify() {
-		m_cond.notify_one();
+		if (m_cond) m_cond->notify_one();
 	}
 
 	buffer_t buffer() {
 		return m_buffer;
+	}
+
+	stream_buffers & buffer_source() {
+		return m_bufferSource;
 	}
 
 	bool done() const {
@@ -120,8 +126,26 @@ public:
 		m_state->nextBlockSize = o;
 	}
 
+	// Swaps result states, but does not swap condition variables.
+	// Precondition: this->compatible_parameters(other)
+	void swap_result(read_request & other) {
+		if (!this->compatible_parameters(other))
+			throw exception("read_request::swap_result: Incompatible requests");
+		m_buffer.swap(other.m_buffer);
+		m_state.swap(other.m_state);
+	}
+
+	// Checks that two read requests refer to the same read operation.
+	bool compatible_parameters(const read_request & other) const {
+		return &m_bufferSource == &other.m_bufferSource
+			&& m_fileAccessor == other.m_fileAccessor
+			&& m_readOffset == other.m_readOffset
+			&& m_blockSize == other.m_blockSize;
+	}
+
 private:
 	buffer_t m_buffer;
+	stream_buffers & m_bufferSource;
 	file_accessor_t * m_fileAccessor;
 	/** If readOffset is zero, the next block to read is the first block and its size is not known.
 	 * In that case, the size of the first block is the first eight bytes, and the first block begins
@@ -133,7 +157,7 @@ private:
 	 */
 	const stream_size_type m_readOffset;
 	const stream_size_type m_blockSize;
-	condition_t & m_cond;
+	condition_t * m_cond;
 	boost::shared_ptr<state> m_state;
 };
 
@@ -219,14 +243,15 @@ public:
 	}
 
 	read_request & set_read_request(const read_request::buffer_t & buffer,
+									stream_buffers & bufferSource,
 									read_request::file_accessor_t * fileAccessor,
 									stream_size_type readOffset,
 									stream_size_type blockSize,
-									boost::condition_variable & cond)
+									boost::condition_variable * cond)
 	{
 		destruct();
 		m_kind = compressor_request_kind::READ;
-		return *new (m_payload) read_request(buffer, fileAccessor, readOffset, blockSize, cond);
+		return *new (m_payload) read_request(buffer, bufferSource, fileAccessor, readOffset, blockSize, cond);
 	}
 
 	read_request & set_read_request(const read_request & other) {

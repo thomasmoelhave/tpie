@@ -23,7 +23,8 @@
 namespace tpie {
 
 void read_request::wait(compressor_thread_lock & lock) {
-	m_cond.wait(lock.get_lock());
+	if (m_cond == NULL) throw exception("read_request::wait: No condition variable supplied in constructor");
+	m_cond->wait(lock.get_lock());
 }
 
 } // namespace tpie

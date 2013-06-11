@@ -206,6 +206,7 @@ public:
 
 protected:
 	void finish_requests(compressor_thread_lock & l) {
+		compressor().free_held_buffers(l, m_buffers);
 		m_buffers.clean();
 		while (!m_buffers.empty()) {
 			compressor().wait_for_request_done(l);
@@ -428,10 +429,11 @@ public:
 		compressor_request r;
 		read_request & rr =
 			r.set_read_request(m_buffer,
+							   m_buffers,
 							   &m_byteStreamAccessor,
 							   m_nextReadOffset,
 							   m_nextBlockSize,
-							   m_readComplete);
+							   &m_readComplete);
 
 		compressor().request(r);
 		while (!rr.done()) {

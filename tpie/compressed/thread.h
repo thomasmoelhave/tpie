@@ -51,6 +51,8 @@ public:
 
 	void wait_for_request_done(compressor_thread_lock & l);
 
+	void free_held_buffers(compressor_thread_lock & l, stream_buffers & bufferSource);
+
 	void run();
 
 	void stop(compressor_thread_lock & lock);
@@ -71,6 +73,26 @@ public:
 
 private:
 	lock_t m_lock;
+};
+
+class compressor_thread_scoped_unlock {
+public:
+	typedef compressor_thread_lock::lock_t lock_t;
+
+	compressor_thread_scoped_unlock(lock_t & lock)
+		: m_lock(lock)
+	{
+		m_relock = m_lock.owns_lock();
+		m_lock.unlock();
+	}
+
+	~compressor_thread_scoped_unlock() {
+		if (m_relock) m_lock.lock();
+	}
+
+private:
+	lock_t & m_lock;
+	bool m_relock;
 };
 
 } // namespace tpie

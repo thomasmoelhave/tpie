@@ -37,6 +37,7 @@ class compressor_thread_lock;
 
 class compressor_buffer;
 class compressor_request;
+class stream_buffers;
 
 } // namespace tpie
 

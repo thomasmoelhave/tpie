@@ -142,9 +142,11 @@ public:
 	}
 
 	void clean() {
+		log_debug() << "stream_buffers::clean" << std::endl;
 		buffermapit i = m_buffers.begin();
 		while (i != m_buffers.end()) {
 			buffermapit j = i++;
+			log_debug() << j->second.get() << ' ' << j->second.use_count() << std::endl;
 			if (j->second.unique() || j->second == buffer_t()) {
 				m_buffers.erase(j);
 			}

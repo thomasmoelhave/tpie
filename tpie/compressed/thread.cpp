@@ -37,6 +37,7 @@ public:
 		m_newRequest.notify_one();
 	}
 
+private:
 	bool request_valid(const compressor_request & r) {
 		switch (r.kind()) {
 			case compressor_request_kind::NONE:
@@ -48,34 +49,80 @@ public:
 		throw exception("Unknown request type");
 	}
 
+	bool request_pending() {
+		return !m_requests.empty() || m_readAheadRequested;
+	}
+
+public:
 	void run() {
 		while (true) {
 			compressor_thread_lock::lock_t lock(mutex());
-			while (!m_done && m_requests.empty()) m_newRequest.wait(lock);
-			if (m_done && m_requests.empty()) break;
-			{
+			while (!m_done && !request_pending()) m_newRequest.wait(lock);
+			if (!m_requests.empty()) {
 				compressor_request r = m_requests.front();
 				m_requests.pop();
-				lock.unlock();
 
 				switch (r.kind()) {
 					case compressor_request_kind::NONE:
 						throw exception("Invalid request");
 					case compressor_request_kind::READ:
-						process_read_request(r.get_read_request());
+						process_read_request(lock, r.get_read_request());
 						break;
 					case compressor_request_kind::WRITE:
-						process_write_request(r.get_write_request());
+						process_write_request(lock, r.get_write_request());
 						break;
 				}
+			} else if (m_readAheadRequested) {
+				process_read_ahead(lock);
+			} else if (m_done) {
+				break;
+			} else {
+				throw exception("compressor_thread: no reason not to wait");
 			}
-			lock.lock();
+
 			m_requestDone.notify_all();
 		}
 	}
 
 private:
-	void process_read_request(read_request & rr) {
+	void process_read_request(compressor_thread_lock::lock_t & lock, read_request & rr) {
+		if (!m_readAheadRequested
+			&& m_readAhead.get() != 0
+			&& m_readAhead->done()
+			&& m_readAhead->compatible_parameters(rr))
+		{
+			log_debug() << "Use readahead at position " << m_readAhead->read_offset() << std::endl;
+			rr.swap_result(*m_readAhead);
+			m_readAhead.reset();
+		} else {
+			perform_read(lock, rr);
+		}
+		if (rr.next_block_size() != 0) {
+			log_debug() << "Request readahead at position " << rr.next_read_offset() << std::endl;
+			m_readAhead.reset(new read_request(rr.buffer(),
+											   rr.buffer_source(),
+											   &rr.file_accessor(),
+											   rr.next_read_offset(),
+											   rr.next_block_size(),
+											   NULL));
+			m_readAheadRequested = true;
+			m_newRequest.notify_one();
+		}
+		rr.set_done();
+		rr.notify();
+	}
+
+	void process_read_ahead(compressor_thread_lock::lock_t & lock) {
+		log_debug() << "Perform readahead at position " << m_readAhead->read_offset() << std::endl;
+		// Take a copy, because it might disappear during reading.
+		read_request rr = *m_readAhead;
+		perform_read(lock, rr);
+		m_readAheadRequested = false;
+	}
+
+	void perform_read(compressor_thread_lock::lock_t & lock, read_request & rr) {
+		compressor_thread_scoped_unlock unlocker(lock);
+
 		stream_size_type blockSize = rr.block_size();
 		stream_size_type readOffset = rr.read_offset();
 		if (readOffset == 0) {
@@ -116,13 +163,11 @@ private:
 		snappy::RawUncompress(scratch.get(),
 							  blockSize,
 							  reinterpret_cast<char *>(rr.buffer()->get()));
-
-		compressor_thread_lock::lock_t lock(mutex());
-		rr.set_done();
-		rr.notify();
 	}
 
-	void process_write_request(write_request & wr) {
+	void process_write_request(compressor_thread_lock::lock_t & lock, write_request & wr) {
+		compressor_thread_scoped_unlock unlocker(lock);
+
 		size_t inputLength = wr.buffer()->size();
 		memory_size_type blockSize = snappy::MaxCompressedLength(inputLength);
 		array<char> scratch(sizeof(blockSize) + blockSize);
@@ -152,12 +197,24 @@ public:
 		m_requestDone.wait(l.get_lock());
 	}
 
+	void free_held_buffers(compressor_thread_lock & l, stream_buffers & bufferSource) {
+		if (m_readAhead.get() != 0
+			&& &m_readAhead->buffer_source() == &bufferSource)
+		{
+			m_readAhead.reset();
+			m_readAheadRequested = false;
+		}
+	}
+
 private:
 	mutex_t m_mutex;
 	std::queue<compressor_request> m_requests;
 	boost::condition_variable m_newRequest;
 	boost::condition_variable m_requestDone;
 	bool m_done;
+
+	std::auto_ptr<read_request> m_readAhead;
+	bool m_readAheadRequested;
 };
 
 } // namespace tpie
@@ -231,6 +288,10 @@ void compressor_thread::run() {
 
 void compressor_thread::wait_for_request_done(compressor_thread_lock & l) {
 	pimpl->wait_for_request_done(l);
+}
+
+void compressor_thread::free_held_buffers(compressor_thread_lock & l, stream_buffers & bufferSource) {
+	pimpl->free_held_buffers(l, bufferSource);
 }
 
 void compressor_thread::stop(compressor_thread_lock & lock) {
