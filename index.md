@@ -27,6 +27,18 @@ Debian-based system with `dpkg -i` or a similar tool;
 as tarballs that may be installed into `/usr/local` or another installation prefix;
 and as Git source checkouts, such that you may compile the library for yourself.
 
+*June 11, 2013.*
+TPIE 1.1 (Git tag `v1.1`):
+[deb](downloads/tpie-1.1.0-Linux.deb)
+[tarball](downloads/tpie-1.1.0-Linux.tar.gz)
+[source](https://github.com/thomasmoelhave/tpie/tree/v1.1)
+
+*June 5, 2013.*
+TPIE 1.1 Release Candidate 1 (Git tag `v1.1rc1`):
+[deb](downloads/tpie-1.1.0rc1-Linux.deb)
+[tarball](downloads/tpie-1.1.0rc1-Linux.tar.gz)
+[source](https://github.com/thomasmoelhave/tpie/tree/v1.1rc1)
+
 *December 14, 2012.*
 TPIE 1.0 (Git tag `v1.0`):
 [deb](downloads/tpie-1.0.0-Linux.deb)
