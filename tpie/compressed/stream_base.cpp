@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <tpie/compressed_stream.h>
+#include <tpie/compressed/stream.h>
 #include <tpie/file_base_crtp.inl>
 
 namespace tpie {

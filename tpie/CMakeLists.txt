@@ -8,7 +8,8 @@ set (HEADERS
 		backtrace.h
 		cache_hint.h
 		comparator.h
-		compressed_stream.h
+		compressed/stream.h
+		compressed/thread.h
 		config.h.cmake
 		cpu_timer.h
 		deprecated.h
@@ -93,8 +94,8 @@ set (HEADERS
 
 set (SOURCES
 	backtrace.cpp
-	compressed_stream_base.cpp
-	compressor_thread.cpp
+	compressed/stream_base.cpp
+	compressed/thread.cpp
 	cpu_timer.cpp
 	file_base.cpp
 	file_count.cpp

@@ -19,7 +19,7 @@
 
 #include <queue>
 #include <snappy.h>
-#include <tpie/compressor_thread.h>
+#include <tpie/compressed/thread.h>
 
 namespace tpie {
 

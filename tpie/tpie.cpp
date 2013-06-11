@@ -24,7 +24,7 @@
 #include <tpie/prime.h>
 #include <tpie/memory.h>
 #include <tpie/job.h>
-#include <tpie/compressor_thread.h>
+#include <tpie/compressed/thread.h>
 
 namespace {
 static tpie::stream_size_type the_block_size=0;

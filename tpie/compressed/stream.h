@@ -21,7 +21,7 @@
 #define TPIE_COMPRESSED_STREAM_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file compressed_stream.h
+/// \file compressed/stream.h
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <snappy.h>
@@ -30,7 +30,7 @@
 #include <tpie/file_base_crtp.h>
 #include <tpie/file_stream_base.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
-#include <tpie/compressor_thread.h>
+#include <tpie/compressed/thread.h>
 
 namespace tpie {
 

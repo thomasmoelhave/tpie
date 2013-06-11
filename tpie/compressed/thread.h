@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef TPIE_COMPRESSOR_THREAD_H
-#define TPIE_COMPRESSOR_THREAD_H
+#ifndef TPIE_COMPRESSED_THREAD_H
+#define TPIE_COMPRESSED_THREAD_H
 
 #include <boost/thread.hpp>
 #include <tpie/array.h>
@@ -389,4 +389,4 @@ void read_request::wait(compressor_thread_lock & lock) {
 
 }
 
-#endif // TPIE_COMPRESSOR_THREAD_H
+#endif // TPIE_COMPRESSED_THREAD_H

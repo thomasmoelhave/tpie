@@ -51,7 +51,7 @@
 #include <tpie/fractional_progress.h>
 
 #include <tpie/pipelining/merge_sorter.h>
-#include <tpie/compressed_stream.h>
+#include <tpie/compressed/stream.h>
 
 namespace tpie {
 

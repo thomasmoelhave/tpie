@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
-#include <tpie/compressed_stream.h>
+#include <tpie/compressed/stream.h>
 
 bool basic_test(size_t n) {
 	tpie::compressed_stream<size_t> s;
