@@ -37,6 +37,17 @@ public:
 		m_newRequest.notify_one();
 	}
 
+	bool request_valid(const compressor_request & r) {
+		switch (r.kind()) {
+			case compressor_request_kind::NONE:
+				return false;
+			case compressor_request_kind::READ:
+			case compressor_request_kind::WRITE:
+				return true;
+		}
+		throw exception("Unknown request type");
+	}
+
 	void run() {
 		while (true) {
 			compressor_thread_lock::lock_t lock(mutex());
@@ -130,6 +141,9 @@ public:
 	}
 
 	void request(const compressor_request & r) {
+		if (!request_valid(r))
+			throw exception("Invalid request");
+
 		m_requests.push(r);
 		m_newRequest.notify_one();
 	}
