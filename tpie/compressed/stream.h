@@ -31,105 +31,10 @@
 #include <tpie/file_stream_base.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
 #include <tpie/compressed/thread.h>
+#include <tpie/compressed/buffer.h>
+#include <tpie/compressed/request.h>
 
 namespace tpie {
-
-class stream_buffers {
-public:
-	typedef boost::shared_ptr<compressor_buffer> buffer_t;
-
-	const static memory_size_type MAX_BUFFERS = 3;
-
-	stream_buffers(memory_size_type blockSize)
-		: m_bufferCount(0)
-		, m_blockSize(blockSize)
-	{
-	}
-
-	buffer_t get_buffer(compressor_thread_lock & lock, stream_size_type blockNumber) {
-		if (m_buffers.size() >= MAX_BUFFERS) {
-			// First, search for the buffer in the map.
-			buffermapit target = m_buffers.find(blockNumber);
-			if (target != m_buffers.end()) return target->second;
-
-			// If not found, wait for a free buffer to become available.
-			buffer_t b;
-			while (true) {
-				buffermapit i = m_buffers.begin();
-				while (i != m_buffers.end() && !i->second.unique()) ++i;
-				if (i == m_buffers.end()) {
-					compressor().wait_for_request_done(lock);
-					continue;
-				} else {
-					b.swap(i->second);
-					m_buffers.erase(i);
-					break;
-				}
-			}
-
-			m_buffers.insert(std::make_pair(blockNumber, b));
-			return b;
-		} else {
-			// First, search for the buffer in the map.
-			std::pair<buffermapit, bool> res
-				= m_buffers.insert(std::make_pair(blockNumber, buffer_t()));
-			buffermapit & target = res.first;
-			bool & inserted = res.second;
-			if (!inserted) return target->second;
-
-			// If not found, find a free buffer and place it in target->second.
-
-			// target->second is the only buffer in the map with use_count() == 0.
-			// If a buffer in the map has use_count() == 1 (that is, unique() == true),
-			// that means only our map (and nobody else) refers to the buffer,
-			// so it is free to be reused.
-			buffermapit i = m_buffers.begin();
-			while (i != m_buffers.end() && !i->second.unique()) ++i;
-
-			if (i == m_buffers.end()) {
-				// No free found: allocate new buffer.
-				target->second.reset(new buffer_t::element_type(block_size()));
-				++m_bufferCount;
-			} else {
-				// Free found: reuse buffer.
-				target->second.swap(i->second);
-				m_buffers.erase(i);
-			}
-
-			return target->second;
-		}
-	}
-
-	bool empty() const {
-		return m_buffers.empty();
-	}
-
-	void clean() {
-		buffermapit i = m_buffers.begin();
-		while (i != m_buffers.end()) {
-			buffermapit j = i++;
-			if (j->second.unique() || j->second == buffer_t()) {
-				m_buffers.erase(j);
-			}
-		}
-	}
-
-private:
-	compressor_thread & compressor() {
-		return the_compressor_thread();
-	}
-
-	memory_size_type block_size() const {
-		return m_blockSize;
-	}
-
-	memory_size_type m_bufferCount;
-	memory_size_type m_blockSize;
-
-	typedef std::map<stream_size_type, buffer_t> buffermap_t;
-	typedef buffermap_t::iterator buffermapit;
-	buffermap_t m_buffers;
-};
 
 class compressed_stream_base {
 public:

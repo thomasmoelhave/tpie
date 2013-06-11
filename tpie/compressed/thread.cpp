@@ -20,6 +20,8 @@
 #include <queue>
 #include <snappy.h>
 #include <tpie/compressed/thread.h>
+#include <tpie/compressed/request.h>
+#include <tpie/compressed/buffer.h>
 
 namespace tpie {
 
