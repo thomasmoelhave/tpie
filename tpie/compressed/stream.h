@@ -422,20 +422,6 @@ public:
 		compressor_thread_lock lock(compressor());
 		compressor().request(r);
 		get_buffer(lock, m_streamBlocks++);
-		/*
-		size_t inputLength = sizeof(T) * blockItems;
-		//compressor().append_block(
-		memory_size_type blockSize = snappy::MaxCompressedLength(inputLength);
-		array<char> scratch(sizeof(blockSize) + blockSize);
-		snappy::RawCompress(reinterpret_cast<const char *>(m_buffer.get()),
-							inputLength,
-							scratch.get() + sizeof(blockSize),
-							&blockSize);
-		*reinterpret_cast<memory_size_type *>(scratch.get()) = blockSize;
-		m_byteStreamAccessor.append(scratch.get(), sizeof(blockSize) + blockSize);
-		m_byteStreamAccessor.increase_size(blockItems);
-		this->m_bufferDirty = false;
-		*/
 	}
 
 	void read_next_block(compressor_thread_lock & lock) {
@@ -460,39 +446,6 @@ public:
 		memory_size_type itemsRead = m_buffer->size() / sizeof(T);
 		m_lastItem = m_bufferBegin + itemsRead;
 		m_bufferState = buffer_state::read_only;
-
-		/*
-		if (m_nextReadOffset == 0) {
-			m_byteStreamAccessor.read(0, &m_nextBlockSize, sizeof(m_nextBlockSize));
-			m_nextReadOffset += sizeof(m_nextBlockSize);
-			if (m_nextBlockSize == 0)
-				throw stream_exception("Internal error; the block size was unexpectedly zero");
-		} else if (m_nextBlockSize == 0) {
-			throw end_of_stream_exception();
-		}
-		array<char> scratch(m_nextBlockSize + sizeof(m_nextBlockSize));
-		memory_size_type nRead = m_byteStreamAccessor.read(m_nextReadOffset, scratch.get(), scratch.size());
-		if (nRead == scratch.size()) {
-			m_nextReadOffset += scratch.size();
-			m_nextBlockSize = *(reinterpret_cast<memory_size_type *>(scratch.get() + scratch.size())-1);
-		} else if (nRead == scratch.size() - sizeof(m_nextBlockSize)) {
-			m_nextReadOffset += m_nextBlockSize;
-			m_nextBlockSize = 0;
-		}
-		size_t uncompressedLength;
-		if (!snappy::GetUncompressedLength(scratch.get(),
-										   scratch.size() - sizeof(m_nextBlockSize),
-										   &uncompressedLength))
-			throw stream_exception("Internal error; snappy::GetUncompressedLength failed");
-		if (uncompressedLength > m_buffer.size() * sizeof(T))
-			throw stream_exception("Internal error; snappy::GetUncompressedLength exceeds the block size");
-		snappy::RawUncompress(scratch.get(),
-							  scratch.size() - sizeof(m_nextBlockSize),
-							  reinterpret_cast<char *>(m_buffer.get()));
-		m_nextItem = m_buffer.begin();
-		m_lastItem = m_nextItem + (uncompressedLength / sizeof(T));
-		m_bufferState = buffer_state::read_only;
-		*/
 	}
 
 private:
