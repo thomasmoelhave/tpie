@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
+#include <sstream>
 
 namespace tpie {
 namespace file_accessor {
