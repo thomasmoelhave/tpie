@@ -34,26 +34,6 @@
 
 namespace tpie {
 
-class byte_stream_accessor_holder {
-protected:
-	typedef tpie::file_accessor::byte_stream_accessor<tpie::default_raw_file_accessor> byte_stream_accessor_t;
-	byte_stream_accessor_t * m_byteStreamAccessor;
-
-	byte_stream_accessor_holder(file_accessor::file_accessor *& fileAccessor)
-		: m_byteStreamAccessor(new byte_stream_accessor_t())
-	{
-		if (fileAccessor != NULL) {
-			log_warning() << "Non-null file accessor supplied to compressed_stream;"
-				<< " ignored." << std::endl;
-		}
-		fileAccessor = m_byteStreamAccessor;
-	}
-
-	~byte_stream_accessor_holder() {
-		delete m_byteStreamAccessor;
-	}
-};
-
 class stream_buffers {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
