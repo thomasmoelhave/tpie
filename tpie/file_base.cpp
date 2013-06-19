@@ -157,6 +157,7 @@ void file_base::stream::attach_inner(file_base & f) {
 	m_block = &m_file->m_emptyBlock;
 	m_file->create_block();
 	initialize();
+	seek(0);
 }
 
 void file_base::stream::detach_inner() {

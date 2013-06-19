@@ -68,7 +68,7 @@ public:
 	////////////////////////////////////////////////////////////////////
 	/// \brief Destructor, closes the underlying stream
 	////////////////////////////////////////////////////////////////////
-	~queue() {m_file.write_user_data(m_back.offset());}
+	~queue() {m_file.write_user_data(m_front.offset());}
 
 	////////////////////////////////////////////////////////////////////
 	/// \brief Check if the queue is empty
@@ -150,9 +150,11 @@ void queue<T>::persist(persistence p) {
 
 template<class T>
 queue<T>::queue(const std::string& basename, double blockFactor): 
-	m_temp(basename), m_size(0), m_file(blockFactor), m_back(m_file), m_front(m_file) {
+	m_temp(basename), m_size(0), m_file(blockFactor) {
 	m_temp.set_persistent(true);
 	m_file.open(basename, access_read_write, sizeof(stream_size_type) );
+	m_front.attach(m_file);
+	m_back.attach(m_file);
 	if (m_file.size() != 0) {
 		stream_size_type t;
 		m_file.read_user_data(t);
