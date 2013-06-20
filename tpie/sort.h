@@ -55,6 +55,87 @@
 
 namespace tpie {
 
+namespace bits {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream in-place using the given STL-style
+/// comparator object.
+///////////////////////////////////////////////////////////////////////////////
+template<typename Stream, typename T, typename Compare>
+void generic_sort(Stream & instream, Compare comp,
+				  progress_indicator_base & indicator) {
+
+	stream_size_type sz = instream.size();
+
+	fractional_progress fp(&indicator);
+	fractional_subindicator push(fp, "sort", TPIE_FSI, sz, "Write sorted runs");
+	fractional_subindicator merge(fp, "sort", TPIE_FSI, sz, "Perform merge heap");
+	fractional_subindicator output(fp, "sort", TPIE_FSI, sz, "Write sorted output");
+	fp.init(sz);
+
+	instream.seek(0);
+
+	merge_sorter<T, true, Compare> s(comp);
+	s.set_available_memory(get_memory_manager().available());
+	s.begin();
+	push.init(sz);
+	while (instream.can_read()) s.push(instream.read()), push.step();
+	push.done();
+	s.end();
+
+	std::string path = instream.path();
+	instream.close();
+	boost::filesystem::remove(path);
+
+	s.calc(merge);
+
+	instream.open(path);
+	output.init(sz);
+	while (s.can_pull()) instream.write(s.pull()), output.step();
+	output.done();
+	fp.done();
+	instream.seek(0);
+}
+
+template<typename Stream, typename T, typename Compare>
+void generic_sort(Stream & instream, Stream & outstream, Compare comp,
+				  progress_indicator_base & indicator) {
+
+	if (&instream == &outstream) {
+		generic_sort<Stream, T, Compare>(instream, comp, indicator);
+		return;
+	}
+
+	stream_size_type sz = instream.size();
+
+	fractional_progress fp(&indicator);
+	fractional_subindicator push(fp, "sort", TPIE_FSI, sz, "Write sorted runs");
+	fractional_subindicator merge(fp, "sort", TPIE_FSI, sz, "Perform merge heap");
+	fractional_subindicator output(fp, "sort", TPIE_FSI, sz, "Write sorted output");
+	fp.init(sz);
+
+	instream.seek(0);
+
+	merge_sorter<T, true, Compare> s(comp);
+	s.set_available_memory(get_memory_manager().available());
+	s.begin();
+	push.init(sz);
+	while (instream.can_read()) s.push(instream.read()), push.step();
+	push.done();
+	s.end();
+
+	s.calc(merge);
+
+	outstream.truncate(0);
+	output.init(sz);
+	while (s.can_pull()) outstream.write(s.pull()), output.step();
+	output.done();
+	fp.done();
+	outstream.seek(0);
+}
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort elements of a stream using the given STL-style comparator
 /// object.
@@ -62,13 +143,7 @@ namespace tpie {
 template<typename T, typename Compare>
 void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		  Compare comp, progress_indicator_base & indicator) {
-
-	ami::Internal_Sorter_Obj<T,Compare> myInternalSorter(comp);
-	ami::merge_heap_obj<T,Compare>      myMergeHeap(comp);
-	sort_manager< T, ami::Internal_Sorter_Obj<T,Compare>, ami::merge_heap_obj<T,Compare> > 
-	mySortManager(&myInternalSorter, &myMergeHeap);
-
-	mySortManager.sort(&instream, &outstream, &indicator);
+	bits::generic_sort<file_stream<T>, T, Compare>(instream, outstream, comp, indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,31 +181,7 @@ void sort(file_stream<T> &instream, Compare comp,
 template<typename T, typename Compare>
 void sort(compressed_stream<T> &instream, Compare comp,
 		  progress_indicator_base & indicator) {
-	stream_size_type sz = instream.size();
-
-	fractional_progress fp(&indicator);
-	fractional_subindicator push(fp, "sort", TPIE_FSI, sz, "Write sorted runs");
-	fractional_subindicator merge(fp, "sort", TPIE_FSI, sz, "Perform merge heap");
-	fractional_subindicator output(fp, "sort", TPIE_FSI, sz, "Write sorted output");
-	fp.init(sz);
-
-	merge_sorter<T, true, Compare> s(comp);
-	s.begin();
-	push.init(sz);
-	while (instream.can_read()) s.push(instream.read()), push.step();
-	push.done();
-	s.end();
-
-	std::string path = instream.path();
-	instream.close();
-	boost::filesystem::remove(path);
-
-	s.calc(merge);
-
-	instream.open(path);
-	output.init(sz);
-	while (s.can_pull()) instream.write(s.pull()), output.step();
-	output.done();
+	bits::generic_sort<compressed_stream<T>, T>(instream, comp, indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
