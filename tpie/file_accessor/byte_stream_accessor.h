@@ -52,6 +52,12 @@ public:
 		return this->size() == 0;
 	}
 
+	stream_size_type file_size() {
+		return std::max(this->m_fileAccessor.file_size_i(),
+						this->header_size())
+			- this->header_size();
+	}
+
 	void append(const void * data, memory_size_type size) {
 		stream_size_type position = this->m_fileAccessor.file_size_i();
 
