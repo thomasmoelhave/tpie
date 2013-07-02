@@ -203,6 +203,7 @@ void finish_compressor() {
 		compressor_thread_lock lock(the_compressor_thread());
 		the_compressor_thread().stop(lock);
 	}
+	the_compressor_thread_handle.join();
 	boost::thread t;
 	the_compressor_thread_handle.swap(t);
 	compressor_thread_already_finished = true;
