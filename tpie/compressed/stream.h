@@ -33,8 +33,13 @@
 #include <tpie/compressed/thread.h>
 #include <tpie/compressed/buffer.h>
 #include <tpie/compressed/request.h>
+#include <tpie/compressed/position.h>
 
 namespace tpie {
+
+struct compressed_stream_header {
+	stream_size_type streamBlocks;
+};
 
 class compressed_stream_base {
 public:
@@ -45,7 +50,8 @@ protected:
 		enum type {
 			none,
 			beginning,
-			end
+			end,
+			position
 		};
 	};
 
@@ -69,6 +75,7 @@ protected:
 		, m_tempFile(0)
 		, m_size(0)
 		, m_buffers(m_blockSize)
+		, m_streamBlocks(0)
 	{
 	}
 
@@ -84,11 +91,24 @@ protected:
 		if (userDataSize != 0)
 			throw stream_exception("Compressed stream does not support user data");
 
+		userDataSize = sizeof(compressed_stream_header);
+
 		m_canRead = accessType == access_read || accessType == access_read_write;
 		m_canWrite = accessType == access_write || accessType == access_read_write;
 		m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
 		m_size = m_byteStreamAccessor.size();
 		m_open = true;
+
+		if (m_byteStreamAccessor.user_data_size() == sizeof(compressed_stream_header)) {
+			compressed_stream_header hd;
+			m_byteStreamAccessor.read_user_data(reinterpret_cast<void*>(&hd),
+												sizeof(compressed_stream_header));
+			m_streamBlocks = hd.streamBlocks;
+		} else {
+			m_streamBlocks = 0;
+		}
+
+		m_knownFileSize = m_byteStreamAccessor.file_size();
 
 		this->post_open();
 	}
@@ -197,6 +217,11 @@ public:
 			compressor_thread_lock l(compressor());
 			finish_requests(l);
 
+			compressed_stream_header hd;
+			hd.streamBlocks = m_streamBlocks;
+			m_byteStreamAccessor.write_user_data(reinterpret_cast<void*>(&hd),
+												 sizeof(compressed_stream_header));
+
 			m_byteStreamAccessor.close();
 		}
 		m_open = false;
@@ -236,6 +261,13 @@ protected:
 	stream_size_type m_size;
 	buffer_t m_buffer;
 	stream_buffers m_buffers;
+
+	/** The number of blocks written to the file. */
+	stream_size_type m_streamBlocks;
+
+	/** If we do not know the size of the file, this is MAXINT.
+	 * Otherwise, this is the size of the file. */
+	stream_size_type m_knownFileSize;
 };
 
 namespace ami {
@@ -260,10 +292,9 @@ public:
 		: compressed_stream_base(sizeof(T), blockFactor)
 		, m_seekState(seek_state::beginning)
 		, m_bufferState(buffer_state::write_only)
+		, m_position(stream_position(0, 0, 0, 0))
 		, m_nextReadOffset(0)
 		, m_nextBlockSize(0)
-		, m_offset(0)
-		, m_streamBlocks(0)
 	{
 	}
 
@@ -336,24 +367,21 @@ public:
 				m_bufferState = buffer_state::read_only;
 			else
 				m_bufferState = buffer_state::write_only;
-			m_offset = 0;
+			m_position = stream_position(0, 0, 0, 0);
 		} else if (whence == end && offset == 0) {
 			m_seekState = seek_state::end;
 			m_bufferState = buffer_state::write_only;
-			m_offset = size();
 		} else {
 			throw stream_exception("Random seeks are not supported");
 		}
 	}
 
 	stream_size_type offset() const {
-		return m_offset;
+		return m_position.offset();
 	}
 
 	stream_size_type size() const {
-		stream_size_type sz = m_byteStreamAccessor.size();
-		if (m_bufferDirty) sz += (m_nextItem - m_bufferBegin);
-		return sz;
+		return m_size;
 	}
 
 	void truncate(stream_size_type offset) {
@@ -370,15 +398,72 @@ public:
 		seek(0);
 	}
 
+	stream_position get_position() {
+		switch (m_seekState) {
+			case seek_state::position:
+				// We just set_position, so we can just return what we got.
+				return m_position;
+			case seek_state::beginning:
+				// seek(0) has set m_position properly
+				return m_position;
+			case seek_state::none:
+				if (m_bufferState == buffer_state::read_only) {
+					if (m_nextItem == m_lastItem) {
+						stream_size_type readOffset = m_nextReadOffset;
+						if (m_nextBlockSize != 0)
+							readOffset -= sizeof(m_nextBlockSize);
+						return stream_position(readOffset, 0, m_position.block_number() + 1, offset());
+					}
+					return m_position;
+				}
+				// Else, our buffer is write-only, and we are not seeking,
+				// meaning the write head is at the end of the stream
+				// (since we do not support overwriting).
+				break;
+			case seek_state::end:
+				if (m_knownFileSize != std::numeric_limits<stream_size_type>::max()) {
+					return stream_position(m_knownFileSize, 0, m_streamBlocks, size());
+				}
+				// Else, figure out the size of the file below.
+				break;
+		}
+		if (m_nextItem == m_bufferEnd) {
+			// Make sure the position we get is not at the end of a block
+			flush_block();
+			m_nextItem = m_bufferBegin;
+		}
+		stream_size_type blockNumber = m_streamBlocks;
+		memory_size_type blockItemIndex = 0;
+		stream_size_type readOffset;
+		if (blockNumber == 0) {
+			readOffset = 0;
+		} else {
+			compressor_thread_lock l(compressor());
+			while (!m_response.has_block_info(blockNumber - 1))
+				m_response.wait(l);
+			readOffset = m_response.get_read_offset(blockNumber - 1)
+				+ m_response.get_block_size(blockNumber - 1);
+		}
+		if (m_seekState != seek_state::end) {
+			blockItemIndex = m_nextItem - m_bufferBegin;
+		}
+		return stream_position(readOffset, blockItemIndex, blockNumber, size());
+	}
+
+	void set_position(const stream_position & pos) {
+		m_position = pos;
+		m_seekState = seek_state::position;
+	}
+
 private:
 	const T & read_ref() {
 		if (m_seekState != seek_state::none) perform_seek();
 		if (!can_read()) throw stream_exception("!can_read()");
 		if (m_nextItem == m_lastItem) {
 			compressor_thread_lock l(compressor());
-			get_buffer(l, m_streamBlocks++);
-			read_next_block(l);
+			read_next_block(l, m_position.block_number() + 1);
 		}
+		m_position.advance_item();
 		return *m_nextItem++;
 	}
 
@@ -396,8 +481,11 @@ public:
 		if (!this->m_open)
 			return false;
 
-		if (m_nextReadOffset == 0 && m_byteStreamAccessor.size() > 0)
-			return true;
+		if (m_seekState == seek_state::beginning)
+			return m_size > 0;
+
+		if (m_seekState == seek_state::end)
+			return false;
 
 		if (m_seekState != seek_state::none)
 			perform_seek();
@@ -424,6 +512,8 @@ public:
 		}
 		*m_nextItem++ = item;
 		this->m_bufferDirty = true;
+		++m_size;
+		m_position.advance_item();
 	}
 
 	template <typename IT>
@@ -448,11 +538,28 @@ protected:
 			&& !m_byteStreamAccessor.empty())
 		{
 			m_nextReadOffset = 0;
-			get_buffer(l, 0);
-			read_next_block(l);
+			read_next_block(l, 0);
+			m_bufferState = buffer_state::read_only;
+		} else if (m_seekState == seek_state::position) {
+			m_nextReadOffset = m_position.read_offset();
+			m_nextBlockSize = 0;
+			memory_size_type blockItemIndex = m_position.block_item_index();
+			read_next_block(l, m_position.block_number());
+
+			memory_size_type blockItems = m_lastItem - m_bufferBegin;
+
+			if (blockItemIndex > blockItems) {
+				throw exception("perform_seek: Item offset out of bounds");
+			} else if (blockItemIndex == blockItems) {
+				throw exception("perform_seek: Item offset at bounds");
+			}
+
+			m_nextItem = m_bufferBegin + blockItemIndex;
+			m_position.advance_items(blockItemIndex);
 			m_bufferState = buffer_state::read_only;
 		} else {
-			get_buffer(l, m_streamBlocks++);
+			// seek_state::end
+			get_buffer(l, m_streamBlocks);
 			m_bufferState = buffer_state::write_only;
 			m_nextItem = m_bufferBegin;
 		}
@@ -464,37 +571,53 @@ private:
 		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
 		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
 		m_bufferEnd = m_bufferBegin + block_items();
+		this->m_bufferDirty = false;
 	}
 
 public:
 	virtual void flush_block() override {
+		m_knownFileSize = std::numeric_limits<stream_size_type>::max();
+
 		memory_size_type blockItems = m_nextItem - m_bufferBegin;
 		m_buffer->set_size(blockItems * sizeof(T));
 		compressor_request r;
-		r.set_write_request(m_buffer, &m_byteStreamAccessor, blockItems);
+		r.set_write_request(m_buffer,
+							&m_byteStreamAccessor,
+							blockItems,
+							m_streamBlocks++,
+							&m_response);
 		compressor_thread_lock lock(compressor());
 		compressor().request(r);
-		get_buffer(lock, m_streamBlocks++);
+		get_buffer(lock, m_streamBlocks);
 	}
 
-	void read_next_block(compressor_thread_lock & lock) {
+	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
+		get_buffer(lock, blockNumber);
+
 		compressor_request r;
-		read_request & rr =
-			r.set_read_request(m_buffer,
-							   &m_byteStreamAccessor,
-							   m_nextReadOffset,
-							   m_nextBlockSize,
-							   m_readComplete);
+		r.set_read_request(m_buffer,
+						   &m_byteStreamAccessor,
+						   m_nextReadOffset,
+						   m_nextBlockSize,
+						   &m_response);
 
 		compressor().request(r);
-		while (!rr.done()) {
-			rr.wait(lock);
+		while (!m_response.done()) {
+			m_response.wait(lock);
 		}
-		if (rr.end_of_stream())
+		if (m_response.end_of_stream())
 			throw end_of_stream_exception();
 
-		m_nextReadOffset = rr.next_read_offset();
-		m_nextBlockSize = rr.next_block_size();
+		if (blockNumber >= m_streamBlocks)
+			m_streamBlocks = blockNumber + 1;
+
+		stream_size_type readOffset = m_nextReadOffset;
+		if (m_nextBlockSize != 0) readOffset -= sizeof(readOffset);
+
+		m_position = stream_position(readOffset, 0, blockNumber, m_position.offset());
+
+		m_nextReadOffset = m_response.next_read_offset();
+		m_nextBlockSize = m_response.next_block_size();
 		m_nextItem = m_bufferBegin;
 		memory_size_type itemsRead = m_buffer->size() / sizeof(T);
 		m_lastItem = m_bufferBegin + itemsRead;
@@ -514,26 +637,19 @@ private:
 	/** In read mode only: End of readable buffer. */
 	T * m_lastItem;
 
-	/** If nextReadOffset is zero,
-	 * the next block to read is the first block and its size is not known.
-	 * In that case, the size of the first block is the first eight bytes,
-	 * and the first block begins after those eight bytes.
-	 * If nextReadOffset and nextBlockSize are both non-zero,
+	/** Invalid if seek state is end. */
+	stream_position m_position;
+
+	/** If nextBlockSize is zero,
+	 * the size of the block to read is the first eight bytes,
+	 * and the block begins after those eight bytes.
+	 * If nextBlockSize is non-zero,
 	 * the next block begins at the given offset and has the given size.
-	 * Otherwise, if nextReadOffset is non-zero and nextBlockSize is zero,
-	 * we have reached the end of the stream.
 	 */
 	stream_size_type m_nextReadOffset;
 	stream_size_type m_nextBlockSize;
 
-	stream_size_type m_offset;
-
-	stream_size_type m_streamBlocks;
-
-	bool m_canReadAgain;
-
-	/** Condition variable indicating a read request is complete. */
-	read_request::condition_t m_readComplete;
+	compressor_response m_response;
 };
 
 } // namespace tpie

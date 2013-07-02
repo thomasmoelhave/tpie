@@ -26,17 +26,27 @@
 
 namespace tpie {
 
+// thread.h
 class compressor_thread;
-
-void init_compressor();
-void finish_compressor();
-
-compressor_thread & the_compressor_thread();
-
 class compressor_thread_lock;
 
+// thread.cpp
+void init_compressor();
+void finish_compressor();
+compressor_thread & the_compressor_thread();
+
+// buffer.h
 class compressor_buffer;
+
+// request.h
 class compressor_request;
+
+// stream.h
+class compressed_stream_base;
+template <typename T> class compressed_stream;
+
+// position.h
+class stream_position;
 
 } // namespace tpie
 

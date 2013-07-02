@@ -22,8 +22,8 @@
 
 namespace tpie {
 
-void read_request::wait(compressor_thread_lock & lock) {
-	m_cond.wait(lock.get_lock());
+void compressor_response::wait(compressor_thread_lock & lock) {
+	m_changed.wait(lock.get_lock());
 }
 
 } // namespace tpie
