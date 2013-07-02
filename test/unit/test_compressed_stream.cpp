@@ -173,10 +173,35 @@ bool position_test(size_t n) {
 	return true;
 }
 
+bool position_seek_test() {
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf);
+	for (size_t i = 0; i < 5; ++i) s.write(i);
+	s.seek(0, tpie::file_stream_base::end);
+	tpie::stream_position p = s.get_position();
+	for (size_t i = 5; i < 10; ++i) s.write(i);
+	s.seek(0);
+	for (size_t i = 0; i < 10; ++i) {
+		if (s.read() != i) {
+			tpie::log_error() << "Bad read in position " << i << std::endl;
+			return false;
+		}
+	}
+	s.set_position(p);
+	size_t x = s.read();
+	if (x != 5) {
+		tpie::log_error() << "Bad read after set_position; got " << x << ", expected 5" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
 		.test(read_seek_test, "read_seek", "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
 		.test(position_test, "position", "n", static_cast<size_t>(1 << 19))
+		.test(position_seek_test, "position_seek")
 		;
 }
