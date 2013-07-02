@@ -271,6 +271,59 @@ public:
 		this->close();
 	}
 
+	void describe(std::ostream & out) {
+		if (!this->is_open()) {
+			out << "[Closed stream]";
+			return;
+		}
+
+		out << "[(" << m_byteStreamAccessor.path() << ") item " << offset()
+			<< " of " << size();
+		out << " (block " << m_position.block_number()
+			<< " @ byte " << m_position.read_offset()
+			<< ", item " << m_position.block_item_index()
+			<< ")";
+
+		switch (m_seekState) {
+			case seek_state::none:
+				break;
+			case seek_state::beginning:
+				out << ", seeking to beginning";
+				break;
+			case seek_state::end:
+				out << ", seeking to end";
+				break;
+			case seek_state::position:
+				out << ", seeking to position";
+				break;
+		}
+
+		switch (m_bufferState) {
+			case buffer_state::write_only:
+				out << ", buffer write-only";
+				break;
+			case buffer_state::read_only:
+				out << ", buffer read-only";
+				break;
+		}
+
+		if (m_bufferDirty)
+			out << " dirty";
+
+		if (can_read()) out << ", can read";
+		else out << ", cannot read";
+
+		out << ", at least " << m_streamBlocks << " blocks";
+
+		out << ']';
+	}
+
+	std::string describe() {
+		std::stringstream ss;
+		describe(ss);
+		return ss.str();
+	}
+
 	virtual void post_open() override {
 		seek(0);
 	}
