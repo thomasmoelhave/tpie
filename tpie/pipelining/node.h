@@ -446,6 +446,7 @@ protected:
 		m_availableMemory = availableMemory;
 	}
 
+public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	/// If explicitForward is false, the data will not override data forwarded
@@ -491,7 +492,6 @@ protected:
 		}
 	}
 
-public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by users to add forwarded data to this node and
 	/// recursively to its successors.
