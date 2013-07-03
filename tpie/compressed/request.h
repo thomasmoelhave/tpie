@@ -170,6 +170,7 @@ private:
 };
 
 #ifdef __GNUC__
+class __attribute__((__may_alias__)) request_base;
 class __attribute__((__may_alias__)) read_request;
 class __attribute__((__may_alias__)) write_request;
 #endif // __GNUC__
