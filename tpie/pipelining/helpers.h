@@ -340,6 +340,53 @@ public:
 	};
 };
 
+template <typename F>
+class preparer_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	private:
+		F functor;
+		dest_t dest;
+	public:
+		typedef typename dest_t::item_type item_type;
+		type(const dest_t & dest, const F & functor): functor(functor), dest(dest) {
+			add_push_destination(dest);
+			set_name("preparer");
+		}
+
+		void prepare() override {
+			functor(*static_cast<node*>(this));
+		};
+
+		void push(const item_type & item) {dest.push(item);}
+	};
+};
+
+
+template <typename F>
+class propagater_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	private:
+		F functor;
+		dest_t dest;
+	public:
+		typedef typename dest_t::item_type item_type;
+		type(const dest_t & dest, const F & functor): functor(functor), dest(dest) {
+			add_push_destination(dest);
+			set_name("propagater");
+		}
+
+		void propagate() override {
+			functor(*static_cast<node*>(this));
+		};
+
+		void push(const item_type & item) {dest.push(item);}
+	};
+};
+
 } // namespace bits
 
 inline pipe_middle<factory_1<bits::ostream_logger_t, std::ostream &> >
@@ -451,6 +498,16 @@ pipe_end<termfactory_1<bits::push_output_iterator_t<IT, Item>, IT> > typed_push_
 template <typename IT>
 pullpipe_end<tempfactory_1<bits::pull_output_iterator_t<IT>, IT> > pull_output_iterator(IT to) {
 	return tempfactory_1<bits::pull_output_iterator_t<IT>, IT>(to);
+}
+
+template <typename F>
+pipe_middle<tempfactory_1<bits::preparer_t<F>, F> > preparer(const F & functor) {
+	return tempfactory_1<bits::preparer_t<F>, F>(functor);
+}
+
+template <typename F>
+pipe_middle<tempfactory_1<bits::propagater_t<F>, F> > propagater(const F & functor) {
+	return tempfactory_1<bits::propagater_t<F>, F>(functor);
 }
 
 }
