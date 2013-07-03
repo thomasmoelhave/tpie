@@ -341,10 +341,12 @@ public:
 		if (m_bufferDirty)
 			out << " dirty";
 
-		if (can_read()) out << ", can read";
-		else out << ", cannot read";
+		if (m_seekState == seek_state::none) {
+			if (can_read()) out << ", can read";
+			else out << ", cannot read";
+		}
 
-		out << ", at least " << m_streamBlocks << " blocks";
+		out << ", " << m_streamBlocks << " blocks";
 
 		out << ']';
 	}
