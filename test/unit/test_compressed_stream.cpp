@@ -197,11 +197,91 @@ bool position_seek_test() {
 	return true;
 }
 
+#define TEST_ASSERT(cond) \
+	do { \
+		if (!(cond)) { \
+			tpie::log_error() << "Test failed on line " << __LINE__ << ": " #cond << std::endl; \
+			return false; \
+		} \
+	} while (0)
+
+bool position_test_1() {
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf);
+
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	for (size_t i = 0; i < 2*blockSize; ++i) s.write(i);
+	TEST_ASSERT(!s.can_read());
+	TEST_ASSERT(s.size() == 2*blockSize);
+	TEST_ASSERT(s.offset() == 2*blockSize);
+	tpie::log_debug() << s.describe() << std::endl;
+	s.set_position(s.get_position());
+	tpie::log_debug() << s.describe() << std::endl;
+	TEST_ASSERT(!s.can_read());
+	TEST_ASSERT(s.size() == 2*blockSize);
+	TEST_ASSERT(s.offset() == 2*blockSize);
+	s.write(2*blockSize);
+	TEST_ASSERT(!s.can_read());
+	TEST_ASSERT(s.size() == 2*blockSize+1);
+	TEST_ASSERT(s.offset() == 2*blockSize+1);
+	return true;
+}
+
+bool position_test_2() {
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf);
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+
+	tpie::log_debug() << "Write blockSize + 5 items" << std::endl;
+	for (size_t i = 0; i < blockSize + 5; ++i) s.write(i);
+	tpie::log_debug() << s.describe() << std::endl;
+
+	tpie::log_debug() << "Get position and write 2 items" << std::endl;
+	tpie::stream_position pos1 = s.get_position();
+	TEST_ASSERT(!s.can_read());
+	for (size_t i = blockSize + 5; i < blockSize + 7; ++i) s.write(i);
+	tpie::log_debug() << s.describe() << std::endl;
+
+	tpie::log_debug() << "Get position, check can_read and set position" << std::endl;
+	tpie::stream_position pos2 = s.get_position();
+	TEST_ASSERT(!s.can_read());
+	s.set_position(pos1);
+	tpie::log_debug() << s.describe() << std::endl;
+
+	tpie::log_debug() << "Check can_read" << std::endl;
+	TEST_ASSERT(s.can_read());
+	tpie::log_debug() << s.describe() << std::endl;
+
+	tpie::log_debug() << "Check read" << std::endl;
+	TEST_ASSERT(s.read() == blockSize + 5);
+	tpie::log_debug() << s.describe() << std::endl;
+	TEST_ASSERT(s.can_read());
+
+	tpie::log_debug() << "Check read" << std::endl;
+	TEST_ASSERT(s.read() == blockSize + 6);
+	TEST_ASSERT(!s.can_read());
+	tpie::log_debug() << s.describe() << std::endl;
+
+	tpie::log_debug() << "Check get_position" << std::endl;
+	TEST_ASSERT(s.get_position() == pos2);
+	tpie::log_debug() << s.describe() << std::endl;
+
+	tpie::log_debug() << "Check write" << std::endl;
+	s.write(blockSize + 7);
+	tpie::log_debug() << s.describe() << std::endl;
+
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
 		.test(read_seek_test, "read_seek", "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
 		.test(position_test, "position", "n", static_cast<size_t>(1 << 19))
 		.test(position_seek_test, "position_seek")
+		.test(position_test_1, "position_1")
+		.test(position_test_2, "position_2")
 		;
 }
