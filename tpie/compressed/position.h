@@ -28,6 +28,20 @@
 
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  POD object indicating the position of an item in a stream.
+///
+/// A stream position is the tuple
+/// `(read_offset, block_item_index, block_number, offset)`.
+///
+/// The compressed block containing the item starts at byte read_offset+8.
+/// The size of the compressed block is in `[read_offset, read_offset+8)`.
+/// In the logical block, the item is at index `block_item_index`.
+/// The block has the index `block_number` in the stream,
+/// and the global item offset is `offset`.
+///
+/// Thus, the first item in the stream has the position tuple `(0, 0, 0, 0)`.
+///////////////////////////////////////////////////////////////////////////////
 class stream_position {
 private:
 	template <typename T>
