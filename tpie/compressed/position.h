@@ -31,16 +31,15 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  POD object indicating the position of an item in a stream.
 ///
-/// A stream position is the tuple
-/// `(read_offset, block_item_index, block_number, offset)`.
+/// A stream position is the tuple `(read_offset, offset)`.
 ///
 /// The compressed block containing the item starts at byte read_offset+8.
 /// The size of the compressed block is in `[read_offset, read_offset+8)`.
-/// In the logical block, the item is at index `block_item_index`.
-/// The block has the index `block_number` in the stream,
+/// In the logical block, the item is at index `offset % blockItems`.
+/// The block has the index `offset / blockItems` in the stream,
 /// and the global item offset is `offset`.
 ///
-/// Thus, the first item in the stream has the position tuple `(0, 0, 0, 0)`.
+/// Thus, the first item in the stream has the position tuple `(0, 0)`.
 ///////////////////////////////////////////////////////////////////////////////
 class stream_position {
 private:
@@ -48,9 +47,7 @@ private:
 	friend class compressed_stream;
 
 	uint64_t m_readOffset;
-	uint64_t m_blockNumber;
 	uint64_t m_offset;
-	uint32_t m_blockItemIndex;
 
 public:
 	stream_position()
@@ -60,28 +57,14 @@ public:
 
 private:
 	stream_position(stream_size_type readOffset,
-					memory_size_type blockItemIndex,
-					stream_size_type blockNumber,
 					stream_size_type offset)
 		: m_readOffset(readOffset)
-		, m_blockNumber(blockNumber)
 		, m_offset(offset)
-		, m_blockItemIndex(static_cast<uint32_t>(blockItemIndex))
 	{
-		if (m_blockItemIndex != blockItemIndex)
-			throw exception("stream_position: Block item index out of bounds");
 	}
 
 	stream_size_type read_offset() const {
 		return m_readOffset;
-	}
-
-	memory_size_type block_item_index() const {
-		return m_blockItemIndex;
-	}
-
-	stream_size_type block_number() const {
-		return m_blockNumber;
 	}
 
 	stream_size_type offset() const {
@@ -89,7 +72,6 @@ private:
 	}
 
 	void advance_items(memory_size_type offset) {
-		m_blockItemIndex += offset;
 		m_offset += offset;
 	}
 
@@ -100,9 +82,7 @@ private:
 public:
 	bool operator==(const stream_position & other) const {
 		return m_readOffset == other.m_readOffset
-			&& m_blockNumber == other.m_blockNumber
-			&& m_offset == other.m_offset
-			&& m_blockItemIndex == other.m_blockItemIndex;
+			&& m_offset == other.m_offset;
 	}
 
 	bool operator!=(const stream_position & other) const {

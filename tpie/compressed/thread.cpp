@@ -134,6 +134,11 @@ private:
 							scratch.get() + sizeof(blockSize),
 							&blockSize);
 		*reinterpret_cast<memory_size_type *>(scratch.get()) = blockSize;
+		if (wr.should_truncate()) {
+			log_debug() << "Truncate to " << wr.truncate_to() << std::endl;
+			wr.file_accessor().truncate_bytes(wr.truncate_to());
+			log_debug() << "File size is now " << wr.file_accessor().file_size() << std::endl;
+		}
 		{
 			compressor_thread_lock::lock_t lock(mutex());
 			wr.set_block_info(wr.file_accessor().file_size() + sizeof(blockSize),

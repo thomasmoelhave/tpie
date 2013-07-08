@@ -60,6 +60,11 @@ public:
 		m_nextReadOffset = m_nextBlockSize = 0;
 	}
 
+	// write, stream
+	void clear_block_info() {
+		m_blockNumber = std::numeric_limits<stream_size_type>::max();
+	}
+
 	// write, thread -- must have lock!
 	void set_block_info(stream_size_type blockNumber,
 						stream_size_type readOffset,
@@ -258,12 +263,14 @@ public:
 
 	write_request(const buffer_t & buffer,
 				  file_accessor_t * fileAccessor,
+				  stream_size_type truncateTo,
 				  memory_size_type blockItems,
 				  stream_size_type blockNumber,
 				  compressor_response * response)
 		: request_base(response)
 		, m_buffer(buffer)
 		, m_fileAccessor(fileAccessor)
+		, m_truncateTo(truncateTo)
 		, m_blockItems(blockItems)
 		, m_blockNumber(blockNumber)
 	{
@@ -281,6 +288,14 @@ public:
 		return m_blockItems;
 	}
 
+	bool should_truncate() {
+		return m_truncateTo != std::numeric_limits<stream_size_type>::max();
+	}
+
+	stream_size_type truncate_to() {
+		return m_truncateTo;
+	}
+
 	// must have lock!
 	void set_block_info(stream_size_type readOffset,
 						stream_size_type blockSize)
@@ -291,6 +306,7 @@ public:
 private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
+	const stream_size_type m_truncateTo;
 	const memory_size_type m_blockItems;
 	const stream_size_type m_blockNumber;
 };
@@ -365,13 +381,15 @@ public:
 
 	write_request & set_write_request(const write_request::buffer_t & buffer,
 									  write_request::file_accessor_t * fileAccessor,
+									  stream_size_type truncateTo,
 									  memory_size_type blockItems,
 									  stream_size_type blockNumber,
 									  compressor_response * response)
 	{
 		destruct();
 		m_kind = compressor_request_kind::WRITE;
-		return *new (m_payload) write_request(buffer, fileAccessor, blockItems, blockNumber, response);
+		return *new (m_payload) write_request(buffer, fileAccessor, truncateTo,
+											  blockItems, blockNumber, response);
 	}
 
 	write_request & set_write_request(const write_request & other) {

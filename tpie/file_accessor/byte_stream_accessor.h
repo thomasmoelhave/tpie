@@ -58,6 +58,10 @@ public:
 			- this->header_size();
 	}
 
+	void truncate_bytes(stream_size_type size) {
+		this->m_fileAccessor.truncate_i(this->header_size() + size);
+	}
+
 	void append(const void * data, memory_size_type size) {
 		stream_size_type position = this->m_fileAccessor.file_size_i();
 
