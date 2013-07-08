@@ -345,6 +345,53 @@ bool reopen_test(size_t n) {
 	return true;
 }
 
+bool reopen_test_2() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+
+	tpie::stream_position pos1a;
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf);
+		for (size_t i = 0; i < blockSize; ++i) s.write(i);
+		TEST_ASSERT(s.size() == blockSize);
+		pos1a = s.get_position();
+	}
+	tpie::stream_position pos1b;
+	tpie::stream_position pos2b;
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf);
+		TEST_ASSERT(s.size() == blockSize);
+		TEST_ASSERT(s.offset() == 0);
+		for (size_t i = 0; i < blockSize; ++i) {
+			TEST_ASSERT(i == s.read());
+		}
+		TEST_ASSERT(s.offset() == blockSize);
+		pos1b = s.get_position();
+		for (size_t i = blockSize; i < 2*blockSize; ++i) s.write(i);
+		pos2b = s.get_position();
+		TEST_ASSERT(s.offset() == 2*blockSize);
+		TEST_ASSERT(s.size() == 2*blockSize);
+	}
+	TEST_ASSERT(pos1a == pos1b);
+	tpie::stream_position pos2c;
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf);
+		TEST_ASSERT(s.size() == 2*blockSize);
+		s.set_position(pos1b);
+		TEST_ASSERT(s.offset() == blockSize);
+		TEST_ASSERT(s.size() == 2*blockSize);
+		for (size_t i = blockSize; i < 2*blockSize; ++i) {
+			TEST_ASSERT(i == s.read());
+		}
+		pos2c = s.get_position();
+	}
+	TEST_ASSERT(pos2b == pos2c);
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
@@ -355,5 +402,6 @@ int main(int argc, char ** argv) {
 		.test(position_test_2, "position_2")
 		.test(position_test_3, "position_3", "n", static_cast<size_t>(1 << 21))
 		.test(reopen_test, "reopen", "n", static_cast<size_t>(1 << 21))
+		.test(reopen_test_2, "reopen_2")
 		;
 }
