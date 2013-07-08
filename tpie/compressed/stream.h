@@ -345,7 +345,9 @@ public:
 			else
 				m_bufferState = buffer_state::write_only;
 		} else if (whence == end && offset == 0) {
-			if (m_bufferState == buffer_state::write_only) {
+			if (m_buffer.get() == 0) {
+				m_seekState = seek_state::end;
+			} else if (m_bufferState == buffer_state::write_only) {
 				// no-op
 				m_seekState = seek_state::none;
 			} else {
@@ -357,8 +359,8 @@ public:
 				} else {
 					m_seekState = seek_state::end;
 				}
-				m_bufferState = buffer_state::write_only;
 			}
+			m_bufferState = buffer_state::write_only;
 		} else {
 			throw stream_exception("Random seeks are not supported");
 		}
@@ -664,8 +666,6 @@ public:
 	virtual void flush_block() override {
 		compressor_thread_lock lock(compressor());
 
-		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
-
 		stream_size_type blockNumber = buffer_block_number();
 		stream_size_type truncateTo;
 		if (blockNumber == m_streamBlocks) {
@@ -679,6 +679,8 @@ public:
 		} else {
 			throw exception("flush_block: blockNumber not at end of stream");
 		}
+
+		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 
 		memory_size_type blockItems = m_nextItem - m_bufferBegin;
 		m_buffer->set_size(blockItems * sizeof(T));

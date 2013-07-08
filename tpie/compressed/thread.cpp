@@ -145,7 +145,6 @@ private:
 							  blockSize);
 		}
 		wr.file_accessor().append(scratch.get(), sizeof(blockSize) + blockSize);
-		wr.file_accessor().increase_size(wr.block_items());
 	}
 
 public:

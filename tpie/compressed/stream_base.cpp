@@ -87,7 +87,7 @@ void compressed_stream_base::open_inner(const std::string & path,
 		m_lastBlockReadOffset = hd.lastBlockReadOffset;
 	} else {
 		m_streamBlocks = 0;
-		m_lastBlockReadOffset = 0;
+		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 	}
 
 	this->post_open();
@@ -178,6 +178,7 @@ void compressed_stream_base::close() {
 		m_byteStreamAccessor.write_user_data(reinterpret_cast<void*>(&hd),
 											 sizeof(compressed_stream_header));
 
+		m_byteStreamAccessor.set_size(m_size);
 		m_byteStreamAccessor.close();
 	}
 	m_open = false;
@@ -196,7 +197,7 @@ void compressed_stream_base::finish_requests(compressor_thread_lock & l) {
 }
 
 stream_size_type compressed_stream_base::last_block_read_offset(compressor_thread_lock & l) {
-	if (m_streamBlocks == 0)
+	if (m_streamBlocks == 0 || m_streamBlocks == 1)
 		return 0;
 	if (m_lastBlockReadOffset != std::numeric_limits<stream_size_type>::max())
 		return m_lastBlockReadOffset;

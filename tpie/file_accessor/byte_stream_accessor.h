@@ -44,8 +44,8 @@ public:
 		throw exception("Block operations not supported");
 	}
 
-	void increase_size(stream_size_type amt) {
-		this->set_size(this->size() + amt);
+	void set_size(stream_size_type amt) {
+		p_t::set_size(amt);
 	}
 
 	bool empty() {
