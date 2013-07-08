@@ -309,6 +309,42 @@ bool position_test_3(size_t n) {
 	return true;
 }
 
+bool reopen_test(size_t n) {
+	tpie::temp_file tf;
+
+	size_t i = 0;
+	size_t j = 1;
+	size_t k = 0;
+
+	while (k < n) {
+		tpie::compressed_stream<size_t> s;
+		s.open(tf);
+
+		TEST_ASSERT(s.offset() == 0);
+		TEST_ASSERT(s.size() == k);
+
+		if (k % 2 == 0) {
+			tpie::log_debug() << "Seek to end" << std::endl;
+			s.seek(0, tpie::file_stream_base::end);
+		} else {
+			tpie::log_debug() << "Scan to end" << std::endl;
+			for (size_t n = 0; n < k; ++n) {
+				TEST_ASSERT(s.read() == n);
+			}
+		}
+
+		TEST_ASSERT(s.offset() == k);
+		TEST_ASSERT(!s.can_read());
+
+		size_t target = i+j;
+		i = j;
+		j = target;
+		tpie::log_debug() << "[" << k << ", " << target << ")" << std::endl;
+		while (k < target) s.write(k++);
+	}
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
@@ -318,5 +354,6 @@ int main(int argc, char ** argv) {
 		.test(position_test_1, "position_1")
 		.test(position_test_2, "position_2")
 		.test(position_test_3, "position_3", "n", static_cast<size_t>(1 << 21))
+		.test(reopen_test, "reopen", "n", static_cast<size_t>(1 << 21))
 		;
 }
