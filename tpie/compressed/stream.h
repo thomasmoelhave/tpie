@@ -37,11 +37,6 @@
 
 namespace tpie {
 
-struct compressed_stream_header {
-	stream_size_type streamBlocks;
-	stream_size_type lastBlockReadOffset;
-};
-
 class compressed_stream_base {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
@@ -64,28 +59,10 @@ protected:
 	};
 
 	compressed_stream_base(memory_size_type itemSize,
-						   double blockFactor)
-		: m_bufferDirty(false)
-		, m_blockItems(block_size(blockFactor) / itemSize)
-		, m_blockSize(block_size(blockFactor))
-		, m_canRead(false)
-		, m_canWrite(false)
-		, m_open(false)
-		, m_itemSize(itemSize)
-		, m_ownedTempFile()
-		, m_tempFile(0)
-		, m_size(0)
-		, m_buffers(m_blockSize)
-		, m_streamBlocks(0)
-		, m_lastBlockReadOffset(0)
-		, m_seekState(seek_state::beginning)
-		, m_bufferState(buffer_state::write_only)
-		, m_position(stream_position(0, 0))
-		, m_nextPosition(stream_position(0, 0))
-		, m_nextReadOffset(0)
-		, m_nextBlockSize(0)
-	{
-	}
+						   double blockFactor);
+
+	// Non-virtual, protected destructor
+	~compressed_stream_base();
 
 	virtual void flush_block() = 0;
 
@@ -94,188 +71,86 @@ protected:
 	void open_inner(const std::string & path,
 					access_type accessType,
 					memory_size_type userDataSize,
-					cache_hint cacheHint)
-	{
-		if (userDataSize != 0)
-			throw stream_exception("Compressed stream does not support user data");
+					cache_hint cacheHint);
 
-		userDataSize = sizeof(compressed_stream_header);
-
-		m_canRead = accessType == access_read || accessType == access_read_write;
-		m_canWrite = accessType == access_write || accessType == access_read_write;
-		m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
-		m_size = m_byteStreamAccessor.size();
-		m_open = true;
-
-		if (m_byteStreamAccessor.user_data_size() == sizeof(compressed_stream_header)) {
-			compressed_stream_header hd;
-			m_byteStreamAccessor.read_user_data(reinterpret_cast<void*>(&hd),
-												sizeof(compressed_stream_header));
-			m_streamBlocks = hd.streamBlocks;
-			m_lastBlockReadOffset = hd.lastBlockReadOffset;
-		} else {
-			m_streamBlocks = 0;
-			m_lastBlockReadOffset = 0;
-		}
-
-		this->post_open();
-	}
-
-	stream_size_type size() const;
-
-	compressor_thread & compressor() {
-		return the_compressor_thread();
-	}
+	compressor_thread & compressor() { return the_compressor_thread(); }
 
 public:
-	bool is_readable() const throw() {
-		return m_canRead;
-	}
+	bool is_readable() const throw() { return m_canRead; }
 
-	bool is_writable() const throw() {
-		return m_canWrite;
-	}
+	bool is_writable() const throw() { return m_canWrite; }
 
-	static memory_size_type block_size(double blockFactor) throw () {
-		return static_cast<memory_size_type>(get_block_size() * blockFactor);
-	}
+	static memory_size_type block_size(double blockFactor) throw ();
 
-	static double calculate_block_factor(memory_size_type blockSize) throw () {
-		return (double)blockSize / (double)block_size(1.0);
-	}
+	static double calculate_block_factor(memory_size_type blockSize) throw ();
 
-	static memory_size_type block_memory_usage(double blockFactor) {
-		return block_size(blockFactor);
-	}
+	static memory_size_type block_memory_usage(double blockFactor);
 
-	memory_size_type block_items() const {
-		return m_blockItems;
-	}
+	memory_size_type block_items() const;
 
-	memory_size_type block_size() const {
-		return m_blockSize;
-	}
+	memory_size_type block_size() const;
 
 	template <typename TT>
-	void read_user_data(TT & /*data*/) {
-		throw stream_exception("Compressed stream does not support user data");
+	void read_user_data(TT & data) {
+		read_user_data(reinterpret_cast<void *>(&data), sizeof(TT));
 	}
 
-	memory_size_type read_user_data(void * /*data*/, memory_size_type /*count*/) {
-		throw stream_exception("Compressed stream does not support user data");
-	}
+	memory_size_type read_user_data(void * data, memory_size_type count);
 
 	template <typename TT>
-	void write_user_data(const TT & /*data*/) {
-		throw stream_exception("Compressed stream does not support user data");
+	void write_user_data(const TT & data) {
+		write_user_data(reinterpret_cast<const void *>(&data), sizeof(TT));
 	}
 
-	void write_user_data(const void * /*data*/, memory_size_type /*count*/) {
-		throw stream_exception("Compressed stream does not support user data");
-	}
+	void write_user_data(const void * data, memory_size_type count);
 
-	memory_size_type user_data_size() const {
-		return 0;
-	}
+	memory_size_type user_data_size() const;
 
-	memory_size_type max_user_data_size() const {
-		return 0;
-	}
+	memory_size_type max_user_data_size() const;
 
-	const std::string & path() const {
-		assert(m_open);
-		return m_byteStreamAccessor.path();
-	}
+	const std::string & path() const;
 
 	void open(const std::string & path,
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
-			  cache_hint cacheHint=access_sequential)
-	{
-		close();
-		open_inner(path, accessType, userDataSize, cacheHint);
-	}
+			  cache_hint cacheHint=access_sequential);
 
 	void open(memory_size_type userDataSize = 0,
-			  cache_hint cacheHint = access_sequential)
-	{
-		close();
-		m_ownedTempFile.reset(tpie_new<temp_file>());
-		m_tempFile = m_ownedTempFile.get();
-		open_inner(m_tempFile->path(), access_read_write, userDataSize, cacheHint);
-	}
+			  cache_hint cacheHint = access_sequential);
 
 	void open(temp_file & file,
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
-			  cache_hint cacheHint = access_sequential)
-	{
-		close();
-		m_tempFile = &file;
-		open_inner(m_tempFile->path(), accessType, userDataSize, cacheHint);
-	}
+			  cache_hint cacheHint = access_sequential);
 
-	void close() {
-		if (m_open) {
-			if (m_bufferDirty) {
-				flush_block();
-			}
-			m_buffer.reset();
-
-			compressor_thread_lock l(compressor());
-			finish_requests(l);
-
-			compressed_stream_header hd;
-			hd.streamBlocks = m_streamBlocks;
-			hd.lastBlockReadOffset = last_block_read_offset(l);
-			m_byteStreamAccessor.write_user_data(reinterpret_cast<void*>(&hd),
-												 sizeof(compressed_stream_header));
-
-			m_byteStreamAccessor.close();
-		}
-		m_open = false;
-		m_tempFile = NULL;
-		m_ownedTempFile.reset();
-	}
+	void close();
 
 protected:
-	void finish_requests(compressor_thread_lock & l) {
-		if (m_buffer.get() != 0)
-			throw exception("finish_requests called when own buffer is still held");
-		m_buffers.clean();
-		while (!m_buffers.empty()) {
-			compressor().wait_for_request_done(l);
-			m_buffers.clean();
-		}
-	}
+	void finish_requests(compressor_thread_lock & l);
 
-	stream_size_type last_block_read_offset(compressor_thread_lock & l) {
-		if (m_streamBlocks == 0)
-			return 0;
-		if (m_lastBlockReadOffset != std::numeric_limits<stream_size_type>::max())
-			return m_lastBlockReadOffset;
-		while (!m_response.has_block_info(m_streamBlocks - 1))
-			m_response.wait(l);
-		return m_response.get_read_offset(m_streamBlocks - 1)
-			- sizeof(m_response.get_block_size(m_streamBlocks - 1));
-	}
+	stream_size_type last_block_read_offset(compressor_thread_lock & l);
 
-	stream_size_type current_file_size(compressor_thread_lock & l) {
-		if (m_streamBlocks == 0)
-			return 0;
-		while (!m_response.has_block_info(m_streamBlocks - 1))
-			m_response.wait(l);
-		return m_response.get_read_offset(m_streamBlocks - 1)
-			+ m_response.get_block_size(m_streamBlocks - 1);
-	}
+	stream_size_type current_file_size(compressor_thread_lock & l);
 
 public:
-	bool is_open() const {
-		return m_open;
-	}
+	bool is_open() const { return m_open; }
 
-	stream_size_type file_size() const {
-		return m_size;
+	stream_size_type size() const { return m_size; }
+
+	stream_size_type file_size() const { return size(); }
+
+	stream_size_type offset() const {
+		switch (m_seekState) {
+			case seek_state::none:
+				return m_position.offset();
+			case seek_state::beginning:
+				return 0;
+			case seek_state::end:
+				return size();
+			case seek_state::position:
+				return m_nextPosition.offset();
+		}
+		throw exception("offset: Unreachable statement; m_seekState invalid");
 	}
 
 protected:
@@ -385,7 +260,7 @@ public:
 	}
 
 	~compressed_stream() {
-		this->close();
+		close();
 	}
 
 	void describe(std::ostream & out) {
@@ -487,24 +362,6 @@ public:
 		} else {
 			throw stream_exception("Random seeks are not supported");
 		}
-	}
-
-	stream_size_type offset() const {
-		switch (m_seekState) {
-			case seek_state::none:
-				return m_position.offset();
-			case seek_state::beginning:
-				return 0;
-			case seek_state::end:
-				return size();
-			case seek_state::position:
-				return m_nextPosition.offset();
-		}
-		throw exception("offset: Unreachable statement; m_seekState invalid");
-	}
-
-	stream_size_type size() const {
-		return m_size;
 	}
 
 	void truncate(stream_size_type offset) {
