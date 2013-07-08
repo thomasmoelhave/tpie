@@ -43,6 +43,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 class stream_position {
 private:
+	friend class compressed_stream_base;
 	template <typename T>
 	friend class compressed_stream;
 

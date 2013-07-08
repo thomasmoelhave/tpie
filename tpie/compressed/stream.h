@@ -78,6 +78,12 @@ protected:
 		, m_buffers(m_blockSize)
 		, m_streamBlocks(0)
 		, m_lastBlockReadOffset(0)
+		, m_seekState(seek_state::beginning)
+		, m_bufferState(buffer_state::write_only)
+		, m_position(stream_position(0, 0))
+		, m_nextPosition(stream_position(0, 0))
+		, m_nextReadOffset(0)
+		, m_nextBlockSize(0)
 	{
 	}
 
@@ -315,6 +321,40 @@ protected:
 
 	/** Response from compressor thread; protected by compressor thread mutex. */
 	compressor_response m_response;
+
+	seek_state::type m_seekState;
+
+	buffer_state::type m_bufferState;
+
+	/** Position relating to the currently loaded buffer.
+	 * Only valid during reading.
+	 * Invariants:
+	 *
+	 * block_number() in [0, m_streamBlocks]
+	 * offset in [0, size]
+	 * block_item_index() in [0, m_blockSize)
+	 * offset == block_number() * m_blockItems + block_item_index()
+	 *
+	 * If offset == 0, then read_offset == block_item_index() == block_number() == 0.
+	 * If block_number() != 0, then read_offset, offset != 0.
+	 * block_item_index() <= offset.
+	 *
+	 * If block_number() == m_streamBlocks, we are in a block that has not yet
+	 * been written to disk.
+	 */
+	stream_position m_position;
+
+	/** If seekState is `position`, seek to this position before reading/writing. */
+	stream_position m_nextPosition;
+
+	/** If nextBlockSize is zero,
+	 * the size of the block to read is the first eight bytes,
+	 * and the block begins after those eight bytes.
+	 * If nextBlockSize is non-zero,
+	 * the next block begins at the given offset and has the given size.
+	 */
+	stream_size_type m_nextReadOffset;
+	stream_size_type m_nextBlockSize;
 };
 
 namespace ami {
@@ -337,12 +377,10 @@ public:
 
 	compressed_stream(double blockFactor=1.0)
 		: compressed_stream_base(sizeof(T), blockFactor)
-		, m_seekState(seek_state::beginning)
-		, m_bufferState(buffer_state::write_only)
-		, m_position(stream_position(0, 0))
-		, m_nextPosition(stream_position(0, 0))
-		, m_nextReadOffset(0)
-		, m_nextBlockSize(0)
+		, m_bufferBegin(0)
+		, m_bufferEnd(0)
+		, m_nextItem(0)
+		, m_lastItem(0)
 	{
 	}
 
@@ -873,10 +911,6 @@ private:
 	}
 
 private:
-	seek_state::type m_seekState;
-
-	buffer_state::type m_bufferState;
-
 	/** Only when m_buffer.get() != 0: First item in writable buffer. */
 	T * m_bufferBegin;
 	/** Only when m_buffer.get() != 0: End of writable buffer. */
@@ -886,36 +920,6 @@ private:
 	T * m_nextItem;
 	/** Only used in read mode: End of readable buffer. */
 	T * m_lastItem;
-
-	/** Position relating to the currently loaded buffer.
-	 * Only valid during reading.
-	 * Invariants:
-	 *
-	 * block_number() in [0, m_streamBlocks]
-	 * offset in [0, size]
-	 * block_item_index() in [0, m_blockSize)
-	 * offset == block_number() * m_blockItems + block_item_index()
-	 *
-	 * If offset == 0, then read_offset == block_item_index() == block_number() == 0.
-	 * If block_number() != 0, then read_offset, offset != 0.
-	 * block_item_index() <= offset.
-	 *
-	 * If block_number() == m_streamBlocks, we are in a block that has not yet
-	 * been written to disk.
-	 */
-	stream_position m_position;
-
-	/** If seekState is `position`, seek to this position before reading/writing. */
-	stream_position m_nextPosition;
-
-	/** If nextBlockSize is zero,
-	 * the size of the block to read is the first eight bytes,
-	 * and the block begins after those eight bytes.
-	 * If nextBlockSize is non-zero,
-	 * the next block begins at the given offset and has the given size.
-	 */
-	stream_size_type m_nextReadOffset;
-	stream_size_type m_nextBlockSize;
 };
 
 } // namespace tpie
