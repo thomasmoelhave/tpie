@@ -392,6 +392,23 @@ bool reopen_test_2() {
 	return true;
 }
 
+bool seek_test() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	tpie::compressed_stream<size_t> s;
+	s.open(tf);
+	TEST_ASSERT(s.offset() == 0);
+	for (size_t i = 0; i < blockSize + 1; ++i) s.write(i);
+	TEST_ASSERT(s.offset() == blockSize + 1);
+	s.seek(0);
+	TEST_ASSERT(s.offset() == 0);
+	s.seek(0, tpie::file_stream_base::end);
+	TEST_ASSERT(s.offset() == blockSize + 1);
+	s.seek(0);
+	TEST_ASSERT(s.offset() == 0);
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
@@ -403,5 +420,6 @@ int main(int argc, char ** argv) {
 		.test(position_test_3, "position_3", "n", static_cast<size_t>(1 << 21))
 		.test(reopen_test, "reopen", "n", static_cast<size_t>(1 << 21))
 		.test(reopen_test_2, "reopen_2")
+		.test(seek_test, "seek")
 		;
 }
