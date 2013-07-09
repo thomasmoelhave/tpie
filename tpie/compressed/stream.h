@@ -197,8 +197,14 @@ protected:
 	/** Response from compressor thread; protected by compressor thread mutex. */
 	compressor_response m_response;
 
+	/** Whenever seekState is set to none,
+	 * bufferState must be set appropriately. */
 	seek_state::type m_seekState;
 
+	/** Whether m_buffer is read-only or write-only.
+	 * When seekState is not none, bufferState has nothing to do
+	 * with offset()/get_position()!
+	 */
 	buffer_state::type m_bufferState;
 
 	/** Position relating to the currently loaded buffer.
