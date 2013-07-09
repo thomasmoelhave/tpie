@@ -83,6 +83,9 @@ public:
 	{
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	buffer_t get_buffer(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		if (m_buffers.size() >= MAX_BUFFERS) {
 			// First, search for the buffer in the map.

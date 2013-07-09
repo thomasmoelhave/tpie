@@ -128,8 +128,22 @@ public:
 protected:
 	void finish_requests(compressor_thread_lock & l);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Blocks to take the compressor lock.
+	///
+	/// TODO: Should probably investigate when this reports a useful value.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	stream_size_type last_block_read_offset(compressor_thread_lock & l);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Blocks to take the compressor lock.
+	///
+	/// TODO: Should probably investigate when this reports a useful value.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	stream_size_type current_file_size(compressor_thread_lock & l);
 
 public:
@@ -204,6 +218,8 @@ protected:
 	/** Whether m_buffer is read-only or write-only.
 	 * When seekState is not none, bufferState has nothing to do
 	 * with offset()/get_position()!
+	 * After reading the final item of the stream, bufferState will remain
+	 * read-only, but can_read() == false and write() succeeds.
 	 */
 	buffer_state::type m_bufferState;
 
@@ -242,6 +258,18 @@ namespace ami {
 	template <typename T> class cstream;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Compressed stream.
+///
+/// Exception safety for each method is documented as either
+/// `basic` (no leaks; invariants upheld),
+/// `strong` (transaction semantics), or
+/// `nothrow` (no exception thrown).
+///
+/// As a rule of thumb, when a `tpie::stream_exception` is thrown from a method,
+/// the stream is left in the state it was in prior to the method call.
+/// When a `tpie::exception` is thrown, the stream may have changed.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class compressed_stream : public compressed_stream_base {
 	using compressed_stream_base::seek_state;
@@ -251,6 +279,7 @@ class compressed_stream : public compressed_stream_base {
 
 	static const file_stream_base::offset_type beginning = file_stream_base::beginning;
 	static const file_stream_base::offset_type end = file_stream_base::end;
+	static const file_stream_base::offset_type current = file_stream_base::current;
 
 public:
 	typedef T item_type;
@@ -274,6 +303,11 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  For debugging: Describe the internal stream state in a string.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	void describe(std::ostream & out) {
 		if (!this->is_open()) {
 			out << "[Closed stream]";
@@ -329,6 +363,11 @@ public:
 		out << ']';
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  For debugging: Describe the internal stream state in a string.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	std::string describe() {
 		std::stringstream ss;
 		describe(ss);
@@ -339,9 +378,16 @@ public:
 		seek(0);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Precondition: is_open()
+	/// Precondition: offset == 0
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	void seek(stream_offset_type offset, offset_type whence=beginning) {
-		assert(this->is_open());
-		if (whence == beginning && offset == 0) {
+		if (!is_open()) throw stream_exception("seek: !is_open");
+		if (offset != 0) throw stream_exception("Random seeks are not supported");
+		switch (whence) {
+		case beginning:
 			if (m_buffer.get() != 0 && buffer_block_number() == 0) {
 				// We are already reading or writing the first block.
 				m_lastItem = m_nextItem;
@@ -353,7 +399,8 @@ public:
 				// We need to load the first block on the next I/O.
 				m_seekState = seek_state::beginning;
 			}
-		} else if (whence == end && offset == 0) {
+			return;
+		case end:
 			if (m_buffer.get() == 0) {
 				m_seekState = seek_state::end;
 			} else if (m_bufferState == buffer_state::write_only) {
@@ -370,11 +417,18 @@ public:
 					m_seekState = seek_state::end;
 				}
 			}
-		} else {
-			throw stream_exception("Random seeks are not supported");
+			return;
+		case current:
+			return;
 		}
+		throw stream_exception("seek: Unknown whence");
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Precondition: offset is size() or 0.
+	/// Blocks to take the compressor lock.
+	/// Exception guarantee: TODO
+	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
 		if (offset == size()) return;
 		if (offset != 0)
@@ -390,6 +444,13 @@ public:
 	}
 
 public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Blocks to take the compressor lock.
+	/// Exception guarantee:
+	/// If seekState is position or beginning, nothrow.
+	/// If bufferState is read-only, nothrow.
+	/// TODO
+	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
 		switch (m_seekState) {
 			case seek_state::position:
@@ -431,12 +492,16 @@ public:
 		return stream_position(readOffset, size());
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	void set_position(const stream_position & pos) {
 		// If the code is correct, short circuiting is not necessary;
 		// if the code is not correct, short circuiting might mask faults.
 		/*
 		if (pos == m_position) {
 			m_seekState = seek_state::none;
+			m_bufferState = something?
 			return;
 		}
 		*/
@@ -461,6 +526,7 @@ public:
 				m_bufferState = buffer_state::read_only;
 			}
 			m_nextItem = m_bufferBegin + block_item_index();
+			m_seekState = seek_state::none;
 			return;
 		}
 
@@ -469,6 +535,7 @@ public:
 		/*
 		if (pos.read_offset() == 0 && pos.offset() == 0) {
 			m_seekState = seek_state::beginning;
+			m_bufferState = something?
 			return;
 		}
 		*/
@@ -478,12 +545,17 @@ public:
 	}
 
 private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Blocks to take the compressor lock.
+	/// Precondition: can_read()
+	/// Exception guarantee: TODO
+	///////////////////////////////////////////////////////////////////////////
 	const T & read_ref() {
-		if (!can_read()) throw stream_exception("!can_read()");
+		if (!can_read()) throw stream_exception("read: !can_read()");
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_nextItem == m_lastItem) {
 			if (m_nextItem != m_bufferEnd)
-				throw exception("read(): end of block, can_read(), but block is not full");
+				throw exception("read: end of block, can_read(), but block is not full");
 			compressor_thread_lock l(compressor());
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
@@ -502,6 +574,11 @@ public:
 		return read_ref();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Precondition: is_open().
+	///
+	/// Exception guarantee: basic.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void read(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) *i = read();
@@ -519,6 +596,13 @@ public:
 		return offset() < size();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Precondition: is_open() && !can_read().
+	///
+	/// Exception guarantee:
+	/// nothrow if seekState == none.
+	/// basic otherwise.
+	///////////////////////////////////////////////////////////////////////////
 	void write(const T & item) {
 		if (m_seekState != seek_state::none) perform_seek();
 
@@ -540,12 +624,29 @@ public:
 		m_position.advance_item();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Precondition: is_open() && !can_read().
+	///
+	/// Exception guarantee: basic.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void write(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) write(*i);
 	}
 
-protected:
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// Blocks to take the compressor lock.
+	///
+	/// Precondition: seekState != none
+	///
+	/// Sets seekState to none.
+	///
+	/// Exception guarantee:
+	/// seekState == beginning: nothrow (see TODO below)
+	/// seekState == position: strong (closes the file)
+	/// seekState == end: nothrow (see TODO below)
+	///////////////////////////////////////////////////////////////////////////
 	void perform_seek() {
 		if (m_seekState == seek_state::none)
 			throw exception("perform_seek when seekState is none");
@@ -573,6 +674,7 @@ protected:
 		}
 
 		if (m_seekState == seek_state::beginning) {
+			// TODO can this fail with end_of_stream_exception?
 			m_nextReadOffset = 0;
 			read_next_block(l, 0);
 			m_bufferState = buffer_state::read_only;
@@ -582,17 +684,30 @@ protected:
 			m_nextBlockSize = 0;
 			stream_size_type blockNumber = block_number(m_nextPosition);
 			memory_size_type blockItemIndex = block_item_index(m_nextPosition);
+
+			// This cannot happen in practice due to the implementation of
+			// block_number and block_item_index, but it is an important
+			// assumption in the following code.
 			if (blockItemIndex >= m_blockItems)
 				throw exception("perform_seek: Computed block item index >= blockItems");
 
 			// We have previously ensured we will end up in a read-only state,
 			// so this method will not throw an end_of_stream_exception().
-			read_next_block(l, blockNumber);
+			try {
+				read_next_block(l, blockNumber);
+			} catch (end_of_stream_exception &) {
+				close();
+				throw stream_exception("perform_seek: Seek to invalid position (got end_of_stream)");
+			} catch (...) {
+				close();
+				throw;
+			}
 
 			memory_size_type blockItems = m_lastItem - m_bufferBegin;
 
 			if (blockItemIndex > blockItems) {
-				throw exception("perform_seek: Item offset out of bounds");
+				close();
+				throw stream_exception("perform_seek: Item offset out of bounds");
 			} else if (blockItemIndex == blockItems) {
 				// We cannot end up at the end of the stream,
 				// so this block must be non-full.
@@ -616,8 +731,12 @@ protected:
 				m_position = stream_position(1111111111111111111ull, size());
 			} else {
 				// The last block in the stream is non-full.
-				if (m_streamBlocks == 0)
+				if (m_streamBlocks == 0) {
+					// TODO: I don't think this can happen in practice,
+					// since we short-circuit seek(end) when streamBlocks == 0.
+					close();
 					throw exception("Attempted seek to end when no blocks have been written");
+				}
 				stream_size_type readOffset = last_block_read_offset(l);
 				m_nextReadOffset = readOffset;
 				m_nextBlockSize = 0;
@@ -639,7 +758,12 @@ protected:
 			throw exception("get_position() was changed by perform_seek().");
 	}
 
-private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Gets buffer for given block and sets bufferBegin and bufferEnd,
+	/// and sets bufferDirty to false.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber) {
 		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
 		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
@@ -647,7 +771,15 @@ private:
 		this->m_bufferDirty = false;
 	}
 
-public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Blocks to take the compressor lock.
+	///
+	/// Precondition: m_bufferDirty == true.
+	///
+	/// Sets bufferDirty to false and gets the buffer for the next block.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_block() override {
 		compressor_thread_lock lock(compressor());
 
@@ -683,7 +815,14 @@ public:
 		m_bufferDirty = false;
 	}
 
-private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Reads next block according to nextReadOffset/nextBlockSize.
+	///
+	/// Throws end_of_stream_exception on end of stream.
+	/// Updates m_position with the new read offset.
+	///
+	/// Exception guarantee: nothrow
+	///////////////////////////////////////////////////////////////////////////
 	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		get_buffer(lock, blockNumber);
 

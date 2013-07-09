@@ -201,6 +201,8 @@ stream_size_type compressed_stream_base::last_block_read_offset(compressor_threa
 		return 0;
 	if (m_lastBlockReadOffset != std::numeric_limits<stream_size_type>::max())
 		return m_lastBlockReadOffset;
+	// We assume that streamBlocks is monotonically increasing over time;
+	// the response object might throw otherwise.
 	while (!m_response.has_block_info(m_streamBlocks - 1))
 		m_response.wait(l);
 	return m_response.get_read_offset(m_streamBlocks - 1)
@@ -210,6 +212,8 @@ stream_size_type compressed_stream_base::last_block_read_offset(compressor_threa
 stream_size_type compressed_stream_base::current_file_size(compressor_thread_lock & l) {
 	if (m_streamBlocks == 0)
 		return 0;
+	// We assume that streamBlocks is monotonically increasing over time;
+	// the response object might throw otherwise.
 	while (!m_response.has_block_info(m_streamBlocks - 1))
 		m_response.wait(l);
 	return m_response.get_read_offset(m_streamBlocks - 1)
