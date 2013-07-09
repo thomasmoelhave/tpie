@@ -687,6 +687,8 @@ public:
 
 		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 
+		if (m_nextItem == NULL) throw exception("m_nextItem is NULL");
+		if (m_bufferBegin == NULL) throw exception("m_bufferBegin is NULL");
 		memory_size_type blockItems = m_nextItem - m_bufferBegin;
 		m_buffer->set_size(blockItems * sizeof(T));
 		compressor_request r;
