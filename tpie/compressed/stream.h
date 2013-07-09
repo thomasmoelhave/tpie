@@ -260,7 +260,12 @@ public:
 	}
 
 	~compressed_stream() {
-		close();
+		try {
+			close();
+		} catch (std::exception & e) {
+			log_error() << "Someone threw an error in compressed_stream::~compressed_stream: " << e.what() << std::endl;
+			throw;
+		}
 	}
 
 	void describe(std::ostream & out) {
