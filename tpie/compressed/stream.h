@@ -510,32 +510,13 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Check if the next call to read() will succeed or not.
 	///
-	/// Might perform an I/O only if set_position has just been used to go to a
-	/// different block.
+	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read() {
 		if (!this->m_open)
 			return false;
 
-		if (m_seekState == seek_state::beginning)
-			return size() > 0;
-
-		if (m_seekState == seek_state::end)
-			return false;
-
-		if (m_seekState != seek_state::none)
-			perform_seek();
-
-		if (m_bufferState != buffer_state::read_only)
-			return false;
-
-		if (m_nextItem != m_lastItem)
-			return true;
-
-		if (m_nextBlockSize != 0)
-			return true;
-
-		return false;
+		return offset() < size();
 	}
 
 	void write(const T & item) {
