@@ -341,20 +341,19 @@ public:
 				m_lastItem = m_nextItem;
 				m_nextItem = m_bufferBegin;
 				m_position = stream_position(0, 0);
+				m_bufferState = (size() > 0) ? buffer_state::read_only : buffer_state::write_only;
+				m_seekState = seek_state::none;
 			} else {
 				// We need to load the first block on the next I/O.
 				m_seekState = seek_state::beginning;
 			}
-			if (size() > 0)
-				m_bufferState = buffer_state::read_only;
-			else
-				m_bufferState = buffer_state::write_only;
 		} else if (whence == end && offset == 0) {
 			if (m_buffer.get() == 0) {
 				m_seekState = seek_state::end;
 			} else if (m_bufferState == buffer_state::write_only) {
 				// no-op
 				m_seekState = seek_state::none;
+				m_bufferState = buffer_state::write_only;
 			} else {
 				log_debug() << "Block number " << block_number()
 					<< ", stream blocks " << m_streamBlocks << std::endl;
@@ -365,7 +364,6 @@ public:
 					m_seekState = seek_state::end;
 				}
 			}
-			m_bufferState = buffer_state::write_only;
 		} else {
 			throw stream_exception("Random seeks are not supported");
 		}
@@ -408,14 +406,9 @@ public:
 				// (since we do not support overwriting).
 				break;
 			case seek_state::end:
-				if (m_bufferState == buffer_state::read_only)
-					throw exception("get_position: seek state is end, but buffer state is read-only");
 				// Figure out the size of the file below.
 				break;
 		}
-
-		if (m_bufferState == buffer_state::read_only)
-			throw exception("get_position: did not expect buffer state == read only");
 
 		if (m_nextItem == m_bufferEnd && m_bufferDirty) {
 			// Make sure the position we get is not at the end of a block
