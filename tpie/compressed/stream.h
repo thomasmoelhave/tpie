@@ -837,7 +837,7 @@ private:
 							&m_response);
 		compressor().request(r);
 		get_buffer(lock, m_streamBlocks);
-		m_bufferDirty = false;
+		// get_buffer sets bufferDirty to false.
 	}
 
 	///////////////////////////////////////////////////////////////////////////
