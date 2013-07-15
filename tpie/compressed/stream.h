@@ -257,6 +257,36 @@ protected:
 	stream_size_type m_nextBlockSize;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Implementation helper that closes the stream if a method exits
+/// by throwing an exception.
+///
+/// At every proper exit point from the method, commit() must be called.
+/// If the method exits without committing, close() is called.
+/// Care should be taken to ensure that the compressor lock is not held when
+/// this object is destructed!
+///////////////////////////////////////////////////////////////////////////////
+class close_on_fail_guard {
+public:
+	close_on_fail_guard(compressed_stream_base * s)
+		: m_committed(false)
+		, m_stream(s)
+	{
+	}
+
+	~close_on_fail_guard() {
+		if (!m_committed) m_stream->close();
+	}
+
+	void commit() {
+		m_committed = true;
+	}
+
+private:
+	bool m_committed;
+	compressed_stream_base * m_stream;
+};
+
 namespace ami {
 	template <typename T> class cstream;
 }
@@ -685,12 +715,18 @@ private:
 	///
 	/// Sets seekState to none.
 	///
+	/// If anything fails, the stream is closed by a close_on_fail_guard.
+	///
 	/// Exception guarantee:
-	/// seekState == beginning: nothrow (see TODO below)
+	/// seekState == beginning: nothrow
 	/// seekState == position: strong (closes the file)
 	/// seekState == end: nothrow (see TODO below)
 	///////////////////////////////////////////////////////////////////////////
 	void perform_seek() {
+		// This must be initialized before the compressor lock below,
+		// so that it is destructed after we free the lock.
+		close_on_fail_guard closeOnFail(this);
+
 		if (m_seekState == seek_state::none)
 			throw exception("perform_seek when seekState is none");
 
@@ -705,6 +741,7 @@ private:
 		compressor_thread_lock l(compressor());
 		finish_requests(l);
 
+		// Ensure that seek state beginning will take us to a read-only state
 		if (m_seekState == seek_state::beginning && size() == 0) {
 			m_seekState = seek_state::end;
 		}
@@ -717,7 +754,12 @@ private:
 		}
 
 		if (m_seekState == seek_state::beginning) {
-			// TODO can this fail with end_of_stream_exception?
+			// The (seek beginning && size() == 0) case is handled
+			// by changing seekState to end.
+			// Thus, we know for sure that size() != 0, and so the
+			// read_next_block will not yield an end_of_stream_exception.
+			if (size() == 0)
+				throw exception("Seek beginning when size is zero");
 			m_nextReadOffset = 0;
 			read_next_block(l, 0);
 			m_bufferState = buffer_state::read_only;
@@ -739,17 +781,12 @@ private:
 			try {
 				read_next_block(l, blockNumber);
 			} catch (end_of_stream_exception &) {
-				close();
 				throw stream_exception("perform_seek: Seek to invalid position (got end_of_stream)");
-			} catch (...) {
-				close();
-				throw;
 			}
 
 			memory_size_type blockItems = m_lastItem - m_bufferBegin;
 
 			if (blockItemIndex > blockItems) {
-				close();
 				throw stream_exception("perform_seek: Item offset out of bounds");
 			} else if (blockItemIndex == blockItems) {
 				// We cannot end up at the end of the stream,
@@ -777,7 +814,6 @@ private:
 				if (m_streamBlocks == 0) {
 					// TODO: I don't think this can happen in practice,
 					// since we short-circuit seek(end) when streamBlocks == 0.
-					close();
 					throw exception("Attempted seek to end when no blocks have been written");
 				}
 				stream_size_type readOffset = last_block_read_offset(l);
@@ -799,6 +835,8 @@ private:
 		// For debugging: Verify get_position()
 		if (claimedPosition != get_position())
 			throw exception("get_position() was changed by perform_seek().");
+
+		closeOnFail.commit();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
