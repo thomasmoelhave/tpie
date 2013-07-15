@@ -576,12 +576,16 @@ public:
 
 private:
 	///////////////////////////////////////////////////////////////////////////
+	/// Reads next item from stream if can_read() == true.
+	///
+	/// If can_read() == false, throws an end_of_stream_exception.
+	///
 	/// Blocks to take the compressor lock.
-	/// Precondition: can_read()
-	/// Exception guarantee: TODO
+	///
+	/// Exception guarantee: strong
 	///////////////////////////////////////////////////////////////////////////
 	const T & read_ref() {
-		if (!can_read()) throw stream_exception("read: !can_read()");
+		if (!can_read()) throw end_of_stream_exception();
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_nextItem == m_lastItem) {
 			if (m_nextItem != m_bufferEnd)
@@ -600,6 +604,10 @@ private:
 	}
 
 public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief read_ref()
+	/// \copydetails read_ref()
+	///////////////////////////////////////////////////////////////////////////
 	T read() {
 		return read_ref();
 	}
