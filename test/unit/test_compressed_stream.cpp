@@ -435,6 +435,21 @@ bool truncate_test() {
 	return true;
 }
 
+bool position_test_5() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	tpie::compressed_stream<size_t> s;
+	s.open(tf);
+	for (size_t i = 0; i < 2*blockSize; ++i) s.write(i);
+	tpie::stream_position pos1 = s.get_position();
+	s.seek(0);
+	s.read();
+	s.seek(0, tpie::file_stream_base::end);
+	tpie::stream_position pos2 = s.get_position();
+	TEST_ASSERT(pos1 == pos2);
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
@@ -449,5 +464,6 @@ int main(int argc, char ** argv) {
 		.test(seek_test, "seek")
 		.test(position_test_4, "position_4")
 		.test(truncate_test, "truncate")
+		.test(position_test_5, "position_5")
 		;
 }
