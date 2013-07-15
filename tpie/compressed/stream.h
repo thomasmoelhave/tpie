@@ -471,10 +471,7 @@ public:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Blocks to take the compressor lock.
-	/// Exception guarantee:
-	/// If seekState is position or beginning, nothrow.
-	/// If bufferState is read-only, nothrow.
-	/// TODO
+	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
 		switch (m_seekState) {
