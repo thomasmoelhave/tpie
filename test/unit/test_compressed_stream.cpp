@@ -423,6 +423,18 @@ bool position_test_4() {
 	return true;
 }
 
+bool truncate_test() {
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf);
+	s.write(0);
+	s.truncate(0);
+	TEST_ASSERT(s.offset() == 0);
+	TEST_ASSERT(s.size() == 0);
+	TEST_ASSERT(!s.can_read());
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
@@ -436,5 +448,6 @@ int main(int argc, char ** argv) {
 		.test(reopen_test_2, "reopen_2")
 		.test(seek_test, "seek")
 		.test(position_test_4, "position_4")
+		.test(truncate_test, "truncate")
 		;
 }
