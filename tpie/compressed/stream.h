@@ -456,8 +456,16 @@ public:
 		compressor_thread_lock l(compressor());
 		finish_requests(l);
 		get_buffer(l, 0);
+		m_size = 0;
+		m_streamBlocks = 0;
+		m_bufferState = buffer_state::write_only;
 		m_byteStreamAccessor.truncate(0);
+
+		// Since block_number == 0, seek(0) should short circuit
+		// and not do any I/O.
 		seek(0);
+		if (m_seekState != seek_state::none)
+			throw exception("Unexpected seek state in truncate");
 	}
 
 public:
