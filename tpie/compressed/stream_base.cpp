@@ -172,13 +172,15 @@ void compressed_stream_base::close() {
 		compressor_thread_lock l(compressor());
 		finish_requests(l);
 
-		compressed_stream_header hd;
-		hd.streamBlocks = m_streamBlocks;
-		hd.lastBlockReadOffset = last_block_read_offset(l);
-		m_byteStreamAccessor.write_user_data(reinterpret_cast<void*>(&hd),
-											 sizeof(compressed_stream_header));
+		if (is_writable()) {
+			compressed_stream_header hd;
+			hd.streamBlocks = m_streamBlocks;
+			hd.lastBlockReadOffset = last_block_read_offset(l);
+			m_byteStreamAccessor.write_user_data(reinterpret_cast<void*>(&hd),
+												 sizeof(compressed_stream_header));
 
-		m_byteStreamAccessor.set_size(m_size);
+			m_byteStreamAccessor.set_size(m_size);
+		}
 		m_byteStreamAccessor.close();
 	}
 	m_open = false;
