@@ -492,6 +492,15 @@ public:
 						return stream_position(readOffset, offset());
 					}
 					return m_position;
+				} else {
+					// write-only
+					if (m_nextItem == m_bufferEnd) {
+						if (!m_bufferDirty)
+							throw exception("Write-only at end of buffer, but bufferDirty is false?");
+						// Make sure the position we get is not at the end of a block
+						flush_block();
+						m_nextItem = m_bufferBegin;
+					}
 				}
 				// Else, our buffer is write-only, and we are not seeking,
 				// meaning the write head is at the end of the stream
@@ -500,12 +509,6 @@ public:
 			case seek_state::end:
 				// Figure out the size of the file below.
 				break;
-		}
-
-		if (m_nextItem == m_bufferEnd && m_bufferDirty) {
-			// Make sure the position we get is not at the end of a block
-			flush_block();
-			m_nextItem = m_bufferBegin;
 		}
 
 		stream_size_type readOffset;
