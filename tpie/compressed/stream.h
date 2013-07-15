@@ -615,6 +615,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Precondition: is_open().
 	///
+	/// Reads min(b-a, size()-offset()) items into the range [a, b).
+	/// If less than b-a items are read, throws an end_of_stream_exception.
+	///
 	/// Exception guarantee: basic.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
