@@ -513,7 +513,9 @@ public:
 
 		stream_size_type readOffset;
 		compressor_thread_lock l(compressor());
-		if (block_number() == m_streamBlocks)
+		if (size() % m_blockItems == 0)
+			readOffset = current_file_size(l);
+		else if (block_number() == m_streamBlocks)
 			readOffset = current_file_size(l);
 		else
 			readOffset = last_block_read_offset(l);
