@@ -264,6 +264,9 @@ namespace ami {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Compressed stream.
 ///
+/// We assume that `T` is trivially copyable and that its copy constructor
+/// and assignment operator never throws.
+///
 /// Exception safety for each method is documented as either
 /// `basic` (no leaks; invariants upheld),
 /// `strong` (transaction semantics), or
@@ -272,6 +275,17 @@ namespace ami {
 /// As a rule of thumb, when a `tpie::stream_exception` is thrown from a method,
 /// the stream is left in the state it was in prior to the method call.
 /// When a `tpie::exception` is thrown, the stream may have changed.
+/// In particular, the stream may have been closed, and it is up to the caller
+/// (if the exception is caught) to ensure that the stream is reopened as
+/// necessary.
+///
+/// Several methods claim the `nothrow` guarantee even though the
+/// implementation has `throw` statements.
+/// In this case, there are two reasons an exception may be thrown:
+/// A `tpie::exception` is thrown if some invariant in the stream has been
+/// violated, and this is a bug we must fix in the compressed stream.
+/// A `tpie::stream_exception` is thrown if the user has violated a
+/// precondition (for instance by passing an invalid parameter).
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class compressed_stream : public compressed_stream_base {
