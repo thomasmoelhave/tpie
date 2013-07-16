@@ -504,6 +504,7 @@ public:
 	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
+		if (!is_open()) throw stream_exception("get_position: !is_open");
 		switch (m_seekState) {
 			case seek_state::position:
 				// We just set_position, so we can just return what we got.
