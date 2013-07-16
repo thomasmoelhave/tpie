@@ -185,7 +185,7 @@ bool internal_report_after_resize_test() {
 }
 
 bool one_run_external_report_test() {
-	return sort_test(100,7,7,7);
+	return sort_test(100,11,11,7);
 }
 
 bool external_report_test() {
@@ -193,7 +193,7 @@ bool external_report_test() {
 }
 
 bool small_final_fanout_test(double mb) {
-	return sort_test(3,10,7,mb);
+	return sort_test(7,20,11,mb);
 }
 
 bool evacuate_before_merge_test() {
@@ -210,7 +210,7 @@ int main(int argc, char ** argv) {
 		.test(internal_report_after_resize_test, "internal_report_after_resize")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
-		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.5)
+		.test(small_final_fanout_test, "small_final_fanout", "mb", 4.5)
 		.test(evacuate_before_merge_test, "evacuate_before_merge")
 		.test(evacuate_before_report_test, "evacuate_before_report")
 		.test(sort_upper_bound_test, "sort_upper_bound")
