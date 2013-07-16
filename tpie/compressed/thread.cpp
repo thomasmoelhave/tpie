@@ -194,7 +194,7 @@ compressor_thread & the_compressor_thread() {
 }
 
 void init_compressor() {
-	if (the_compressor_thread_handle != boost::thread()) {
+	if (the_compressor_thread_handle.get_id() != boost::thread::id()) {
 		log_debug() << "Attempted to initiate compressor thread twice" << std::endl;
 		return;
 	}
@@ -204,7 +204,7 @@ void init_compressor() {
 }
 
 void finish_compressor() {
-	if (the_compressor_thread_handle == boost::thread()) {
+	if (the_compressor_thread_handle.get_id() == boost::thread::id()) {
 		if (compressor_thread_already_finished) {
 			log_debug() << "Compressor thread already finished" << std::endl;
 		} else {
