@@ -29,163 +29,31 @@
 
 namespace tpie {
 
+namespace bits {
+
 class run_positions {
 public:
-	run_positions()
-		: m_open(false)
-	{
-	}
+	run_positions();
 
-	~run_positions() {
-		close();
-	}
+	~run_positions();
 
-	static memory_size_type memory_usage() {
-		return sizeof(run_positions)
-			+ 2 * compressed_stream<stream_position>::memory_usage();
-	}
+	static memory_size_type memory_usage();
 
-	void open() {
-		m_positions[0].open(m_positionsFile[0]);
-		m_positions[1].open(m_positionsFile[1]);
-		m_runs[0] = m_runs[1] = 0;
-		m_levels = 1;
-		m_open = true;
-		m_final = m_evacuated = false;
-		m_finalExtraSet = false;
-		m_finalExtra = stream_position();
-		m_finalPositions.resize(0);
-	}
+	void open();
 
-	void close() {
-		if (m_open) {
-			m_positions[0].close();
-			m_positions[1].close();
-			m_open = m_final = m_evacuated = false;
-			m_finalExtraSet = false;
-			m_finalExtra = stream_position();
-			m_finalPositions.resize(0);
-		}
-	}
+	void close();
 
-	void evacuate() {
-		if (m_evacuated) return;
-		m_evacuated = true;
-		if (m_final) {
-			log_debug() << "run_positions::evacuate while final" << std::endl;
-			m_positionsFile[0].free();
-			m_positions[0].open(m_positionsFile[0]);
-			m_positions[0].write(m_finalPositions.begin(), m_finalPositions.end());
-			m_finalPositions.resize(0);
-			m_positions[0].close();
-		} else {
-			log_debug() << "run_positions::evacuate while not final" << std::endl;
-			m_positionsPosition[0] = m_positions[0].get_position();
-			m_positionsPosition[1] = m_positions[1].get_position();
-			m_positions[0].close();
-			m_positions[1].close();
-		}
-	}
+	void evacuate();
 
-	void unevacuate() {
-		if (!m_evacuated) return;
-		m_evacuated = false;
-		if (m_final) {
-			log_debug() << "run_positions::unevacuate while final" << std::endl;
-			m_positions[0].open(m_positionsFile[0]);
-			m_finalPositions.resize(m_positions[0].size());
-			m_positions[0].read(m_finalPositions.begin(), m_finalPositions.end());
-			m_positions[0].close();
-		} else {
-			log_debug() << "run_positions::unevacuate while not final" << std::endl;
-			m_positions[0].open(m_positionsFile[0]);
-			m_positions[1].open(m_positionsFile[1]);
-			m_positions[0].set_position(m_positionsPosition[0]);
-			m_positions[1].set_position(m_positionsPosition[1]);
-		}
-	}
+	void unevacuate();
 
-	void next_level() {
-		if (m_final)
-			throw exception("next_level: m_final == true");
-		if (m_evacuated)
-			throw exception("next_level: m_evacuated == true");
-		if (!m_open)
-			throw exception("next_level: m_open == false");
-		m_positions[m_levels % 2].truncate(0);
-		++m_levels;
-		m_positions[m_levels % 2].seek(0);
+	void next_level();
 
-		m_runs[0] = m_runs[1] = 0;
-	}
+	void final_level(memory_size_type fanout);
 
-	void final_level(memory_size_type fanout) {
-		if (m_final)
-			throw exception("final_level: m_final == true");
-		if (m_evacuated)
-			throw exception("final_level: m_evacuated == true");
-		if (!m_open)
-			throw exception("final_level: m_open == false");
+	void set_position(memory_size_type mergeLevel, memory_size_type runNumber, stream_position pos);
 
-		m_final = true;
-		if (fanout > m_positions[0].size() - m_positions[0].offset()) {
-			log_debug() << "Decrease final level fanout from " << fanout << " to ";
-			fanout = m_positions[0].size() - m_positions[0].offset();
-			log_debug() << fanout << std::endl;
-		}
-		m_finalPositions.resize(fanout);
-		m_positions[0].read(m_finalPositions.begin(), m_finalPositions.end());
-		m_positions[0].close();
-		m_positions[1].close();
-	}
-
-	void set_position(memory_size_type mergeLevel, memory_size_type runNumber, stream_position pos) {
-		if (!m_open) open();
-
-		if (mergeLevel+1 != m_levels) {
-			throw exception("set_position: incorrect mergeLevel");
-		}
-		if (m_final) {
-			log_debug() << "run_positions set_position setting m_finalExtra" << std::endl;
-			m_finalExtra = pos;
-			m_finalExtraSet = true;
-			return;
-		}
-		compressed_stream<stream_position> & s = m_positions[mergeLevel % 2];
-		memory_size_type & expectedRunNumber = m_runs[mergeLevel % 2];
-		if (runNumber != expectedRunNumber) {
-			throw exception("set_position: Wrong run number");
-		}
-		++expectedRunNumber;
-		s.write(pos);
-	}
-
-	stream_position get_position(memory_size_type mergeLevel, memory_size_type runNumber) {
-		if (!m_open) throw exception("get_position: !open");
-
-		if (m_final && mergeLevel+1 == m_levels) {
-			log_debug() << "run_positions get_position returning m_finalExtra" << std::endl;
-			if (!m_finalExtraSet)
-				throw exception("get_position: m_finalExtra uninitialized");
-			return m_finalExtra;
-		}
-
-		if (mergeLevel+2 != m_levels) {
-			throw exception("get_position: incorrect mergeLevel");
-		}
-		if (m_final) {
-			return m_finalPositions[runNumber];
-		}
-		compressed_stream<stream_position> & s = m_positions[mergeLevel % 2];
-		memory_size_type & expectedRunNumber = m_runs[mergeLevel % 2];
-		if (runNumber != expectedRunNumber) {
-			throw exception("get_position: Wrong run number");
-		}
-		++expectedRunNumber;
-		if (!s.can_read())
-			throw exception("get_position: !can_read");
-		return s.read();
-	}
+	stream_position get_position(memory_size_type mergeLevel, memory_size_type runNumber);
 
 private:
 	bool m_open;
@@ -200,6 +68,8 @@ private:
 	bool m_finalExtraSet;
 	stream_position m_finalExtra;
 };
+
+} // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Merge sorting consists of three phases.
@@ -597,7 +467,7 @@ public:
 
 	static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
 		return params.runLength * sizeof(T)
-			+ run_positions::memory_usage()
+			+ bits::run_positions::memory_usage()
 			+ compressed_stream<T>::memory_usage()
 			+ 2*params.fanout*sizeof(temp_file);
 	}
@@ -689,12 +559,12 @@ private:
 		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 
 		log_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-		memory_size_type min_m1 = sizeof(T) + run_positions::memory_usage() + streamMemory + tempFileMemory;
+		memory_size_type min_m1 = sizeof(T) + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
 		if (p.memoryPhase1 < min_m1) {
 			log_warning() << "Not enough phase 1 memory for an item and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
 			p.memoryPhase1 = min_m1;
 		}
-		p.runLength = (p.memoryPhase1 - run_positions::memory_usage() - streamMemory - tempFileMemory)/sizeof(T);
+		p.runLength = (p.memoryPhase1 - bits::run_positions::memory_usage() - streamMemory - tempFileMemory)/sizeof(T);
 
 		p.internalReportThreshold = (std::min(p.memoryPhase1,
 											  std::min(p.memoryPhase2,
@@ -752,7 +622,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type fanout_memory_usage(memory_size_type fanout) {
 		return merger<T, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
-			+ run_positions::memory_usage()
+			+ bits::run_positions::memory_usage()
 			+ compressed_stream<T>::memory_usage() // output stream
 			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
 	}
@@ -841,7 +711,7 @@ private:
 
 	array<temp_file> m_runFiles;
 
-	run_positions m_runPositions;
+	bits::run_positions m_runPositions;
 
 	// number of runs already written to disk.
 	stream_size_type m_finishedRuns;

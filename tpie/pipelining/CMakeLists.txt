@@ -34,6 +34,7 @@ set (PIPE_HEADERS
 
 set (PIPE_SOURCES
 	graph.cpp
+	merge_sorter.cpp
 	pipeline.cpp
 	tokens.cpp
 	)
