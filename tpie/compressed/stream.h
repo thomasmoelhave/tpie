@@ -850,6 +850,7 @@ private:
 	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber) {
+		buffer_t().swap(m_buffer);
 		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
 		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
 		m_bufferEnd = m_bufferBegin + block_items();
