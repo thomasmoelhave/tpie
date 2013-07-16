@@ -564,6 +564,9 @@ public:
 		}
 		*/
 
+		if (pos.offset() > size())
+			throw stream_exception("set_position: Invalid position, offset > size");
+
 		if (m_buffer.get() != 0
 			&& block_number(pos) == buffer_block_number())
 		{
