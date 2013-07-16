@@ -97,6 +97,7 @@ set (HEADERS
 
 set (SOURCES
 	backtrace.cpp
+	compressed/buffer.cpp
 	compressed/request.cpp
 	compressed/stream_base.cpp
 	compressed/thread.cpp
