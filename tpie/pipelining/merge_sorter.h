@@ -31,41 +31,102 @@ namespace tpie {
 
 namespace bits {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Class to maintain the positions where sorted runs start.
+///
+/// The run_positions object has the following states:
+/// * closed
+/// * open
+/// * open, evacuated
+/// * open, final
+/// * open, evacuated, final
+///
+/// When open and not evacuated, the memory usage is two stream blocks
+/// (as reported by memory_usage()).
+/// When evacuated, the memory usage is nothing.
+///
+/// The object remembers the merge tree depth `d`.
+/// Initially, d = 1, and only set_position may be called with mergeLevel = 0
+/// and runNumbers always increasing by one.
+/// When next_level is called, d increases to 2, and now set_position may be
+/// called with mergeLevel = 1, and get_position may be called with
+/// mergeLevel = 0, runNumber ranging from 0 and upwards in each case.
+/// When final_level is called, the restriction on the runNumber order is
+/// lifted, but set_position may only be called with mergeLevel = d-1 and
+/// runNumber = 0. get_position may be called with mergeLevel = d-2 and any
+/// runNumber in any order.
+///////////////////////////////////////////////////////////////////////////////
 class run_positions {
 public:
 	run_positions();
-
 	~run_positions();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Memory usage when open and not evacuated.
+	///////////////////////////////////////////////////////////////////////////
 	static memory_size_type memory_usage();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Switch from `closed` to `open` state.
+	///////////////////////////////////////////////////////////////////////////
 	void open();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Switch from any state to `closed` state.
+	///////////////////////////////////////////////////////////////////////////
 	void close();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Switch from any state to the corresponding evacuated state.
+	///////////////////////////////////////////////////////////////////////////
 	void evacuate();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Switch from any state to the corresponding non-evacuated state.
+	///////////////////////////////////////////////////////////////////////////
 	void unevacuate();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Go to next level in the merge heap - see class docstring.
+	///////////////////////////////////////////////////////////////////////////
 	void next_level();
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Set this to be the final level in the merge heap - see class docstring.
+	///////////////////////////////////////////////////////////////////////////
 	void final_level(memory_size_type fanout);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Store a stream position - see class docstring.
+	///////////////////////////////////////////////////////////////////////////
 	void set_position(memory_size_type mergeLevel, memory_size_type runNumber, stream_position pos);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Fetch a stream position - see class docstring.
+	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position(memory_size_type mergeLevel, memory_size_type runNumber);
 
 private:
+	/** Object state: Whether we are open. */
 	bool m_open;
+	/** Object state: Whether we are evacuated. */
 	bool m_evacuated;
+	/** Object state: Whether we are in the final merge level. */
 	bool m_final;
+
+	/** The merge tree depth, denoted `d`. */
 	memory_size_type m_levels;
+
 	memory_size_type m_runs[2];
 	temp_file m_positionsFile[2];
 	stream_position m_positionsPosition[2];
 	compressed_stream<stream_position> m_positions[2];
+
+	/** If final: the stream positions in mergeLevel = d-2. */
 	array<stream_position> m_finalPositions;
+	/** If final: Whether the (d-1, 0)-position is stored. */
 	bool m_finalExtraSet;
+	/** If finalExtraSet: The (d-1, 0)-position. */
 	stream_position m_finalExtra;
 };
 
