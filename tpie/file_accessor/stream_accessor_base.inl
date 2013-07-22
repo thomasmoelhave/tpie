@@ -40,6 +40,8 @@ void stream_accessor_base<file_accessor_t>::read_header() {
 	m_size = header.size;
 	m_userDataSize = (size_t)header.userDataSize;
 	m_maxUserDataSize = (size_t)header.maxUserDataSize;
+	m_lastBlockReadOffset = header.lastBlockReadOffset;
+	m_useCompression = header.get_compressed();
 }
 
 template <typename file_accessor_t>
@@ -88,7 +90,7 @@ void stream_accessor_base<file_accessor_t>::validate_header(const stream_header_
 	if (header.userDataSize > header.maxUserDataSize)
 		throw invalid_file_exception("Invalid file, user data size is greater than max user data size");
 
-	if (header.cleanClose != 1 )
+	if (header.get_clean_close() == false)
 		throw invalid_file_exception("Invalid file, the file was not closed properly");
 }
 
@@ -98,10 +100,12 @@ void stream_accessor_base<file_accessor_t>::fill_header(stream_header_t & header
 	header.version = stream_header_t::versionConst;
 	header.itemSize = m_itemSize;
 	header.blockSize = m_blockSize;
-	header.cleanClose = clean?1:0;
+	header.set_clean_close(clean);
 	header.userDataSize = m_userDataSize;
 	header.maxUserDataSize = m_maxUserDataSize;
 	header.size = m_size;
+	header.lastBlockReadOffset = m_lastBlockReadOffset;
+	header.set_compressed(m_useCompression);
 }
 
 template <typename file_accessor_t>
@@ -111,7 +115,8 @@ void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 											memory_size_type itemSize,
 											memory_size_type blockSize,
 											memory_size_type maxUserDataSize,
-											cache_hint cacheHint) {
+											cache_hint cacheHint,
+											bool preferCompression) {
 	close();
 	m_write = write;
 	m_path = path;
@@ -122,6 +127,8 @@ void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 	m_maxUserDataSize=maxUserDataSize;
 	m_size=0;
 	m_fileAccessor.set_cache_hint(cacheHint);
+	m_useCompression = preferCompression;
+	m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
@@ -162,6 +169,8 @@ void stream_accessor_base<file_accessor_t>::close() {
 
 template <typename file_accessor_t>
 void stream_accessor_base<file_accessor_t>::truncate(stream_size_type items) {
+	if (m_useCompression && items != 0)
+		throw exception("stream_accessor_base cannot truncate compressed stream");
 	stream_size_type blocks = items/m_blockItems;
 	stream_size_type blockIndex = items%m_blockItems;
 	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex*m_itemSize;

@@ -20,15 +20,6 @@
 #include <tpie/compressed/stream.h>
 #include <tpie/file_base_crtp.inl>
 
-namespace {
-
-struct compressed_stream_header {
-	tpie::stream_size_type streamBlocks;
-	tpie::stream_size_type lastBlockReadOffset;
-};
-
-}
-
 namespace tpie {
 
 compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
@@ -71,24 +62,16 @@ void compressed_stream_base::open_inner(const std::string & path,
 	if (userDataSize != 0)
 		throw stream_exception("Compressed stream does not support user data");
 
-	userDataSize = sizeof(compressed_stream_header);
-
 	m_canRead = accessType == access_read || accessType == access_read_write;
 	m_canWrite = accessType == access_write || accessType == access_read_write;
-	m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
+	const bool preferCompression = true;
+	m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize,
+							  m_blockSize, userDataSize, cacheHint,
+							  preferCompression);
 	m_size = m_byteStreamAccessor.size();
 	m_open = true;
-
-	if (m_byteStreamAccessor.user_data_size() == sizeof(compressed_stream_header)) {
-		compressed_stream_header hd;
-		m_byteStreamAccessor.read_user_data(reinterpret_cast<void*>(&hd),
-											sizeof(compressed_stream_header));
-		m_streamBlocks = hd.streamBlocks;
-		m_lastBlockReadOffset = hd.lastBlockReadOffset;
-	} else {
-		m_streamBlocks = 0;
-		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
-	}
+	m_streamBlocks = (m_size + m_blockItems - 1) / m_blockItems;
+	m_lastBlockReadOffset = m_byteStreamAccessor.get_last_block_read_offset();
 
 	this->post_open();
 }
@@ -172,15 +155,8 @@ void compressed_stream_base::close() {
 		compressor_thread_lock l(compressor());
 		finish_requests(l);
 
-		if (is_writable()) {
-			compressed_stream_header hd;
-			hd.streamBlocks = m_streamBlocks;
-			hd.lastBlockReadOffset = last_block_read_offset(l);
-			m_byteStreamAccessor.write_user_data(reinterpret_cast<void*>(&hd),
-												 sizeof(compressed_stream_header));
-
-			m_byteStreamAccessor.set_size(m_size);
-		}
+		m_byteStreamAccessor.set_last_block_read_offset(last_block_read_offset(l));
+		m_byteStreamAccessor.set_size(m_size);
 		m_byteStreamAccessor.close();
 	}
 	m_open = false;

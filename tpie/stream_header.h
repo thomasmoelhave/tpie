@@ -30,7 +30,7 @@ namespace tpie {
 
 struct stream_header_t {
 	static const uint64_t magicConst = 0x521cbe927dd6056all;
-	static const uint64_t versionConst = 3;
+	static const uint64_t versionConst = 4;
 
 	uint64_t magic;
 	uint64_t version;
@@ -39,7 +39,17 @@ struct stream_header_t {
 	uint64_t userDataSize;
 	uint64_t maxUserDataSize;
 	uint64_t size;
-	uint64_t cleanClose;;
+	uint64_t flags;
+	uint64_t lastBlockReadOffset;
+
+	static const uint64_t cleanCloseMask = 0x1;
+	static const uint64_t compressedMask = 0x2;
+
+	bool get_clean_close() const { return flags & cleanCloseMask; }
+	void set_clean_close(bool b) { if (b) flags |= cleanCloseMask; else flags &= ~cleanCloseMask; }
+
+	bool get_compressed() const { return flags & compressedMask; }
+	void set_compressed(bool b) { if (b) flags |= compressedMask; else flags &= ~compressedMask; }
 };
 
 }

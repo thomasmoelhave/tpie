@@ -154,7 +154,7 @@ struct test_file_accessor {
 
 	inline void write() {
 		tpie::default_file_accessor fa;
-		fa.open("tmp", false, true, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential);
+		fa.open("tmp", false, true, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential, false);
 		for (count_t j = 0; j < block_count; ++j) {
 			for (count_t k = 0; k < itemsPerBlock; ++k) {
 				block[k] = 42;
@@ -165,7 +165,7 @@ struct test_file_accessor {
 
 	inline void read() {
 		tpie::default_file_accessor fa;
-		fa.open("tmp", true, false, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential);
+		fa.open("tmp", true, false, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential, false);
 		for (count_t j = 0; j < block_count; ++j) {
 			fa.read_block(block, j, itemsPerBlock);
 			for (count_t k = 0; k < itemsPerBlock; ++k) {

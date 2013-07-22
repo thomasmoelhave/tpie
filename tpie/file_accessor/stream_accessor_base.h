@@ -61,6 +61,12 @@ private:
 	/** Number of logical items in a logical block. */
 	memory_size_type m_blockItems;
 
+	/** Compressed streams: Read offset of the last block, or maxint if not known. */
+	stream_size_type m_lastBlockReadOffset;
+
+	/** Whether compression is used. */
+	bool m_useCompression;
+
 	/** Path of the file currently opened. */
 	std::string m_path;
 
@@ -117,7 +123,8 @@ public:
 					 memory_size_type itemSize,
 					 memory_size_type blockSize,
 					 memory_size_type maxUserDataSize,
-					 cache_hint cacheHint);
+					 cache_hint cacheHint,
+					 bool preferCompression);
 
 	inline void close();
 
@@ -196,6 +203,11 @@ public:
 	}
 
 	inline void truncate(stream_size_type items);
+
+	void set_last_block_read_offset(stream_size_type n) { m_lastBlockReadOffset = n; }
+	stream_size_type get_last_block_read_offset() { return m_lastBlockReadOffset; }
+	void set_compressed(bool b) { m_useCompression = b; }
+	bool get_compressed() { return m_useCompression; }
 };
 
 }

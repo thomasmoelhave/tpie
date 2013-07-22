@@ -276,7 +276,14 @@ protected:
 						   cache_hint cacheHint) throw(stream_exception) {
 		m_canRead = accessType == access_read || accessType == access_read_write;
 		m_canWrite = accessType == access_write || accessType == access_read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
+		const bool preferCompression = false;
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize,
+							 m_blockSize, userDataSize, cacheHint,
+							 preferCompression);
+		if (m_fileAccessor->get_compressed()) {
+			m_fileAccessor->close();
+			throw stream_exception("Tried to open compressed stream as non-compressed");
+		}
 		m_size = m_fileAccessor->size();
 		m_open = true;
 	}
