@@ -76,10 +76,23 @@ public:
 
 private:
 	void process_read_request(read_request & rr) {
+		const bool useCompression = rr.file_accessor().get_compressed();
+
 		// Note the blockSize/readOffset semantics defined in a docstring for
 		// compressed_stream::m_nextReadOffset.
 		stream_size_type blockSize = rr.block_size();
 		stream_size_type readOffset = rr.read_offset();
+		if (!useCompression) {
+			if (blockSize > rr.buffer()->capacity()) {
+				throw stream_exception("Internal error; blockSize > buffer capacity");
+			}
+			rr.file_accessor().read(readOffset, rr.buffer()->get(), blockSize);
+			rr.buffer()->set_size(blockSize);
+			compressor_thread_lock::lock_t lock(mutex());
+			// Notify that reading has completed.
+			rr.set_next_block(1111111111111111111ull, 1111111111111111111ull);
+			return;
+		}
 		if (blockSize == 0) {
 			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockSize, sizeof(blockSize));
 			if (nRead != sizeof(blockSize)) {

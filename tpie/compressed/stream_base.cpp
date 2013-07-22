@@ -155,7 +155,9 @@ void compressed_stream_base::close() {
 		compressor_thread_lock l(compressor());
 		finish_requests(l);
 
-		m_byteStreamAccessor.set_last_block_read_offset(last_block_read_offset(l));
+		if (use_compression()) {
+			m_byteStreamAccessor.set_last_block_read_offset(last_block_read_offset(l));
+		}
 		m_byteStreamAccessor.set_size(m_size);
 		m_byteStreamAccessor.close();
 	}

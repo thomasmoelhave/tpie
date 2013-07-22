@@ -149,6 +149,8 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	stream_size_type current_file_size(compressor_thread_lock & l);
 
+	bool use_compression() { return m_byteStreamAccessor.get_compressed(); }
+
 public:
 	bool is_open() const { return m_open; }
 
@@ -375,6 +377,12 @@ public:
 			<< ", item " << block_item_index()
 			<< ")";
 
+		if (use_compression()) {
+			out << ", compressed";
+		} else {
+			out << ", uncompressed";
+		}
+
 		switch (m_seekState) {
 			case seek_state::none:
 				break;
@@ -439,6 +447,22 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void seek(stream_offset_type offset, offset_type whence=beginning) {
 		if (!is_open()) throw stream_exception("seek: !is_open");
+		if (!use_compression()) {
+			// Handle uncompressed case by delegating to set_position.
+			switch (whence) {
+			case beginning:
+				break;
+			case end:
+				offset += size();
+				break;
+			case current:
+				offset += this->offset();
+				break;
+			}
+			set_position(stream_position(0, offset));
+			return;
+		}
+		// Otherwise, we are in a compressed stream.
 		if (offset != 0) throw stream_exception("Random seeks are not supported");
 		switch (whence) {
 		case beginning:
@@ -485,6 +509,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
 		if (offset == size()) return;
+		// TODO case !use_compression()
 		if (offset != 0)
 			throw stream_exception("Arbitrary truncate is not supported");
 
@@ -512,6 +537,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
 		if (!is_open()) throw stream_exception("get_position: !is_open");
+		if (!use_compression()) return stream_position(0, offset());
 		switch (m_seekState) {
 			case seek_state::position:
 				// We just set_position, so we can just return what we got.
@@ -570,6 +596,9 @@ public:
 			return;
 		}
 		*/
+
+		if (!use_compression() && pos.read_offset() != 0)
+			throw stream_exception("set_position: Invalid position, read_offset != 0");
 
 		if (pos.offset() > size())
 			throw stream_exception("set_position: Invalid position, offset > size");
@@ -771,15 +800,19 @@ private:
 			// read_next_block will not yield an end_of_stream_exception.
 			if (size() == 0)
 				throw exception("Seek beginning when size is zero");
-			m_nextReadOffset = 0;
+			if (use_compression()) {
+				m_nextReadOffset = 0;
+			}
 			read_next_block(l, 0);
 			m_bufferState = buffer_state::read_only;
 			m_position = stream_position(0, 0);
 		} else if (m_seekState == seek_state::position) {
-			m_nextReadOffset = m_nextPosition.read_offset();
-			m_nextBlockSize = 0;
 			stream_size_type blockNumber = block_number(m_nextPosition);
 			memory_size_type blockItemIndex = block_item_index(m_nextPosition);
+			if (use_compression()) {
+				m_nextReadOffset = m_nextPosition.read_offset();
+				m_nextBlockSize = 0;
+			}
 
 			// This cannot happen in practice due to the implementation of
 			// block_number and block_item_index, but it is an important
@@ -827,10 +860,20 @@ private:
 					// since we short-circuit seek(end) when streamBlocks == 0.
 					throw exception("Attempted seek to end when no blocks have been written");
 				}
-				stream_size_type readOffset = last_block_read_offset(l);
+				stream_size_type readOffset;
+				memory_size_type blockItemIndex = size() - (m_streamBlocks - 1) * m_blockItems;
+				if (use_compression()) {
+					readOffset = last_block_read_offset(l);
+					m_nextBlockSize = 0;
+				} else {
+					// Used in m_position
+					readOffset = 0;
+				}
 				m_nextReadOffset = readOffset;
-				m_nextBlockSize = 0;
 				read_next_block(l, m_streamBlocks - 1);
+				if (m_lastItem != m_bufferBegin + blockItemIndex) {
+					throw exception("Last block has incorrect size");
+				}
 				m_nextItem = m_lastItem;
 				m_bufferState = buffer_state::write_only;
 				m_position = stream_position(readOffset, size());
@@ -919,11 +962,21 @@ private:
 	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		get_buffer(lock, blockNumber);
 
+		stream_size_type readOffset;
+		stream_size_type blockSize;
+		if (use_compression()) {
+			readOffset = m_nextReadOffset;
+			blockSize = m_nextBlockSize;
+		} else {
+			readOffset = blockNumber * m_blockSize;
+			blockSize = std::min(m_blockSize, (size() - offset()) * m_itemSize);
+		}
+
 		compressor_request r;
 		r.set_read_request(m_buffer,
 						   &m_byteStreamAccessor,
-						   m_nextReadOffset,
-						   m_nextBlockSize,
+						   readOffset,
+						   blockSize,
 						   &m_response);
 
 		compressor().request(r);
@@ -936,13 +989,18 @@ private:
 		if (blockNumber >= m_streamBlocks)
 			m_streamBlocks = blockNumber + 1;
 
-		stream_size_type readOffset = m_nextReadOffset;
-		if (m_nextBlockSize != 0) readOffset -= sizeof(readOffset);
+		// Update m_position, m_nextReadOffset, m_nextBlockSize
+		if (use_compression()) {
+			if (m_nextBlockSize != 0) readOffset -= sizeof(readOffset);
+			m_position = stream_position(readOffset, m_position.offset());
+			m_nextReadOffset = m_response.next_read_offset();
+			m_nextBlockSize = m_response.next_block_size();
+		} else {
+			// Uncompressed case. The following is a no-op:
+			//m_position = stream_position(0, m_position.offset());
+			// nextReadOffset/BlockSize are not used.
+		}
 
-		m_position = stream_position(readOffset, m_position.offset());
-
-		m_nextReadOffset = m_response.next_read_offset();
-		m_nextBlockSize = m_response.next_block_size();
 		m_nextItem = m_bufferBegin;
 		memory_size_type itemsRead = m_buffer->size() / sizeof(T);
 		m_lastItem = m_bufferBegin + itemsRead;
