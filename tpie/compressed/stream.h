@@ -734,6 +734,10 @@ public:
 		return offset() < size();
 	}
 
+
+	bool can_read_back() { return false; }
+	T read_back() { throw exception("read_back: TODO"); }
+
 	///////////////////////////////////////////////////////////////////////////
 	/// Precondition: is_open() && !can_read().
 	///
