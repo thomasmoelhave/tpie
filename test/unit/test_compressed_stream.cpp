@@ -21,9 +21,13 @@
 #include <tpie/compressed/stream.h>
 #include <tpie/file_stream.h>
 
-bool basic_test(size_t n) {
+template <tpie::compression_flags flags>
+class tests {
+public:
+
+static bool basic_test(size_t n) {
 	tpie::compressed_stream<size_t> s;
-	s.open();
+	s.open(0, tpie::access_sequential, flags);
 	for (size_t i = 0; i < n; ++i) {
 		if (s.size() != i) {
 			tpie::log_error() << "size() == " << s.size()
@@ -56,7 +60,7 @@ bool basic_test(size_t n) {
 	return true;
 }
 
-bool read_seek_test(size_t seekPosition, size_t items) {
+static bool read_seek_test(size_t seekPosition, size_t items) {
 	if (seekPosition > items) {
 		tpie::log_error() << "Invalid test parameters: " << seekPosition << " > " << items << std::endl;
 		return false;
@@ -67,7 +71,7 @@ bool read_seek_test(size_t seekPosition, size_t items) {
 	tpie::log_debug() << s.describe() << std::endl;
 
 	tpie::log_debug() << "Open file" << std::endl;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	tpie::log_debug() << s.describe() << std::endl;
 
 	tpie::log_debug() << "Write some items" << std::endl;
@@ -119,11 +123,11 @@ bool read_seek_test(size_t seekPosition, size_t items) {
 	return true;
 }
 
-bool position_test(size_t n) {
+static bool position_test_0(size_t n) {
 	tpie::temp_file tf;
 
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	tpie::log_debug() << "Recording array of positions" << std::endl;
 	tpie::array<tpie::stream_position> positions(n);
 	for (size_t i = 0; i < n; ++i) {
@@ -174,10 +178,10 @@ bool position_test(size_t n) {
 	return true;
 }
 
-bool position_seek_test() {
+static bool position_seek_test() {
 	tpie::temp_file tf;
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	for (size_t i = 0; i < 5; ++i) s.write(i);
 	s.seek(0, tpie::file_stream_base::end);
 	tpie::stream_position p = s.get_position();
@@ -206,10 +210,10 @@ bool position_seek_test() {
 		} \
 	} while (0)
 
-bool position_test_1() {
+static bool position_test_1() {
 	tpie::temp_file tf;
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
 	for (size_t i = 0; i < 2*blockSize; ++i) s.write(i);
@@ -229,10 +233,10 @@ bool position_test_1() {
 	return true;
 }
 
-bool position_test_2() {
+static bool position_test_2() {
 	tpie::temp_file tf;
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
 
 	tpie::log_debug() << "Write blockSize + 5 items" << std::endl;
@@ -276,10 +280,10 @@ bool position_test_2() {
 	return true;
 }
 
-bool position_test_3(size_t n) {
+static bool position_test_3(size_t n) {
 	tpie::temp_file tf;
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 
 	size_t i = 0;
 	size_t j = 1;
@@ -310,7 +314,7 @@ bool position_test_3(size_t n) {
 	return true;
 }
 
-bool reopen_test(size_t n) {
+static bool reopen_test_1(size_t n) {
 	tpie::temp_file tf;
 
 	size_t i = 0;
@@ -319,7 +323,7 @@ bool reopen_test(size_t n) {
 
 	while (k < n) {
 		tpie::compressed_stream<size_t> s;
-		s.open(tf);
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 
 		TEST_ASSERT(s.offset() == 0);
 		TEST_ASSERT(s.size() == k);
@@ -346,14 +350,14 @@ bool reopen_test(size_t n) {
 	return true;
 }
 
-bool reopen_test_2() {
+static bool reopen_test_2() {
 	tpie::temp_file tf;
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
 
 	tpie::stream_position pos1a;
 	{
 		tpie::compressed_stream<size_t> s;
-		s.open(tf);
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 		for (size_t i = 0; i < blockSize; ++i) s.write(i);
 		TEST_ASSERT(s.size() == blockSize);
 		pos1a = s.get_position();
@@ -362,7 +366,7 @@ bool reopen_test_2() {
 	tpie::stream_position pos2b;
 	{
 		tpie::compressed_stream<size_t> s;
-		s.open(tf);
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 		TEST_ASSERT(s.size() == blockSize);
 		TEST_ASSERT(s.offset() == 0);
 		for (size_t i = 0; i < blockSize; ++i) {
@@ -379,7 +383,7 @@ bool reopen_test_2() {
 	tpie::stream_position pos2c;
 	{
 		tpie::compressed_stream<size_t> s;
-		s.open(tf);
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 		TEST_ASSERT(s.size() == 2*blockSize);
 		s.set_position(pos1b);
 		TEST_ASSERT(s.offset() == blockSize);
@@ -393,11 +397,11 @@ bool reopen_test_2() {
 	return true;
 }
 
-bool seek_test() {
+static bool seek_test() {
 	tpie::temp_file tf;
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	TEST_ASSERT(s.offset() == 0);
 	for (size_t i = 0; i < blockSize + 1; ++i) s.write(i);
 	TEST_ASSERT(s.offset() == blockSize + 1);
@@ -410,11 +414,11 @@ bool seek_test() {
 	return true;
 }
 
-bool position_test_4() {
+static bool position_test_4() {
 	tpie::temp_file tf;
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	for (size_t i = 0; i < blockSize; ++i) s.write(i);
 	tpie::stream_position pos = s.get_position();
 	s.write(blockSize);
@@ -424,10 +428,10 @@ bool position_test_4() {
 	return true;
 }
 
-bool truncate_test() {
+static bool truncate_test() {
 	tpie::temp_file tf;
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	s.write(0);
 	s.truncate(0);
 	TEST_ASSERT(s.offset() == 0);
@@ -436,11 +440,11 @@ bool truncate_test() {
 	return true;
 }
 
-bool position_test_5() {
+static bool position_test_5() {
 	tpie::temp_file tf;
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
 	tpie::compressed_stream<size_t> s;
-	s.open(tf);
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 	for (size_t i = 0; i < 2*blockSize; ++i) s.write(i);
 	tpie::stream_position pos1 = s.get_position();
 	s.seek(0);
@@ -451,7 +455,7 @@ bool position_test_5() {
 	return true;
 }
 
-bool uncompressed_test(size_t n) {
+static bool uncompressed_test(size_t n) {
 	tpie::temp_file tf;
 	{
 		tpie::file_stream<size_t> s;
@@ -460,7 +464,7 @@ bool uncompressed_test(size_t n) {
 	}
 	{
 		tpie::compressed_stream<size_t> s;
-		s.open(tf);
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 		TEST_ASSERT(s.is_open());
 		TEST_ASSERT(s.can_read());
 		for (size_t i = 0; i < n; ++i) {
@@ -472,7 +476,7 @@ bool uncompressed_test(size_t n) {
 	}
 	{
 		tpie::compressed_stream<size_t> s;
-		s.open(tf);
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 		TEST_ASSERT(s.is_open());
 		TEST_ASSERT(s.can_read());
 		size_t i = 0;
@@ -512,7 +516,7 @@ bool uncompressed_test(size_t n) {
 	return true;
 }
 
-bool uncompressed_new_test(size_t n) {
+static bool uncompressed_new_test(size_t n) {
 	tpie::temp_file tf;
 	{
 		tpie::compressed_stream<size_t> s;
@@ -529,22 +533,33 @@ bool uncompressed_new_test(size_t n) {
 	return true;
 }
 
-int main(int argc, char ** argv) {
-	return tpie::tests(argc, argv)
-		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
-		.test(read_seek_test, "read_seek", "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
-		.test(position_test, "position", "n", static_cast<size_t>(1 << 19))
-		.test(position_seek_test, "position_seek")
-		.test(position_test_1, "position_1")
-		.test(position_test_2, "position_2")
-		.test(position_test_3, "position_3", "n", static_cast<size_t>(1 << 21))
-		.test(reopen_test, "reopen", "n", static_cast<size_t>(1 << 21))
-		.test(reopen_test_2, "reopen_2")
-		.test(seek_test, "seek")
-		.test(position_test_4, "position_4")
-		.test(truncate_test, "truncate")
-		.test(position_test_5, "position_5")
-		.test(uncompressed_test, "uncompressed", "n", static_cast<size_t>(1000000))
-		.test(uncompressed_new_test, "uncompressed_new", "n", static_cast<size_t>(1000000))
+};
+
+template <tpie::compression_flags flags>
+tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
+	typedef tests<flags> T;
+	return t
+		.test(T::basic_test, "basic" + suffix, "n", static_cast<size_t>(1000))
+		.test(T::seek_test, "seek" + suffix)
+		.test(T::reopen_test_1, "reopen_1" + suffix, "n", static_cast<size_t>(1 << 21))
+		.test(T::reopen_test_2, "reopen_2" + suffix)
+		.test(T::read_seek_test, "read_seek" + suffix, "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
+		.test(T::truncate_test, "truncate" + suffix)
+		.test(T::position_test_0, "position_0" + suffix, "n", static_cast<size_t>(1 << 19))
+		.test(T::position_test_1, "position_1" + suffix)
+		.test(T::position_test_2, "position_2" + suffix)
+		.test(T::position_test_3, "position_3" + suffix, "n", static_cast<size_t>(1 << 21))
+		.test(T::position_test_4, "position_4" + suffix)
+		.test(T::position_test_5, "position_5" + suffix)
+		.test(T::position_seek_test, "position_seek" + suffix)
+		.test(T::uncompressed_test, "uncompressed" + suffix, "n", static_cast<size_t>(1000000))
+		.test(T::uncompressed_new_test, "uncompressed_new" + suffix, "n", static_cast<size_t>(1000000))
 		;
+}
+
+int main(int argc, char ** argv) {
+	tpie::tests t(argc, argv);
+	return add_tests<tpie::compression_none>
+		(add_tests<tpie::compression_normal>
+		 (t, ""), "_u");
 }
