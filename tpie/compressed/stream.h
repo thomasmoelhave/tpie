@@ -64,7 +64,7 @@ protected:
 	// Non-virtual, protected destructor
 	~compressed_stream_base();
 
-	virtual void flush_block() = 0;
+	virtual void flush_block(compressor_thread_lock &) = 0;
 
 	virtual void post_open() = 0;
 
@@ -559,7 +559,9 @@ public:
 						if (!m_bufferDirty)
 							throw exception("Write-only at end of buffer, but bufferDirty is false?");
 						// Make sure the position we get is not at the end of a block
-						flush_block();
+						compressor_thread_lock lock(compressor());
+						flush_block(lock);
+						get_buffer(lock, m_streamBlocks);
 						m_nextItem = m_bufferBegin;
 					}
 				}
@@ -658,6 +660,8 @@ private:
 			if (m_nextItem != m_bufferEnd)
 				throw exception("read: end of block, can_read(), but block is not full");
 			compressor_thread_lock l(compressor());
+			if (this->m_bufferDirty)
+				flush_block(l);
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
 		}
@@ -714,6 +718,26 @@ public:
 	void write(const T & item) {
 		if (m_seekState != seek_state::none) perform_seek();
 
+		if (!use_compression()) {
+			if (m_nextItem == m_bufferEnd) {
+				compressor_thread_lock lock(compressor());
+				if (m_bufferDirty) {
+					flush_block(lock);
+				}
+				if (offset() == size()) {
+					get_buffer(lock, m_streamBlocks);
+					m_nextItem = m_bufferBegin;
+				} else {
+					read_next_block(lock, block_number());
+				}
+			}
+			if (offset() == m_size) ++m_size;
+			*m_nextItem++ = item;
+			this->m_bufferDirty = true;
+			m_position.advance_item();
+			return;
+		}
+
 		if (offset() != size())
 			throw stream_exception("Non-appending write attempted");
 
@@ -722,12 +746,10 @@ public:
 		}
 
 		if (m_nextItem == m_bufferEnd) {
-			if (m_bufferDirty) {
-				flush_block();
-			} else {
-				compressor_thread_lock l(compressor());
-				get_buffer(l, m_streamBlocks);
-			}
+			compressor_thread_lock l(compressor());
+			if (m_bufferDirty)
+				flush_block(l);
+			get_buffer(l, m_streamBlocks);
 			m_nextItem = m_bufferBegin;
 		}
 
@@ -773,12 +795,12 @@ private:
 		// For debugging: Verify get_position()
 		stream_position claimedPosition = get_position();
 
-		if (this->m_bufferDirty) {
-			flush_block();
-		}
+		compressor_thread_lock l(compressor());
+
+		if (this->m_bufferDirty)
+			flush_block(l);
 
 		m_buffer.reset();
-		compressor_thread_lock l(compressor());
 		finish_requests(l);
 
 		// Ensure that seek state beginning will take us to a read-only state
@@ -911,26 +933,35 @@ private:
 	/// Blocks to take the compressor lock.
 	///
 	/// Precondition: m_bufferDirty == true.
+	/// Postcondition: m_bufferDirty == false.
 	///
-	/// Sets bufferDirty to false and gets the buffer for the next block.
+	/// Does not get a new block buffer.
 	///
 	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
-	virtual void flush_block() override {
-		compressor_thread_lock lock(compressor());
+	virtual void flush_block(compressor_thread_lock & lock) override {
 
 		stream_size_type blockNumber = buffer_block_number();
-		stream_size_type truncateTo;
-		if (blockNumber == m_streamBlocks) {
-			// New block; no truncate
-			truncateTo = std::numeric_limits<stream_size_type>::max();
-			++m_streamBlocks;
-		} else if (blockNumber == m_streamBlocks - 1) {
-			// Block rewrite; truncate
-			truncateTo = last_block_read_offset(lock);
-			m_response.clear_block_info();
+		stream_size_type writeOffset;
+		if (!use_compression()) {
+			// Uncompressed case
+			writeOffset = blockNumber * m_blockSize;
 		} else {
-			throw exception("flush_block: blockNumber not at end of stream");
+			// Compressed case
+			if (blockNumber == m_streamBlocks) {
+				// New block; no truncate
+				writeOffset = std::numeric_limits<stream_size_type>::max();
+			} else if (blockNumber == m_streamBlocks - 1) {
+				// Block rewrite; truncate
+				writeOffset = last_block_read_offset(lock);
+				m_response.clear_block_info();
+			} else {
+				throw exception("flush_block: blockNumber not at end of stream");
+			}
+		}
+
+		if (blockNumber == m_streamBlocks) {
+			++m_streamBlocks;
 		}
 
 		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
@@ -942,13 +973,12 @@ private:
 		compressor_request r;
 		r.set_write_request(m_buffer,
 							&m_byteStreamAccessor,
-							truncateTo,
+							writeOffset,
 							blockItems,
 							blockNumber,
 							&m_response);
 		compressor().request(r);
-		get_buffer(lock, m_streamBlocks);
-		// get_buffer sets bufferDirty to false.
+		m_bufferDirty = false;
 	}
 
 	///////////////////////////////////////////////////////////////////////////

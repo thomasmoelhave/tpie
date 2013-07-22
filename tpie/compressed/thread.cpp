@@ -141,6 +141,12 @@ private:
 
 	void process_write_request(write_request & wr) {
 		size_t inputLength = wr.buffer()->size();
+		if (!wr.file_accessor().get_compressed()) {
+			// Uncompressed case
+			wr.file_accessor().write(wr.write_offset(), wr.buffer()->get(), wr.buffer()->size());
+			return;
+		}
+		// Compressed case
 		memory_size_type blockSize = snappy::MaxCompressedLength(inputLength);
 		array<char> scratch(sizeof(blockSize) + blockSize);
 		snappy::RawCompress(reinterpret_cast<const char *>(wr.buffer()->get()),
@@ -148,9 +154,9 @@ private:
 							scratch.get() + sizeof(blockSize),
 							&blockSize);
 		*reinterpret_cast<memory_size_type *>(scratch.get()) = blockSize;
-		if (wr.should_truncate()) {
-			log_debug() << "Truncate to " << wr.truncate_to() << std::endl;
-			wr.file_accessor().truncate_bytes(wr.truncate_to());
+		if (!wr.should_append()) {
+			log_debug() << "Truncate to " << wr.write_offset() << std::endl;
+			wr.file_accessor().truncate_bytes(wr.write_offset());
 			log_debug() << "File size is now " << wr.file_accessor().file_size() << std::endl;
 		}
 		{

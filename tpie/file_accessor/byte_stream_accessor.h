@@ -62,6 +62,12 @@ public:
 		this->m_fileAccessor.truncate_i(this->header_size() + size);
 	}
 
+	void write(const stream_size_type byteOffset, const void * data, const memory_size_type size) {
+		stream_size_type position = byteOffset + this->header_size();
+		this->m_fileAccessor.seek_i(position);
+		this->m_fileAccessor.write_i(data, size);
+	}
+
 	void append(const void * data, memory_size_type size) {
 		stream_size_type position = this->m_fileAccessor.file_size_i();
 

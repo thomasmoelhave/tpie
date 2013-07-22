@@ -147,12 +147,13 @@ void compressed_stream_base::open(temp_file & file,
 
 void compressed_stream_base::close() {
 	if (m_open) {
-		if (m_bufferDirty) {
-			flush_block();
-		}
+		compressor_thread_lock l(compressor());
+
+		if (m_bufferDirty)
+			flush_block(l);
+
 		m_buffer.reset();
 
-		compressor_thread_lock l(compressor());
 		finish_requests(l);
 
 		if (use_compression()) {
