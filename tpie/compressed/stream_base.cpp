@@ -57,14 +57,15 @@ compressed_stream_base::~compressed_stream_base() {
 void compressed_stream_base::open_inner(const std::string & path,
 										access_type accessType,
 										memory_size_type userDataSize,
-										cache_hint cacheHint)
+										cache_hint cacheHint,
+										int compressionFlags)
 {
 	if (userDataSize != 0)
 		throw stream_exception("Compressed stream does not support user data");
 
 	m_canRead = accessType == access_read || accessType == access_read_write;
 	m_canWrite = accessType == access_write || accessType == access_read_write;
-	const bool preferCompression = true;
+	const bool preferCompression = compressionFlags == compression_normal;
 	m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize,
 							  m_blockSize, userDataSize, cacheHint,
 							  preferCompression);
@@ -120,29 +121,34 @@ const std::string & compressed_stream_base::path() const {
 void compressed_stream_base::open(const std::string & path,
 								  access_type accessType /*= access_read_write*/,
 								  memory_size_type userDataSize /*= 0*/,
-								  cache_hint cacheHint/*=access_sequential*/)
+								  cache_hint cacheHint/*=access_sequential*/,
+								  int compressionFlags/*=compression_normal*/)
 {
 	close();
-	open_inner(path, accessType, userDataSize, cacheHint);
+	open_inner(path, accessType, userDataSize, cacheHint, compressionFlags);
 }
 
 void compressed_stream_base::open(memory_size_type userDataSize /*= 0*/,
-								  cache_hint cacheHint /*= access_sequential*/)
+								  cache_hint cacheHint/*=access_sequential*/,
+								  int compressionFlags/*=compression_normal*/)
 {
 	close();
 	m_ownedTempFile.reset(tpie_new<temp_file>());
 	m_tempFile = m_ownedTempFile.get();
-	open_inner(m_tempFile->path(), access_read_write, userDataSize, cacheHint);
+	open_inner(m_tempFile->path(), access_read_write, userDataSize,
+			   cacheHint, compressionFlags);
 }
 
 void compressed_stream_base::open(temp_file & file,
 								  access_type accessType /*= access_read_write*/,
 								  memory_size_type userDataSize /*= 0*/,
-								  cache_hint cacheHint /*= access_sequential*/)
+								  cache_hint cacheHint/*=access_sequential*/,
+								  int compressionFlags/*=compression_normal*/)
 {
 	close();
 	m_tempFile = &file;
-	open_inner(m_tempFile->path(), accessType, userDataSize, cacheHint);
+	open_inner(m_tempFile->path(), accessType, userDataSize,
+			   cacheHint, compressionFlags);
 }
 
 void compressed_stream_base::close() {

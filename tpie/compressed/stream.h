@@ -37,6 +37,11 @@
 
 namespace tpie {
 
+enum compression_flags {
+	compression_none = 0,
+	compression_normal = 1
+};
+
 class compressed_stream_base {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
@@ -71,7 +76,8 @@ protected:
 	void open_inner(const std::string & path,
 					access_type accessType,
 					memory_size_type userDataSize,
-					cache_hint cacheHint);
+					cache_hint cacheHint,
+					int compressionFlags);
 
 	compressor_thread & compressor() { return the_compressor_thread(); }
 
@@ -110,18 +116,31 @@ public:
 
 	const std::string & path() const;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Open a stream.
+	///
+	/// If compressionFlags is compression_none and the file does not already
+	/// exist, no compression will be used when writing.
+	/// If compressionFlags is compression_normal and the file does not already
+	/// exist, compression will be used when writing.
+	/// If the file already exists, the compression flags of the existing file
+	/// are used instead.
+	///////////////////////////////////////////////////////////////////////////
 	void open(const std::string & path,
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
-			  cache_hint cacheHint=access_sequential);
+			  cache_hint cacheHint=access_sequential,
+			  int compressionFlags=compression_normal);
 
 	void open(memory_size_type userDataSize = 0,
-			  cache_hint cacheHint = access_sequential);
+			  cache_hint cacheHint=access_sequential,
+			  int compressionFlags=compression_normal);
 
 	void open(temp_file & file,
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
-			  cache_hint cacheHint = access_sequential);
+			  cache_hint cacheHint=access_sequential,
+			  int compressionFlags=compression_normal);
 
 	void close();
 

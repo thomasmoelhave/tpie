@@ -512,6 +512,23 @@ bool uncompressed_test(size_t n) {
 	return true;
 }
 
+bool uncompressed_new_test(size_t n) {
+	tpie::temp_file tf;
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, tpie::compression_none);
+		for (size_t i = 0; i < n; ++i) s.write(i);
+	}
+	{
+		tpie::file_stream<size_t> s;
+		s.open(tf);
+		for (size_t i = 0; i < n; ++i) {
+			TEST_ASSERT(s.read() == i);
+		}
+	}
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic", "n", static_cast<size_t>(1000))
@@ -528,5 +545,6 @@ int main(int argc, char ** argv) {
 		.test(truncate_test, "truncate")
 		.test(position_test_5, "position_5")
 		.test(uncompressed_test, "uncompressed", "n", static_cast<size_t>(1000000))
+		.test(uncompressed_new_test, "uncompressed_new", "n", static_cast<size_t>(1000000))
 		;
 }
