@@ -134,6 +134,8 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// Blocks to take the compressor lock.
 	///
+	/// Precondition: !use_compression()
+	///
 	/// TODO: Should probably investigate when this reports a useful value.
 	///
 	/// Exception guarantee: nothrow
@@ -142,6 +144,8 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Blocks to take the compressor lock.
+	///
+	/// Precondition: !use_compression()
 	///
 	/// TODO: Should probably investigate when this reports a useful value.
 	///
@@ -175,8 +179,8 @@ public:
 protected:
 	/** Whether the current block must be written out to disk before being ejected.
 	 * Invariants:
-	 * If m_bufferDirty is true, block_number() is either
-	 * m_streamBlocks or m_streamBlocks - 1.
+	 * If m_bufferDirty is true and use_compression() is true,
+	 * block_number() is either m_streamBlocks or m_streamBlocks - 1.
 	 * If block_number() is m_streamBlocks, m_bufferDirty is true.
 	 */
 	bool m_bufferDirty;
@@ -209,7 +213,8 @@ protected:
 	/** The number of blocks written to the file. */
 	stream_size_type m_streamBlocks;
 
-	/** Read offset of the last block in the stream.
+	/** When use_compression() is true:
+	 * Read offset of the last block in the stream.
 	 * Necessary to support seeking to the end. */
 	stream_size_type m_lastBlockReadOffset;
 
@@ -220,7 +225,8 @@ protected:
 	 * bufferState must be set appropriately. */
 	seek_state::type m_seekState;
 
-	/** Whether m_buffer is read-only or write-only.
+	/** When use_compression() is true:
+	 * Whether m_buffer is read-only or write-only.
 	 * When seekState is not none, bufferState has nothing to do
 	 * with offset()/get_position()!
 	 * After reading the final item of the stream, bufferState will remain
@@ -237,8 +243,8 @@ protected:
 	 * block_item_index() in [0, m_blockSize)
 	 * offset == block_number() * m_blockItems + block_item_index()
 	 *
+	 * If use_compression() == false, read_offset == 0.
 	 * If offset == 0, then read_offset == block_item_index() == block_number() == 0.
-	 * If block_number() != 0, then read_offset, offset != 0.
 	 * block_item_index() <= offset.
 	 *
 	 * If block_number() == m_streamBlocks, we are in a block that has not yet
@@ -249,7 +255,8 @@ protected:
 	/** If seekState is `position`, seek to this position before reading/writing. */
 	stream_position m_nextPosition;
 
-	/** If nextBlockSize is zero,
+	/** When use_compression() is true:
+	 * If nextBlockSize is zero,
 	 * the size of the block to read is the first eight bytes,
 	 * and the block begins after those eight bytes.
 	 * If nextBlockSize is non-zero,
