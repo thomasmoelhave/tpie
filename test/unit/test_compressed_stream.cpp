@@ -470,6 +470,45 @@ bool uncompressed_test(size_t n) {
 		}
 		TEST_ASSERT(!s.can_read());
 	}
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf);
+		TEST_ASSERT(s.is_open());
+		TEST_ASSERT(s.can_read());
+		size_t i = 0;
+		while (i < n) {
+			TEST_ASSERT(s.can_read());
+			size_t x = s.read();
+			TEST_ASSERT(x == ~i);
+			++i;
+			if (i != n) {
+				TEST_ASSERT(s.can_read());
+				s.write(i);
+				++i;
+			}
+		}
+		TEST_ASSERT(!s.can_read());
+	}
+	{
+		tpie::file_stream<size_t> s;
+		s.open(tf);
+		TEST_ASSERT(s.is_open());
+		TEST_ASSERT(s.can_read());
+		size_t i = 0;
+		while (i < n) {
+			TEST_ASSERT(s.can_read());
+			size_t x = s.read();
+			TEST_ASSERT(x == ~i);
+			++i;
+			if (i != n) {
+				TEST_ASSERT(s.can_read());
+				x = s.read();
+				TEST_ASSERT(x == i);
+				++i;
+			}
+		}
+		TEST_ASSERT(!s.can_read());
+	}
 	return true;
 }
 
