@@ -97,6 +97,7 @@ private:
 		stream_size_type nextReadOffset;
 		if (nRead == blockSize + sizeof(blockSize)) {
 			// This might be unaligned! Watch out.
+			// According to the standard, this should be a memcpy.
 			nextBlockSize = *(reinterpret_cast<memory_size_type *>(scratch.get() + blockSize));
 			nextReadOffset = readOffset + blockSize + sizeof(blockSize);
 		} else if (nRead == blockSize) {
