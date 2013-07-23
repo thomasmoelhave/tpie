@@ -56,6 +56,12 @@ compressed_stream_base::~compressed_stream_base() {
 	if (is_open())
 		log_debug() << "compressed_stream_base destructor reached "
 			<< "while stream is still open." << std::endl;
+	// non-trivial field destructors:
+	// m_response::~compressor_response()
+	// m_buffers::~stream_buffers()
+	// m_buffer::~shared_ptr()
+	// m_ownedTempFile::~auto_ptr()
+	// m_byteStreamAccessor::~byte_stream_accessor()
 }
 
 void compressed_stream_base::open_inner(const std::string & path,
