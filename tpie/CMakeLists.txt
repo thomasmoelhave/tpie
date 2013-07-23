@@ -5,6 +5,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BIN
 set (HEADERS
 		access_type.h
 		ami.h
+		atomic.h
 		backtrace.h
 		cache_hint.h
 		comparator.h
@@ -96,6 +97,7 @@ set (HEADERS
 		)
 
 set (SOURCES
+	atomic.cpp
 	backtrace.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
