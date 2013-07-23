@@ -20,8 +20,8 @@ endmacro(add_fulltest)
 add_unittest(allocator deque list)
 add_unittest(ami_stream basic truncate)
 add_unittest(array basic iterators auto_ptr memory bit_basic bit_iterators bit_memory  copyempty arrayarray frontback swap allocator copy from_view)
-add_unittest(compressed_stream basic seek reopen_1 reopen_2 read_seek truncate position_0 position_1 position_2 position_3 position_4 position_5 position_seek uncompressed uncompressed_new
-basic_u seek_u reopen_1_u reopen_2_u read_seek_u truncate_u position_0_u position_1_u position_2_u position_3_u position_4_u position_5_u position_seek_u uncompressed_u uncompressed_new_u)
+add_unittest(compressed_stream basic seek reopen_1 reopen_2 read_seek truncate position_0 position_1 position_2 position_3 position_4 position_5 position_6 position_seek uncompressed uncompressed_new
+basic_u seek_u reopen_1_u reopen_2_u read_seek_u truncate_u position_0_u position_1_u position_2_u position_3_u position_4_u position_5_u position_6_u position_seek_u uncompressed_u uncompressed_new_u)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic sized)

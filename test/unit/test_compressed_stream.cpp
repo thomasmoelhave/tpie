@@ -455,6 +455,21 @@ static bool position_test_5() {
 	return true;
 }
 
+static bool position_test_6() {
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	s.write(1);
+	s.write(2);
+	s.write(3);
+	s.seek(0);
+	s.read();
+	s.seek(0);
+	s.read();
+	s.read();
+	return true;
+}
+
 static bool uncompressed_test(size_t n) {
 	tpie::temp_file tf;
 	{
@@ -551,6 +566,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::position_test_3, "position_3" + suffix, "n", static_cast<size_t>(1 << 21))
 		.test(T::position_test_4, "position_4" + suffix)
 		.test(T::position_test_5, "position_5" + suffix)
+		.test(T::position_test_6, "position_6" + suffix)
 		.test(T::position_seek_test, "position_seek" + suffix)
 		.test(T::uncompressed_test, "uncompressed" + suffix, "n", static_cast<size_t>(1000000))
 		.test(T::uncompressed_new_test, "uncompressed_new" + suffix, "n", static_cast<size_t>(1000000))
