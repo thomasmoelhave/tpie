@@ -365,7 +365,6 @@ public:
 		, m_bufferBegin(0)
 		, m_bufferEnd(0)
 		, m_nextItem(0)
-		, m_lastItem(0)
 	{
 	}
 
@@ -494,7 +493,6 @@ public:
 		case beginning:
 			if (m_buffer.get() != 0 && buffer_block_number() == 0) {
 				// We are already reading or writing the first block.
-				m_lastItem = m_nextItem;
 				m_nextItem = m_bufferBegin;
 				m_position = stream_position(0, 0);
 				m_bufferState = (size() > 0) ? buffer_state::read_only : buffer_state::write_only;
@@ -646,10 +644,6 @@ public:
 			if (offset() == size()) {
 				m_bufferState = buffer_state::write_only;
 			} else {
-				if (m_bufferState == buffer_state::write_only) {
-					// record size of current block
-					m_lastItem = m_nextItem;
-				}
 				m_bufferState = buffer_state::read_only;
 			}
 			m_nextItem = m_bufferBegin + block_item_index();
@@ -674,19 +668,12 @@ private:
 	const T & read_ref() {
 		if (!can_read()) throw end_of_stream_exception();
 		if (m_seekState != seek_state::none) perform_seek();
-		if (m_nextItem == m_lastItem) {
-			if (m_nextItem != m_bufferEnd)
-				throw exception("read: end of block, can_read(), but block is not full");
+		if (m_nextItem == m_bufferEnd) {
 			compressor_thread_lock l(compressor());
 			if (this->m_bufferDirty)
 				flush_block(l);
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
-		}
-		if (m_nextItem == m_bufferEnd) {
-			log_debug() << "m_bufferEnd == " << m_bufferEnd
-				<< ", m_lastItem == " << m_lastItem << std::endl;
-			throw exception("m_nextItem reached m_bufferEnd before m_lastItem");
 		}
 		m_position.advance_item();
 		return *m_nextItem++;
@@ -872,15 +859,6 @@ private:
 				throw stream_exception("perform_seek: Seek to invalid position (got end_of_stream)");
 			}
 
-			memory_size_type blockItems = m_lastItem - m_bufferBegin;
-
-			if (blockItemIndex > blockItems) {
-				throw stream_exception("perform_seek: Item offset out of bounds");
-			} else if (blockItemIndex == blockItems) {
-				// We cannot end up at the end of the stream,
-				// so this block must be non-full.
-				throw exception("perform_seek: Non-full block in the middle of the stream");
-			}
 			m_nextItem = m_bufferBegin + blockItemIndex;
 			m_position = m_nextPosition;
 			m_bufferState = buffer_state::read_only;
@@ -915,10 +893,7 @@ private:
 				}
 				m_nextReadOffset = readOffset;
 				read_next_block(l, m_streamBlocks - 1);
-				if (m_lastItem != m_bufferBegin + blockItemIndex) {
-					throw exception("Last block has incorrect size");
-				}
-				m_nextItem = m_lastItem;
+				m_nextItem = m_bufferBegin + blockItemIndex;
 				m_bufferState = buffer_state::write_only;
 				m_position = stream_position(readOffset, size());
 			}
@@ -1055,8 +1030,6 @@ private:
 		}
 
 		m_nextItem = m_bufferBegin;
-		memory_size_type itemsRead = m_buffer->size() / sizeof(T);
-		m_lastItem = m_bufferBegin + itemsRead;
 		m_bufferState = buffer_state::read_only;
 	}
 
@@ -1107,8 +1080,6 @@ private:
 
 	/** Next item in buffer to read/write. */
 	T * m_nextItem;
-	/** Only used in read mode: End of readable buffer. */
-	T * m_lastItem;
 };
 
 } // namespace tpie
