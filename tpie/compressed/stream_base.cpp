@@ -70,9 +70,6 @@ void compressed_stream_base::open_inner(const std::string & path,
 										cache_hint cacheHint,
 										int compressionFlags)
 {
-	if (userDataSize != 0)
-		throw stream_exception("Compressed stream does not support user data");
-
 	m_canRead = accessType == access_read || accessType == access_read_write;
 	m_canWrite = accessType == access_write || accessType == access_read_write;
 	const bool preferCompression = compressionFlags == compression_normal;
@@ -107,20 +104,24 @@ memory_size_type compressed_stream_base::block_size() const {
 	return m_blockSize;
 }
 
-memory_size_type compressed_stream_base::read_user_data(void * /*data*/, memory_size_type /*count*/) {
-	throw stream_exception("Compressed stream does not support user data");
+memory_size_type compressed_stream_base::read_user_data(void * data, memory_size_type count) {
+	if (!is_open()) throw stream_exception("read_user_data: !is_open");
+	return m_byteStreamAccessor.read_user_data(data, count);
 }
 
-void compressed_stream_base::write_user_data(const void * /*data*/, memory_size_type /*count*/) {
-	throw stream_exception("Compressed stream does not support user data");
+void compressed_stream_base::write_user_data(const void * data, memory_size_type count) {
+	if (!is_open()) throw stream_exception("write_user_data: !is_open");
+	m_byteStreamAccessor.write_user_data(data, count);
 }
 
 memory_size_type compressed_stream_base::user_data_size() const {
-	return 0;
+	if (!is_open()) throw stream_exception("user_data_size: !is_open");
+	return m_byteStreamAccessor.user_data_size();
 }
 
 memory_size_type compressed_stream_base::max_user_data_size() const {
-	return 0;
+	if (!is_open()) throw stream_exception("max_user_data_size: !is_open");
+	return m_byteStreamAccessor.max_user_data_size();
 }
 
 const std::string & compressed_stream_base::path() const {

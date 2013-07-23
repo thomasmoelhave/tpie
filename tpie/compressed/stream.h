@@ -98,6 +98,8 @@ public:
 
 	template <typename TT>
 	void read_user_data(TT & data) {
+		if (sizeof(TT) != user_data_size())
+			throw stream_exception("Wrong user data size");
 		read_user_data(reinterpret_cast<void *>(&data), sizeof(TT));
 	}
 
@@ -105,6 +107,8 @@ public:
 
 	template <typename TT>
 	void write_user_data(const TT & data) {
+		if (sizeof(TT) > max_user_data_size())
+			throw stream_exception("Wrong user data size");
 		write_user_data(reinterpret_cast<const void *>(&data), sizeof(TT));
 	}
 
