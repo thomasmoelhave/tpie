@@ -507,19 +507,21 @@ public:
 		case end:
 			if (m_buffer.get() == 0) {
 				m_seekState = seek_state::end;
-			} else if (m_bufferState == buffer_state::write_only) {
+			} else if (m_position.offset() == size()) {
 				// no-op
 				m_seekState = seek_state::none;
 				m_bufferState = buffer_state::write_only;
+			} else if (// We are in the last block, and it has NOT YET been written to disk, or
+					   buffer_block_number() == m_streamBlocks ||
+					   // we are in the last block, and it has ALREADY been written to disk.
+					   buffer_block_number()+1 == m_streamBlocks)
+			{
+				m_position = stream_position(m_position.read_offset(), size());
+				m_bufferState = buffer_state::write_only;
+				m_nextItem = m_bufferBegin + block_item_index();
+				m_seekState = seek_state::none;
 			} else {
-				log_debug() << "Block number " << block_number()
-					<< ", stream blocks " << m_streamBlocks << std::endl;
-				if (block_number() == m_streamBlocks) {
-					m_nextItem = m_lastItem;
-					m_position = stream_position(m_position.read_offset(), size());
-				} else {
-					m_seekState = seek_state::end;
-				}
+				m_seekState = seek_state::end;
 			}
 			return;
 		case current:
