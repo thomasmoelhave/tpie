@@ -540,11 +540,22 @@ public:
 	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
-		if (offset == size()) return;
-		// TODO case !use_compression()
-		if (offset != 0)
+		if (!is_open()) throw stream_exception("truncate: !is_open");
+		if (offset == size())
+			return;
+		else if (offset == 0)
+			truncate_zero();
+		else if (!use_compression())
+			truncate_uncompressed(offset);
+		else
 			throw stream_exception("Arbitrary truncate is not supported");
+	}
 
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Truncate to zero size.
+	///////////////////////////////////////////////////////////////////////////
+	void truncate_zero() {
 		// No need to flush block
 		m_buffer.reset();
 		compressor_thread_lock l(compressor());
@@ -560,6 +571,45 @@ public:
 		seek(0);
 		if (m_seekState != seek_state::none)
 			throw exception("Unexpected seek state in truncate");
+	}
+
+	void truncate_uncompressed(stream_size_type offset) {
+		if (use_compression())
+			throw exception("truncate_uncompressed called on compressed stream");
+
+		if (m_buffer.get() != 0
+			&& block_number(offset) == buffer_block_number()
+			&& buffer_block_number() == m_streamBlocks)
+		{
+			// We are truncating a final block that has not been written yet.
+			m_size = offset;
+			if (offset < m_offset) {
+				m_offset = offset;
+				memory_size_type blockItemIndex =
+					static_cast<memory_size_type>(offset - m_streamBlocks * m_blockItems);
+				m_nextItem = m_bufferBegin + blockItemIndex;
+			}
+			m_bufferDirty = true;
+		} else {
+			// We need to do a truncate on the file accessor.
+			// Get rid of the current block first.
+			stream_size_type currentOffset = this->offset();
+			compressor_thread_lock l(compressor());
+			if (offset > size()) {
+				// Extend file.
+				if (m_bufferDirty)
+					flush_block(l);
+			} else {
+				// No need to flush current block, since we are truncating it away.
+			}
+			m_buffer.reset();
+			m_bufferDirty = false;
+			finish_requests(l);
+			m_byteStreamAccessor.truncate(offset);
+			m_size = offset;
+			seek(std::min(currentOffset, offset));
+		}
+
 	}
 
 public:
