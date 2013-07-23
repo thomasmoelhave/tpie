@@ -655,16 +655,6 @@ public:
 			return;
 		}
 
-		// This short-circuiting will delay an I/O on the next can_read(),
-		// but probably does not improve performance in practice.
-		/*
-		if (pos.read_offset() == 0 && pos.offset() == 0) {
-			m_seekState = seek_state::beginning;
-			m_bufferState = something?
-			return;
-		}
-		*/
-
 		m_nextPosition = pos;
 		m_seekState = seek_state::position;
 	}
