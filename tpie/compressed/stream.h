@@ -215,19 +215,19 @@ protected:
 	bool m_open;
 	/** Size of a single item. itemSize * blockItems == blockSize. */
 	memory_size_type m_itemSize;
-	/** File accessor. */
-	file_accessor::byte_stream_accessor<default_raw_file_accessor> m_byteStreamAccessor;
 	/** The anonymous temporary file we have opened (when appropriate). */
 	tpie::auto_ptr<temp_file> m_ownedTempFile;
 	/** The temporary file we have opened (when appropriate).
 	 * When m_ownedTempFile.get() != 0, m_tempFile == m_ownedTempFile.get(). */
 	temp_file * m_tempFile;
+	/** File accessor. */
+	file_accessor::byte_stream_accessor<default_raw_file_accessor> m_byteStreamAccessor;
 	/** Number of logical items in the stream. */
 	stream_size_type m_size;
-	/** Buffer holding the items of the block currently being read/written. */
-	buffer_t m_buffer;
 	/** Buffer manager for this entire stream. */
 	stream_buffers m_buffers;
+	/** Buffer holding the items of the block currently being read/written. */
+	buffer_t m_buffer;
 
 	/** The number of blocks written to the file. */
 	stream_size_type m_streamBlocks;

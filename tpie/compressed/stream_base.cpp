@@ -31,12 +31,12 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 	, m_canWrite(false)
 	, m_open(false)
 	, m_itemSize(itemSize)
-	, m_byteStreamAccessor()
 	, m_ownedTempFile(/* empty auto_ptr */)
 	, m_tempFile(0)
+	, m_byteStreamAccessor()
 	, m_size(0)
-	, m_buffer(/* empty shared_ptr */)
 	, m_buffers(m_blockSize)
+	, m_buffer(/* empty shared_ptr */)
 	, m_streamBlocks(0)
 	, m_lastBlockReadOffset(0)
 	, m_response()
@@ -58,10 +58,10 @@ compressed_stream_base::~compressed_stream_base() {
 			<< "while stream is still open." << std::endl;
 	// non-trivial field destructors:
 	// m_response::~compressor_response()
-	// m_buffers::~stream_buffers()
 	// m_buffer::~shared_ptr()
-	// m_ownedTempFile::~auto_ptr()
+	// m_buffers::~stream_buffers()
 	// m_byteStreamAccessor::~byte_stream_accessor()
+	// m_ownedTempFile::~auto_ptr()
 }
 
 void compressed_stream_base::open_inner(const std::string & path,
