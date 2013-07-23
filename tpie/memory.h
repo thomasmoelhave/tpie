@@ -27,6 +27,7 @@
 
 #include <tpie/config.h>
 #include <tpie/util.h>
+#include <tpie/atomic.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/type_traits/is_polymorphic.hpp>
@@ -34,10 +35,6 @@
 #include <fstream>
 
 namespace tpie {
-
-namespace bits {
-	class atomic_int;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Thrown when trying to allocate too much memory.
@@ -144,7 +141,7 @@ public:
 
 
 private:
-	std::auto_ptr<bits::atomic_int> m_used;
+	atomic_int m_used;
 	size_t m_limit;
 	size_t m_maxExceeded;
 	size_t m_nextWarning;
