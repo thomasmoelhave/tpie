@@ -184,7 +184,7 @@ public:
 	stream_size_type offset() const {
 		switch (m_seekState) {
 			case seek_state::none:
-				return m_position.offset();
+				return m_offset;
 			case seek_state::beginning:
 				return 0;
 			case seek_state::end:
@@ -254,7 +254,15 @@ protected:
 	buffer_state::type m_bufferState;
 
 	/** Position relating to the currently loaded buffer.
-	 * Only valid during reading.
+	 * readOffset is only valid during reading.
+	 * Invariants:
+	 *
+	 * If use_compression() == false, readOffset == 0.
+	 * If offset == 0, then readOffset == block_item_index() == block_number() == 0.
+	 */
+	stream_size_type m_readOffset;
+
+	/** Offset of next item to read/write, relative to beginning of stream.
 	 * Invariants:
 	 *
 	 * block_number() in [0, m_streamBlocks]
@@ -262,14 +270,12 @@ protected:
 	 * block_item_index() in [0, m_blockSize)
 	 * offset == block_number() * m_blockItems + block_item_index()
 	 *
-	 * If use_compression() == false, read_offset == 0.
-	 * If offset == 0, then read_offset == block_item_index() == block_number() == 0.
 	 * block_item_index() <= offset.
 	 *
 	 * If block_number() == m_streamBlocks, we are in a block that has not yet
 	 * been written to disk.
 	 */
-	stream_position m_position;
+	stream_size_type m_offset;
 
 	/** If seekState is `position`, seek to this position before reading/writing. */
 	stream_position m_nextPosition;
@@ -398,7 +404,7 @@ public:
 		out << "[(" << m_byteStreamAccessor.path() << ") item " << offset()
 			<< " of " << size();
 		out << " (block " << block_number()
-			<< " @ byte " << m_position.read_offset()
+			<< " @ byte " << m_readOffset
 			<< ", item " << block_item_index()
 			<< ")";
 
@@ -419,9 +425,9 @@ public:
 				break;
 			case seek_state::position:
 				out << ", seeking to position " << m_nextPosition.offset();
-				out << " (block " << block_number(m_nextPosition)
+				out << " (block " << block_number(m_nextPosition.offset())
 					<< " @ byte " << m_nextPosition.read_offset()
-					<< ", item " << block_item_index(m_nextPosition)
+					<< ", item " << block_item_index(m_nextPosition.offset())
 					<< ")";
 				break;
 		}
@@ -494,7 +500,7 @@ public:
 			if (m_buffer.get() != 0 && buffer_block_number() == 0) {
 				// We are already reading or writing the first block.
 				m_nextItem = m_bufferBegin;
-				m_position = stream_position(0, 0);
+				m_offset = m_readOffset = 0;
 				m_bufferState = (size() > 0) ? buffer_state::read_only : buffer_state::write_only;
 				m_seekState = seek_state::none;
 			} else {
@@ -505,7 +511,7 @@ public:
 		case end:
 			if (m_buffer.get() == 0) {
 				m_seekState = seek_state::end;
-			} else if (m_position.offset() == size()) {
+			} else if (m_offset == size()) {
 				// no-op
 				m_seekState = seek_state::none;
 				m_bufferState = buffer_state::write_only;
@@ -514,7 +520,7 @@ public:
 					   // we are in the last block, and it has ALREADY been written to disk.
 					   buffer_block_number()+1 == m_streamBlocks)
 			{
-				m_position = stream_position(m_position.read_offset(), size());
+				m_offset = size();
 				m_bufferState = buffer_state::write_only;
 				m_nextItem = m_bufferBegin + block_item_index();
 				m_seekState = seek_state::none;
@@ -578,7 +584,7 @@ public:
 							readOffset -= sizeof(m_nextBlockSize);
 						return stream_position(readOffset, offset());
 					}
-					return m_position;
+					return stream_position(m_readOffset, m_offset);
 				} else {
 					// write-only
 					if (m_nextItem == m_bufferEnd) {
@@ -632,15 +638,16 @@ public:
 			throw stream_exception("set_position: Invalid position, offset > size");
 
 		if (m_buffer.get() != 0
-			&& block_number(pos) == buffer_block_number())
+			&& block_number(pos.offset()) == buffer_block_number())
 		{
-			if (pos.read_offset() != m_position.read_offset()) {
+			if (pos.read_offset() != m_readOffset) {
 				// We don't always know the read offset of the current block
-				// in m_position.read_offset(), so let's assume that
+				// in m_readOffset, so let's assume that
 				// pos.read_offset() is correct.
 			}
 
-			m_position = pos;
+			m_readOffset = pos.read_offset();
+			m_offset = pos.offset();
 			if (offset() == size()) {
 				m_bufferState = buffer_state::write_only;
 			} else {
@@ -675,7 +682,7 @@ private:
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
 		}
-		m_position.advance_item();
+		++m_offset;
 		return *m_nextItem++;
 	}
 
@@ -743,7 +750,7 @@ public:
 			if (offset() == m_size) ++m_size;
 			*m_nextItem++ = item;
 			this->m_bufferDirty = true;
-			m_position.advance_item();
+			++m_offset;
 			return;
 		}
 
@@ -765,7 +772,7 @@ public:
 		*m_nextItem++ = item;
 		this->m_bufferDirty = true;
 		++m_size;
-		m_position.advance_item();
+		++m_offset;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -836,10 +843,10 @@ private:
 			}
 			read_next_block(l, 0);
 			m_bufferState = buffer_state::read_only;
-			m_position = stream_position(0, 0);
+			m_offset = m_readOffset = 0;
 		} else if (m_seekState == seek_state::position) {
-			stream_size_type blockNumber = block_number(m_nextPosition);
-			memory_size_type blockItemIndex = block_item_index(m_nextPosition);
+			stream_size_type blockNumber = block_number(m_nextPosition.offset());
+			memory_size_type blockItemIndex = block_item_index(m_nextPosition.offset());
 			if (use_compression()) {
 				m_nextReadOffset = m_nextPosition.read_offset();
 				m_nextBlockSize = 0;
@@ -860,7 +867,8 @@ private:
 			}
 
 			m_nextItem = m_bufferBegin + blockItemIndex;
-			m_position = m_nextPosition;
+			m_offset = m_nextPosition.offset();
+			m_readOffset = m_nextPosition.read_offset();
 			m_bufferState = buffer_state::read_only;
 		} else if (m_seekState == seek_state::end) {
 			if (m_streamBlocks * m_blockItems == size()) {
@@ -869,12 +877,13 @@ private:
 				get_buffer(l, m_streamBlocks);
 				m_bufferState = buffer_state::write_only;
 				m_nextItem = m_bufferBegin;
-				// We don't care about m_position.read_offset().
+				// We don't care about m_readOffset.
 				// Set read offset to roughly 0.9637 * 2^60 bytes,
 				// a value that should be easy to spot in a debugger,
 				// and one that should not otherwise occur in practice.
 				// It's a prime number, too!
-				m_position = stream_position(1111111111111111111ull, size());
+				m_readOffset = 1111111111111111111ull;
+				m_offset = size();
 			} else {
 				// The last block in the stream is non-full.
 				if (m_streamBlocks == 0) {
@@ -888,14 +897,14 @@ private:
 					readOffset = last_block_read_offset(l);
 					m_nextBlockSize = 0;
 				} else {
-					// Used in m_position
 					readOffset = 0;
 				}
 				m_nextReadOffset = readOffset;
 				read_next_block(l, m_streamBlocks - 1);
 				m_nextItem = m_bufferBegin + blockItemIndex;
 				m_bufferState = buffer_state::write_only;
-				m_position = stream_position(readOffset, size());
+				m_readOffset = readOffset;
+				m_offset = size();
 			}
 		} else {
 			log_debug() << "Unknown seek state " << m_seekState << std::endl;
@@ -982,7 +991,7 @@ private:
 	/// \brief  Reads next block according to nextReadOffset/nextBlockSize.
 	///
 	/// Throws end_of_stream_exception on end of stream.
-	/// Updates m_position with the new read offset.
+	/// Updates m_readOffset with the new read offset.
 	///
 	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
@@ -1017,15 +1026,15 @@ private:
 		if (blockNumber >= m_streamBlocks)
 			m_streamBlocks = blockNumber + 1;
 
-		// Update m_position, m_nextReadOffset, m_nextBlockSize
+		// Update m_readOffset, m_nextReadOffset, m_nextBlockSize
 		if (use_compression()) {
 			if (m_nextBlockSize != 0) readOffset -= sizeof(readOffset);
-			m_position = stream_position(readOffset, m_position.offset());
+			m_readOffset = readOffset;
 			m_nextReadOffset = m_response.next_read_offset();
 			m_nextBlockSize = m_response.next_block_size();
 		} else {
 			// Uncompressed case. The following is a no-op:
-			//m_position = stream_position(0, m_position.offset());
+			//m_readOffset = 0;
 			// nextReadOffset/BlockSize are not used.
 		}
 
@@ -1033,8 +1042,8 @@ private:
 		m_bufferState = buffer_state::read_only;
 	}
 
-	stream_size_type block_number(const stream_position & position) {
-		return position.offset() / m_blockItems;
+	stream_size_type block_number(stream_size_type offset) {
+		return offset / m_blockItems;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1044,7 +1053,7 @@ private:
 	/// Precondition: m_buffer.get() != 0.
 	///////////////////////////////////////////////////////////////////////////
 	stream_size_type block_number() {
-		return block_number(m_position);
+		return block_number(m_offset);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1060,8 +1069,8 @@ private:
 			return blockNumber;
 	}
 
-	memory_size_type block_item_index(const stream_position & position) {
-		stream_size_type i = position.offset() % m_blockItems;
+	memory_size_type block_item_index(stream_size_type offset) {
+		stream_size_type i = offset % m_blockItems;
 		memory_size_type cast = static_cast<memory_size_type>(i);
 		if (i != cast)
 			throw exception("Block item index out of bounds");
@@ -1069,7 +1078,7 @@ private:
 	}
 
 	memory_size_type block_item_index() {
-		return block_item_index(m_position);
+		return block_item_index(m_offset);
 	}
 
 private:
