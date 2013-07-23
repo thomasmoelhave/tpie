@@ -84,7 +84,7 @@ private:
 
 		// Note the blockSize/readOffset semantics defined in a docstring for
 		// compressed_stream::m_nextReadOffset.
-		stream_size_type blockSize = rr.block_size();
+		memory_size_type blockSize = rr.block_size();
 		stream_size_type readOffset = rr.read_offset();
 		if (!useCompression) {
 			if (blockSize > rr.buffer()->capacity()) {
@@ -110,7 +110,7 @@ private:
 		}
 		array<char> scratch(blockSize + sizeof(blockSize));
 		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), blockSize + sizeof(blockSize));
-		stream_size_type nextBlockSize;
+		memory_size_type nextBlockSize;
 		stream_size_type nextReadOffset;
 		if (nRead == blockSize + sizeof(blockSize)) {
 			// This might be unaligned! Watch out.

@@ -292,7 +292,7 @@ protected:
 	 * the next block begins at the given offset and has the given size.
 	 */
 	stream_size_type m_nextReadOffset;
-	stream_size_type m_nextBlockSize;
+	memory_size_type m_nextBlockSize;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1053,14 +1053,16 @@ private:
 		get_buffer(lock, blockNumber);
 
 		stream_size_type readOffset;
-		stream_size_type blockSize;
+		memory_size_type blockSize;
 		if (use_compression()) {
 			readOffset = m_nextReadOffset;
 			blockSize = m_nextBlockSize;
 		} else {
 			stream_size_type itemOffset = blockNumber * m_blockItems;
 			readOffset = blockNumber * m_blockSize;
-			blockSize = std::min(m_blockSize, (size() - itemOffset) * m_itemSize);
+			blockSize =
+				std::min(m_blockSize,
+						 static_cast<memory_size_type>((size() - itemOffset) * m_itemSize));
 		}
 
 		compressor_request r;

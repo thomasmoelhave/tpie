@@ -68,7 +68,7 @@ public:
 	// write, thread -- must have lock!
 	void set_block_info(stream_size_type blockNumber,
 						stream_size_type readOffset,
-						stream_size_type blockSize)
+						memory_size_type blockSize)
 	{
 		if (m_blockNumber != std::numeric_limits<stream_size_type>::max()
 			&& blockNumber < m_blockNumber)
@@ -106,7 +106,7 @@ public:
 	}
 
 	// write, stream
-	stream_size_type get_block_size(stream_size_type blockNumber)
+	memory_size_type get_block_size(stream_size_type blockNumber)
 	{
 		if (!has_block_info(blockNumber))
 			throw exception("get_block_size: !has_block_info");
@@ -145,13 +145,13 @@ public:
 	}
 
 	// read, stream
-	stream_size_type next_block_size() {
+	memory_size_type next_block_size() {
 		return m_nextBlockSize;
 	}
 
 	// read, thread
 	void set_next_block(stream_size_type offset,
-						stream_size_type size)
+						memory_size_type size)
 	{
 		m_done = true;
 		m_nextReadOffset = offset;
@@ -165,13 +165,13 @@ private:
 	// Information about the write
 	stream_size_type m_blockNumber;
 	stream_size_type m_readOffset;
-	stream_size_type m_blockSize;
+	memory_size_type m_blockSize;
 
 	// Information about the read
 	bool m_done;
 	bool m_endOfStream;
 	stream_size_type m_nextReadOffset;
-	stream_size_type m_nextBlockSize;
+	memory_size_type m_nextBlockSize;
 };
 
 #ifdef __GNUC__
@@ -205,7 +205,7 @@ public:
 	read_request(buffer_t buffer,
 				 file_accessor_t * fileAccessor,
 				 stream_size_type readOffset,
-				 stream_size_type blockSize,
+				 memory_size_type blockSize,
 				 compressor_response * response)
 		: request_base(response)
 		, m_buffer(buffer)
@@ -231,7 +231,7 @@ public:
 		return m_readOffset;
 	}
 
-	stream_size_type block_size() {
+	memory_size_type block_size() {
 		return m_blockSize;
 	}
 
@@ -253,7 +253,7 @@ private:
 	 * the stream.
 	 */
 	const stream_size_type m_readOffset;
-	const stream_size_type m_blockSize;
+	const memory_size_type m_blockSize;
 };
 
 class write_request : public request_base {
@@ -298,7 +298,7 @@ public:
 
 	// must have lock!
 	void set_block_info(stream_size_type readOffset,
-						stream_size_type blockSize)
+						memory_size_type blockSize)
 	{
 		m_response->set_block_info(m_blockNumber, readOffset, blockSize);
 	}
@@ -365,7 +365,7 @@ public:
 	read_request & set_read_request(const read_request::buffer_t & buffer,
 									read_request::file_accessor_t * fileAccessor,
 									stream_size_type readOffset,
-									stream_size_type blockSize,
+									memory_size_type blockSize,
 									compressor_response * response)
 	{
 		destruct();
