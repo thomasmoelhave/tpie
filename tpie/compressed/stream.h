@@ -635,7 +635,7 @@ public:
 					if (m_nextItem == m_bufferEnd) {
 						stream_size_type readOffset = m_nextReadOffset;
 						if (m_nextBlockSize != 0)
-							readOffset -= sizeof(m_nextBlockSize);
+							readOffset = compressor_thread::subtract_block_header(m_nextReadOffset);
 						return stream_position(readOffset, offset());
 					}
 					return stream_position(m_readOffset, m_offset);
@@ -1082,7 +1082,8 @@ private:
 
 		// Update m_readOffset, m_nextReadOffset, m_nextBlockSize
 		if (use_compression()) {
-			if (m_nextBlockSize != 0) readOffset -= sizeof(readOffset);
+			if (m_nextBlockSize != 0)
+				readOffset = compressor_thread::subtract_block_header(readOffset);
 			m_readOffset = readOffset;
 			m_nextReadOffset = m_response.next_read_offset();
 			m_nextBlockSize = m_response.next_block_size();

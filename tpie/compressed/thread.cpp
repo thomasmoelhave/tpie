@@ -25,6 +25,10 @@
 
 namespace tpie {
 
+/*static*/ stream_size_type compressor_thread::subtract_block_header(stream_size_type dataOffset) {
+	return dataOffset - sizeof(stream_size_type);
+}
+
 class compressor_thread::impl {
 public:
 	impl()

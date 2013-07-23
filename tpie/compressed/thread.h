@@ -41,6 +41,8 @@ public:
 	typedef file_accessor::byte_stream_accessor<default_raw_file_accessor> file_accessor_t;
 	typedef boost::mutex mutex_t;
 
+	static stream_size_type subtract_block_header(stream_size_type dataOffset);
+
 	compressor_thread();
 	~compressor_thread();
 
