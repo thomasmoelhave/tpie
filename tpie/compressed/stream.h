@@ -1028,8 +1028,9 @@ private:
 			readOffset = m_nextReadOffset;
 			blockSize = m_nextBlockSize;
 		} else {
+			stream_size_type itemOffset = blockNumber * m_blockItems;
 			readOffset = blockNumber * m_blockSize;
-			blockSize = std::min(m_blockSize, (size() - offset()) * m_itemSize);
+			blockSize = std::min(m_blockSize, (size() - itemOffset) * m_itemSize);
 		}
 
 		compressor_request r;
