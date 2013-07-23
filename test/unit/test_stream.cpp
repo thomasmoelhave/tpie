@@ -178,6 +178,7 @@ static bool array_test() {
 }
 
 static bool truncate_test() {
+	tpie::stream_size_type initialTempFileUsage = tpie::get_temp_file_usage();
 	typedef int test_t;
 	Stream<test_t> fs;
 	tpie::temp_file tempFile;
@@ -193,8 +194,12 @@ static bool truncate_test() {
 	}
 	fs.close_stream();
 	tpie::stream_size_type tempFileUsage = tpie::get_temp_file_usage();
+	if (tempFileUsage == initialTempFileUsage) {
+		tpie::log_error() << "Temp file usage did not increase" << std::endl;
+		res = false;
+	}
 	fs.file().truncate(42);
-	if (tempFileUsage <= tpie::get_temp_file_usage()) {
+	if (tempFileUsage != initialTempFileUsage && tempFileUsage <= tpie::get_temp_file_usage()) {
 		tpie::log_error() << "Temp file usage did not decrease from " << tempFileUsage << std::endl;
 		res = false;
 	}
