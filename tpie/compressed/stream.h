@@ -763,9 +763,32 @@ public:
 		return offset() < size();
 	}
 
+	bool can_read_back() {
+		if (!this->m_open)
+			return false;
 
-	bool can_read_back() { return false; }
-	T read_back() { throw exception("read_back: TODO"); }
+		return offset() > 0;
+	}
+
+	T read_back() {
+		if (m_seekState != seek_state::none) {
+			perform_seek();
+			// TODO avoid seek to beginning of a block
+		}
+		if (m_nextItem == m_bufferBegin) {
+			compressor_thread_lock l(compressor());
+			if (this->m_bufferDirty)
+				flush_block(l);
+			if (use_compression()) {
+				read_previous_block(l, block_number() - 1);
+			} else {
+				read_next_block(l, block_number() - 1);
+				m_nextItem = m_bufferEnd;
+			}
+		}
+		--m_offset;
+		return *--m_nextItem;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Precondition: is_open() && !can_read().
@@ -1031,6 +1054,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		get_buffer(lock, blockNumber);
+		// TODO: Handle case when m_buffer is already being read/written by the thread.
 
 		stream_size_type readOffset;
 		if (use_compression()) {
@@ -1044,16 +1068,7 @@ private:
 			m_buffer->set_size(blockSize);
 		}
 
-		compressor_request r;
-		r.set_read_request(m_buffer,
-						   &m_byteStreamAccessor,
-						   readOffset,
-						   &m_response);
-
-		compressor().request(r);
-		while (!m_response.done()) {
-			m_response.wait(lock);
-		}
+		read_block(lock, readOffset, direction::forward);
 
 		if (blockNumber >= m_streamBlocks)
 			m_streamBlocks = blockNumber + 1;
@@ -1070,6 +1085,40 @@ private:
 
 		m_nextItem = m_bufferBegin;
 		m_bufferState = buffer_state::read_only;
+	}
+
+	void read_previous_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
+		log_debug() << "Read previous block " << blockNumber << std::endl;
+		if (!use_compression()) throw exception("read_previous_block: !use_compression");
+		get_buffer(lock, blockNumber);
+		// TODO: Handle case when m_buffer is already being read/written by the thread.
+		read_block(lock, m_readOffset, direction::backward);
+
+		// This is backwards since we are reading backwards.
+		// Confusing, I know.
+		m_nextReadOffset = m_readOffset;
+		m_readOffset = m_response.next_read_offset();
+
+		m_nextItem = m_bufferEnd;
+		m_bufferState = buffer_state::read_only;
+	}
+
+	void read_block(compressor_thread_lock & lock,
+					stream_size_type readOffset,
+					direction::type readDirection)
+	{
+		log_debug() << "Read block at " << readOffset << std::endl;
+		compressor_request r;
+		r.set_read_request(m_buffer,
+						   &m_byteStreamAccessor,
+						   readOffset,
+						   readDirection,
+						   &m_response);
+
+		compressor().request(r);
+		while (!m_response.done()) {
+			m_response.wait(lock);
+		}
 	}
 
 	stream_size_type block_number(stream_size_type offset) {

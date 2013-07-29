@@ -176,6 +176,13 @@ protected:
 	compressor_response * m_response;
 };
 
+struct direction {
+	enum type {
+		forward,
+		backward
+	};
+};
+
 class read_request : public request_base {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
@@ -185,11 +192,13 @@ public:
 	read_request(buffer_t buffer,
 				 file_accessor_t * fileAccessor,
 				 stream_size_type readOffset,
+				 direction::type readDirection,
 				 compressor_response * response)
 		: request_base(response)
 		, m_buffer(buffer)
 		, m_fileAccessor(fileAccessor)
 		, m_readOffset(readOffset)
+		, m_readDirection(readDirection)
 	{
 	}
 
@@ -205,6 +214,10 @@ public:
 		return m_readOffset;
 	}
 
+	direction::type read_direction() {
+		return m_readDirection;
+	}
+
 	void set_next_block_offset(stream_size_type offset) {
 		m_response->set_next_block_offset(offset);
 	}
@@ -213,6 +226,7 @@ private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
 	const stream_size_type m_readOffset;
+	const direction::type m_readDirection;
 };
 
 class write_request : public request_base {
@@ -324,11 +338,13 @@ public:
 	read_request & set_read_request(const read_request::buffer_t & buffer,
 									read_request::file_accessor_t * fileAccessor,
 									stream_size_type readOffset,
+									direction::type readDirection,
 									compressor_response * response)
 	{
 		destruct();
 		m_kind = compressor_request_kind::READ;
-		return *new (m_payload) read_request(buffer, fileAccessor, readOffset, response);
+		return *new (m_payload) read_request(buffer, fileAccessor, readOffset,
+											 readDirection, response);
 	}
 
 	read_request & set_read_request(const read_request & other) {

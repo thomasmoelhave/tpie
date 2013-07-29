@@ -122,6 +122,8 @@ public:
 private:
 	void process_read_request(read_request & rr) {
 		const bool useCompression = rr.file_accessor().get_compressed();
+		const bool backward = rr.read_direction() == direction::backward;
+		if (backward && !useCompression) throw exception("backward && !useCompression");
 
 		stream_size_type readOffset = rr.read_offset();
 		if (!useCompression) {
@@ -138,32 +140,66 @@ private:
 		}
 		block_header blockHeader;
 		block_header blockTrailer;
-		{
-			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockHeader, sizeof(blockHeader));
-			if (nRead != sizeof(blockHeader)) {
-				throw exception("read failed to read right amount");
+		memory_size_type blockSize;
+		array<char> scratch;
+		char * compressed;
+		stream_size_type nextReadOffset;
+		if (backward) {
+			readOffset -= sizeof(blockTrailer);
+			{
+				memory_size_type nRead = rr.file_accessor().read(readOffset, &blockTrailer, sizeof(blockTrailer));
+				if (nRead != sizeof(blockTrailer)) {
+					throw exception("read failed to read right amount");
+				}
+			}
+			blockSize = blockTrailer.get_block_size();
+			if (blockSize == 0) {
+				throw exception("Block size was unexpectedly zero");
+			}
+			scratch.resize(sizeof(blockHeader) + blockSize);
+			readOffset -= scratch.size();
+			{
+				memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), scratch.size());
+				if (nRead != scratch.size()) {
+					throw exception("read failed to read right amount");
+				}
+			}
+			compressed = scratch.get() + sizeof(blockHeader);
+			memcpy(&blockHeader,
+				   reinterpret_cast<block_header *>(scratch.get()),
+				   sizeof(blockHeader));
+			nextReadOffset = readOffset;
+		} else {
+			{
+				memory_size_type nRead = rr.file_accessor().read(readOffset, &blockHeader, sizeof(blockHeader));
+				if (nRead != sizeof(blockHeader)) {
+					throw exception("read failed to read right amount");
+				}
 			}
 			readOffset += sizeof(blockHeader);
+			blockSize = blockHeader.get_block_size();
+			if (blockSize == 0) {
+				throw exception("Block size was unexpectedly zero");
+			}
+			scratch.resize(blockSize + sizeof(blockTrailer));
+			{
+				memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), scratch.size());
+				if (nRead != scratch.size()) {
+					throw exception("read failed to read right amount");
+				}
+			}
+			compressed = scratch.get();
+			memcpy(&blockTrailer,
+				   reinterpret_cast<block_header *>(scratch.get() + scratch.size()) - 1,
+				   sizeof(blockTrailer));
+			nextReadOffset = readOffset + scratch.size();
 		}
-		memory_size_type blockSize = blockHeader.get_block_size();
-		if (blockSize == 0) {
-			throw exception("Block size was unexpectedly zero");
-		}
-		array<char> scratch(blockSize + sizeof(blockTrailer));
-		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), scratch.size());
-		if (nRead != scratch.size()) {
-			throw exception("read failed to read right amount");
-		}
-		memcpy(&blockTrailer,
-			   reinterpret_cast<block_header *>(scratch.get() + scratch.size()) - 1,
-			   sizeof(blockTrailer));
 		if (blockHeader != blockTrailer) {
 			throw exception("Block trailer is different from the block header");
 		}
-		stream_size_type nextReadOffset = readOffset + scratch.size();
 
 		size_t uncompressedLength;
-		if (!snappy::GetUncompressedLength(scratch.get(),
+		if (!snappy::GetUncompressedLength(compressed,
 										   blockSize,
 										   &uncompressedLength))
 			throw stream_exception("Internal error; snappy::GetUncompressedLength failed");
@@ -172,7 +208,7 @@ private:
 			throw stream_exception("Internal error; snappy::GetUncompressedLength exceeds the block size");
 		}
 		rr.buffer()->set_size(uncompressedLength);
-		snappy::RawUncompress(scratch.get(),
+		snappy::RawUncompress(compressed,
 							  blockSize,
 							  reinterpret_cast<char *>(rr.buffer()->get()));
 
