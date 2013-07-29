@@ -149,11 +149,11 @@ private:
 			throw exception("Block size was unexpectedly zero");
 		}
 		array<char> scratch(blockSize);
-		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), blockSize);
-		if (nRead != blockSize) {
+		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), scratch.size());
+		if (nRead != scratch.size()) {
 			throw exception("read failed to read right amount");
 		}
-		stream_size_type nextReadOffset = readOffset + blockSize;
+		stream_size_type nextReadOffset = readOffset + scratch.size();
 
 		size_t uncompressedLength;
 		if (!snappy::GetUncompressedLength(scratch.get(),
