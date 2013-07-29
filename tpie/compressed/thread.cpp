@@ -182,16 +182,18 @@ private:
 		}
 		// Compressed case
 		block_header blockHeader;
-		memory_size_type blockSize = snappy::MaxCompressedLength(inputLength);
-		if (blockSize > blockHeader.max_block_size())
+		const memory_size_type maxBlockSize = snappy::MaxCompressedLength(inputLength);
+		if (maxBlockSize > blockHeader.max_block_size())
 			throw exception("process_write_request: MaxCompressedLength > max_block_size");
-		array<char> scratch(sizeof(blockHeader) + blockSize);
+		array<char> scratch(sizeof(blockHeader) + maxBlockSize);
+		memory_size_type blockSize;
 		snappy::RawCompress(reinterpret_cast<const char *>(wr.buffer()->get()),
 							inputLength,
 							scratch.get() + sizeof(blockHeader),
 							&blockSize);
 		blockHeader.set_block_size(blockSize);
 		memcpy(scratch.get(), &blockHeader, sizeof(blockHeader));
+		const memory_size_type writeSize = sizeof(blockHeader) + blockSize;
 		if (!wr.should_append()) {
 			log_debug() << "Truncate to " << wr.write_offset() << std::endl;
 			wr.file_accessor().truncate_bytes(wr.write_offset());
@@ -199,10 +201,9 @@ private:
 		}
 		{
 			compressor_thread_lock::lock_t lock(mutex());
-			wr.set_block_info(wr.file_accessor().file_size(),
-							  blockSize + sizeof(blockHeader));
+			wr.set_block_info(wr.file_accessor().file_size(), writeSize);
 		}
-		wr.file_accessor().append(scratch.get(), sizeof(blockHeader) + blockSize);
+		wr.file_accessor().append(scratch.get(), writeSize);
 	}
 
 public:
