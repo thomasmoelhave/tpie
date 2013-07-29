@@ -122,21 +122,9 @@ public:
 		return m_readOffset;
 	}
 
-	// read, thread
-	void set_end_of_stream() {
-		m_done = true;
-		m_endOfStream = true;
-		m_changed.notify_all();
-	}
-
 	// read, stream
 	bool done() {
 		return m_done;
-	}
-
-	// read, stream
-	bool end_of_stream() {
-		return m_endOfStream;
 	}
 
 	// read, stream
@@ -217,10 +205,6 @@ public:
 
 	buffer_t buffer() {
 		return m_buffer;
-	}
-
-	void set_end_of_stream() {
-		m_response->set_end_of_stream();
 	}
 
 	file_accessor_t & file_accessor() {

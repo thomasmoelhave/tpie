@@ -912,13 +912,7 @@ private:
 			if (blockItemIndex >= m_blockItems)
 				throw exception("perform_seek: Computed block item index >= blockItems");
 
-			// We have previously ensured we will end up in a read-only state,
-			// so this method will not throw an end_of_stream_exception().
-			try {
-				read_next_block(l, blockNumber);
-			} catch (end_of_stream_exception &) {
-				throw stream_exception("perform_seek: Seek to invalid position (got end_of_stream)");
-			}
+			read_next_block(l, blockNumber);
 
 			m_nextItem = m_bufferBegin + blockItemIndex;
 			m_offset = m_nextPosition.offset();
@@ -1044,7 +1038,6 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Reads next block according to nextReadOffset/nextBlockSize.
 	///
-	/// Throws end_of_stream_exception on end of stream.
 	/// Updates m_readOffset with the new read offset.
 	///
 	/// Exception guarantee: nothrow
@@ -1076,8 +1069,6 @@ private:
 		while (!m_response.done()) {
 			m_response.wait(lock);
 		}
-		if (m_response.end_of_stream())
-			throw end_of_stream_exception();
 
 		if (blockNumber >= m_streamBlocks)
 			m_streamBlocks = blockNumber + 1;

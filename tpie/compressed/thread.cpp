@@ -100,8 +100,7 @@ private:
 		if (blockSize == 0) {
 			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockSize, sizeof(blockSize));
 			if (nRead != sizeof(blockSize)) {
-				rr.set_end_of_stream();
-				return;
+				throw exception("read failed to read right amount");
 			}
 			readOffset += sizeof(blockSize);
 		}
@@ -121,8 +120,7 @@ private:
 			nextBlockSize = 0;
 			nextReadOffset = readOffset + blockSize;
 		} else {
-			rr.set_end_of_stream();
-			return;
+			throw exception("read failed to read right amount");
 		}
 
 		size_t uncompressedLength;
