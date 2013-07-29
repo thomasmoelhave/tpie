@@ -137,6 +137,7 @@ private:
 			return;
 		}
 		block_header blockHeader;
+		block_header blockTrailer;
 		{
 			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockHeader, sizeof(blockHeader));
 			if (nRead != sizeof(blockHeader)) {
@@ -148,10 +149,16 @@ private:
 		if (blockSize == 0) {
 			throw exception("Block size was unexpectedly zero");
 		}
-		array<char> scratch(blockSize);
+		array<char> scratch(blockSize + sizeof(blockTrailer));
 		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), scratch.size());
 		if (nRead != scratch.size()) {
 			throw exception("read failed to read right amount");
+		}
+		memcpy(&blockTrailer,
+			   reinterpret_cast<block_header *>(scratch.get() + scratch.size()) - 1,
+			   sizeof(blockTrailer));
+		if (blockHeader != blockTrailer) {
+			throw exception("Block trailer is different from the block header");
 		}
 		stream_size_type nextReadOffset = readOffset + scratch.size();
 
@@ -182,10 +189,11 @@ private:
 		}
 		// Compressed case
 		block_header blockHeader;
+		block_header & blockTrailer = blockHeader;
 		const memory_size_type maxBlockSize = snappy::MaxCompressedLength(inputLength);
 		if (maxBlockSize > blockHeader.max_block_size())
 			throw exception("process_write_request: MaxCompressedLength > max_block_size");
-		array<char> scratch(sizeof(blockHeader) + maxBlockSize);
+		array<char> scratch(sizeof(blockHeader) + maxBlockSize + sizeof(blockTrailer));
 		memory_size_type blockSize;
 		snappy::RawCompress(reinterpret_cast<const char *>(wr.buffer()->get()),
 							inputLength,
@@ -193,7 +201,8 @@ private:
 							&blockSize);
 		blockHeader.set_block_size(blockSize);
 		memcpy(scratch.get(), &blockHeader, sizeof(blockHeader));
-		const memory_size_type writeSize = sizeof(blockHeader) + blockSize;
+		memcpy(scratch.get() + sizeof(blockHeader) + blockSize, &blockTrailer, sizeof(blockTrailer));
+		const memory_size_type writeSize = sizeof(blockHeader) + blockSize + sizeof(blockTrailer);
 		if (!wr.should_append()) {
 			log_debug() << "Truncate to " << wr.write_offset() << std::endl;
 			wr.file_accessor().truncate_bytes(wr.write_offset());
