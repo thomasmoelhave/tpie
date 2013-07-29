@@ -548,6 +548,45 @@ static bool uncompressed_new_test(size_t n) {
 	return true;
 }
 
+static bool backwards_test(size_t n) {
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+
+	size_t x = 514229;
+	size_t y = 786433;
+
+	size_t offs = 0;
+	while (true) {
+		while (s.can_read()) {
+			TEST_ASSERT(s.offset() == offs);
+			size_t r = s.read();
+			if (r != offs) {
+				tpie::log_error() << "Got " << r << ", expected " << offs << std::endl;
+				TEST_ASSERT(r == offs);
+			}
+			++offs;
+		}
+		tpie::log_debug() << "Write forward until " << y << std::endl;
+		while ((offs < y) && (offs < n)) {
+			TEST_ASSERT(s.offset() == offs);
+			s.write(offs++);
+		}
+		if (offs == n) break;
+		tpie::log_debug() << "Read backwards until " << x << std::endl;
+		while (offs > x) {
+			TEST_ASSERT(s.offset() == offs);
+			size_t r = s.read_back();
+			--offs;
+			TEST_ASSERT(r == offs);
+		}
+		std::swap(x, y);
+		y += x;
+	}
+
+	return true;
+}
+
 };
 
 template <tpie::compression_flags flags>
@@ -570,6 +609,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::position_seek_test, "position_seek" + suffix)
 		.test(T::uncompressed_test, "uncompressed" + suffix, "n", static_cast<size_t>(1000000))
 		.test(T::uncompressed_new_test, "uncompressed_new" + suffix, "n", static_cast<size_t>(1000000))
+		.test(T::backwards_test, "backwards" + suffix, "n", static_cast<size_t>(1 << 23))
 		;
 }
 
