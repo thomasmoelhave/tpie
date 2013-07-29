@@ -284,15 +284,7 @@ protected:
 	/** If seekState is `position`, seek to this position before reading/writing. */
 	stream_position m_nextPosition;
 
-	/** When use_compression() is true:
-	 * If nextBlockSize is zero,
-	 * the size of the block to read is the first eight bytes,
-	 * and the block begins after those eight bytes.
-	 * If nextBlockSize is non-zero,
-	 * the next block begins at the given offset and has the given size.
-	 */
 	stream_size_type m_nextReadOffset;
-	memory_size_type m_nextBlockSize;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -633,10 +625,7 @@ public:
 			case seek_state::none:
 				if (m_bufferState == buffer_state::read_only) {
 					if (m_nextItem == m_bufferEnd) {
-						stream_size_type readOffset = m_nextReadOffset;
-						if (m_nextBlockSize != 0)
-							readOffset = compressor_thread::subtract_block_header(m_nextReadOffset);
-						return stream_position(readOffset, offset());
+						return stream_position(m_nextReadOffset, offset());
 					}
 					return stream_position(m_readOffset, m_offset);
 				} else {
@@ -903,7 +892,6 @@ private:
 			memory_size_type blockItemIndex = block_item_index(m_nextPosition.offset());
 			if (use_compression()) {
 				m_nextReadOffset = m_nextPosition.read_offset();
-				m_nextBlockSize = 0;
 			}
 
 			// This cannot happen in practice due to the implementation of
@@ -943,7 +931,6 @@ private:
 				memory_size_type blockItemIndex = size() - (m_streamBlocks - 1) * m_blockItems;
 				if (use_compression()) {
 					readOffset = last_block_read_offset(l);
-					m_nextBlockSize = 0;
 				} else {
 					readOffset = 0;
 				}
@@ -1046,23 +1033,21 @@ private:
 		get_buffer(lock, blockNumber);
 
 		stream_size_type readOffset;
-		memory_size_type blockSize;
 		if (use_compression()) {
 			readOffset = m_nextReadOffset;
-			blockSize = m_nextBlockSize;
 		} else {
 			stream_size_type itemOffset = blockNumber * m_blockItems;
 			readOffset = blockNumber * m_blockSize;
-			blockSize =
+			memory_size_type blockSize =
 				std::min(m_blockSize,
 						 static_cast<memory_size_type>((size() - itemOffset) * m_itemSize));
+			m_buffer->set_size(blockSize);
 		}
 
 		compressor_request r;
 		r.set_read_request(m_buffer,
 						   &m_byteStreamAccessor,
 						   readOffset,
-						   blockSize,
 						   &m_response);
 
 		compressor().request(r);
@@ -1073,17 +1058,14 @@ private:
 		if (blockNumber >= m_streamBlocks)
 			m_streamBlocks = blockNumber + 1;
 
-		// Update m_readOffset, m_nextReadOffset, m_nextBlockSize
+		// Update m_readOffset, m_nextReadOffset
 		if (use_compression()) {
-			if (m_nextBlockSize != 0)
-				readOffset = compressor_thread::subtract_block_header(readOffset);
 			m_readOffset = readOffset;
 			m_nextReadOffset = m_response.next_read_offset();
-			m_nextBlockSize = m_response.next_block_size();
 		} else {
 			// Uncompressed case. The following is a no-op:
 			//m_readOffset = 0;
-			// nextReadOffset/BlockSize are not used.
+			// nextReadOffset is not used.
 		}
 
 		m_nextItem = m_bufferBegin;

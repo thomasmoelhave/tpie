@@ -23,10 +23,51 @@
 #include <tpie/compressed/request.h>
 #include <tpie/compressed/buffer.h>
 
+namespace {
+
+class block_header {
+public:
+	block_header()
+		: m_payload(0)
+	{
+	}
+
+	tpie::memory_size_type get_block_size() const {
+		return static_cast<tpie::memory_size_type>(m_payload & BLOCK_SIZE_MASK);
+	}
+
+	// Precondition: 0 <= blockSize <= max_block_size()
+	// Postcondition: get_block_size() == blockSize
+	void set_block_size(tpie::memory_size_type blockSize) {
+		m_payload &= ~BLOCK_SIZE_MASK;
+		m_payload |= static_cast<tpie::uint32_t>(blockSize);
+	}
+
+	static tpie::memory_size_type max_block_size() {
+		return BLOCK_SIZE_MAX;
+	}
+
+	bool operator==(const block_header & other) const {
+		return m_payload == other.m_payload;
+	}
+
+	bool operator!=(const block_header & other) const { return !(*this == other); }
+
+private:
+	static const tpie::uint32_t BLOCK_SIZE_BITS = 24;
+	static const tpie::uint32_t BLOCK_SIZE_MASK = (1 << BLOCK_SIZE_BITS) - 1;
+	static const tpie::memory_size_type BLOCK_SIZE_MAX =
+		static_cast<tpie::memory_size_type>(1 << BLOCK_SIZE_BITS) - 1;
+
+	tpie::uint32_t m_payload;
+};
+
+}
+
 namespace tpie {
 
 /*static*/ stream_size_type compressor_thread::subtract_block_header(stream_size_type dataOffset) {
-	return dataOffset - sizeof(stream_size_type);
+	return dataOffset - sizeof(block_header);
 }
 
 class compressor_thread::impl {
@@ -82,11 +123,9 @@ private:
 	void process_read_request(read_request & rr) {
 		const bool useCompression = rr.file_accessor().get_compressed();
 
-		// Note the blockSize/readOffset semantics defined in a docstring for
-		// compressed_stream::m_nextReadOffset.
-		memory_size_type blockSize = rr.block_size();
 		stream_size_type readOffset = rr.read_offset();
 		if (!useCompression) {
+			memory_size_type blockSize = rr.buffer()->size();
 			if (blockSize > rr.buffer()->capacity()) {
 				throw stream_exception("Internal error; blockSize > buffer capacity");
 			}
@@ -94,34 +133,27 @@ private:
 			rr.buffer()->set_size(blockSize);
 			compressor_thread_lock::lock_t lock(mutex());
 			// Notify that reading has completed.
-			rr.set_next_block(1111111111111111111ull, 1111111111111111111ull);
+			rr.set_next_block_offset(1111111111111111111ull);
 			return;
 		}
-		if (blockSize == 0) {
-			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockSize, sizeof(blockSize));
-			if (nRead != sizeof(blockSize)) {
+		block_header blockHeader;
+		{
+			memory_size_type nRead = rr.file_accessor().read(readOffset, &blockHeader, sizeof(blockHeader));
+			if (nRead != sizeof(blockHeader)) {
 				throw exception("read failed to read right amount");
 			}
-			readOffset += sizeof(blockSize);
+			readOffset += sizeof(blockHeader);
 		}
+		memory_size_type blockSize = blockHeader.get_block_size();
 		if (blockSize == 0) {
 			throw exception("Block size was unexpectedly zero");
 		}
-		array<char> scratch(blockSize + sizeof(blockSize));
-		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), blockSize + sizeof(blockSize));
-		memory_size_type nextBlockSize;
-		stream_size_type nextReadOffset;
-		if (nRead == blockSize + sizeof(blockSize)) {
-			// This might be unaligned! Watch out.
-			// According to the standard, this should be a memcpy.
-			nextBlockSize = *(reinterpret_cast<memory_size_type *>(scratch.get() + blockSize));
-			nextReadOffset = readOffset + blockSize + sizeof(blockSize);
-		} else if (nRead == blockSize) {
-			nextBlockSize = 0;
-			nextReadOffset = readOffset + blockSize;
-		} else {
+		array<char> scratch(blockSize);
+		memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), blockSize);
+		if (nRead != blockSize) {
 			throw exception("read failed to read right amount");
 		}
+		stream_size_type nextReadOffset = readOffset + blockSize;
 
 		size_t uncompressedLength;
 		if (!snappy::GetUncompressedLength(scratch.get(),
@@ -138,7 +170,7 @@ private:
 							  reinterpret_cast<char *>(rr.buffer()->get()));
 
 		compressor_thread_lock::lock_t lock(mutex());
-		rr.set_next_block(nextReadOffset, nextBlockSize);
+		rr.set_next_block_offset(nextReadOffset);
 	}
 
 	void process_write_request(write_request & wr) {
@@ -149,13 +181,17 @@ private:
 			return;
 		}
 		// Compressed case
+		block_header blockHeader;
 		memory_size_type blockSize = snappy::MaxCompressedLength(inputLength);
-		array<char> scratch(sizeof(blockSize) + blockSize);
+		if (blockSize > blockHeader.max_block_size())
+			throw exception("process_write_request: MaxCompressedLength > max_block_size");
+		array<char> scratch(sizeof(blockHeader) + blockSize);
 		snappy::RawCompress(reinterpret_cast<const char *>(wr.buffer()->get()),
 							inputLength,
-							scratch.get() + sizeof(blockSize),
+							scratch.get() + sizeof(blockHeader),
 							&blockSize);
-		*reinterpret_cast<memory_size_type *>(scratch.get()) = blockSize;
+		blockHeader.set_block_size(blockSize);
+		memcpy(scratch.get(), &blockHeader, sizeof(blockHeader));
 		if (!wr.should_append()) {
 			log_debug() << "Truncate to " << wr.write_offset() << std::endl;
 			wr.file_accessor().truncate_bytes(wr.write_offset());
@@ -163,10 +199,10 @@ private:
 		}
 		{
 			compressor_thread_lock::lock_t lock(mutex());
-			wr.set_block_info(wr.file_accessor().file_size() + sizeof(blockSize),
-							  blockSize);
+			wr.set_block_info(wr.file_accessor().file_size(),
+							  blockSize + sizeof(blockHeader));
 		}
-		wr.file_accessor().append(scratch.get(), sizeof(blockSize) + blockSize);
+		wr.file_accessor().append(scratch.get(), sizeof(blockHeader) + blockSize);
 	}
 
 public:

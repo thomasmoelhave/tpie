@@ -46,7 +46,6 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 	, m_offset(0)
 	, m_nextPosition(/* not a position */)
 	, m_nextReadOffset(0)
-	, m_nextBlockSize(0)
 {
 	// Empty constructor.
 }
@@ -203,8 +202,7 @@ stream_size_type compressed_stream_base::last_block_read_offset(compressor_threa
 	// the response object might throw otherwise.
 	while (!m_response.has_block_info(m_streamBlocks - 1))
 		m_response.wait(l);
-	return m_response.get_read_offset(m_streamBlocks - 1)
-		- sizeof(m_response.get_block_size(m_streamBlocks - 1));
+	return m_response.get_read_offset(m_streamBlocks - 1);
 }
 
 stream_size_type compressed_stream_base::current_file_size(compressor_thread_lock & l) {

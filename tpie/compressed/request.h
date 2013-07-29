@@ -132,18 +132,10 @@ public:
 		return m_nextReadOffset;
 	}
 
-	// read, stream
-	memory_size_type next_block_size() {
-		return m_nextBlockSize;
-	}
-
 	// read, thread
-	void set_next_block(stream_size_type offset,
-						memory_size_type size)
-	{
+	void set_next_block_offset(stream_size_type offset) {
 		m_done = true;
 		m_nextReadOffset = offset;
-		m_nextBlockSize = size;
 		m_changed.notify_all();
 	}
 
@@ -193,13 +185,11 @@ public:
 	read_request(buffer_t buffer,
 				 file_accessor_t * fileAccessor,
 				 stream_size_type readOffset,
-				 memory_size_type blockSize,
 				 compressor_response * response)
 		: request_base(response)
 		, m_buffer(buffer)
 		, m_fileAccessor(fileAccessor)
 		, m_readOffset(readOffset)
-		, m_blockSize(blockSize)
 	{
 	}
 
@@ -215,29 +205,14 @@ public:
 		return m_readOffset;
 	}
 
-	memory_size_type block_size() {
-		return m_blockSize;
-	}
-
-	void set_next_block(stream_size_type offset,
-						stream_size_type size)
-	{
-		m_response->set_next_block(offset, size);
+	void set_next_block_offset(stream_size_type offset) {
+		m_response->set_next_block_offset(offset);
 	}
 
 private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
-	/** If readOffset is zero, the next block to read is the first block and its size is not known.
-	 * In that case, the size of the first block is the first eight bytes, and the first block begins
-	 * after those eight bytes.
-	 * If readOffset and blockSize are both non-zero, the next block begins at the given offset
-	 * and has the given size.
-	 * Otherwise, if readOffset is non-zero and blockSize is zero, we have reached the end of
-	 * the stream.
-	 */
 	const stream_size_type m_readOffset;
-	const memory_size_type m_blockSize;
 };
 
 class write_request : public request_base {
@@ -349,12 +324,11 @@ public:
 	read_request & set_read_request(const read_request::buffer_t & buffer,
 									read_request::file_accessor_t * fileAccessor,
 									stream_size_type readOffset,
-									memory_size_type blockSize,
 									compressor_response * response)
 	{
 		destruct();
 		m_kind = compressor_request_kind::READ;
-		return *new (m_payload) read_request(buffer, fileAccessor, readOffset, blockSize, response);
+		return *new (m_payload) read_request(buffer, fileAccessor, readOffset, response);
 	}
 
 	read_request & set_read_request(const read_request & other) {
