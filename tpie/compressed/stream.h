@@ -983,10 +983,6 @@ private:
 			}
 		}
 
-		if (blockNumber == m_streamBlocks) {
-			++m_streamBlocks;
-		}
-
 		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 
 		if (m_nextItem == NULL) throw exception("m_nextItem is NULL");
@@ -1002,6 +998,10 @@ private:
 							&m_response);
 		compressor().request(r);
 		m_bufferDirty = false;
+
+		if (blockNumber == m_streamBlocks) {
+			++m_streamBlocks;
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
