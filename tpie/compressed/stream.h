@@ -766,6 +766,9 @@ public:
 	}
 
 	void write(const T & item) {
+		if (use_compression() && offset() != size())
+			throw stream_exception("Non-appending write attempted");
+
 		if (m_seekState != seek_state::none) perform_seek();
 
 		if (!use_compression()) {
@@ -787,9 +790,6 @@ public:
 			++m_offset;
 			return;
 		}
-
-		if (offset() != size())
-			throw stream_exception("Non-appending write attempted");
 
 		if (m_bufferState == buffer_state::read_only && offset() == size()) {
 			m_bufferState = buffer_state::write_only;
