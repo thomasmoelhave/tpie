@@ -138,9 +138,6 @@ public:
 		return blockSize;
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// Exception guarantee: nothrow
-	///////////////////////////////////////////////////////////////////////////
 	buffer_t get_buffer(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		if (!(m_ownBuffers < OWN_BUFFERS || can_take_shared_buffer())) {
 			// First, search for the buffer in the map.

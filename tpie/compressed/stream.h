@@ -149,9 +149,6 @@ public:
 	void close();
 
 protected:
-	///////////////////////////////////////////////////////////////////////////
-	/// Exception guarantee: nothrow
-	///////////////////////////////////////////////////////////////////////////
 	void finish_requests(compressor_thread_lock & l);
 
 	///////////////////////////////////////////////////////////////////////////
@@ -160,8 +157,6 @@ protected:
 	/// Precondition: !use_compression()
 	///
 	/// TODO: Should probably investigate when this reports a useful value.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	stream_size_type last_block_read_offset(compressor_thread_lock & l);
 
@@ -171,8 +166,6 @@ protected:
 	/// Precondition: !use_compression()
 	///
 	/// TODO: Should probably investigate when this reports a useful value.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	stream_size_type current_file_size(compressor_thread_lock & l);
 
@@ -327,11 +320,6 @@ namespace ami {
 /// We assume that `T` is trivially copyable and that its copy constructor
 /// and assignment operator never throws.
 ///
-/// Exception safety for each method is documented as either
-/// `basic` (no leaks; invariants upheld),
-/// `strong` (transaction semantics), or
-/// `nothrow` (no exception thrown).
-///
 /// As a rule of thumb, when a `tpie::stream_exception` is thrown from a method,
 /// the stream is left in the state it was in prior to the method call.
 /// When a `tpie::exception` is thrown, the stream may have changed.
@@ -388,8 +376,6 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  For debugging: Describe the internal stream state in a string.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void describe(std::ostream & out) {
 		if (!this->is_open()) {
@@ -454,8 +440,6 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  For debugging: Describe the internal stream state in a string.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	std::string describe() {
 		std::stringstream ss;
@@ -470,7 +454,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Precondition: is_open()
 	/// Precondition: offset == 0
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void seek(stream_offset_type offset, offset_type whence=beginning) {
 		if (!is_open()) throw stream_exception("seek: !is_open");
@@ -533,7 +516,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Precondition: offset is size() or 0.
 	/// Blocks to take the compressor lock.
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
 		if (!is_open()) throw stream_exception("truncate: !is_open");
@@ -611,7 +593,6 @@ private:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Blocks to take the compressor lock.
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
 		if (!is_open()) throw stream_exception("get_position: !is_open");
@@ -660,9 +641,6 @@ public:
 		return stream_position(readOffset, size());
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// Exception guarantee: nothrow
-	///////////////////////////////////////////////////////////////////////////
 	void set_position(const stream_position & pos) {
 		// If the code is correct, short circuiting is not necessary;
 		// if the code is not correct, short circuiting might mask faults.
@@ -713,7 +691,8 @@ private:
 	///
 	/// Blocks to take the compressor lock.
 	///
-	/// Exception guarantee: strong
+	/// If a stream_exception is thrown, the stream is left in the state it was
+	/// in before the call to read().
 	///////////////////////////////////////////////////////////////////////////
 	const T & read_ref() {
 		if (!can_read()) throw end_of_stream_exception();
@@ -743,8 +722,6 @@ public:
 	///
 	/// Reads min(b-a, size()-offset()) items into the range [a, b).
 	/// If less than b-a items are read, throws an end_of_stream_exception.
-	///
-	/// Exception guarantee: basic.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void read(IT const a, IT const b) {
@@ -753,8 +730,6 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Check if the next call to read() will succeed or not.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read() {
 		if (!this->m_open)
@@ -790,13 +765,6 @@ public:
 		return *--m_nextItem;
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// Precondition: is_open() && !can_read().
-	///
-	/// Exception guarantee:
-	/// nothrow if seekState == none.
-	/// basic otherwise.
-	///////////////////////////////////////////////////////////////////////////
 	void write(const T & item) {
 		if (m_seekState != seek_state::none) perform_seek();
 
@@ -841,11 +809,6 @@ public:
 		++m_offset;
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// Precondition: is_open() && !can_read().
-	///
-	/// Exception guarantee: basic.
-	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void write(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) write(*i);
@@ -982,8 +945,6 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Gets buffer for given block and sets bufferBegin and bufferEnd,
 	/// and sets bufferDirty to false.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber) {
 		buffer_t().swap(m_buffer);
@@ -1000,8 +961,6 @@ private:
 	/// Postcondition: m_bufferDirty == false.
 	///
 	/// Does not get a new block buffer.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_block(compressor_thread_lock & lock) override {
 
@@ -1049,8 +1008,6 @@ private:
 	/// \brief  Reads next block according to nextReadOffset/nextBlockSize.
 	///
 	/// Updates m_readOffset with the new read offset.
-	///
-	/// Exception guarantee: nothrow
 	///////////////////////////////////////////////////////////////////////////
 	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		get_buffer(lock, blockNumber);
