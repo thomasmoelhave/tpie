@@ -40,8 +40,7 @@ public:
 	}
 
 	void release_own_buffer(buffer_t & b) {
-		if (!b.unique())
-			throw exception("release_own_buffer: !b.unique");
+		tp_assert(b.unique(), "release_own_buffer: !b.unique");
 
 		// swap it into oblivion
 		buffer_t().swap(b);
@@ -52,8 +51,7 @@ public:
 	}
 
 	buffer_t take_shared_buffer() {
-		if (m_extraBuffers.empty())
-			throw exception("take_shared_buffer: No available shared buffers");
+		tp_assert(!m_extraBuffers.empty(), "take_shared_buffer: No available shared buffers");
 
 		buffer_t b;
 		b.swap(m_extraBuffers.back());
@@ -62,10 +60,8 @@ public:
 	}
 
 	void release_shared_buffer(buffer_t & b) {
-		if (!b.unique())
-			throw exception("release_shared_buffer: !b.unique");
-		if (m_extraBuffers.size() == EXTRA_BUFFERS)
-			throw exception("release_shared_buffer: Too many available shared buffers");
+		tp_assert(b.unique(), "release_shared_buffer: !b.unique");
+		tp_assert(!(m_extraBuffers.size() == EXTRA_BUFFERS), "release_shared_buffer: Too many available shared buffers");
 
 		m_extraBuffers.push_back(buffer_t());
 		m_extraBuffers.back().swap(b);
@@ -119,8 +115,7 @@ tpie::stream_buffer_pool * the_stream_buffer_pool;
 namespace tpie {
 
 stream_buffer_pool & the_stream_buffer_pool() {
-	if (!::the_stream_buffer_pool)
-		throw exception("the_stream_buffer_pool: Not initialized!");
+	tp_assert(::the_stream_buffer_pool, "the_stream_buffer_pool: Not initialized!");
 	return *::the_stream_buffer_pool;
 }
 

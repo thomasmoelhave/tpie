@@ -25,6 +25,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/array.h>
+#include <tpie/tpie_assert.h>
 #include <tpie/compressed/thread.h>
 
 namespace tpie {
@@ -100,8 +101,8 @@ public:
 	void transition_state(compressor_buffer_state::type from,
 						  compressor_buffer_state::type to)
 	{
-		if (m_state != from)
-			throw exception("compressor_buffer: invalid state transition");
+		tp_assert(!(m_state != from), "compressor_buffer: invalid state transition");
+		unused(from);
 		set_state(to);
 	}
 
@@ -112,7 +113,8 @@ public:
 			case compressor_buffer_state::reading: return true;
 			case compressor_buffer_state::clean: return false;
 		}
-		throw exception("is_busy: compressor_buffer in invalid state");
+		tp_assert(false, "is_busy: compressor_buffer in invalid state");
+		return false; // suppress compiler warning
 	}
 
 	char * get() {
@@ -271,8 +273,8 @@ public:
 				} else {
 					// This is a contradition of the very first check
 					// in the beginning of the method.
-					throw exception("get_buffer: Could not get a new buffer "
-									"contrary to previous checks");
+					tp_assert(false, "get_buffer: Could not get a new buffer "
+									 "contrary to previous checks");
 				}
 			} else {
 				// Free found: reuse buffer.

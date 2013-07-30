@@ -90,7 +90,7 @@ public:
 			case compressor_request_kind::WRITE:
 				return true;
 		}
-		throw exception("Unknown request type");
+		tp_assert(false, "Unknown request type");
 	}
 
 	void run() {
@@ -123,7 +123,7 @@ private:
 	void process_read_request(read_request & rr) {
 		const bool useCompression = rr.file_accessor().get_compressed();
 		const bool backward = rr.read_direction() == direction::backward;
-		if (backward && !useCompression) throw exception("backward && !useCompression");
+		tp_assert(!(backward && !useCompression), "backward && !useCompression");
 
 		stream_size_type readOffset = rr.read_offset();
 		if (!useCompression) {
@@ -269,8 +269,7 @@ public:
 	}
 
 	void request(const compressor_request & r) {
-		if (!request_valid(r))
-			throw exception("Invalid request");
+		tp_assert(request_valid(r), "Invalid request");
 
 		m_requests.push(r);
 		m_requests.back().get_request_base().initiate_request();

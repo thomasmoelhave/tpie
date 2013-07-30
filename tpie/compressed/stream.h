@@ -26,6 +26,7 @@
 
 #include <snappy.h>
 #include <tpie/array.h>
+#include <tpie/tpie_assert.h>
 #include <tpie/tempname.h>
 #include <tpie/file_base_crtp.h>
 #include <tpie/file_stream_base.h>
@@ -189,7 +190,8 @@ public:
 			case seek_state::position:
 				return m_nextPosition.offset();
 		}
-		throw exception("offset: Unreachable statement; m_seekState invalid");
+		tp_assert(false, "offset: Unreachable statement; m_seekState invalid");
+		return 0; // suppress compiler warning
 	}
 
 protected:
@@ -456,7 +458,7 @@ public:
 	/// Precondition: offset == 0
 	///////////////////////////////////////////////////////////////////////////
 	void seek(stream_offset_type offset, offset_type whence=beginning) {
-		if (!is_open()) throw stream_exception("seek: !is_open");
+		tp_assert(is_open(), "seek: !is_open");
 		if (!use_compression()) {
 			// Handle uncompressed case by delegating to set_position.
 			switch (whence) {
@@ -510,7 +512,7 @@ public:
 		case current:
 			return;
 		}
-		throw stream_exception("seek: Unknown whence");
+		tp_assert(false, "seek: Unknown whence");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -518,7 +520,7 @@ public:
 	/// Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
-		if (!is_open()) throw stream_exception("truncate: !is_open");
+		tp_assert(is_open(), "truncate: !is_open");
 		if (offset == size())
 			return;
 		else if (offset == 0)
@@ -547,13 +549,11 @@ private:
 		// Since block_number == 0, seek(0) should short circuit
 		// and not do any I/O.
 		seek(0);
-		if (m_seekState != seek_state::none)
-			throw exception("Unexpected seek state in truncate");
+		tp_assert(!(m_seekState != seek_state::none), "Unexpected seek state in truncate");
 	}
 
 	void truncate_uncompressed(stream_size_type offset) {
-		if (use_compression())
-			throw exception("truncate_uncompressed called on compressed stream");
+		tp_assert(!use_compression(), "truncate_uncompressed called on compressed stream");
 
 		if (m_buffer.get() != 0
 			&& block_number(offset) == buffer_block_number()
@@ -595,7 +595,7 @@ public:
 	/// Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
-		if (!is_open()) throw stream_exception("get_position: !is_open");
+		tp_assert(is_open(), "get_position: !is_open");
 		if (!use_compression()) return stream_position(0, offset());
 		switch (m_seekState) {
 			case seek_state::position:
@@ -612,8 +612,7 @@ public:
 				} else {
 					// write-only
 					if (m_nextItem == m_bufferEnd) {
-						if (!m_bufferDirty)
-							throw exception("Write-only at end of buffer, but bufferDirty is false?");
+						tp_assert(m_bufferDirty, "Write-only at end of buffer, but bufferDirty is false?");
 						// Make sure the position we get is not at the end of a block
 						compressor_thread_lock lock(compressor());
 						flush_block(lock);
@@ -834,11 +833,7 @@ private:
 		// so that it is destructed after we free the lock.
 		close_on_fail_guard closeOnFail(this);
 
-		if (m_seekState == seek_state::none)
-			throw exception("perform_seek when seekState is none");
-
-		// For debugging: Verify get_position()
-		stream_position claimedPosition = get_position();
+		tp_assert(!(m_seekState == seek_state::none), "perform_seek when seekState is none");
 
 		compressor_thread_lock l(compressor());
 
@@ -865,8 +860,7 @@ private:
 			// by changing seekState to end.
 			// Thus, we know for sure that size() != 0, and so the
 			// read_next_block will not yield an end_of_stream_exception.
-			if (size() == 0)
-				throw exception("Seek beginning when size is zero");
+			tp_assert(!(size() == 0), "Seek beginning when size is zero");
 			if (use_compression()) {
 				m_nextReadOffset = 0;
 			}
@@ -883,8 +877,7 @@ private:
 			// This cannot happen in practice due to the implementation of
 			// block_number and block_item_index, but it is an important
 			// assumption in the following code.
-			if (blockItemIndex >= m_blockItems)
-				throw exception("perform_seek: Computed block item index >= blockItems");
+			tp_assert(!(blockItemIndex >= m_blockItems), "perform_seek: Computed block item index >= blockItems");
 
 			read_next_block(l, blockNumber);
 
@@ -929,15 +922,10 @@ private:
 			}
 		} else {
 			log_debug() << "Unknown seek state " << m_seekState << std::endl;
-			throw exception("perform_seek: Unknown seek state");
+			tp_assert(false, "perform_seek: Unknown seek state");
 		}
 
 		m_seekState = seek_state::none;
-
-		l.get_lock().unlock();
-		// For debugging: Verify get_position()
-		if (claimedPosition != get_position())
-			throw exception("get_position() was changed by perform_seek().");
 
 		closeOnFail.commit();
 	}
@@ -1063,7 +1051,7 @@ private:
 	}
 
 	void read_previous_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
-		if (!use_compression()) throw exception("read_previous_block: !use_compression");
+		tp_assert(use_compression(), "read_previous_block: !use_compression");
 		get_buffer(lock, blockNumber);
 		if (m_buffer->get_state() == compressor_buffer_state::clean) {
 			m_readOffset = m_buffer->get_read_offset();
@@ -1134,8 +1122,7 @@ private:
 	memory_size_type block_item_index(stream_size_type offset) {
 		stream_size_type i = offset % m_blockItems;
 		memory_size_type cast = static_cast<memory_size_type>(i);
-		if (i != cast)
-			throw exception("Block item index out of bounds");
+		tp_assert(!(i != cast), "Block item index out of bounds");
 		return cast;
 	}
 

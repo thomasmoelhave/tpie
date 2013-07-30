@@ -26,6 +26,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <tpie/tpie_assert.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
 #include <tpie/compressed/predeclare.h>
@@ -108,17 +109,15 @@ public:
 	// write, stream
 	memory_size_type get_block_size(stream_size_type blockNumber)
 	{
-		if (!has_block_info(blockNumber))
-			throw exception("get_block_size: !has_block_info");
-
+		tp_assert(has_block_info(blockNumber), "get_block_size: !has_block_info");
+		unused(blockNumber);
 		return m_blockSize;
 	}
 
 	// write, stream
 	stream_size_type get_read_offset(stream_size_type blockNumber) {
-		if (!has_block_info(blockNumber))
-			throw exception("get_read_offset: !has_block_info");
-
+		tp_assert(has_block_info(blockNumber), "get_read_offset: !has_block_info");
+		unused(blockNumber);
 		return m_readOffset;
 	}
 

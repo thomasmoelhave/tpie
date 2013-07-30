@@ -104,22 +104,22 @@ memory_size_type compressed_stream_base::block_size() const {
 }
 
 memory_size_type compressed_stream_base::read_user_data(void * data, memory_size_type count) {
-	if (!is_open()) throw stream_exception("read_user_data: !is_open");
+	tp_assert(is_open(), "read_user_data: !is_open");
 	return m_byteStreamAccessor.read_user_data(data, count);
 }
 
 void compressed_stream_base::write_user_data(const void * data, memory_size_type count) {
-	if (!is_open()) throw stream_exception("write_user_data: !is_open");
+	tp_assert(is_open(), "write_user_data: !is_open");
 	m_byteStreamAccessor.write_user_data(data, count);
 }
 
 memory_size_type compressed_stream_base::user_data_size() const {
-	if (!is_open()) throw stream_exception("user_data_size: !is_open");
+	tp_assert(is_open(), "user_data_size: !is_open");
 	return m_byteStreamAccessor.user_data_size();
 }
 
 memory_size_type compressed_stream_base::max_user_data_size() const {
-	if (!is_open()) throw stream_exception("max_user_data_size: !is_open");
+	tp_assert(is_open(), "max_user_data_size: !is_open");
 	return m_byteStreamAccessor.max_user_data_size();
 }
 
@@ -184,8 +184,7 @@ void compressed_stream_base::close() {
 }
 
 void compressed_stream_base::finish_requests(compressor_thread_lock & l) {
-	if (m_buffer.get() != 0)
-		throw exception("finish_requests called when own buffer is still held");
+	tp_assert(!(m_buffer.get() != 0), "finish_requests called when own buffer is still held");
 	m_buffers.clean();
 	while (!m_buffers.empty()) {
 		compressor().wait_for_request_done(l);
