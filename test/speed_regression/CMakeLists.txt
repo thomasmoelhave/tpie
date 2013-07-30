@@ -2,6 +2,10 @@ set (SPEED_DEPS testtime.h stat.h)
 
 list(APPEND SPEED_DEPS "${PROJECT_SOURCE_DIR}/tpie/sysinfo.h")
 
+add_executable(compressed_speed_test compressed.cpp ${SPEED_DEPS})
+target_link_libraries(compressed_speed_test tpie)
+set_target_properties(compressed_speed_test PROPERTIES FOLDER tpie/test)
+
 add_executable(stream_speed_test stream.cpp ${SPEED_DEPS})
 target_link_libraries(stream_speed_test tpie)
 set_target_properties(stream_speed_test PROPERTIES FOLDER tpie/test)
