@@ -136,6 +136,8 @@ private:
 			compressor_thread_lock::lock_t lock(mutex());
 			// Notify that reading has completed.
 			rr.set_next_block_offset(1111111111111111111ull);
+			rr.buffer()->transition_state(compressor_buffer_state::reading,
+										  compressor_buffer_state::clean);
 			return;
 		}
 		block_header blockHeader;
@@ -176,14 +178,13 @@ private:
 					throw exception("read failed to read right amount");
 				}
 			}
-			readOffset += sizeof(blockHeader);
 			blockSize = blockHeader.get_block_size();
 			if (blockSize == 0) {
 				throw exception("Block size was unexpectedly zero");
 			}
 			scratch.resize(blockSize + sizeof(blockTrailer));
 			{
-				memory_size_type nRead = rr.file_accessor().read(readOffset, scratch.get(), scratch.size());
+				memory_size_type nRead = rr.file_accessor().read(readOffset + sizeof(blockHeader), scratch.get(), scratch.size());
 				if (nRead != scratch.size()) {
 					throw exception("read failed to read right amount");
 				}
@@ -192,7 +193,7 @@ private:
 			memcpy(&blockTrailer,
 				   reinterpret_cast<block_header *>(scratch.get() + scratch.size()) - 1,
 				   sizeof(blockTrailer));
-			nextReadOffset = readOffset + scratch.size();
+			nextReadOffset = readOffset + sizeof(blockHeader) + scratch.size();
 		}
 		if (blockHeader != blockTrailer) {
 			throw exception("Block trailer is different from the block header");
@@ -207,12 +208,16 @@ private:
 			log_error() << uncompressedLength << ' ' << rr.buffer()->capacity() << std::endl;
 			throw stream_exception("Internal error; snappy::GetUncompressedLength exceeds the block size");
 		}
-		rr.buffer()->set_size(uncompressedLength);
 		snappy::RawUncompress(compressed,
 							  blockSize,
 							  reinterpret_cast<char *>(rr.buffer()->get()));
 
 		compressor_thread_lock::lock_t lock(mutex());
+		rr.buffer()->transition_state(compressor_buffer_state::reading,
+									  compressor_buffer_state::clean);
+		rr.buffer()->set_size(uncompressedLength);
+		rr.buffer()->set_block_size(sizeof(blockHeader) + blockSize + sizeof(blockTrailer));
+		rr.buffer()->set_read_offset(readOffset);
 		rr.set_next_block_offset(nextReadOffset);
 	}
 
@@ -221,6 +226,9 @@ private:
 		if (!wr.file_accessor().get_compressed()) {
 			// Uncompressed case
 			wr.file_accessor().write(wr.write_offset(), wr.buffer()->get(), wr.buffer()->size());
+			compressor_thread_lock::lock_t lock(mutex());
+			wr.buffer()->transition_state(compressor_buffer_state::writing,
+										  compressor_buffer_state::clean);
 			return;
 		}
 		// Compressed case
@@ -246,6 +254,10 @@ private:
 		}
 		{
 			compressor_thread_lock::lock_t lock(mutex());
+			wr.buffer()->transition_state(compressor_buffer_state::writing,
+										  compressor_buffer_state::clean);
+			wr.buffer()->set_block_size(writeSize);
+			wr.buffer()->set_read_offset(wr.file_accessor().file_size());
 			wr.set_block_info(wr.file_accessor().file_size(), writeSize);
 		}
 		wr.file_accessor().append(scratch.get(), writeSize);

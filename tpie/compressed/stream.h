@@ -949,6 +949,7 @@ private:
 	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber) {
 		buffer_t().swap(m_buffer);
 		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
+		while (m_buffer->is_busy()) compressor().wait_for_request_done(l);
 		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
 		m_bufferEnd = m_bufferBegin + block_items();
 		this->m_bufferDirty = false;
@@ -963,7 +964,6 @@ private:
 	/// Does not get a new block buffer.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_block(compressor_thread_lock & lock) override {
-
 		stream_size_type blockNumber = buffer_block_number();
 		stream_size_type writeOffset;
 		if (!use_compression()) {
@@ -987,8 +987,13 @@ private:
 
 		if (m_nextItem == NULL) throw exception("m_nextItem is NULL");
 		if (m_bufferBegin == NULL) throw exception("m_bufferBegin is NULL");
-		memory_size_type blockItems = m_nextItem - m_bufferBegin;
+		memory_size_type blockItems = m_blockItems;
+		if (blockItems + blockNumber * m_blockItems > size()) {
+			blockItems =
+				static_cast<stream_size_type>(size() - blockNumber * m_blockItems);
+		}
 		m_buffer->set_size(blockItems * sizeof(T));
+		m_buffer->set_state(compressor_buffer_state::writing);
 		compressor_request r;
 		r.set_write_request(m_buffer,
 							&m_byteStreamAccessor,
@@ -1011,33 +1016,46 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
 		get_buffer(lock, blockNumber);
-		// TODO: Handle case when m_buffer is already being read/written by the thread.
 
 		stream_size_type readOffset;
-		if (use_compression()) {
-			readOffset = m_nextReadOffset;
+		if (m_buffer->get_state() == compressor_buffer_state::clean) {
+			m_readOffset = m_buffer->get_read_offset();
+			m_nextReadOffset = m_readOffset + m_buffer->get_block_size();
 		} else {
-			stream_size_type itemOffset = blockNumber * m_blockItems;
-			readOffset = blockNumber * m_blockSize;
-			memory_size_type blockSize =
-				std::min(m_blockSize,
-						 static_cast<memory_size_type>((size() - itemOffset) * m_itemSize));
-			m_buffer->set_size(blockSize);
-		}
+			if (use_compression()) {
+				readOffset = m_nextReadOffset;
+			} else {
+				stream_size_type itemOffset = blockNumber * m_blockItems;
+				readOffset = blockNumber * m_blockSize;
+				memory_size_type blockSize =
+					std::min(m_blockSize,
+							 static_cast<memory_size_type>((size() - itemOffset) * m_itemSize));
+				m_buffer->set_size(blockSize);
+			}
 
-		read_block(lock, readOffset, direction::forward);
+			read_block(lock, readOffset, direction::forward);
+			size_t blockItems = std::min(size() - blockNumber * m_blockItems,
+										 m_blockItems);
+			size_t expectedBlockSize = blockItems * sizeof(T);
+			if (m_buffer->size() != expectedBlockSize) {
+				log_error() << "Expected " << expectedBlockSize << " (" << blockItems
+					<< " items), got " << m_buffer->size() << std::endl;
+				throw exception("read_next_block: Bad buffer->get_size");
+			}
 
-		if (blockNumber >= m_streamBlocks)
-			m_streamBlocks = blockNumber + 1;
-
-		// Update m_readOffset, m_nextReadOffset
-		if (use_compression()) {
-			m_readOffset = readOffset;
-			m_nextReadOffset = m_response.next_read_offset();
-		} else {
-			// Uncompressed case. The following is a no-op:
-			//m_readOffset = 0;
-			// nextReadOffset is not used.
+			// Update m_readOffset, m_nextReadOffset
+			if (use_compression()) {
+				m_readOffset = readOffset;
+				m_nextReadOffset = m_response.next_read_offset();
+				if (m_readOffset != m_buffer->get_read_offset())
+					throw exception("read_next_block: bad get_read_offset");
+				if (m_nextReadOffset != m_readOffset + m_buffer->get_block_size())
+					throw exception("read_next_block: bad get_block_size");
+			} else {
+				// Uncompressed case. The following is a no-op:
+				//m_readOffset = 0;
+				// nextReadOffset is not used.
+			}
 		}
 
 		m_nextItem = m_bufferBegin;
@@ -1045,16 +1063,24 @@ private:
 	}
 
 	void read_previous_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
-		log_debug() << "Read previous block " << blockNumber << std::endl;
 		if (!use_compression()) throw exception("read_previous_block: !use_compression");
 		get_buffer(lock, blockNumber);
-		// TODO: Handle case when m_buffer is already being read/written by the thread.
-		read_block(lock, m_readOffset, direction::backward);
+		if (m_buffer->get_state() == compressor_buffer_state::clean) {
+			m_readOffset = m_buffer->get_read_offset();
+			m_nextReadOffset = m_readOffset + m_buffer->get_block_size();
+		} else {
+			read_block(lock, m_readOffset, direction::backward);
 
-		// This is backwards since we are reading backwards.
-		// Confusing, I know.
-		m_nextReadOffset = m_readOffset;
-		m_readOffset = m_response.next_read_offset();
+			// This is backwards since we are reading backwards.
+			// Confusing, I know.
+			m_nextReadOffset = m_readOffset;
+			m_readOffset = m_response.next_read_offset();
+
+			if (m_readOffset != m_buffer->get_read_offset())
+				throw exception("Bad buffer get_read_offset");
+			if (m_nextReadOffset != m_readOffset + m_buffer->get_block_size())
+				throw exception("Bad buffer get_block_size");
+		}
 
 		m_nextItem = m_bufferEnd;
 		m_bufferState = buffer_state::read_only;
@@ -1064,14 +1090,14 @@ private:
 					stream_size_type readOffset,
 					direction::type readDirection)
 	{
-		log_debug() << "Read block at " << readOffset << std::endl;
 		compressor_request r;
 		r.set_read_request(m_buffer,
 						   &m_byteStreamAccessor,
 						   readOffset,
 						   readDirection,
 						   &m_response);
-
+		m_buffer->transition_state(compressor_buffer_state::dirty,
+								   compressor_buffer_state::reading);
 		compressor().request(r);
 		while (!m_response.done()) {
 			m_response.wait(lock);

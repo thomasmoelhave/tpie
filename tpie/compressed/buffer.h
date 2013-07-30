@@ -32,21 +32,87 @@ namespace tpie {
 void init_stream_buffer_pool();
 void finish_stream_buffer_pool();
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  The different states of a compressor buffer.
+///
+/// dirty: The buffer is different from the contents on the disk.
+/// Only stream may read and write.
+/// This is the initial state of a freshly allocated buffer.
+///
+/// writing: The buffer will soon be written to disk.
+/// Stream and thread may only read.
+///
+/// reading: The buffer will soon change to reflect the contents on the disk.
+/// Only thread may read and write.
+///
+/// clean: The buffer is equal to the contents on the disk.
+/// Only stream may read and write.
+///
+/// dirty->writing/reading: When the buffer is sent from stream to thread.
+/// writing/reading->clean: When the thread is done.
+/// clean->dirty: When the stream has changed the contents of the buffer.
+///////////////////////////////////////////////////////////////////////////////
+struct compressor_buffer_state {
+	enum type {
+		/** The buffer is different from the contents on the disk.
+		 * Only stream may read and write. */
+		dirty,
+		/** The buffer will soon be written to disk.
+		 * Stream and thread may only read. */
+		writing,
+		/** The buffer will soon change to reflect the contents on the disk.
+		 * Only thread may read and write. */
+		reading,
+		/** The buffer is equal to the contents on the disk.
+		 * Only stream may read and write. */
+		clean
+	};
+};
+
 class compressor_buffer {
 private:
 	typedef array<char> storage_t;
 
 	storage_t m_storage;
 	memory_size_type m_size;
+	compressor_buffer_state::type m_state;
+	stream_size_type m_readOffset;
+	memory_size_type m_blockSize;
 
 public:
 	compressor_buffer(memory_size_type capacity)
 		: m_storage(capacity)
 		, m_size(0)
+		, m_state(compressor_buffer_state::dirty)
+		, m_readOffset(1111111111111111111ull)
+		, m_blockSize(1111111111111111111ull)
 	{
 	}
 
-	~compressor_buffer() {
+	compressor_buffer_state::type get_state() const {
+		return m_state;
+	}
+
+	void set_state(compressor_buffer_state::type to) {
+		m_state = to;
+	}
+
+	void transition_state(compressor_buffer_state::type from,
+						  compressor_buffer_state::type to)
+	{
+		if (m_state != from)
+			throw exception("compressor_buffer: invalid state transition");
+		set_state(to);
+	}
+
+	bool is_busy() {
+		switch (m_state) {
+			case compressor_buffer_state::dirty: return false;
+			case compressor_buffer_state::writing: return true;
+			case compressor_buffer_state::reading: return true;
+			case compressor_buffer_state::clean: return false;
+		}
+		throw exception("is_busy: compressor_buffer in invalid state");
 	}
 
 	char * get() {
@@ -73,6 +139,18 @@ public:
 		m_storage.resize(capacity);
 		m_size = 0;
 	}
+
+	void reset() {
+		m_state = compressor_buffer_state::dirty;
+		m_size = 0;
+		m_readOffset = 1111111111111111111ull;
+		m_blockSize = 1111111111111111111ull;
+	}
+
+	memory_size_type get_block_size() { return m_blockSize; }
+	stream_size_type get_read_offset() { return m_readOffset; }
+	void set_block_size(memory_size_type s) { m_blockSize = s; }
+	void set_read_offset(stream_size_type s) { m_readOffset = s; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,6 +237,7 @@ public:
 				}
 			}
 
+			b->reset();
 			m_buffers.insert(std::make_pair(blockNumber, b));
 			clean();
 			return b;
@@ -204,6 +283,7 @@ public:
 			// Bump use count before cleaning.
 			buffer_t result = target->second;
 			clean();
+			result->reset();
 			return result;
 		}
 	}
