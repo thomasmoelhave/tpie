@@ -694,8 +694,8 @@ private:
 	/// in before the call to read().
 	///////////////////////////////////////////////////////////////////////////
 	const T & read_ref() {
-		if (!can_read()) throw end_of_stream_exception();
 		if (m_seekState != seek_state::none) perform_seek();
+		if (m_offset == m_size) throw end_of_stream_exception();
 		if (m_nextItem == m_bufferEnd) {
 			compressor_thread_lock l(compressor());
 			if (this->m_bufferDirty)
@@ -765,9 +765,6 @@ public:
 	}
 
 	void write(const T & item) {
-		if (use_compression() && offset() != size())
-			throw stream_exception("Non-appending write attempted");
-
 		if (m_seekState != seek_state::none) perform_seek();
 
 		if (!use_compression()) {
@@ -790,9 +787,10 @@ public:
 			return;
 		}
 
-		if (m_bufferState == buffer_state::read_only && offset() == size()) {
-			m_bufferState = buffer_state::write_only;
-		}
+		if (m_offset != size())
+			throw stream_exception("Non-appending write attempted");
+
+		m_bufferState = buffer_state::write_only;
 
 		if (m_nextItem == m_bufferEnd) {
 			compressor_thread_lock l(compressor());
