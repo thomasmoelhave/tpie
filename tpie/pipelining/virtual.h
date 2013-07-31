@@ -423,7 +423,7 @@ public:
 
 		return *this;
 	}
-
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Connect this virtual chunk to another chunk.
 	///////////////////////////////////////////////////////////////////////////
@@ -433,7 +433,12 @@ public:
 			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk<Input, NextOutput> *>
 				::go(&dest);
 		}
-		m_recv->set_destination(acc::get_source(dest));
+		bits::virtsrc<Output> * dst=acc::get_source(dest);
+		if (!dest || !dst) {
+			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk<Input, NextOutput> *>
+				::go(this);
+		}
+		m_recv->set_destination(dst);
 		return virtual_chunk<Input, NextOutput>(*this, dest);
 	}
 
