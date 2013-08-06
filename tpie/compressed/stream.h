@@ -752,7 +752,8 @@ public:
 		return offset() > 0;
 	}
 
-	T read_back() {
+private:
+	const T & read_back_ref() {
 		if (m_seekState != seek_state::none) {
 			perform_seek();
 			// TODO avoid seek to beginning of a block
@@ -770,6 +771,11 @@ public:
 		}
 		--m_offset;
 		return *--m_nextItem;
+	}
+
+public:
+	T read_back() {
+		return read_back_ref();
 	}
 
 	void write(const T & item) {
