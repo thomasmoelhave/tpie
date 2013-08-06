@@ -546,6 +546,7 @@ private:
 	void truncate_uncompressed(stream_size_type offset) {
 		tp_assert(!use_compression(), "truncate_uncompressed called on compressed stream");
 
+		stream_size_type currentOffset = this->offset();
 		if (m_buffer.get() != 0
 			&& block_number(offset) == buffer_block_number()
 			&& buffer_block_number() == m_streamBlocks)
@@ -559,10 +560,10 @@ private:
 				m_nextItem = m_bufferBegin + blockItemIndex;
 			}
 			m_bufferDirty = true;
+			m_seekState = seek_state::none;
 		} else {
 			// We need to do a truncate on the file accessor.
 			// Get rid of the current block first.
-			stream_size_type currentOffset = this->offset();
 			compressor_thread_lock l(compressor());
 			if (offset > size()) {
 				// Extend file.
@@ -576,8 +577,8 @@ private:
 			finish_requests(l);
 			m_byteStreamAccessor.truncate(offset);
 			m_size = offset;
-			seek(std::min(currentOffset, offset));
 		}
+		seek(std::min(currentOffset, offset));
 
 	}
 
