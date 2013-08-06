@@ -508,6 +508,28 @@ static bool position_test_6() {
 	return true;
 }
 
+static bool position_test_7() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	tpie::compressed_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	for (size_t i = 0; i < blockSize; ++i) s.write(i);
+	tpie::stream_position pos1 = s.get_position();
+	tpie::stream_position pos2 = s.get_position();
+	TEST_ASSERT(pos1 == pos2);
+	s.close();
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	for (size_t i = 0; i < blockSize; ++i) s.read();
+	tpie::stream_position pos3 = s.get_position();
+	TEST_ASSERT(pos1 == pos3);
+	s.close();
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	s.seek(0, tpie::file_stream_base::end);
+	tpie::stream_position pos4 = s.get_position();
+	TEST_ASSERT(pos1 == pos4);
+	return true;
+}
+
 static bool uncompressed_test(size_t n) {
 	tpie::temp_file tf;
 	{
@@ -691,6 +713,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::position_test_4, "position_4" + suffix)
 		.test(T::position_test_5, "position_5" + suffix)
 		.test(T::position_test_6, "position_6" + suffix)
+		.test(T::position_test_7, "position_7" + suffix)
 		.test(T::position_seek_test, "position_seek" + suffix)
 		.test(T::uncompressed_test, "uncompressed" + suffix, "n", static_cast<size_t>(1000000))
 		.test(T::uncompressed_new_test, "uncompressed_new" + suffix, "n", static_cast<size_t>(1000000))
