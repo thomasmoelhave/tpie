@@ -57,13 +57,6 @@ protected:
 		};
 	};
 
-	struct buffer_state {
-		enum type {
-			write_only,
-			read_only
-		};
-	};
-
 	compressed_stream_base(memory_size_type itemSize,
 						   double blockFactor);
 
@@ -239,18 +232,7 @@ protected:
 	/** Response from compressor thread; protected by compressor thread mutex. */
 	compressor_response m_response;
 
-	/** Whenever seekState is set to none,
-	 * bufferState must be set appropriately. */
 	seek_state::type m_seekState;
-
-	/** When use_compression() is true:
-	 * Whether m_buffer is read-only or write-only.
-	 * When seekState is not none, bufferState has nothing to do
-	 * with offset()/get_position()!
-	 * After reading the final item of the stream, bufferState will remain
-	 * read-only, but can_read() == false and write() succeeds.
-	 */
-	buffer_state::type m_bufferState;
 
 	/** Position relating to the currently loaded buffer.
 	 * readOffset is only valid during reading.
@@ -340,7 +322,6 @@ namespace ami {
 template <typename T>
 class compressed_stream : public compressed_stream_base {
 	using compressed_stream_base::seek_state;
-	using compressed_stream_base::buffer_state;
 
 	friend class ami::cstream<T>;
 
@@ -416,15 +397,6 @@ public:
 				break;
 		}
 
-		switch (m_bufferState) {
-			case buffer_state::write_only:
-				out << ", buffer write-only";
-				break;
-			case buffer_state::read_only:
-				out << ", buffer read-only";
-				break;
-		}
-
 		if (m_bufferDirty)
 			out << " dirty";
 
@@ -482,7 +454,6 @@ public:
 				// We are already reading or writing the first block.
 				m_nextItem = m_bufferBegin;
 				m_offset = m_readOffset = 0;
-				m_bufferState = (size() > 0) ? buffer_state::read_only : buffer_state::write_only;
 				m_seekState = seek_state::none;
 			} else {
 				// We need to load the first block on the next I/O.
@@ -495,7 +466,6 @@ public:
 			} else if (m_offset == size()) {
 				// no-op
 				m_seekState = seek_state::none;
-				m_bufferState = buffer_state::write_only;
 			} else if (// We are in the last block, and it has NOT YET been written to disk, or
 					   buffer_block_number() == m_streamBlocks ||
 					   // we are in the last block, and it has ALREADY been written to disk.
@@ -511,7 +481,6 @@ public:
 				m_nextItem = m_bufferBegin + cast;
 
 				m_offset = size();
-				m_bufferState = buffer_state::write_only;
 				m_seekState = seek_state::none;
 			} else {
 				m_seekState = seek_state::end;
@@ -551,7 +520,6 @@ private:
 		get_buffer(l, 0);
 		m_size = 0;
 		m_streamBlocks = 0;
-		m_bufferState = buffer_state::write_only;
 		m_byteStreamAccessor.truncate(0);
 
 		// Since block_number == 0, seek(0) should short circuit
@@ -612,25 +580,21 @@ public:
 			case seek_state::beginning:
 				return stream_position(0, 0);
 			case seek_state::none:
-				if (m_bufferState == buffer_state::read_only) {
-					if (m_nextItem == m_bufferEnd) {
-						return stream_position(m_nextReadOffset, offset());
-					}
-					return stream_position(m_readOffset, m_offset);
-				} else {
-					// write-only
-					if (m_nextItem == m_bufferEnd) {
-						tp_assert(m_bufferDirty, "Write-only at end of buffer, but bufferDirty is false?");
-						// Make sure the position we get is not at the end of a block
-						compressor_thread_lock lock(compressor());
-						flush_block(lock);
-						get_buffer(lock, m_streamBlocks);
-						m_nextItem = m_bufferBegin;
-					}
+				if (buffer_block_number() != m_streamBlocks) {
+					if (m_nextItem == m_bufferEnd)
+						return stream_position(m_nextReadOffset, m_offset);
+					else
+						return stream_position(m_readOffset, m_offset);
 				}
-				// Else, our buffer is write-only, and we are not seeking,
-				// meaning the write head is at the end of the stream
-				// (since we do not support overwriting).
+				// We are in a new block at the end of the stream.
+				if (m_nextItem == m_bufferEnd) {
+					tp_assert(m_bufferDirty, "At end of buffer, but bufferDirty is false?");
+					// Make sure the position we get is not at the end of a block
+					compressor_thread_lock lock(compressor());
+					flush_block(lock);
+					get_buffer(lock, m_streamBlocks);
+					m_nextItem = m_bufferBegin;
+				}
 				break;
 			case seek_state::end:
 				// Figure out the size of the file below.
@@ -643,9 +607,13 @@ public:
 			readOffset = current_file_size(l);
 		else if (block_number() == m_streamBlocks)
 			readOffset = current_file_size(l);
-		else
+		else if (block_number() == m_streamBlocks - 1)
 			readOffset = last_block_read_offset(l);
-		return stream_position(readOffset, size());
+		else {
+			tp_assert(false, "get_position: Invalid block_number");
+			readOffset = 1111111111111111111ull; // avoid compiler warning
+		}
+		return stream_position(readOffset, offset());
 	}
 
 	void set_position(const stream_position & pos) {
@@ -654,7 +622,6 @@ public:
 		/*
 		if (pos == m_position) {
 			m_seekState = seek_state::none;
-			m_bufferState = something?
 			return;
 		}
 		*/
@@ -676,11 +643,6 @@ public:
 
 			m_readOffset = pos.read_offset();
 			m_offset = pos.offset();
-			if (offset() == size()) {
-				m_bufferState = buffer_state::write_only;
-			} else {
-				m_bufferState = buffer_state::read_only;
-			}
 			m_nextItem = m_bufferBegin + block_item_index();
 			m_seekState = seek_state::none;
 			return;
@@ -804,8 +766,6 @@ public:
 		if (m_offset != size())
 			throw stream_exception("Non-appending write attempted");
 
-		m_bufferState = buffer_state::write_only;
-
 		if (m_nextItem == m_bufferEnd) {
 			compressor_thread_lock l(compressor());
 			if (m_bufferDirty)
@@ -877,8 +837,8 @@ private:
 				m_nextReadOffset = 0;
 			}
 			read_next_block(l, 0);
-			m_bufferState = buffer_state::read_only;
-			m_offset = m_readOffset = 0;
+			m_offset = 0;
+			tp_assert(m_readOffset == 0, "perform_seek: Bad readOffset after reading first block");
 		} else if (m_seekState == seek_state::position) {
 			stream_size_type blockNumber = block_number(m_nextPosition.offset());
 			memory_size_type blockItemIndex = block_item_index(m_nextPosition.offset());
@@ -895,14 +855,11 @@ private:
 
 			m_nextItem = m_bufferBegin + blockItemIndex;
 			m_offset = m_nextPosition.offset();
-			m_readOffset = m_nextPosition.read_offset();
-			m_bufferState = buffer_state::read_only;
 		} else if (m_seekState == seek_state::end) {
 			if (m_streamBlocks * m_blockItems == size()) {
 				// The last block in the stream is full,
 				// so we can safely start a new empty one.
 				get_buffer(l, m_streamBlocks);
-				m_bufferState = buffer_state::write_only;
 				m_nextItem = m_bufferBegin;
 				// We don't care about m_readOffset.
 				// Set read offset to roughly 0.9637 * 2^60 bytes,
@@ -928,8 +885,6 @@ private:
 				m_nextReadOffset = readOffset;
 				read_next_block(l, m_streamBlocks - 1);
 				m_nextItem = m_bufferBegin + blockItemIndex;
-				m_bufferState = buffer_state::write_only;
-				m_readOffset = readOffset;
 				m_offset = size();
 			}
 		} else {
@@ -1020,7 +975,11 @@ private:
 		stream_size_type readOffset;
 		if (m_buffer->get_state() == compressor_buffer_state::clean) {
 			m_readOffset = m_buffer->get_read_offset();
-			m_nextReadOffset = m_readOffset + m_buffer->get_block_size();
+			if (use_compression()) {
+				tp_assert(m_readOffset == m_nextReadOffset,
+						  "read_next_block: Buffer has wrong read offset");
+				m_nextReadOffset = m_readOffset + m_buffer->get_block_size();
+			}
 		} else {
 			if (use_compression()) {
 				readOffset = m_nextReadOffset;
@@ -1059,7 +1018,6 @@ private:
 		}
 
 		m_nextItem = m_bufferBegin;
-		m_bufferState = buffer_state::read_only;
 	}
 
 	void read_previous_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
@@ -1083,7 +1041,6 @@ private:
 		}
 
 		m_nextItem = m_bufferEnd;
-		m_bufferState = buffer_state::read_only;
 	}
 
 	void read_block(compressor_thread_lock & lock,

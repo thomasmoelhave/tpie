@@ -41,7 +41,6 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 	, m_lastBlockReadOffset(0)
 	, m_response()
 	, m_seekState(seek_state::beginning)
-	, m_bufferState(buffer_state::write_only)
 	, m_readOffset(0)
 	, m_offset(0)
 	, m_nextPosition(/* not a position */)
