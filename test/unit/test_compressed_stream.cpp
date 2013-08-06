@@ -165,6 +165,25 @@ static bool read_back_seek_test() {
 	return d1 == d2;
 }
 
+static bool read_back_seek_test_2() {
+	tpie::temp_file tf;
+	const size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		for (size_t i = 0; i < blockSize; ++i) s.write(i);
+	}
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		s.seek(0, tpie::file_stream_base::end);
+		s.write(1);
+		s.read_back();
+		s.read_back();
+	}
+	return true;
+}
+
 static bool position_test_0(size_t n) {
 	tpie::temp_file tf;
 
@@ -572,6 +591,42 @@ static bool position_test_7() {
 	return true;
 }
 
+static bool position_test_8() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		for (size_t i = 0; i < blockSize; ++i) s.write(i);
+	}
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		s.seek(0, tpie::file_stream_base::end);
+		s.get_position();
+	}
+	return true;
+}
+
+static bool position_test_9() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	tpie::compressed_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	for (size_t i = 0; i < 2*blockSize; ++i) s.write(i);
+	s.close();
+	tf.free();
+	{
+		tpie::compressed_stream<size_t> s2;
+		s2.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		for (size_t i = 0; i < blockSize; ++i) s2.write(i);
+	}
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	s.seek(0, tpie::file_stream_base::end);
+	s.get_position();
+	return true;
+}
+
 static bool uncompressed_test(size_t n) {
 	tpie::temp_file tf;
 	{
@@ -747,6 +802,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::reopen_test_2, "reopen_2" + suffix)
 		.test(T::read_seek_test, "read_seek" + suffix, "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
 		.test(T::read_back_seek_test, "read_back_seek" + suffix)
+		.test(T::read_back_seek_test_2, "read_back_seek_2" + suffix)
 		.test(T::truncate_test, "truncate" + suffix)
 		.test(T::truncate_test_2, "truncate_2" + suffix)
 		.test(T::position_test_0, "position_0" + suffix, "n", static_cast<size_t>(1 << 19))
@@ -757,6 +813,8 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::position_test_5, "position_5" + suffix)
 		.test(T::position_test_6, "position_6" + suffix)
 		.test(T::position_test_7, "position_7" + suffix)
+		.test(T::position_test_8, "position_8" + suffix)
+		.test(T::position_test_9, "position_9" + suffix)
 		.test(T::position_seek_test, "position_seek" + suffix)
 		.test(T::uncompressed_test, "uncompressed" + suffix, "n", static_cast<size_t>(1000000))
 		.test(T::uncompressed_new_test, "uncompressed_new" + suffix, "n", static_cast<size_t>(1000000))
