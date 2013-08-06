@@ -414,6 +414,18 @@ static bool seek_test() {
 	return true;
 }
 
+static bool seek_test_2() {
+	tpie::temp_file tf;
+	size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	tpie::compressed_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	for (size_t i = 0; i < blockSize; ++i) s.write(i);
+	s.seek(0);
+	s.seek(0, tpie::file_stream_base::end);
+	s.write(0);
+	return true;
+}
+
 static bool position_test_4() {
 	tpie::temp_file tf;
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
@@ -640,6 +652,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 	return t
 		.test(T::basic_test, "basic" + suffix, "n", static_cast<size_t>(1000))
 		.test(T::seek_test, "seek" + suffix)
+		.test(T::seek_test_2, "seek_2" + suffix)
 		.test(T::reopen_test_1, "reopen_1" + suffix, "n", static_cast<size_t>(1 << 21))
 		.test(T::reopen_test_2, "reopen_2" + suffix)
 		.test(T::read_seek_test, "read_seek" + suffix, "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))

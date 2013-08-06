@@ -501,9 +501,17 @@ public:
 					   // we are in the last block, and it has ALREADY been written to disk.
 					   buffer_block_number()+1 == m_streamBlocks)
 			{
+				// If the last block is full,
+				// block_item_index() reports 0 when it should report m_blockItems.
+				// Compute blockItemIndex manually to handle this edge case.
+				stream_size_type blockItemIndex =
+					size() - buffer_block_number() * m_blockItems;
+				memory_size_type cast = static_cast<memory_size_type>(blockItemIndex);
+				tp_assert(blockItemIndex == cast, "seek: blockItemIndex out of bounds");
+				m_nextItem = m_bufferBegin + cast;
+
 				m_offset = size();
 				m_bufferState = buffer_state::write_only;
-				m_nextItem = m_bufferBegin + block_item_index();
 				m_seekState = seek_state::none;
 			} else {
 				m_seekState = seek_state::end;
