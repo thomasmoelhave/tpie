@@ -508,6 +508,18 @@ public:
 			throw stream_exception("Arbitrary truncate is not supported");
 	}
 
+	void truncate(const stream_position & pos) {
+		tp_assert(is_open(), "truncate: !is_open");
+		if (pos.offset() == size())
+			return;
+		else if (pos.offset() == 0)
+			truncate_zero();
+		else if (!use_compression())
+			truncate_uncompressed(pos.offset());
+		else
+			truncate_compressed(pos);
+	}
+
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Truncate to zero size.
@@ -564,6 +576,36 @@ private:
 			seek(std::min(currentOffset, offset));
 		}
 
+	}
+
+	void truncate_compressed(const stream_position & pos) {
+		tp_assert(use_compression(), "truncate_compressed called on uncompressed stream");
+
+		stream_size_type offset = pos.offset();
+		stream_position finalDestination = (offset < this->offset()) ? pos : get_position();
+
+		if (m_buffer.get() == 0 || block_number(offset) != buffer_block_number()) {
+			set_position(pos);
+			perform_seek();
+		}
+
+		// We are truncating into the currently loaded block.
+		if (buffer_block_number() < m_streamBlocks) {
+			m_streamBlocks = buffer_block_number() + 1;
+			m_lastBlockReadOffset = pos.read_offset();
+			compressor_thread_lock l(compressor());
+			m_response.clear_block_info();
+		}
+		m_size = offset;
+		if (offset < m_offset) {
+			m_offset = offset;
+			memory_size_type blockItemIndex =
+				static_cast<memory_size_type>(offset - m_streamBlocks * m_blockItems);
+			m_nextItem = m_bufferBegin + blockItemIndex;
+		}
+		m_bufferDirty = true;
+
+		set_position(finalDestination);
 	}
 
 public:
