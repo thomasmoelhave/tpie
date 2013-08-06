@@ -840,11 +840,6 @@ private:
 	/// Sets seekState to none.
 	///
 	/// If anything fails, the stream is closed by a close_on_fail_guard.
-	///
-	/// Exception guarantee:
-	/// seekState == beginning: nothrow
-	/// seekState == position: strong (closes the file)
-	/// seekState == end: nothrow (see TODO below)
 	///////////////////////////////////////////////////////////////////////////
 	void perform_seek() {
 		// This must be initialized before the compressor lock below,
@@ -917,7 +912,7 @@ private:
 			} else {
 				// The last block in the stream is non-full.
 				if (m_streamBlocks == 0) {
-					// TODO: I don't think this can happen in practice,
+					// This cannot happen in practice,
 					// since we short-circuit seek(end) when streamBlocks == 0.
 					throw exception("Attempted seek to end when no blocks have been written");
 				}
