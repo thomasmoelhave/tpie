@@ -294,6 +294,8 @@ private:
 	compressed_stream_base * m_stream;
 };
 
+template <typename T> class stack;
+
 namespace ami {
 	template <typename T> class cstream;
 }
@@ -324,6 +326,7 @@ class compressed_stream : public compressed_stream_base {
 	using compressed_stream_base::seek_state;
 
 	friend class ami::cstream<T>;
+	friend class stack<T>;
 
 	static const file_stream_base::offset_type beginning = file_stream_base::beginning;
 	static const file_stream_base::offset_type end = file_stream_base::end;
