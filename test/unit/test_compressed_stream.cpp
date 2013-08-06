@@ -123,6 +123,48 @@ static bool read_seek_test(size_t seekPosition, size_t items) {
 	return true;
 }
 
+static bool read_back_seek_test() {
+	tpie::temp_file tf;
+	const size_t blockSize = 2*1024*1024 / sizeof(size_t);
+	const size_t BLOCKS = 5;
+	tpie::array<tpie::stream_position> positions(BLOCKS);
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		for (size_t block = 0; block < BLOCKS; ++block) {
+			positions[block] = s.get_position();
+			for (size_t i = 0; i < blockSize; ++i) s.write(i);
+		}
+	}
+	tpie::stream_size_type r1 = tpie::get_bytes_read();
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		for (size_t block = 0; block < BLOCKS; ++block) {
+			s.set_position(positions[block]);
+			for (size_t i = 0; i < blockSize; ++i) s.read();
+		}
+	}
+	tpie::stream_size_type r2 = tpie::get_bytes_read();
+	{
+		tpie::compressed_stream<size_t> s;
+		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+		for (size_t block = 0; block < BLOCKS; ++block) {
+			if (block+1 == BLOCKS)
+				s.seek(0, tpie::file_stream_base::end);
+			else
+				s.set_position(positions[block+1]);
+			for (size_t i = 0; i < blockSize; ++i) s.read_back();
+		}
+	}
+	tpie::stream_size_type r3 = tpie::get_bytes_read();
+
+	tpie::stream_size_type d1 = r2-r1;
+	tpie::stream_size_type d2 = r3-r2;
+	tpie::log_debug() << d1 << ' ' << d2 << std::endl;
+	return d1 == d2;
+}
+
 static bool position_test_0(size_t n) {
 	tpie::temp_file tf;
 
@@ -704,6 +746,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::reopen_test_1, "reopen_1" + suffix, "n", static_cast<size_t>(1 << 21))
 		.test(T::reopen_test_2, "reopen_2" + suffix)
 		.test(T::read_seek_test, "read_seek" + suffix, "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
+		.test(T::read_back_seek_test, "read_back_seek" + suffix)
 		.test(T::truncate_test, "truncate" + suffix)
 		.test(T::truncate_test_2, "truncate_2" + suffix)
 		.test(T::position_test_0, "position_0" + suffix, "n", static_cast<size_t>(1 << 19))
