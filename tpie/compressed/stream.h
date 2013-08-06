@@ -35,6 +35,7 @@
 #include <tpie/compressed/buffer.h>
 #include <tpie/compressed/request.h>
 #include <tpie/compressed/position.h>
+#include <tpie/compressed/direction.h>
 
 namespace tpie {
 
@@ -763,8 +764,7 @@ public:
 private:
 	const T & read_back_ref() {
 		if (m_seekState != seek_state::none) {
-			perform_seek();
-			// TODO avoid seek to beginning of a block
+			perform_seek(direction::backward);
 		}
 		if (m_nextItem == m_bufferBegin) {
 			compressor_thread_lock l(compressor());
@@ -841,7 +841,7 @@ private:
 	///
 	/// If anything fails, the stream is closed by a close_on_fail_guard.
 	///////////////////////////////////////////////////////////////////////////
-	void perform_seek() {
+	void perform_seek(direction::type dir=direction::forward) {
 		// This must be initialized before the compressor lock below,
 		// so that it is destructed after we free the lock.
 		close_on_fail_guard closeOnFail(this);
@@ -883,21 +883,32 @@ private:
 		} else if (m_seekState == seek_state::position) {
 			stream_size_type blockNumber = block_number(m_nextPosition.offset());
 			memory_size_type blockItemIndex = block_item_index(m_nextPosition.offset());
-			if (use_compression()) {
-				m_nextReadOffset = m_nextPosition.read_offset();
-			}
 
 			// This cannot happen in practice due to the implementation of
 			// block_number and block_item_index, but it is an important
 			// assumption in the following code.
 			tp_assert(!(blockItemIndex >= m_blockItems), "perform_seek: Computed block item index >= blockItems");
 
-			read_next_block(l, blockNumber);
+			if (dir == direction::backward && blockItemIndex == 0 && blockNumber > 0) {
+				if (use_compression()) {
+					m_readOffset = m_nextPosition.read_offset();
+					read_previous_block(l, blockNumber - 1);
+					// sets m_nextItem = m_bufferEnd
+				} else {
+					read_next_block(l, blockNumber - 1);
+					m_nextItem = m_bufferEnd;
+				}
+			} else {
+				if (use_compression()) {
+					m_nextReadOffset = m_nextPosition.read_offset();
+				}
+				read_next_block(l, blockNumber);
+				m_nextItem = m_bufferBegin + blockItemIndex;
+			}
 
-			m_nextItem = m_bufferBegin + blockItemIndex;
 			m_offset = m_nextPosition.offset();
 		} else if (m_seekState == seek_state::end) {
-			if (m_streamBlocks * m_blockItems == size()) {
+			if (m_streamBlocks * m_blockItems == size() && dir == direction::forward) {
 				// The last block in the stream is full,
 				// so we can safely start a new empty one.
 				get_buffer(l, m_streamBlocks);
@@ -910,20 +921,16 @@ private:
 				m_readOffset = 1111111111111111111ull;
 				m_offset = size();
 			} else {
-				// The last block in the stream is non-full.
+				// The last block in the stream is non-full, or we are going to read_back.
 				if (m_streamBlocks == 0) {
 					// This cannot happen in practice,
 					// since we short-circuit seek(end) when streamBlocks == 0.
 					throw exception("Attempted seek to end when no blocks have been written");
 				}
-				stream_size_type readOffset;
 				memory_size_type blockItemIndex = size() - (m_streamBlocks - 1) * m_blockItems;
 				if (use_compression()) {
-					readOffset = last_block_read_offset(l);
-				} else {
-					readOffset = 0;
+					m_nextReadOffset = last_block_read_offset(l);
 				}
-				m_nextReadOffset = readOffset;
 				read_next_block(l, m_streamBlocks - 1);
 				m_nextItem = m_bufferBegin + blockItemIndex;
 				m_offset = size();
