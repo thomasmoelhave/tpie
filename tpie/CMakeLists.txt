@@ -10,6 +10,7 @@ set (HEADERS
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
+		compressed/direction.h
 		compressed/predeclare.h
 		compressed/request.h
 		compressed/stream.h

@@ -30,6 +30,7 @@
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
 #include <tpie/compressed/predeclare.h>
+#include <tpie/compressed/direction.h>
 
 namespace tpie {
 
@@ -173,13 +174,6 @@ public:
 
 protected:
 	compressor_response * m_response;
-};
-
-struct direction {
-	enum type {
-		forward,
-		backward
-	};
 };
 
 class read_request : public request_base {
