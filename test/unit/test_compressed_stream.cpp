@@ -452,6 +452,32 @@ static bool truncate_test() {
 	return true;
 }
 
+static bool truncate_test_2() {
+	size_t a = 1000000;
+	size_t b = 2000000;
+	size_t c = 3000000;
+
+	tpie::temp_file tf;
+	tpie::compressed_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+
+	for (size_t i = 0; i < a; ++i) s.write(i);
+	tpie::stream_position pos1 = s.get_position();
+	for (size_t i = a; i < b; ++i) s.write(i);
+	tpie::stream_position pos2 = s.get_position();
+	for (size_t i = b; i < c; ++i) s.write(i);
+	s.truncate(pos2);
+	TEST_ASSERT(s.offset() == b);
+	s.close();
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
+	TEST_ASSERT(s.offset() == 0);
+	TEST_ASSERT(s.size() == b);
+	s.truncate(pos1);
+	TEST_ASSERT(s.offset() == 0);
+	TEST_ASSERT(s.size() == a);
+	return true;
+}
+
 static bool position_test_5() {
 	tpie::temp_file tf;
 	size_t blockSize = 2*1024*1024 / sizeof(size_t);
@@ -657,6 +683,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::reopen_test_2, "reopen_2" + suffix)
 		.test(T::read_seek_test, "read_seek" + suffix, "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
 		.test(T::truncate_test, "truncate" + suffix)
+		.test(T::truncate_test_2, "truncate_2" + suffix)
 		.test(T::position_test_0, "position_0" + suffix, "n", static_cast<size_t>(1 << 19))
 		.test(T::position_test_1, "position_1" + suffix)
 		.test(T::position_test_2, "position_2" + suffix)
