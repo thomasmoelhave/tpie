@@ -917,7 +917,11 @@ private:
 				// so we can safely start a new empty one.
 				get_buffer(l, m_streamBlocks);
 				m_nextItem = m_bufferBegin;
-				m_readOffset = current_file_size(l);
+				if (use_compression()) {
+					m_readOffset = current_file_size(l);
+				} else {
+					m_readOffset = 0;
+				}
 				m_offset = size();
 			} else {
 				// The last block in the stream is non-full, or we are going to read_back.
