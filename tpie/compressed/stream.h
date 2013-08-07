@@ -917,12 +917,7 @@ private:
 				// so we can safely start a new empty one.
 				get_buffer(l, m_streamBlocks);
 				m_nextItem = m_bufferBegin;
-				// We don't care about m_readOffset.
-				// Set read offset to roughly 0.9637 * 2^60 bytes,
-				// a value that should be easy to spot in a debugger,
-				// and one that should not otherwise occur in practice.
-				// It's a prime number, too!
-				m_readOffset = 1111111111111111111ull;
+				m_readOffset = current_file_size(l);
 				m_offset = size();
 			} else {
 				// The last block in the stream is non-full, or we are going to read_back.
