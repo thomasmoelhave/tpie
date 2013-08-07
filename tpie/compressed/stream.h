@@ -229,6 +229,7 @@ protected:
 	 * Read offset of the last block in the stream.
 	 * Necessary to support seeking to the end. */
 	stream_size_type m_lastBlockReadOffset;
+	stream_size_type m_currentFileSize;
 
 	/** Response from compressor thread; protected by compressor thread mutex. */
 	compressor_response m_response;
@@ -412,6 +413,8 @@ public:
 		out << ", " << m_streamBlocks << " blocks";
 		if (m_lastBlockReadOffset != std::numeric_limits<stream_size_type>::max())
 			out << ", last block at " << m_lastBlockReadOffset;
+		if (m_currentFileSize != std::numeric_limits<stream_size_type>::max())
+			out << ", current file size " << m_currentFileSize;
 
 		out << ']';
 	}
@@ -598,6 +601,7 @@ private:
 		if (buffer_block_number() < m_streamBlocks) {
 			m_streamBlocks = buffer_block_number() + 1;
 			m_lastBlockReadOffset = pos.read_offset();
+			m_currentFileSize = std::numeric_limits<stream_size_type>::max();
 			compressor_thread_lock l(compressor());
 			m_response.clear_block_info();
 		}
@@ -987,6 +991,7 @@ private:
 		}
 
 		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
+		m_currentFileSize = std::numeric_limits<stream_size_type>::max();
 
 		if (m_nextItem == NULL) throw exception("m_nextItem is NULL");
 		if (m_bufferBegin == NULL) throw exception("m_bufferBegin is NULL");

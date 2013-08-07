@@ -39,6 +39,7 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 	, m_buffer(/* empty shared_ptr */)
 	, m_streamBlocks(0)
 	, m_lastBlockReadOffset(0)
+	, m_currentFileSize(0)
 	, m_response()
 	, m_seekState(seek_state::beginning)
 	, m_readOffset(0)
@@ -78,6 +79,7 @@ void compressed_stream_base::open_inner(const std::string & path,
 	m_open = true;
 	m_streamBlocks = (m_size + m_blockItems - 1) / m_blockItems;
 	m_lastBlockReadOffset = m_byteStreamAccessor.get_last_block_read_offset();
+	m_currentFileSize = m_byteStreamAccessor.file_size();
 	m_response.clear_block_info();
 
 	this->post_open();
@@ -207,6 +209,8 @@ stream_size_type compressed_stream_base::last_block_read_offset(compressor_threa
 stream_size_type compressed_stream_base::current_file_size(compressor_thread_lock & l) {
 	if (m_streamBlocks == 0)
 		return 0;
+	if (m_currentFileSize != std::numeric_limits<stream_size_type>::max())
+		return m_currentFileSize;
 	// We assume that streamBlocks is monotonically increasing over time;
 	// the response object might throw otherwise.
 	while (!m_response.has_block_info(m_streamBlocks - 1))
