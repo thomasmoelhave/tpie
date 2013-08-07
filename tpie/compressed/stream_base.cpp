@@ -78,6 +78,7 @@ void compressed_stream_base::open_inner(const std::string & path,
 	m_open = true;
 	m_streamBlocks = (m_size + m_blockItems - 1) / m_blockItems;
 	m_lastBlockReadOffset = m_byteStreamAccessor.get_last_block_read_offset();
+	m_response.clear_block_info();
 
 	this->post_open();
 }
