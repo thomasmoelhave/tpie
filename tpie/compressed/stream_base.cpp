@@ -31,6 +31,8 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 	, m_canWrite(false)
 	, m_open(false)
 	, m_itemSize(itemSize)
+	, m_cachedReads(0)
+	, m_cachedWrites(0)
 	, m_ownedTempFile(/* empty auto_ptr */)
 	, m_tempFile(0)
 	, m_byteStreamAccessor()
@@ -164,6 +166,7 @@ void compressed_stream_base::open(temp_file & file,
 }
 
 void compressed_stream_base::close() {
+	uncache_read_writes();
 	if (m_open) {
 		compressor_thread_lock l(compressor());
 

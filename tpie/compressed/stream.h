@@ -166,6 +166,14 @@ protected:
 
 	bool use_compression() { return m_byteStreamAccessor.get_compressed(); }
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Reset cheap read/write counts to zero so that the next
+	/// read/write operation will check stream state properly.
+	///////////////////////////////////////////////////////////////////////////
+	void uncache_read_writes() {
+		m_cachedReads = m_cachedWrites = 0;
+	}
+
 public:
 	bool is_open() const { return m_open; }
 
@@ -208,6 +216,10 @@ protected:
 	bool m_open;
 	/** Size of a single item. itemSize * blockItems == blockSize. */
 	memory_size_type m_itemSize;
+	/** Number of cheap, unchecked reads we can do next. */
+	memory_size_type m_cachedReads;
+	/** Number of cheap, unchecked writes we can do next. */
+	memory_size_type m_cachedWrites;
 	/** The anonymous temporary file we have opened (when appropriate). */
 	tpie::auto_ptr<temp_file> m_ownedTempFile;
 	/** The temporary file we have opened (when appropriate).
@@ -438,6 +450,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void seek(stream_offset_type offset, offset_type whence=beginning) {
 		tp_assert(is_open(), "seek: !is_open");
+		uncache_read_writes();
 		if (!use_compression()) {
 			// Handle uncompressed case by delegating to set_position.
 			switch (whence) {
@@ -505,6 +518,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
 		tp_assert(is_open(), "truncate: !is_open");
+		uncache_read_writes();
 		if (offset == size())
 			return;
 		else if (offset == 0)
@@ -517,6 +531,7 @@ public:
 
 	void truncate(const stream_position & pos) {
 		tp_assert(is_open(), "truncate: !is_open");
+		uncache_read_writes();
 		if (pos.offset() == size())
 			return;
 		else if (pos.offset() == 0)
@@ -701,6 +716,7 @@ public:
 
 		m_nextPosition = pos;
 		m_seekState = seek_state::position;
+		uncache_read_writes();
 	}
 
 private:
@@ -715,6 +731,11 @@ private:
 	/// in before the call to read().
 	///////////////////////////////////////////////////////////////////////////
 	const T & read_ref() {
+		if (m_cachedReads > 0) {
+			--m_cachedReads;
+			++m_offset;
+			return *m_nextItem++;
+		}
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_offset == m_size) throw end_of_stream_exception();
 		if (m_nextItem == m_bufferEnd) {
@@ -725,7 +746,9 @@ private:
 			read_next_block(l, block_number());
 		}
 		++m_offset;
-		return *m_nextItem++;
+		const T & res = *m_nextItem++;
+		cache_read_writes();
+		return res;
 	}
 
 public:
@@ -752,6 +775,9 @@ public:
 	/// \brief  Check if the next call to read() will succeed or not.
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read() {
+		if (m_cachedReads > 0)
+			return true;
+
 		if (!this->m_open)
 			return false;
 
@@ -771,6 +797,7 @@ private:
 			perform_seek(direction::backward);
 		}
 		if (m_nextItem == m_bufferBegin) {
+			uncache_read_writes();
 			compressor_thread_lock l(compressor());
 			if (this->m_bufferDirty)
 				flush_block(l);
@@ -781,6 +808,7 @@ private:
 				m_nextItem = m_bufferEnd;
 			}
 		}
+		++m_cachedReads;
 		--m_offset;
 		return *--m_nextItem;
 	}
@@ -791,6 +819,14 @@ public:
 	}
 
 	void write(const T & item) {
+		if (m_cachedWrites > 0) {
+			*m_nextItem++ = item;
+			++m_size;
+			++m_offset;
+			--m_cachedWrites;
+			return;
+		}
+
 		if (m_seekState != seek_state::none) perform_seek();
 
 		if (!use_compression()) {
@@ -810,6 +846,7 @@ public:
 			*m_nextItem++ = item;
 			this->m_bufferDirty = true;
 			++m_offset;
+			cache_read_writes();
 			return;
 		}
 
@@ -828,6 +865,8 @@ public:
 		this->m_bufferDirty = true;
 		++m_size;
 		++m_offset;
+
+		cache_read_writes();
 	}
 
 	template <typename IT>
@@ -851,6 +890,8 @@ private:
 		close_on_fail_guard closeOnFail(this);
 
 		tp_assert(!(m_seekState == seek_state::none), "perform_seek when seekState is none");
+
+		uncache_read_writes();
 
 		compressor_thread_lock l(compressor());
 
@@ -953,6 +994,7 @@ private:
 	/// and sets bufferDirty to false.
 	///////////////////////////////////////////////////////////////////////////
 	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber) {
+		uncache_read_writes();
 		buffer_t().swap(m_buffer);
 		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
 		while (m_buffer->is_busy()) compressor().wait_for_request_done(l);
@@ -970,6 +1012,7 @@ private:
 	/// Does not get a new block buffer.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_block(compressor_thread_lock & lock) override {
+		uncache_read_writes();
 		stream_size_type blockNumber = buffer_block_number();
 		stream_size_type writeOffset;
 		if (!use_compression()) {
@@ -1022,6 +1065,7 @@ private:
 	/// Updates m_readOffset with the new read offset.
 	///////////////////////////////////////////////////////////////////////////
 	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
+		uncache_read_writes();
 		get_buffer(lock, blockNumber);
 
 		stream_size_type readOffset;
@@ -1073,6 +1117,7 @@ private:
 	}
 
 	void read_previous_block(compressor_thread_lock & lock, stream_size_type blockNumber) {
+		uncache_read_writes();
 		tp_assert(use_compression(), "read_previous_block: !use_compression");
 		get_buffer(lock, blockNumber);
 		if (m_buffer->get_state() == compressor_buffer_state::clean) {
@@ -1149,6 +1194,27 @@ private:
 
 	memory_size_type block_item_index() {
 		return block_item_index(m_offset);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Compute number of cheap, unchecked reads/writes we can do from
+	/// now.
+	///////////////////////////////////////////////////////////////////////////
+	void cache_read_writes() {
+		if (m_buffer.get() == 0 || m_seekState != seek_state::none) {
+			m_cachedWrites = 0;
+			m_cachedReads = 0;
+		} else if (offset() == size()) {
+			m_cachedWrites = m_bufferDirty ? m_bufferEnd - m_nextItem : 0;
+			m_cachedReads = 0;
+		} else {
+			m_cachedWrites = 0;
+			m_cachedReads = m_bufferEnd - m_nextItem;
+			if (offset() + m_cachedReads > size()) {
+				m_cachedReads =
+					static_cast<memory_size_type>(size() - offset());
+			}
+		}
 	}
 
 private:
