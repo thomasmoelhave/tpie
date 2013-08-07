@@ -195,6 +195,7 @@ void compressed_stream_base::finish_requests(compressor_thread_lock & l) {
 }
 
 stream_size_type compressed_stream_base::last_block_read_offset(compressor_thread_lock & l) {
+	tp_assert(use_compression(), "last_block_read_offset: !use_compression");
 	if (m_streamBlocks == 0 || m_streamBlocks == 1)
 		return 0;
 	if (m_lastBlockReadOffset != std::numeric_limits<stream_size_type>::max())
@@ -207,6 +208,7 @@ stream_size_type compressed_stream_base::last_block_read_offset(compressor_threa
 }
 
 stream_size_type compressed_stream_base::current_file_size(compressor_thread_lock & l) {
+	tp_assert(use_compression(), "current_file_size: !use_compression");
 	if (m_streamBlocks == 0)
 		return 0;
 	if (m_currentFileSize != std::numeric_limits<stream_size_type>::max())
