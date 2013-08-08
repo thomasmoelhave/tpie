@@ -25,7 +25,6 @@ set (HEADERS
 		file.h
 		file_base.h
 		file_base_crtp.h
-		file_stream.h
 		file_stream_base.h
 		file_accessor/byte_stream_accessor.h
 		file_accessor/file_accessor.h
@@ -113,6 +112,7 @@ set (HEADERS
 		stats.h
 		types.h
 		tempname.h
+		uncompressed_stream.h
 		unused.h
 		util.h
 		array.h

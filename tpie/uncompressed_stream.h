@@ -16,14 +16,14 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __TPIE_FILE_STREAM_H__
-#define __TPIE_FILE_STREAM_H__
+#ifndef TPIE_UNCOMPRESSED_STREAM_H
+#define TPIE_UNCOMPRESSED_STREAM_H
 #include <tpie/tempname.h>
 #include <tpie/file.h>
 #include <tpie/memory.h>
 #include <tpie/file_stream_base.h>
 ///////////////////////////////////////////////////////////////////////////////
-/// \file file_stream.h
+/// \file uncompressed_stream.h
 /// \brief Simple class acting both as a tpie::file and a
 /// tpie::file::stream.
 ///////////////////////////////////////////////////////////////////////////////
@@ -185,4 +185,4 @@ void swap(tpie::file_stream<T> & a, tpie::file_stream<T> & b) {
 
 } // namespace std
 
-#endif //__TPIE_FILE_STREAM_H__
+#endif // TPIE_UNCOMPRESSED_STREAM_H
