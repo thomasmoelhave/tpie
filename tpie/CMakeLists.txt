@@ -103,6 +103,8 @@ set (SOURCES
 	backtrace.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
+	compressed/scheme_none.cpp
+	compressed/scheme_snappy.cpp
 	compressed/stream_base.cpp
 	compressed/thread.cpp
 	cpu_timer.cpp

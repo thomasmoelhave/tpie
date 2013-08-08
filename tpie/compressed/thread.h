@@ -29,6 +29,7 @@
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
 #include <tpie/compressed/predeclare.h>
+#include <tpie/compressed/scheme.h>
 
 namespace tpie {
 
@@ -56,6 +57,8 @@ public:
 	void run();
 
 	void stop(compressor_thread_lock & lock);
+
+	void set_preferred_compression(compressor_thread_lock &, compression_scheme::type);
 };
 
 class compressor_thread_lock {

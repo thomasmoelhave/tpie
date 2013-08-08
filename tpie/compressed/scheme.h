@@ -20,11 +20,37 @@
 #ifndef TPIE_COMPRESSED_SCHEME_H
 #define TPIE_COMPRESSED_SCHEME_H
 
-struct compression_scheme {
+namespace tpie {
+
+class compression_scheme {
+public:
 	enum type {
 		none = 0,
 		snappy = 1
 	};
+
+	virtual size_t max_compressed_length(size_t srcSize) const = 0;
+	virtual void compress(char * dest, const char * src, size_t srcSize, size_t * destSize) const = 0;
+	virtual size_t uncompressed_length(const char * src, size_t srcSize) const = 0;
+	virtual void uncompress(char * dest, const char * src, size_t srcSize) const = 0;
+
+protected:
+	~compression_scheme() {}
 };
+
+const compression_scheme & get_compression_scheme_none();
+const compression_scheme & get_compression_scheme_snappy();
+
+inline const compression_scheme & get_compression_scheme(compression_scheme::type t) {
+	switch (t) {
+		case compression_scheme::none:
+			return get_compression_scheme_none();
+		case compression_scheme::snappy:
+			return get_compression_scheme_snappy();
+	}
+	return get_compression_scheme_none();
+}
+
+}
 
 #endif // TPIE_COMPRESSED_SCHEME_H

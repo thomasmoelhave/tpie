@@ -18,7 +18,6 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <queue>
-#include <snappy.h>
 #include <tpie/compressed/thread.h>
 #include <tpie/compressed/request.h>
 #include <tpie/compressed/buffer.h>
@@ -88,6 +87,7 @@ class compressor_thread::impl {
 public:
 	impl()
 		: m_done(false)
+		, m_preferredCompression(compression_scheme::snappy)
 	{
 	}
 
@@ -213,18 +213,12 @@ private:
 			throw exception("Block trailer is different from the block header");
 		}
 
-		size_t uncompressedLength;
-		if (!snappy::GetUncompressedLength(compressed,
-										   blockSize,
-										   &uncompressedLength))
-			throw stream_exception("Internal error; snappy::GetUncompressedLength failed");
-		if (uncompressedLength > rr.buffer()->capacity()) {
-			log_error() << uncompressedLength << ' ' << rr.buffer()->capacity() << std::endl;
-			throw stream_exception("Internal error; snappy::GetUncompressedLength exceeds the block size");
-		}
-		snappy::RawUncompress(compressed,
-							  blockSize,
-							  reinterpret_cast<char *>(rr.buffer()->get()));
+		const compression_scheme & compressionScheme =
+			get_compression_scheme(blockHeader.get_compression_scheme());
+		size_t uncompressedLength = compressionScheme.uncompressed_length(compressed, blockSize);
+		if (uncompressedLength > rr.buffer()->capacity())
+			throw exception("uncompressedLength exceeds the buffer capacity");
+		compressionScheme.uncompress(rr.buffer()->get(), compressed, blockSize);
 
 		compressor_thread_lock::lock_t lock(mutex());
 		rr.buffer()->transition_state(compressor_buffer_state::reading,
@@ -248,16 +242,18 @@ private:
 		// Compressed case
 		block_header blockHeader;
 		block_header & blockTrailer = blockHeader;
-		const memory_size_type maxBlockSize = snappy::MaxCompressedLength(inputLength);
+		const compression_scheme & compressionScheme = get_compression_scheme(m_preferredCompression);
+		const memory_size_type maxBlockSize = compressionScheme.max_compressed_length(inputLength);
 		if (maxBlockSize > blockHeader.max_block_size())
 			throw exception("process_write_request: MaxCompressedLength > max_block_size");
 		array<char> scratch(sizeof(blockHeader) + maxBlockSize + sizeof(blockTrailer));
 		memory_size_type blockSize;
-		snappy::RawCompress(reinterpret_cast<const char *>(wr.buffer()->get()),
-							inputLength,
-							scratch.get() + sizeof(blockHeader),
-							&blockSize);
+		compressionScheme.compress(scratch.get() + sizeof(blockHeader),
+								   reinterpret_cast<const char *>(wr.buffer()->get()),
+								   inputLength,
+								   &blockSize);
 		blockHeader.set_block_size(blockSize);
+		blockHeader.set_compression_scheme(m_preferredCompression);
 		memcpy(scratch.get(), &blockHeader, sizeof(blockHeader));
 		memcpy(scratch.get() + sizeof(blockHeader) + blockSize, &blockTrailer, sizeof(blockTrailer));
 		const memory_size_type writeSize = sizeof(blockHeader) + blockSize + sizeof(blockTrailer);
@@ -294,12 +290,17 @@ public:
 		m_requestDone.wait(l.get_lock());
 	}
 
+	void set_preferred_compression(compressor_thread_lock &, compression_scheme::type scheme) {
+		m_preferredCompression = scheme;
+	}
+
 private:
 	mutex_t m_mutex;
 	std::queue<compressor_request> m_requests;
 	boost::condition_variable m_newRequest;
 	boost::condition_variable m_requestDone;
 	bool m_done;
+	compression_scheme::type m_preferredCompression;
 };
 
 } // namespace tpie
@@ -378,6 +379,10 @@ void compressor_thread::wait_for_request_done(compressor_thread_lock & l) {
 
 void compressor_thread::stop(compressor_thread_lock & lock) {
 	pimpl->stop(lock);
+}
+
+void compressor_thread::set_preferred_compression(compressor_thread_lock & lock, compression_scheme::type scheme) {
+	pimpl->set_preferred_compression(lock, scheme);
 }
 
 }
