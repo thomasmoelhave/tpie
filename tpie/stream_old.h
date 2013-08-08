@@ -35,7 +35,7 @@
 #include <tpie/persist.h>
 
 #include <tpie/tempname.h>
-#include <tpie/file_stream.h>
+#include <tpie/uncompressed_stream.h>
 #include <tpie/file_count.h>
 
 #include <tpie/tpie_log.h>
@@ -325,9 +325,9 @@ public:
 	std::string& sprint();
 
     ////////////////////////////////////////////////////////////////////////////
-	/// Get the underlying file_stream<T>
+	/// Get the underlying uncompressed_stream<T>
     ////////////////////////////////////////////////////////////////////////////
-	file_stream<T>& underlying_stream() {
+	uncompressed_stream<T>& underlying_stream() {
 		return m_stream;
 	}
     
@@ -339,7 +339,7 @@ private:
     stream_old<T>& operator=(const stream_old<T>& other);
 	
 	temp_file m_temp;
-	file_stream<T> m_stream;
+	uncompressed_stream<T> m_stream;
     
     /** Non-zero if we should destroy the bte stream when we the
      * AMI stream is destroyed. */
@@ -444,7 +444,7 @@ private:
 
 template<class T>
 memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
-	return count*(file_stream<T>::memory_usage(block_factor()) + sizeof(stream_old<T>));
+	return count*(uncompressed_stream<T>::memory_usage(block_factor()) + sizeof(stream_old<T>));
 }
 	
 
@@ -455,7 +455,7 @@ memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
 
 	    switch (usage_type) {
 	    case STREAM_USAGE_OVERHEAD:
-			*usage = sizeof(*this) + file_stream<T>::memory_usage(0.0);
+			*usage = sizeof(*this) + uncompressed_stream<T>::memory_usage(0.0);
 			return NO_ERROR;
 	    case STREAM_USAGE_CURRENT:
 	    case STREAM_USAGE_MAXIMUM:
@@ -463,7 +463,7 @@ memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
 			*usage =  memory_usage(1);
 			return NO_ERROR;
 	    case STREAM_USAGE_BUFFER:
-			*usage = file_stream<T>::memory_usage(block_factor()) - file_stream<T>::memory_usage(0.0); 
+			*usage = uncompressed_stream<T>::memory_usage(block_factor()) - uncompressed_stream<T>::memory_usage(0.0); 
 			return NO_ERROR;
 		}
 		return BTE_ERROR;

@@ -272,22 +272,6 @@ namespace tpie {
 		return NO_ERROR;
 	}
 
-	template<class T, class CMPR>
-	err sort(cstream<T> *instream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL) {
-		try {
-			TPIE2STL_cmp<T, CMPR> comp(cmp);
-			if (indicator) {
-				tpie::sort(instream_ami->underlying_stream(), comp, *indicator);
-			} else {
-				progress_indicator_null dummy(1);
-				tpie::sort(instream_ami->underlying_stream(), comp, dummy);
-			}
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
-	}
 	}
 
   ///////////////////////////////////////////////////////////////////////////

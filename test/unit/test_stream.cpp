@@ -48,14 +48,14 @@ static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
 struct movable_file_stream {
-	tpie::auto_ptr<tpie::file_stream<uint64_t> > fs;
-	movable_file_stream() {fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());}
-	movable_file_stream(tpie::file_stream<uint64_t> & with) {
-		fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());
+	tpie::auto_ptr<tpie::uncompressed_stream<uint64_t> > fs;
+	movable_file_stream() {fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());}
+	movable_file_stream(tpie::uncompressed_stream<uint64_t> & with) {
+		fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());
 		fs->swap(with);
 	}
 	movable_file_stream(const movable_file_stream & other) {
-		fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());
+		fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());
 		fs->swap(*other.fs);
 	}
 	movable_file_stream & operator=(const movable_file_stream & other) {
@@ -65,7 +65,7 @@ struct movable_file_stream {
 };
 
 movable_file_stream openstream() {
-	tpie::file_stream<uint64_t> fs;
+	tpie::uncompressed_stream<uint64_t> fs;
 	fs.open(TEMPFILE);
 	return fs;
 }
@@ -103,14 +103,14 @@ struct file_colon_colon_stream {
 
 template <typename T>
 struct file_stream {
-	tpie::file_stream<T> m_fs;
-	typedef tpie::file_stream<T> stream_type;
+	tpie::uncompressed_stream<T> m_fs;
+	typedef tpie::uncompressed_stream<T> stream_type;
 
-	tpie::file_stream<T> & file() {
+	tpie::uncompressed_stream<T> & file() {
 		return m_fs;
 	}
 
-	tpie::file_stream<T> & stream() {
+	tpie::uncompressed_stream<T> & stream() {
 		return m_fs;
 	}
 
@@ -126,14 +126,14 @@ struct file_stream {
 
 template <typename T>
 struct compressed_stream {
-	tpie::compressed_stream<T> m_fs;
-	typedef tpie::compressed_stream<T> stream_type;
+	tpie::file_stream<T> m_fs;
+	typedef tpie::file_stream<T> stream_type;
 
-	tpie::compressed_stream<T> & file() {
+	tpie::file_stream<T> & file() {
 		return m_fs;
 	}
 
-	tpie::compressed_stream<T> & stream() {
+	tpie::file_stream<T> & stream() {
 		return m_fs;
 	}
 
@@ -626,7 +626,7 @@ bool swap_test() {
 	{
 		movable_file_stream fs;
 		fs = openstream();
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.swap(*fs.fs);
 		for(size_t i=0; i < ITEMS; ++i) s.write(ITEM(i));
 	}
@@ -635,9 +635,9 @@ bool swap_test() {
 	{
 		movable_file_stream fs;
 		fs = openstream();
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.swap(*fs.fs);
-		tpie::file_stream<uint64_t> t;
+		tpie::uncompressed_stream<uint64_t> t;
 		for(size_t i=0; i < ITEMS; ++i) {
 			uint64_t x = (i % 2) ? t.read() : s.read();
 			if (x != ITEM(i)) {
@@ -652,7 +652,7 @@ bool swap_test() {
 
 	// Write an ARRAYSIZE array ARRAYS times sequentially to TEMPFILE
 	{
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.open(TEMPFILE);
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYSIZE; ++i) {
@@ -663,7 +663,7 @@ bool swap_test() {
 
 	// Sequentially verify the arrays
 	{
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.open(TEMPFILE);
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYS; ++i) {
@@ -685,7 +685,7 @@ bool swap_test() {
 
 	// Random read/write of items
 	{
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.open(TEMPFILE);
 		tpie::array<uint64_t> data(ITEMS);
 		for (size_t i=0; i < ITEMS; ++i) {

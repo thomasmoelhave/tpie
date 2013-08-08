@@ -34,7 +34,7 @@ run_positions::~run_positions() {
 
 /*static*/ memory_size_type run_positions::memory_usage() {
 	return sizeof(run_positions)
-		+ 2 * compressed_stream<stream_position>::memory_usage();
+		+ 2 * file_stream<stream_position>::memory_usage();
 }
 
 void run_positions::open() {
@@ -143,7 +143,7 @@ void run_positions::set_position(memory_size_type mergeLevel, memory_size_type r
 		m_finalExtraSet = true;
 		return;
 	}
-	compressed_stream<stream_position> & s = m_positions[mergeLevel % 2];
+	file_stream<stream_position> & s = m_positions[mergeLevel % 2];
 	memory_size_type & expectedRunNumber = m_runs[mergeLevel % 2];
 	if (runNumber != expectedRunNumber) {
 		throw exception("set_position: Wrong run number");
@@ -168,7 +168,7 @@ stream_position run_positions::get_position(memory_size_type mergeLevel, memory_
 	if (m_final) {
 		return m_finalPositions[runNumber];
 	}
-	compressed_stream<stream_position> & s = m_positions[mergeLevel % 2];
+	file_stream<stream_position> & s = m_positions[mergeLevel % 2];
 	memory_size_type & expectedRunNumber = m_runs[mergeLevel % 2];
 	if (runNumber != expectedRunNumber) {
 		throw exception("get_position: Wrong run number");

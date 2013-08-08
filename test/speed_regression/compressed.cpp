@@ -29,14 +29,14 @@ struct file_stream {
 };
 
 struct uncompressed_stream {
-	typedef tpie::compressed_stream<size_t> Stream;
+	typedef tpie::file_stream<size_t> Stream;
 	static void open(Stream & s, const std::string & fileName) {
 		s.open(fileName, tpie::access_read_write, 0, tpie::access_sequential, tpie::compression_none);
 	}
 };
 
 struct compressed_stream {
-	typedef tpie::compressed_stream<size_t> Stream;
+	typedef tpie::file_stream<size_t> Stream;
 	static void open(Stream & s, const std::string & fileName) {
 		s.open(fileName);
 	}
