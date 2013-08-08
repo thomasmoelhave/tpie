@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file tpie/stream.h AMI streams.
+/// \file tpie/stream_old.h AMI streams.
 ///////////////////////////////////////////////////////////////////////////
 #ifndef _TPIE_AMI_STREAM_H
 #define _TPIE_AMI_STREAM_H
@@ -96,7 +96,7 @@ namespace tpie {
 /// Both input and output operations are permitted.
 ////////////////////////////////////////////////////////////////////////////////
 template<class T > 
-class stream {
+class stream_old {
     
 public:
 	typedef T item_type;
@@ -108,14 +108,14 @@ public:
     /// the given device as a file with a randomly generated name, 
     /// prefixed by "".  
     ////////////////////////////////////////////////////////////////////////////
-    stream();
+    stream_old();
     
     ////////////////////////////////////////////////////////////////////////////
     /// A new stream is constructed and 
     /// named and placed according to the given parameter pathname.
     /// Its type is given by st which defaults to \ref READ_WRITE_STREAM.
     ////////////////////////////////////////////////////////////////////////////
-    stream(const std::string& path_name, 
+    stream_old(const std::string& path_name, 
 	   stream_type st = READ_WRITE_STREAM);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ public:
     err new_substream(stream_type     st, 
 		      stream_offset_type  sub_begin, 
 		      stream_offset_type  sub_end,
-			  stream<T>       **sub_stream);
+			  stream_old<T>       **sub_stream);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the status of the stream instance; the result is either
@@ -334,9 +334,9 @@ public:
 private:
 
     /** Restricted copy constructor */
-    stream(const stream<T>& other);
+    stream_old(const stream_old<T>& other);
     /** Restricted assignment operator*/
-    stream<T>& operator=(const stream<T>& other);
+    stream_old<T>& operator=(const stream_old<T>& other);
 	
 	temp_file m_temp;
 	file_stream<T> m_stream;
@@ -363,7 +363,7 @@ private:
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
 	template<class T>
-	stream<T>::stream(): m_stream(block_factor()), m_status(STREAM_STATUS_INVALID)
+	stream_old<T>::stream_old(): m_stream(block_factor()), m_status(STREAM_STATUS_INVALID)
 	{
 		TP_LOG_DEBUG_ID("Temporary stream in file: ");
 	    TP_LOG_DEBUG_ID( m_temp.path() );
@@ -382,7 +382,7 @@ private:
 // A stream created with this constructor will persist on disk at the
 // location specified by the path name.
 	template<class T>
-	stream<T>::stream(const std::string& path_name, stream_type st) :
+	stream_old<T>::stream_old(const std::string& path_name, stream_type st) :
 		m_temp(path_name, true), m_stream(block_factor()), m_status(STREAM_STATUS_INVALID) {
 		try {
 			m_stream.open(m_temp, st==READ_STREAM ? access_read: access_read_write);
@@ -398,10 +398,10 @@ private:
 	
 	// *stream::new_substream* //
 	template<class T>
-	err stream<T>::new_substream(stream_type     st,
+	err stream_old<T>::new_substream(stream_type     st,
 				     stream_offset_type  sub_begin,
 				     stream_offset_type  sub_end,
-								 stream<T>       **sub_stream)
+								 stream_old<T>       **sub_stream)
 	{
 		unused(st);
 		unused(sub_begin);
@@ -412,13 +412,13 @@ private:
 
 
 	template<class T>
-	inline std::string stream<T>::name() const {
+	inline std::string stream_old<T>::name() const {
 		return m_stream.path();
 	}
 
 // Move to a specific offset.
 	template<class T>
-	inline err stream<T>::seek(stream_offset_type offset) {
+	inline err stream_old<T>::seek(stream_offset_type offset) {
 		try {
 			m_stream.seek(offset);
 		} catch(const stream_exception &e) {
@@ -431,7 +431,7 @@ private:
 
 // Truncate
 	template<class T>
-	inline err stream<T>::truncate(stream_offset_type offset) {
+	inline err stream_old<T>::truncate(stream_offset_type offset) {
 		try {
 			m_stream.truncate(offset);
 		} catch(const stream_exception & e) {
@@ -443,14 +443,14 @@ private:
 	}
 
 template<class T>
-memory_size_type stream<T>::memory_usage(memory_size_type count) {
-	return count*(file_stream<T>::memory_usage(block_factor()) + sizeof(stream<T>));
+memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
+	return count*(file_stream<T>::memory_usage(block_factor()) + sizeof(stream_old<T>));
 }
 	
 
 // Query memory usage
 	template<class T>
-	err stream<T>::main_memory_usage(memory_size_type *usage,
+	err stream_old<T>::main_memory_usage(memory_size_type *usage,
 					 stream_usage usage_type) const {
 
 	    switch (usage_type) {
@@ -470,7 +470,7 @@ memory_size_type stream<T>::memory_usage(memory_size_type count) {
 	}
 
 	template<class T>
-	inline err stream<T>::read_item(T **elt) {
+	inline err stream_old<T>::read_item(T **elt) {
 	    if (!m_stream.can_read())
 		return END_OF_STREAM;
 
@@ -479,13 +479,13 @@ memory_size_type stream<T>::memory_usage(memory_size_type count) {
 	}
 
 	template<class T>
-	inline err stream<T>::write_item(const T &elt) {
+	inline err stream_old<T>::write_item(const T &elt) {
 	    m_stream.write(elt);
 	    return NO_ERROR;
 	}
 
 	template<class T>
-	err stream<T>::read_array(T *mm_space, stream_offset_type *len) {
+	err stream_old<T>::read_array(T *mm_space, stream_offset_type *len) {
 		size_type l=(size_t)*len;
 		err e = read_array(mm_space, l);
 		*len = l;
@@ -493,7 +493,7 @@ memory_size_type stream<T>::memory_usage(memory_size_type count) {
 	}
 
 	template<class T>
-	err stream<T>::read_array(T *mm_space, memory_size_type & len) {
+	err stream_old<T>::read_array(T *mm_space, memory_size_type & len) {
 		size_type l = static_cast<size_type>(std::min(
 			static_cast<stream_size_type>(len), 
 			static_cast<stream_size_type>(m_stream.size() - m_stream.offset())));
@@ -502,13 +502,13 @@ memory_size_type stream<T>::memory_usage(memory_size_type count) {
 	}
 
 	template<class T>
-	err stream<T>::write_array(const T *mm_space, size_type len) {
+	err stream_old<T>::write_array(const T *mm_space, size_type len) {
 		m_stream.write(mm_space, mm_space+len);
 		return NO_ERROR;
 	}
 
 	template<class T>
-	std::string& stream<T>::sprint() {
+	std::string& stream_old<T>::sprint() {
 	    static std::string buf;
 		std::stringstream ss;
 		ss << "STREAM " << name() <<  " " << static_cast<long>(stream_len());
