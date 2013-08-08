@@ -338,11 +338,11 @@ template <typename T>
 class file_stream : public compressed_stream_base {
 	using compressed_stream_base::seek_state;
 
+public:
 	static const file_stream_base::offset_type beginning = file_stream_base::beginning;
 	static const file_stream_base::offset_type end = file_stream_base::end;
 	static const file_stream_base::offset_type current = file_stream_base::current;
 
-public:
 	typedef T item_type;
 	typedef file_stream_base::offset_type offset_type;
 
