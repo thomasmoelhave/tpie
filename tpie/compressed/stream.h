@@ -127,14 +127,14 @@ public:
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  int compressionFlags=compression_normal);
+			  int compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open an anonymous temporary file for reading and writing.
 	///////////////////////////////////////////////////////////////////////////
 	void open(memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  int compressionFlags=compression_normal);
+			  int compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open a specific temporary file.
@@ -143,7 +143,7 @@ public:
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  int compressionFlags=compression_normal);
+			  int compressionFlags=compression_none);
 
 	void close();
 
