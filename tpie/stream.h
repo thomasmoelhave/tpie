@@ -20,8 +20,8 @@
 #ifndef TPIE_STREAM_H
 #define TPIE_STREAM_H
 
-#include <tpie/stream.h>
-#include <tpie/compressed_stream.h>
+#include <tpie/stream_old.h>
+#include <tpie/compressed/stream.h>
 
 namespace tpie {
 
@@ -159,7 +159,7 @@ public:
 	{
 		switch (usage_type) {
 			case STREAM_USAGE_OVERHEAD:
-				*usage = sizeof(*this) + compressed_stream<T>::memory_usage(0.0);
+				*usage = sizeof(*this) + file_stream<T>::memory_usage(0.0);
 				return NO_ERROR;
 			case STREAM_USAGE_CURRENT:
 			case STREAM_USAGE_MAXIMUM:
@@ -167,15 +167,15 @@ public:
 				*usage =  memory_usage(1);
 				return NO_ERROR;
 			case STREAM_USAGE_BUFFER:
-				*usage = compressed_stream<T>::memory_usage(block_factor())
-					- compressed_stream<T>::memory_usage(0.0);
+				*usage = file_stream<T>::memory_usage(block_factor())
+					- file_stream<T>::memory_usage(0.0);
 				return NO_ERROR;
 		}
 		return BTE_ERROR;
 	}
 
 	static memory_size_type memory_usage(memory_size_type count) {
-		return count*(compressed_stream<T>::memory_usage() + sizeof(stream<T>));
+		return count*(file_stream<T>::memory_usage() + sizeof(stream<T>));
 	}
 
 	size_t available_streams(void) {
@@ -202,7 +202,7 @@ public:
 		return buf;
 	}
 
-	compressed_stream<T>& underlying_stream() {
+	file_stream<T>& underlying_stream() {
 		return m_stream;
 	}
 
@@ -211,7 +211,7 @@ private:
 	stream<T>& operator=(const stream<T>& other);
 
 	temp_file m_temp;
-	compressed_stream<T> m_stream;
+	file_stream<T> m_stream;
 
 	stream_status m_status;
 
