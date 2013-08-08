@@ -22,6 +22,7 @@
 #include <tpie/compressed/thread.h>
 #include <tpie/compressed/request.h>
 #include <tpie/compressed/buffer.h>
+#include <tpie/compressed/scheme.h>
 
 namespace {
 
@@ -47,6 +48,15 @@ public:
 		return BLOCK_SIZE_MAX;
 	}
 
+	tpie::compression_scheme::type get_compression_scheme() const {
+		return static_cast<tpie::compression_scheme::type>((m_payload & COMPRESSION_MASK) >> BLOCK_SIZE_BITS);
+	}
+
+	void set_compression_scheme(tpie::compression_scheme::type scheme) {
+		m_payload &= ~COMPRESSION_MASK;
+		m_payload |= scheme << BLOCK_SIZE_BITS;
+	}
+
 	bool operator==(const block_header & other) const {
 		return m_payload == other.m_payload;
 	}
@@ -58,6 +68,10 @@ private:
 	static const tpie::uint32_t BLOCK_SIZE_MASK = (1 << BLOCK_SIZE_BITS) - 1;
 	static const tpie::memory_size_type BLOCK_SIZE_MAX =
 		static_cast<tpie::memory_size_type>(1 << BLOCK_SIZE_BITS) - 1;
+	static const tpie::uint32_t COMPRESSION_BITS = 8;
+	static const tpie::uint32_t COMPRESSION_MASK = ((1 << COMPRESSION_BITS) - 1) << BLOCK_SIZE_BITS;
+	static const tpie::memory_size_type COMPRESSION_MAX =
+		static_cast<tpie::memory_size_type>(1 << COMPRESSION_BITS) - 1;
 
 	tpie::uint32_t m_payload;
 };

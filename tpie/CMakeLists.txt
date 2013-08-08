@@ -13,6 +13,7 @@ set (HEADERS
 		compressed/direction.h
 		compressed/predeclare.h
 		compressed/request.h
+		compressed/scheme.h
 		compressed/stream.h
 		compressed/thread.h
 		config.h.cmake
