@@ -34,24 +34,24 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Simple class acting both as \ref file and a file::stream.
 ///
-/// A file_stream basically supports every operation a \ref file or a
+/// A uncompressed_stream basically supports every operation a \ref file or a
 /// file::stream supports. This is used to access a file I/O-efficiently, and
 /// is the direct replacement of the old ami::stream.
 ///
 /// \tparam T The type of items stored in the stream.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class file_stream: public file_stream_base {
+class uncompressed_stream: public file_stream_base {
 public:
 	/** The type of the items stored in the stream */
 	typedef T item_type;
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \brief Construct a new file_stream.
+	/// \brief Construct a new uncompressed_stream.
 	/// 
 	/// \copydetails tpie::file::file(double blockFactor, file_accessor::file_accessor * fileAccessor)
 	/////////////////////////////////////////////////////////////////////////
-	inline file_stream(double blockFactor=1.0, 
+	uncompressed_stream(double blockFactor=1.0,
 					   file_accessor::file_accessor * fileAccessor=NULL):
 		file_stream_base(sizeof(item_type), blockFactor, fileAccessor) {};
 
@@ -146,7 +146,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate the amount of memory used by a single file_stream.
+	/// \brief Calculate the amount of memory used by a single uncompressed_stream.
 	///
 	/// \param blockFactor The block factor you pass to open.
 	/// \param includeDefaultFileAccessor Unless you are supplying your own
@@ -157,14 +157,14 @@ public:
 		float blockFactor=1.0,
 		bool includeDefaultFileAccessor=true) throw() {
 		// TODO
-		memory_size_type x = sizeof(file_stream);
+		memory_size_type x = sizeof(uncompressed_stream);
 		x += block_memory_usage(blockFactor); // allocated in constructor
 		if (includeDefaultFileAccessor)
 			x += default_file_accessor::memory_usage();
 		return x;
 	}
 
-	void swap(file_stream<T> & other) {
+	void swap(uncompressed_stream<T> & other) {
 		file_stream_base::swap(other);
 	}
 
@@ -179,7 +179,7 @@ namespace std {
 /// \brief Enable std::swapping two tpie::file_streams.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-void swap(tpie::file_stream<T> & a, tpie::file_stream<T> & b) {
+void swap(tpie::uncompressed_stream<T> & a, tpie::uncompressed_stream<T> & b) {
 	a.swap(b);
 }
 
