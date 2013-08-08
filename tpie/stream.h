@@ -28,11 +28,11 @@ namespace tpie {
 namespace ami {
 
 template <typename T>
-class cstream {
+class stream {
 public:
 	typedef T item_type;
 
-	cstream()
+	stream()
 		: m_status(STREAM_STATUS_INVALID)
 	{
 		try {
@@ -44,7 +44,7 @@ public:
 		m_status = STREAM_STATUS_VALID;
 	}
 
-	cstream(const std::string & fileName,
+	stream(const std::string & fileName,
 			stream_type st = READ_WRITE_STREAM)
 		: m_temp(fileName, true)
 		, m_status(STREAM_STATUS_INVALID)
@@ -175,7 +175,7 @@ public:
 	}
 
 	static memory_size_type memory_usage(memory_size_type count) {
-		return count*(compressed_stream<T>::memory_usage() + sizeof(cstream<T>));
+		return count*(compressed_stream<T>::memory_usage() + sizeof(stream<T>));
 	}
 
 	size_t available_streams(void) {
@@ -207,8 +207,8 @@ public:
 	}
 
 private:
-	cstream(const cstream<T>& other);
-	cstream<T>& operator=(const cstream<T>& other);
+	stream(const stream<T>& other);
+	stream<T>& operator=(const stream<T>& other);
 
 	temp_file m_temp;
 	compressed_stream<T> m_stream;
