@@ -199,7 +199,7 @@ public:
 	read_request(buffer_t buffer,
 				 file_accessor_t * fileAccessor,
 				 stream_size_type readOffset,
-				 direction::type readDirection,
+				 read_direction::type readDirection,
 				 compressor_response * response)
 		: request_base(response)
 		, m_buffer(buffer)
@@ -221,7 +221,7 @@ public:
 		return m_readOffset;
 	}
 
-	direction::type read_direction() {
+	read_direction::type get_read_direction() {
 		return m_readDirection;
 	}
 
@@ -233,7 +233,7 @@ private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
 	const stream_size_type m_readOffset;
-	const direction::type m_readDirection;
+	const read_direction::type m_readDirection;
 };
 
 class write_request : public request_base {
@@ -362,7 +362,7 @@ public:
 	read_request & set_read_request(const read_request::buffer_t & buffer,
 									read_request::file_accessor_t * fileAccessor,
 									stream_size_type readOffset,
-									direction::type readDirection,
+									read_direction::type readDirection,
 									compressor_response * response)
 	{
 		destruct();

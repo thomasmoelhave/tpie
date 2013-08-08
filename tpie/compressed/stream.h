@@ -867,7 +867,7 @@ private:
 	const T & read_back_ref() {
 		if (m_seekState != seek_state::none) {
 			if (offset() == 0) throw end_of_stream_exception();
-			perform_seek(direction::backward);
+			perform_seek(read_direction::backward);
 		}
 		if (m_nextItem == m_bufferBegin) {
 			if (m_offset == 0) throw end_of_stream_exception();
@@ -958,7 +958,7 @@ private:
 	///
 	/// If anything fails, the stream is closed by a close_on_fail_guard.
 	///////////////////////////////////////////////////////////////////////////
-	void perform_seek(direction::type dir=direction::forward) {
+	void perform_seek(read_direction::type dir=read_direction::forward) {
 		// This must be initialized before the compressor lock below,
 		// so that it is destructed after we free the lock.
 		close_on_fail_guard closeOnFail(this);
@@ -1008,7 +1008,7 @@ private:
 			// assumption in the following code.
 			tp_assert(!(blockItemIndex >= m_blockItems), "perform_seek: Computed block item index >= blockItems");
 
-			if (dir == direction::backward && blockItemIndex == 0 && blockNumber > 0) {
+			if (dir == read_direction::backward && blockItemIndex == 0 && blockNumber > 0) {
 				if (use_compression()) {
 					m_readOffset = m_nextPosition.read_offset();
 					read_previous_block(l, blockNumber - 1);
@@ -1027,7 +1027,7 @@ private:
 
 			m_offset = m_nextPosition.offset();
 		} else if (m_seekState == seek_state::end) {
-			if (m_streamBlocks * m_blockItems == size() && dir == direction::forward) {
+			if (m_streamBlocks * m_blockItems == size() && dir == read_direction::forward) {
 				// The last block in the stream is full,
 				// so we can safely start a new empty one.
 				get_buffer(l, m_streamBlocks);
@@ -1164,7 +1164,7 @@ private:
 				m_buffer->set_size(blockSize);
 			}
 
-			read_block(lock, readOffset, direction::forward);
+			read_block(lock, readOffset, read_direction::forward);
 			size_t blockItems = m_blockItems;
 			if (size() - blockNumber * m_blockItems < blockItems) {
 				blockItems = static_cast<size_t>(size() - blockNumber * m_blockItems);
@@ -1204,7 +1204,7 @@ private:
 			m_readOffset = m_buffer->get_read_offset();
 			m_nextReadOffset = m_readOffset + m_buffer->get_block_size();
 		} else {
-			read_block(lock, m_readOffset, direction::backward);
+			read_block(lock, m_readOffset, read_direction::backward);
 
 			// This is backwards since we are reading backwards.
 			// Confusing, I know.
@@ -1222,7 +1222,7 @@ private:
 
 	void read_block(compressor_thread_lock & lock,
 					stream_size_type readOffset,
-					direction::type readDirection)
+					read_direction::type readDirection)
 	{
 		compressor_request r;
 		r.set_read_request(m_buffer,

@@ -143,7 +143,7 @@ private:
 
 	void process_read_request(read_request & rr) {
 		const bool useCompression = rr.file_accessor().get_compressed();
-		const bool backward = rr.read_direction() == direction::backward;
+		const bool backward = rr.get_read_direction() == read_direction::backward;
 		tp_assert(!(backward && !useCompression), "backward && !useCompression");
 
 		stream_size_type readOffset = rr.read_offset();
