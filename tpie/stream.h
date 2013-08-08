@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef TPIE_CSTREAM_H
-#define TPIE_CSTREAM_H
+#ifndef TPIE_STREAM_H
+#define TPIE_STREAM_H
 
 #include <tpie/stream.h>
 #include <tpie/compressed_stream.h>
@@ -232,4 +232,4 @@ private:
 
 } // namespace tpie
 
-#endif // TPIE_CSTREAM_H
+#endif // TPIE_STREAM_H
