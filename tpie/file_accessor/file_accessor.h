@@ -57,7 +57,7 @@ typedef stream_accessor<posix> file_accessor;
 }
 }
 
-#endif // APPLE
+#endif // __MACH__
 #endif // WIN32
 
 namespace tpie {
