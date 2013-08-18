@@ -28,7 +28,11 @@
 #include <tpie/exception.h>
 #include <tpie/file_accessor/file_accessor.h>
 #ifndef WIN32
+#ifndef __MACH__
 #include <tpie/file_accessor/posix.h>
+#else // __MACH__
+#include <tpie/file_accessor/macos.h>
+#endif // __MACH__
 #else ////WIN32
 #include <tpie/file_accessor/win32.h>
 #endif //WIN32
