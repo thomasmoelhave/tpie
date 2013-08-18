@@ -37,6 +37,18 @@ typedef stream_accessor<win32> file_accessor;
 
 #else // WIN32
 
+#ifdef __MACH__
+
+#include <tpie/file_accessor/macos.h>
+namespace tpie {
+namespace file_accessor {
+typedef macos raw_file_accessor;
+typedef stream_accessor<macos> file_accessor;
+}
+}
+
+#else // __MACH__
+
 #include <tpie/file_accessor/posix.h>
 namespace tpie {
 namespace file_accessor {
@@ -45,6 +57,7 @@ typedef stream_accessor<posix> file_accessor;
 }
 }
 
+#endif // APPLE
 #endif // WIN32
 
 namespace tpie {
