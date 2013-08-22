@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2012, The TPIE development team
+// Copyright 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -18,19 +18,13 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 /**
- * Given a list of integers a0, a1, a2, ... an on standard input,
- * sort the numbers and add the ith and the (n-i)th number in the sorted order
- * and print the sums to standard out.
+ * Generates n integers, adds one to each and
+ * adds them pairwise in sorted order and prints them to
+ * stdout
  */
 
 #include <tpie/tpie.h>
 #include <tpie/pipelining.h>
-#include <boost/random.hpp>
-#include <tpie/file_stream.h>
-#include <iostream>
-#include <sstream>
-#include <iterator>
-#include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
