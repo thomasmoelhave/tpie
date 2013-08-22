@@ -29,6 +29,10 @@ add_executable(pipelining2 pipelining2.cpp)
 set_target_properties(pipelining2 PROPERTIES FOLDER tpie/test)
 target_link_libraries(pipelining2 tpie )
 
+add_executable(pipelining_passive_sorter pipelining_passive_sorter.cpp)
+set_target_properties(pipelining_passive_sorter PROPERTIES FOLDER tpie/test)
+target_link_libraries(pipelining_passive_sorter tpie )
+
 add_subdirectory(speed_regression)
 
 add_subdirectory(unit)
