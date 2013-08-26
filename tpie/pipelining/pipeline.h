@@ -114,26 +114,17 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline {
 public:
-	pipeline()
-		: p(0)
-	{
+	template <typename T>
+	pipeline(const T & from) {
+		*this = from;
 	}
 
 	template <typename T>
-	inline pipeline(const T & from)
-		: p(0)
-	{
-		*this = from;
-	}
-	template <typename T>
 	pipeline & operator=(const T & from) {
-		if (p) delete p;
-		p = new T(from);
+		p.reset(new T(from));
 		return *this;
 	}
-	inline ~pipeline() {
-		delete p;
-	}
+
 	inline void operator()() {
 		progress_indicator_null pi;
 		(*p)(1, pi, get_memory_manager().available());
@@ -178,7 +169,7 @@ public:
 
 	void output_memory(std::ostream & o) const;
 private:
-	bits::pipeline_base * p;
+	boost::shared_ptr<bits::pipeline_base> p;
 };
 
 } // namespace pipelining
