@@ -572,6 +572,28 @@ static bool user_data_test() {
 	return true;
 }
 
+static bool seek_test() {
+	typedef Stream<int> Fs;
+	bool result = true;
+	for (size_t i = 1000000000; i != 0; i /= 10) {
+		tpie::temp_file tmp;
+		Fs fs;
+		fs.file().open(tmp);
+		bool threw = false;
+		try {
+			fs.stream().seek(i, Fs::stream_type::current);
+		} catch (const tpie::io_exception & e) {
+			tpie::log_info() << "Got io_exception when seeking " << i << ": " << e.what() << std::endl;
+			threw = true;
+		}
+		if (!threw) {
+			result = false;
+			tpie::log_error() << "Did not complain when seeking " << i << std::endl;
+		}
+	}
+	return result;
+}
+
 }; // template stream_tester
 
 bool swap_test() {
@@ -695,5 +717,8 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_stream>::stress_test, "stress", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_stream>::user_data_test, "user_data")
-		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file");
+		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file")
+		.test(stream_tester<file_stream>::seek_test, "seek")
+		.test(stream_tester<file_colon_colon_stream>::seek_test, "seek_file")
+		;
 }
