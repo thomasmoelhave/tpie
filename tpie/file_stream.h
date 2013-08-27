@@ -90,13 +90,9 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read() throw(stream_exception) {
 		assert(m_open);
-		if (m_index >= m_block.size) {
-			update_block();
-			if (offset() >= size()) {
-				throw end_of_stream_exception();
-			}
-		}
-		return reinterpret_cast<item_type*>(m_block.data)[m_index++];
+		const item_type & x = peek();
+		++m_index;
+		return x;
 	}
 
 	/////////////////////////////////////////////////////////////////////////
