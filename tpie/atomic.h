@@ -42,6 +42,20 @@ public:
 	void sub(size_t inc);
 };
 
+class atomic_stream_size_type {
+	volatile stream_size_type i;
+
+public:
+	atomic_stream_size_type();
+	stream_size_type add_and_fetch(stream_size_type inc);
+	stream_size_type sub_and_fetch(stream_size_type inc);
+	stream_size_type fetch_and_add(stream_size_type inc);
+	stream_size_type fetch_and_sub(stream_size_type inc);
+	stream_size_type fetch() const;
+	void add(stream_size_type inc);
+	void sub(stream_size_type inc);
+};
+
 } // namespace tpie
 
 #endif // TPIE_ATOMIC_H
