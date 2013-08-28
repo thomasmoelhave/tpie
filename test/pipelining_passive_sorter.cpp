@@ -18,9 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 /**
- * Generates n integers, adds one to each and
- * adds them pairwise in sorted order and prints them to
- * stdout
+ * Generates n integers, adds one to each,
+ * adds them pairwise in sorted order and prints them to stdout.
  */
 
 #include <tpie/tpie.h>
@@ -28,64 +27,81 @@
 
 using namespace tpie;
 using namespace tpie::pipelining;
-using namespace std;
 
-//generates 'n' integers in [0,100]
+// Generates 'n' integers in [0,100).
 template <typename dest_t>
-struct Generator : public node {
+class Generator : public node {
+public:
 	typedef int item_type;
-	dest_t dest;
-	int n;
-	Generator(const dest_t& dest, int n) : dest(dest), n(n) {
+
+	Generator(const dest_t & dest, int n)
+		: dest(dest)
+		, n(n)
+	{
 		add_push_destination(dest);
 		set_name("Generator");
 	}
+
 	virtual void go() override {
 		for (int i = 0; i < n; ++i) {
 			dest.push(rand()%100);
 		}
 	}
+
+private:
+	dest_t dest;
+	int n;
 };
 
 inline pipe_begin<factory_1<Generator, int> > generator(int n) {
-	return factory_1<Generator,int>(n);
+	return factory_1<Generator, int>(n);
 }
 
-//increments each incoming value by 1
+// Increases each incoming value by 1.
 template <typename dest_t>
-struct AddOne: public node {
+class AddOne : public node {
+public:
 	typedef int item_type;
-	dest_t dest;
-	AddOne(const dest_t& dest) : dest(dest) {
+
+	AddOne(const dest_t & dest)
+		: dest(dest)
+	{
 		add_push_destination(dest);
 		set_name("AddOne");
 	}
+
 	void push(item_type a) {
 		dest.push(a+1);
 	}
+
+private:
+	dest_t dest;
 };
+
 inline pipe_middle<factory_0<AddOne> > addOne() {
 	return factory_0<AddOne>();
 }
 
 template <typename source_t>
-struct AddPairwise  {
+class AddPairwise {
+public:
 	template <typename dest_t>
-	struct type: public node {
+	class type : public node {
+	public:
 		typedef int item_type;
-		dest_t dest;
-		typedef typename source_t::constructed_type puller_t;
-		puller_t puller;
-		type(const dest_t& dest, const source_t& src) 
-			: dest(dest), puller(src.construct()) {
-				add_push_destination(dest);
-				add_pull_source(puller);
-				set_name("AddPairwise");
-			}
+
+		type(const dest_t & dest, const source_t & src)
+			: dest(dest)
+			, puller(src.construct())
+		{
+			add_push_destination(dest);
+			add_pull_source(puller);
+			set_name("AddPairwise");
+		}
 
 		virtual void go() override {
 			while (puller.can_pull()) {
-				//pull two numbers a,b and push a+b to dest
+				// Pull two numbers a,b and push a+b to dest.
 				int a = puller.pull();
 				if (!puller.can_pull())
 					throw std::logic_error("Not an even number of items in the stream.");
@@ -93,31 +109,36 @@ struct AddPairwise  {
 				dest.push(a+b);
 			}
 		}
+
+	private:
+		dest_t dest;
+		typedef typename source_t::constructed_type puller_t;
+		puller_t puller;
 	};
 };
 
 template <typename source_t>
-inline pipe_begin<tempfactory_1<AddPairwise<source_t>,source_t > > addPairwise(const source_t& source) {
+inline pipe_begin<tempfactory_1<AddPairwise<source_t>, source_t> > addPairwise(const source_t & source) {
 	return tempfactory_1<AddPairwise<source_t>, source_t >(source);
 }
 
 void go() {
 	int n = 100;
 
-	//generate pipeline that 
+	// Generate pipeline that
 	// 1) generates "n" numbers
 	// 2) adds one to each number
 	// 3) sorts the numbers
-	// 4) computes the pairwise sum of the numbers 
-	// 5) prints the numbers to stdout 
+	// 4) computes the pairwise sum of the numbers
+	// 5) prints the numbers to stdout.
 	//
-	// we use a passive_sorter b/c we take more than one element of the
-	// sorter out at a time
+	// We use a passive_sorter because we take more than one element of the
+	// sorter out at a time.
 	passive_sorter<int> sorter;
 	pipeline p1 = generator(n) | addOne() | sorter.input();
 	pipeline p2 = addPairwise(sorter.output()) | printf_ints();
 
-	//it doesn't matter if we start p1 or p2 here
+	// It doesn't matter if we start p1 or p2 here.
 	p1.plot();
 	p1();
 }
