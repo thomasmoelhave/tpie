@@ -49,3 +49,7 @@ target_link_libraries(test_job_overhead tpie)
 add_executable(queue queue.cpp)
 set_target_properties(queue PROPERTIES FOLDER tpie/test)
 target_link_libraries(queue tpie)
+
+add_executable(atomic_stats test_atomic_stats.cpp)
+set_target_properties(atomic_stats PROPERTIES FOLDER tpie/test)
+target_link_libraries(atomic_stats tpie ${Boost_LIBRARIES})
