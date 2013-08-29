@@ -970,7 +970,8 @@ private:
 					// since we short-circuit seek(end) when streamBlocks == 0.
 					throw exception("Attempted seek to end when no blocks have been written");
 				}
-				memory_size_type blockItemIndex = size() - (m_streamBlocks - 1) * m_blockItems;
+				memory_size_type blockItemIndex =
+					static_cast<memory_size_type>(size() - (m_streamBlocks - 1) * m_blockItems);
 				if (use_compression()) {
 					m_nextReadOffset = last_block_read_offset(l);
 				}
@@ -1039,7 +1040,7 @@ private:
 		memory_size_type blockItems = m_blockItems;
 		if (blockItems + blockNumber * m_blockItems > size()) {
 			blockItems =
-				static_cast<stream_size_type>(size() - blockNumber * m_blockItems);
+				static_cast<memory_size_type>(size() - blockNumber * m_blockItems);
 		}
 		m_buffer->set_size(blockItems * sizeof(T));
 		m_buffer->set_state(compressor_buffer_state::writing);
