@@ -1088,7 +1088,7 @@ private:
 			}
 
 			read_block(lock, readOffset, direction::forward);
-			size_t blockItems = std::min(size() - blockNumber * m_blockItems,
+			size_t blockItems = std::min(static_cast<size_t>(size() - blockNumber * m_blockItems),
 										 m_blockItems);
 			size_t expectedBlockSize = blockItems * sizeof(T);
 			if (m_buffer->size() != expectedBlockSize) {
