@@ -1596,6 +1596,15 @@ bool join_test() {
 	return true;
 }
 
+bool copy_ctor_test() {
+	std::vector<int> i(10);
+	std::vector<int> j;
+	pipeline p1 = input_vector(i) | output_vector(j);
+	pipeline p2 = p1;
+	p2();
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -1630,5 +1639,6 @@ int main(int argc, char ** argv) {
 	.test(parallel_push_in_end_test, "parallel_push_in_end")
 	.test(join_test, "join")
 	.multi_test(node_map_multi_test, "node_map")
+	.test(copy_ctor_test, "copy_ctor")
 	;
 }
