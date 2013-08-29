@@ -54,7 +54,7 @@ public:
 
 	stream_size_type file_size() {
 		return std::max(this->m_fileAccessor.file_size_i(),
-						this->header_size())
+						static_cast<stream_size_type>(this->header_size()))
 			- this->header_size();
 	}
 
