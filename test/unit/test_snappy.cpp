@@ -18,6 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
+
+#ifdef TPIE_USE_SNAPPY
 #include <snappy.h>
 
 bool basic_test() {
@@ -28,6 +30,14 @@ bool basic_test() {
 	snappy::Uncompress(compressed.data(), compressed.size(), &output);
 	return input == output;
 }
+#else // TPIE_USE_SNAPPY
+
+bool basic_test() {
+	tpie::log_warning() << "ut-snappy: No snappy support built in!" << std::endl;
+	return true;
+}
+
+#endif // TPIE_USE_SNAPPY
 
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
