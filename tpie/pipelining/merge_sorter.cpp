@@ -85,7 +85,7 @@ void run_positions::unevacuate() {
 	if (m_final) {
 		log_debug() << "run_positions::unevacuate while final" << std::endl;
 		m_positions[0].open(m_positionsFile[0]);
-		m_finalPositions.resize(m_positions[0].size());
+		m_finalPositions.resize(static_cast<memory_size_type>(m_positions[0].size()));
 		m_positions[0].read(m_finalPositions.begin(), m_finalPositions.end());
 		m_positions[0].close();
 	} else {
@@ -122,7 +122,7 @@ void run_positions::final_level(memory_size_type fanout) {
 	m_final = true;
 	if (fanout > m_positions[0].size() - m_positions[0].offset()) {
 		log_debug() << "Decrease final level fanout from " << fanout << " to ";
-		fanout = m_positions[0].size() - m_positions[0].offset();
+		fanout = static_cast<memory_size_type>(m_positions[0].size() - m_positions[0].offset());
 		log_debug() << fanout << std::endl;
 	}
 	m_finalPositions.resize(fanout);
