@@ -17,10 +17,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <snappy.h>
 #include <tpie/config.h>
+#ifdef TPIE_USE_SNAPPY
+#include <snappy.h>
+#endif // TPIE_USE_SNAPPY
 #include <tpie/exception.h>
+#include <tpie/tpie_log.h>
 #include <tpie/compressed/scheme.h>
+
+#ifdef TPIE_USE_SNAPPY
 
 namespace {
 
@@ -61,3 +66,24 @@ const compression_scheme & get_compression_scheme_snappy() {
 }
 
 } // namespace tpie
+
+#else // TPIE_USE_SNAPPY
+
+namespace {
+	bool warned = false;
+}
+
+namespace tpie {
+
+const compression_scheme & get_compression_scheme_snappy() {
+	if (!warned) {
+		log_warning() << "get_compression_scheme_snappy: "
+			<< "No snappy support; return none instead." << std::endl;
+		warned = true;
+	}
+	return get_compression_scheme_none();
+}
+
+} // namespace tpie
+
+#endif // TPIE_USE_SNAPPY
