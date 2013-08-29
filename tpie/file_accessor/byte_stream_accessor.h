@@ -54,7 +54,7 @@ public:
 
 	stream_size_type file_size() {
 		return std::max(this->m_fileAccessor.file_size_i(),
-						this->header_size())
+						static_cast<stream_size_type>(this->header_size()))
 			- this->header_size();
 	}
 
@@ -79,7 +79,9 @@ public:
 	}
 
 	memory_size_type read(const stream_size_type byteOffset, void * data, memory_size_type size) {
-		stream_size_type sz = std::max(this->header_size(), this->m_fileAccessor.file_size_i())
+		stream_size_type sz
+			= std::max(static_cast<stream_size_type>(this->header_size()),
+					   this->m_fileAccessor.file_size_i())
 			- this->header_size();
 
 		if (byteOffset + size > sz)

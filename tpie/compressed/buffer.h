@@ -86,7 +86,7 @@ public:
 		, m_size(0)
 		, m_state(compressor_buffer_state::dirty)
 		, m_readOffset(1111111111111111111ull)
-		, m_blockSize(1111111111111111111ull)
+		, m_blockSize(std::numeric_limits<memory_size_type>::max())
 	{
 	}
 
@@ -146,7 +146,7 @@ public:
 		m_state = compressor_buffer_state::dirty;
 		m_size = 0;
 		m_readOffset = 1111111111111111111ull;
-		m_blockSize = 1111111111111111111ull;
+		m_blockSize = std::numeric_limits<memory_size_type>::max();
 	}
 
 	memory_size_type get_block_size() { return m_blockSize; }
