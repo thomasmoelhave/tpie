@@ -24,7 +24,6 @@
 /// \file compressed/stream.h
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <snappy.h>
 #include <tpie/array.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/tempname.h>
