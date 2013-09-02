@@ -114,6 +114,8 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline {
 public:
+	pipeline() {}
+
 	template <typename T>
 	pipeline(const T & from) {
 		*this = from;
