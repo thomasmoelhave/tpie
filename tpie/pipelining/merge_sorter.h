@@ -740,7 +740,7 @@ private:
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
 		if (runNumber < p.fanout) m_runFiles[idx].free();
-		fs.open(m_runFiles[idx], access_read_write);
+		fs.open(m_runFiles[idx], access_read_write, 0, access_sequential, compression_normal);
 		fs.seek(0, file_stream_base::end);
 		m_runPositions.set_position(mergeLevel, runNumber, fs.get_position());
 	}
@@ -752,7 +752,7 @@ private:
 		// see run_file_index comment about runNumber
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
-		fs.open(m_runFiles[idx], access_read);
+		fs.open(m_runFiles[idx], access_read, 0, access_sequential, compression_normal);
 		fs.set_position(m_runPositions.get_position(mergeLevel, runNumber));
 	}
 
