@@ -61,8 +61,13 @@ int main(int argc, char ** argv) {
 	std::set<std::string> filenames;
 	for (int i = 1; i != argc; ++i) {
 		boost::system::error_code ec;
+#if BOOST_VERSION >= 105000 || BOOST_FILESYSTEM_VERSION >= 3
 		if (!boost::filesystem::exists(argv[i], ec)) {
 			std::cout << argv[i] << ": " << ec.message() << std::endl;
+#else
+		if (!boost::filesystem::exists(argv[i])) {
+			std::cout << argv[i] << ": file does not exist" << std::endl;
+#endif
 			return 1;
 		}
 		if (filenames.insert(argv[i]).second) {
