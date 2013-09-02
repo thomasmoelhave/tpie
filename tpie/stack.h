@@ -48,7 +48,8 @@ public:
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_stream.open(static_cast<memory_size_type>(0), access_normal);
+		m_stream.open(static_cast<memory_size_type>(0), access_normal,
+					  compression_normal);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -62,7 +63,9 @@ public:
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_stream.open(path, access_read_write, static_cast<memory_size_type>(0), access_normal);
+		m_stream.open(path, access_read_write,
+					  static_cast<memory_size_type>(0), access_normal,
+					  compression_normal);
 		m_stream.seek(0, file_stream_base::end);
 	}
 
@@ -78,7 +81,8 @@ public:
 		, m_bufferItems(0)
 	{
 		m_stream.open(tempFile, access_read_write,
-					  static_cast<memory_size_type>(0), access_normal);
+					  static_cast<memory_size_type>(0), access_normal,
+					  compression_normal);
 		m_stream.seek(0, file_stream_base::end);
 	}
 
