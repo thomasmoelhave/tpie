@@ -26,7 +26,7 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 											   double blockFactor)
 	: m_bufferDirty(false)
 	, m_blockItems(block_size(blockFactor) / itemSize)
-	, m_blockSize(block_size(blockFactor) / itemSize * itemSize)
+	, m_blockSize(block_size(blockFactor))
 	, m_canRead(false)
 	, m_canWrite(false)
 	, m_open(false)

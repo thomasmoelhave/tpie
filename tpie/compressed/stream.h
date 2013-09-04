@@ -1093,10 +1093,12 @@ private:
 			if (size() - blockNumber * m_blockItems < blockItems) {
 				blockItems = static_cast<size_t>(size() - blockNumber * m_blockItems);
 			}
+			size_t usableBlockSize = m_buffer->size() / sizeof(T) * sizeof(T);
 			size_t expectedBlockSize = blockItems * sizeof(T);
-			if (m_buffer->size() != expectedBlockSize) {
+			if (usableBlockSize != expectedBlockSize) {
 				log_error() << "Expected " << expectedBlockSize << " (" << blockItems
-					<< " items), got " << m_buffer->size() << std::endl;
+					<< " items), got " << m_buffer->size() << " (rounded to "
+					<< usableBlockSize << ')' << std::endl;
 				throw exception("read_next_block: Bad buffer->get_size");
 			}
 
