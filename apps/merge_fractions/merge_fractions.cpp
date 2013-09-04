@@ -60,9 +60,8 @@ int main(int argc, char ** argv) {
 
 	std::set<std::string> filenames;
 	for (int i = 1; i != argc; ++i) {
-		boost::system::error_code ec;
-		if (!boost::filesystem::exists(argv[i], ec)) {
-			std::cout << argv[i] << ": " << ec.message() << std::endl;
+		if (!boost::filesystem::exists(argv[i])) {
+			std::cout << argv[i] << ": No such file or directory" << std::endl;
 			return 1;
 		}
 		if (filenames.insert(argv[i]).second) {
