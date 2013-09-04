@@ -19,8 +19,8 @@
 
 #include <set>
 #include <iostream>
-#include <boost/filesystem.hpp>
 #include <tpie/tpie.h>
+#include <boost/filesystem.hpp>
 #include <tpie/fractional_progress.h>
 
 namespace {
