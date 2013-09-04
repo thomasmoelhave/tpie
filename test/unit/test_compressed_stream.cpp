@@ -791,6 +791,40 @@ static bool backwards_file_stream_test(size_t n) {
 	return true;
 }
 
+struct odd_block_size_item {
+	int a;
+	int padding[6];
+};
+
+static bool odd_block_size_test() {
+	typedef odd_block_size_item item_type;
+	tpie::temp_file tf;
+	item_type item;
+	item.a = 0;
+	std::fill(item.padding, item.padding + 6, 0x55555555);
+	{
+		tpie::file_stream<item_type> s;
+		tpie::log_debug() << s.block_size() << std::endl;
+		s.open(tf);
+		tpie::log_debug() << s.block_size() << std::endl;
+		for (size_t i = 0; i < 1024*1024; ++i) s.write(item), item.a++;
+		s.close();
+	}
+	item.a = 0;
+	{
+		tpie::compressed_stream<item_type> s;
+		tpie::log_debug() << s.block_size() << std::endl;
+		s.open(tf);
+		tpie::log_debug() << s.block_size() << std::endl;
+		for (size_t i = 0; i < 1024*1024; ++i) {
+			item_type in = s.read();
+			if (in.a != item.a++) return false;
+		}
+		s.close();
+	}
+	return true;
+}
+
 template <tpie::compression_flags flags>
 tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 	typedef tests<flags> T;
@@ -828,5 +862,6 @@ int main(int argc, char ** argv) {
 		(add_tests<tpie::compression_normal>
 		 (t, ""), "_u")
 		.test(backwards_file_stream_test, "backwards_fs", "n", static_cast<size_t>(1 << 23))
+		.test(odd_block_size_test, "odd_block_size")
 		;
 }
