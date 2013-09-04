@@ -446,6 +446,21 @@ bool from_view_test() {
 	return true;
 }
 
+bool assign_test() {
+	tpie::array<size_t> a1(5*1024*1024);
+	a1[1000000] = 42;
+	tpie::array<size_t> a2;
+	a2 = a1;
+
+	// If the default operator= is taken, this should modify a1 as well as a2.
+	a2[1000000] = 24;
+
+	// If the default operator= is taken, prevent a double free.
+	tpie::array<size_t> a3;
+	a2 = a3;
+	return a1[1000000] == 42;
+}
+
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
@@ -471,5 +486,6 @@ int main(int argc, char **argv) {
 		.test(allocator_test, "allocator")
 		.test(copy_test, "copy")
 		.test(from_view_test, "from_view")
+		.test(assign_test, "assign")
 		;
 }
