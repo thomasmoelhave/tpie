@@ -205,6 +205,21 @@ public:
 	/// \param other The array to copy from.
 	/// \return A reference to this array.
 	///////////////////////////////////////////////////////////////////////////
+	array & operator=(const array & other) {
+		resize(other.size());
+		for (size_t i=0; i < size(); ++i) m_elements[i] = other[i];
+		return *this;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Copy elements from another array with any allocator into this.
+	///
+	/// Note: This array is resized to the size of other.
+	///
+	/// \param other The array to copy from.
+	/// \tparam OtherAllocator  The allocator used by the other array.
+	/// \return A reference to this array.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename OtherAllocator>
 	array & operator=(const array<T, OtherAllocator> & other) {
 		resize(other.size());
