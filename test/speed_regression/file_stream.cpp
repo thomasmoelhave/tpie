@@ -37,10 +37,31 @@ typedef tpie::uint64_t test_t;
 typedef tpie::uint64_t count_t;
 
 void usage() {
-	std::cout << "Parameters: [times] [mb]" << std::endl;
+	std::cout << "Parameters: [times] [mb] [backwards]" << std::endl;
 }
 
-void test(size_t mb, size_t times) {
+test_t read_forwards(count_t count) {
+	test_t hash = 0;
+	file_stream<test_t> s;
+	s.open("tmp");
+	for(count_t i=0; i < count; ++i) {
+		hash = hash * 13 + s.read();
+	}
+	return hash;
+}
+
+test_t read_backwards(count_t count) {
+	test_t hash = 0;
+	file_stream<test_t> s;
+	s.open("tmp");
+	s.seek(count);
+	for(count_t i=0; i < count; ++i) {
+		hash = hash * 13 + s.read_back();
+	}
+	return hash;
+}
+
+void test(size_t mb, size_t times, bool backwards) {
 	std::cout << "file_stream memory usage: " << file_stream<test_t>::memory_usage() << std::endl;
 	std::vector<const char *> names;
 	names.resize(3);
@@ -66,15 +87,8 @@ void test(size_t mb, size_t times) {
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
 
-		test_t hash = 0;
 		getTestRealtime(start);
-		{
-			file_stream<test_t> s;
-			s.open("tmp");
-			for(count_t i=0; i < count; ++i) {
-				hash = hash * 13 + s.read();
-			}
-		}
+		test_t hash = backwards ? read_backwards(count) : read_forwards(count);
 		getTestRealtime(end);
 		hash %= 100000000000000ull;
 		s(testRealtimeDiff(start,end));
@@ -86,6 +100,7 @@ void test(size_t mb, size_t times) {
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t mb = default_mb;
+	bool backwards = false;
 
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {
@@ -105,8 +120,11 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 	}
+	if (argc > 3) {
+		backwards = true;
+	}
 
 	testinfo t("file_stream speed test", 0, mb, times);
-	::test(mb, times);
+	::test(mb, times, backwards);
 	return EXIT_SUCCESS;
 }

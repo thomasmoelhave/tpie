@@ -90,13 +90,9 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read() throw(stream_exception) {
 		assert(m_open);
-		if (m_index >= m_block.size) {
-			update_block();
-			if (offset() >= size()) {
-				throw end_of_stream_exception();
-			}
-		}
-		return reinterpret_cast<item_type*>(m_block.data)[m_index++];
+		const item_type & x = peek();
+		++m_index;
+		return x;
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -117,10 +113,36 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read_back() throw(stream_exception) {
 		assert(m_open);
+		skip_back();
+		return peek();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Get next item from stream without advancing the position.
+	///////////////////////////////////////////////////////////////////////////
+	const item_type & peek() {
+		assert(m_open);
+		if (m_index >= m_block.size) {
+			update_block();
+			if (offset() >= size()) {
+				throw end_of_stream_exception();
+			}
+		}
+		return reinterpret_cast<item_type*>(m_block.data)[m_index];
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Advance the stream position to the next item.
+	///////////////////////////////////////////////////////////////////////////
+	void skip() {
+		seek(1, current);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Advance the stream position to the previous item.
+	///////////////////////////////////////////////////////////////////////////
+	void skip_back() {
 		seek(-1, current);
-		const item_type & i = read();
-		seek(-1, current);
-		return i;
 	}
 
 	///////////////////////////////////////////////////////////////////////////

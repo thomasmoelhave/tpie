@@ -677,6 +677,52 @@ void remove_temp() {
 	boost::filesystem::remove(TEMPFILE);
 }
 
+bool peek_skip_test_1() {
+	tpie::file_stream<size_t> s;
+	s.open();
+	for (size_t i = 0; i < 1000000; ++i) s.write(i);
+	s.seek(100);
+	TEST_ENSURE(s.peek() == 100, "peek() wrong");
+	s.seek(10000);
+	TEST_ENSURE(s.peek() == 10000, "peek() wrong");
+	s.skip();
+	TEST_ENSURE(s.peek() == 10001, "peek() wrong");
+	s.skip_back();
+	TEST_ENSURE(s.peek() == 10000, "peek() wrong");
+	s.seek(1000000);
+	s.skip_back();
+	TEST_ENSURE(s.peek() == 999999, "peek() wrong");
+
+	bool threw = false;
+	s.skip();
+	try {
+		s.peek();
+	} catch (tpie::end_of_stream_exception &) {
+		threw = true;
+	}
+	TEST_ENSURE(threw, "peek() did not throw");
+
+	return true;
+}
+
+bool peek_skip_test_2() {
+	tpie::file_stream<size_t> s;
+	s.open();
+	for (size_t i = 0; i < 1000000; ++i) s.write(i);
+	s.seek(10000);
+	TEST_ENSURE(s.peek() == 10000, "peek() wrong");
+	s.truncate(10000);
+	bool threw = false;
+	try {
+		s.peek();
+	} catch (tpie::end_of_stream_exception &) {
+		threw = true;
+	}
+	TEST_ENSURE(threw, "peek() did not throw");
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.setup(remove_temp)
@@ -695,5 +741,8 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_stream>::stress_test, "stress", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_stream>::user_data_test, "user_data")
-		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file");
+		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file")
+		.test(peek_skip_test_1, "peek_skip_1")
+		.test(peek_skip_test_2, "peek_skip_2")
+		;
 }
