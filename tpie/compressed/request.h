@@ -27,6 +27,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <tpie/tpie_assert.h>
+#include <tpie/tempname.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/file_accessor/byte_stream_accessor.h>
 #include <tpie/compressed/predeclare.h>
@@ -230,6 +231,7 @@ public:
 
 	write_request(const buffer_t & buffer,
 				  file_accessor_t * fileAccessor,
+				  temp_file * tempFile,
 				  stream_size_type writeOffset,
 				  memory_size_type blockItems,
 				  stream_size_type blockNumber,
@@ -237,6 +239,7 @@ public:
 		: request_base(response)
 		, m_buffer(buffer)
 		, m_fileAccessor(fileAccessor)
+		, m_tempFile(tempFile)
 		, m_writeOffset(writeOffset)
 		, m_blockItems(blockItems)
 		, m_blockNumber(blockNumber)
@@ -249,6 +252,10 @@ public:
 
 	buffer_t buffer() {
 		return m_buffer;
+	}
+
+	temp_file * get_temp_file() {
+		return m_tempFile;
 	}
 
 	memory_size_type block_items() {
@@ -270,9 +277,15 @@ public:
 		m_response->set_block_info(m_blockNumber, readOffset, blockSize);
 	}
 
+	// must have lock!
+	void update_recorded_size() {
+		if (m_tempFile != NULL) m_tempFile->update_recorded_size(m_fileAccessor->file_size());
+	}
+
 private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
+	temp_file * m_tempFile;
 	const stream_size_type m_writeOffset;
 	const memory_size_type m_blockItems;
 	const stream_size_type m_blockNumber;
@@ -349,6 +362,7 @@ public:
 
 	write_request & set_write_request(const write_request::buffer_t & buffer,
 									  write_request::file_accessor_t * fileAccessor,
+									  temp_file * tempFile,
 									  stream_size_type writeOffset,
 									  memory_size_type blockItems,
 									  stream_size_type blockNumber,
@@ -356,8 +370,9 @@ public:
 	{
 		destruct();
 		m_kind = compressor_request_kind::WRITE;
-		return *new (m_payload) write_request(buffer, fileAccessor, writeOffset,
-											  blockItems, blockNumber, response);
+		return *new (m_payload) write_request(buffer, fileAccessor, tempFile,
+											  writeOffset, blockItems,
+											  blockNumber, response);
 	}
 
 	write_request & set_write_request(const write_request & other) {

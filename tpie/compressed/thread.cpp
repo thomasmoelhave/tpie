@@ -224,6 +224,7 @@ private:
 			compressor_thread_lock::lock_t lock(mutex());
 			wr.buffer()->transition_state(compressor_buffer_state::writing,
 										  compressor_buffer_state::clean);
+			wr.update_recorded_size();
 			return;
 		}
 		// Compressed case
@@ -256,6 +257,7 @@ private:
 			wr.buffer()->set_block_size(writeSize);
 			wr.buffer()->set_read_offset(wr.file_accessor().file_size());
 			wr.set_block_info(wr.file_accessor().file_size(), writeSize);
+			wr.update_recorded_size();
 		}
 		wr.file_accessor().append(scratch.get(), writeSize);
 	}

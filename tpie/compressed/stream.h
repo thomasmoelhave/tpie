@@ -1049,6 +1049,7 @@ private:
 		compressor_request r;
 		r.set_write_request(m_buffer,
 							&m_byteStreamAccessor,
+							m_tempFile,
 							writeOffset,
 							blockItems,
 							blockNumber,
