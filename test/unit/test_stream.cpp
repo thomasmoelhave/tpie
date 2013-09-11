@@ -723,6 +723,26 @@ bool peek_skip_test_2() {
 	return true;
 }
 
+bool reopen() {
+	tpie::temp_file tf;
+
+	tpie::file_stream<int> s;
+	s.open(tf);
+	for (size_t i = 0; i < 1000000; ++i) s.write(i);
+	TEST_ENSURE(s.is_open(), "is_open wrong");
+	s.close();
+
+	TEST_ENSURE(!s.is_open(), "is_open wrong");
+
+	s.open(tf);
+	TEST_ENSURE(s.is_open(), "is_open wrong");
+	TEST_ENSURE(s.peek() == 0, "peek() wrong");
+	TEST_ENSURE(s.read() == 0, "read() wrong");
+	s.seek(10000);
+	TEST_ENSURE(s.peek() == 10000, "peek() wrong");
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.setup(remove_temp)
@@ -734,6 +754,7 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
 		.test(stream_tester<file_stream>::truncate_test, "truncate")
 		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
+		.test(reopen, "reopen")
 		.test(stream_tester<file_stream>::extend_test, "extend")
 		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend_file")
 		.test(stream_tester<file_stream>::backwards_test, "backwards")
