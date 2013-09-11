@@ -127,7 +127,7 @@ public:
 	}
 
 	std::string name() const {
-		return m_temp.path();
+		return m_stream.path();
 	}
 
 	err seek(stream_offset_type offset) {
