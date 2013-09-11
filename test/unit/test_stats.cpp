@@ -46,19 +46,28 @@ bool simple_test(size_type size) {
 	if (!test_about(get_bytes_written(), 0, "bytes written")) return false;
 	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return false;
 	{
-		file_stream<uint64_t> s;
-		s.open();
-		for(size_t i=0; i < size; ++i) s.write(i);
-		
+		temp_file tf;
+		{
+			file_stream<uint64_t> s;
+			s.open(tf);
+			for(size_t i=0; i < size; ++i) s.write(i);
+		}
 		if (!test_about(get_bytes_read(), 0, "bytes read")) return false;
 		if (!test_about(get_bytes_written(), asize, "bytes written")) return false;
 		if (!test_about(get_temp_file_usage(), asize, "temp file usage")) return false;
-		s.seek(0);
-		for(size_t i=0; i < 1024*1024*10; ++i) s.read();
-		
+		{
+			file_stream<uint64_t> s;
+			s.open(tf);
+			for(size_t i=0; i < size; ++i) s.read();
+		}
 		if (!test_about(get_bytes_read(), asize, "bytes read")) return false;
 		if (!test_about(get_bytes_written(), asize, "bytes written")) return false;
 		if (!test_about(get_temp_file_usage(), asize, "temp file usage")) return false;
+		{
+			file_stream<uint64_t> s;
+			s.open(tf);
+			s.truncate(0);
+		}
 	}
 	if (!test_about(get_bytes_read(), asize, "bytes read")) return false;
 	if (!test_about(get_bytes_written(), asize, "bytes written")) return false;
