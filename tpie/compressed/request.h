@@ -54,6 +54,7 @@ public:
 	}
 
 	// any, stream
+	// Waits on the condition variable m_changed.
 	void wait(compressor_thread_lock & lock);
 
 	// any, stream
