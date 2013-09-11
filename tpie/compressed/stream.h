@@ -793,9 +793,11 @@ public:
 private:
 	const T & read_back_ref() {
 		if (m_seekState != seek_state::none) {
+			if (offset() == 0) throw end_of_stream_exception();
 			perform_seek(direction::backward);
 		}
 		if (m_nextItem == m_bufferBegin) {
+			if (m_offset == 0) throw end_of_stream_exception();
 			uncache_read_writes();
 			compressor_thread_lock l(compressor());
 			if (this->m_bufferDirty)
