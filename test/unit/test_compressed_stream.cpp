@@ -184,6 +184,31 @@ static bool read_back_seek_test_2() {
 	return true;
 }
 
+static bool read_back_throw_test() {
+	for (size_t x = 0; x < 3; ++x) {
+		size_t items = x * 1000000;
+		tpie::log_debug() << "Writing " << items << " items and reading them back" << std::endl;
+		tpie::compressed_stream<size_t> s;
+		s.open();
+		for (size_t i = 0; i < items; ++i) s.write(i);
+		for (size_t i = 0; i < items; ++i) s.read_back();
+		bool threw = false;
+		try {
+			s.read_back();
+		} catch (const tpie::end_of_stream_exception &) {
+			threw = true;
+		} catch (...) {
+			tpie::log_error() << "Threw something that is not an end_of_stream_exception." << std::endl;
+			return false;
+		}
+		if (!threw) {
+			tpie::log_error() << "Did not throw an end_of_stream_exception." << std::endl;
+			return false;
+		}
+	}
+	return true;
+}
+
 static bool position_test_0(size_t n) {
 	tpie::temp_file tf;
 
@@ -837,6 +862,7 @@ tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 		.test(T::read_seek_test, "read_seek" + suffix, "m", static_cast<size_t>(1 << 10), "n", static_cast<size_t>(1 << 15))
 		.test(T::read_back_seek_test, "read_back_seek" + suffix)
 		.test(T::read_back_seek_test_2, "read_back_seek_2" + suffix)
+		.test(T::read_back_throw_test, "read_back_throw" + suffix)
 		.test(T::truncate_test, "truncate" + suffix)
 		.test(T::truncate_test_2, "truncate_2" + suffix)
 		.test(T::position_test_0, "position_0" + suffix, "n", static_cast<size_t>(1 << 19))
