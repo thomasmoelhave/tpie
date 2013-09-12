@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2011, 2012, The TPIE development team
+// Copyright 2011, 2012, 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -16,6 +16,10 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief pipelining/factory_base.h  Base class of pipelining factories
+///////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TPIE_PIPELINING_FACTORY_BASE_H__
 #define __TPIE_PIPELINING_FACTORY_BASE_H__
@@ -34,24 +38,62 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Base class of all pipelining factories.
+///
+/// The subclass must define an inner template struct named \c constructed,
+/// that takes one template parameter \c dest_t and defines an inner typedef
+/// named \c type that is the actual type of node constructed.
+///
+/// If the factory \c foo_factory constructs \c foo objects, then the type
+/// expression <tt>foo_factory::constructed&lt;bar&lt;baz&gt; &gt;::type</tt>
+/// should be equal to <tt>foo&lt;bar&lt;baz&gt; &gt;</tt>.
+///
+/// The subclass must also define a template const method named \c construct,
+/// that takes one template parameter \c dest_t, has the return type
+/// <tt>constructed&lt;dest_t&gt;::type</tt> and takes just one parameter
+/// \c dest of type \c dest_t.
+///
+/// If the factory constructs just one \c node descendent, then the factory
+/// should call the \c factory_base::init_node method with this \c node as
+/// parameter. For example see tpie/pipelining/factory_helpers.h.
+///
+/// If the factory constructs multiple \c node descendents, then the factory
+/// should call the \c factory_base::init_sub_node method for each of the
+/// \c nodes. For example see \c sort_factory_base in tpie/pipelining/sort.h.
+///////////////////////////////////////////////////////////////////////////////
 class factory_base {
 public:
 	factory_base() : m_amount(0), m_set(false) {
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief bits::pipe_base::memory(double)
+	/// \copydetails bits::pipe_base::memory(double)
+	///
+	/// \sa bits::pipe_base::memory(double)
+	///////////////////////////////////////////////////////////////////////////
 	inline void memory(double amount) {
 		m_amount = amount;
 		m_set = true;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief bits::pipe_base::memory()
+	/// \copydetails bits::pipe_base::memory()
+	///
+	/// \sa memory(double)
+	/// \sa bits::pipe_base::memory()
+	///////////////////////////////////////////////////////////////////////////
 	inline double memory() const {
 		return m_amount;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Add a node initialization hook. When a node is
-	/// instantiated in construct(), the given hook will get a chance to do
-	/// some additional initialization.
+	/// \brief  Add a node initialization hook.
+	///
+	/// When a node is instantiated in construct(), the given hook will get a
+	/// chance to do some additional initialization.
 	///////////////////////////////////////////////////////////////////////////
 	void hook_initialization(factory_init_hook * hook) {
 		m_hooks.push_back(hook);
@@ -66,12 +108,25 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Deprecated alias of init_node.
+	///////////////////////////////////////////////////////////////////////////
 	inline void init_segment(node & r) const {
 		log_fatal() << "init_segment has been renamed to init_node" << std::endl;
 		backtrace(log_fatal());
 		init_node(r);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Initialize node constructed in a subclass.
+	///
+	/// This lets the user define a name or memory fraction for this certain
+	/// node in the pipeline phase, and it lets initialization hooks do their
+	/// thing.
+	///
+	/// If more than one node is constructed in the subclass in \c construct(),
+	/// the implementation should use \c init_sub_node instead.
+	///////////////////////////////////////////////////////////////////////////
 	inline void init_node(node & r) const {
 		if (m_set) r.set_memory_fraction(memory());
 		if (!m_name.empty()) {
@@ -85,6 +140,16 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Initialize node constructed in a subclass.
+	///
+	/// This lets the user define a name or memory fraction for this certain
+	/// node in the pipeline phase, and it lets initialization hooks do their
+	/// thing.
+	///
+	/// If just one node is constructed in the subclass in \c construct(),
+	/// the implementation should use \c init_node instead.
+	///////////////////////////////////////////////////////////////////////////
 	void init_sub_node(node & r) const {
 		if (m_set) r.set_memory_fraction(memory());
 		if (m_breadcrumbs.empty()) {
@@ -105,11 +170,23 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief bits::pipe_base::name
+	/// \copydetails bits::pipe_base::name
+	///
+	/// \sa bits::pipe_base::name
+	///////////////////////////////////////////////////////////////////////////
 	inline void name(const std::string & n, priority_type p) {
 		m_name = n;
 		m_namePriority = p;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief bits::pipe_base::breadcrumb
+	/// \copydetails bits::pipe_base::breadcrumb
+	///
+	/// \sa bits::pipe_base::breadcrumb
+	///////////////////////////////////////////////////////////////////////////
 	inline void push_breadcrumb(const std::string & n) {
 		if (m_breadcrumbs.empty()) m_breadcrumbs = n;
 		else m_breadcrumbs = n + " | " + m_breadcrumbs;
