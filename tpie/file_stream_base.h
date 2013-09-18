@@ -141,6 +141,8 @@ protected:
 			assert(m_canWrite);
 			update_vars();
 			m_fileAccessor->write_block(m_block.data, m_block.number, m_block.size);
+			if (m_tempFile)
+				m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 		}
 		m_block.dirty = false;
 	}
@@ -150,8 +152,6 @@ protected:
 			assert(m_index <= m_blockItems);
 			m_block.size = std::max(m_block.size, m_index);
 			m_size = std::max(m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
-			if (m_tempFile)
-				m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 		}
 	}
 
