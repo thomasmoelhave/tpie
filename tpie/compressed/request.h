@@ -432,6 +432,7 @@ private:
 
 	compressor_request_kind::type m_kind;
 
+	// XXX this should be aligned!
 	char m_payload[sizeof(read_request) < sizeof(write_request) ? sizeof(write_request) : sizeof(read_request)];
 };
 
