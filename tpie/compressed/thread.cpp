@@ -256,8 +256,10 @@ private:
 										  compressor_buffer_state::clean);
 			wr.buffer()->set_block_size(writeSize);
 			wr.buffer()->set_read_offset(wr.file_accessor().file_size());
-			wr.set_block_info(wr.file_accessor().file_size(), writeSize);
-			wr.update_recorded_size();
+			const stream_size_type offset = wr.file_accessor().file_size();
+			wr.set_block_info(offset, writeSize);
+			const stream_size_type newSize = offset + writeSize;
+			wr.update_recorded_size(newSize);
 		}
 		wr.file_accessor().append(scratch.get(), writeSize);
 	}

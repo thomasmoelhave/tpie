@@ -282,6 +282,11 @@ public:
 		if (m_tempFile != NULL) m_tempFile->update_recorded_size(m_fileAccessor->file_size());
 	}
 
+	// must have lock!
+	void update_recorded_size(stream_size_type fileSize) {
+		if (m_tempFile != NULL) m_tempFile->update_recorded_size(fileSize);
+	}
+
 private:
 	buffer_t m_buffer;
 	file_accessor_t * m_fileAccessor;
