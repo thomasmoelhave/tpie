@@ -204,6 +204,36 @@ bool evacuate_before_report_test() {
 	return sort_test(20,20,20,50, 0, false, true);
 }
 
+bool temp_file_usage_test() {
+	const stream_size_type initialUsage = get_temp_file_usage();
+	log_debug() << "Offsetting get_temp_file_usage by " << initialUsage
+				<< std::endl;
+	const stream_size_type runLength = get_block_size() / sizeof(test_t);
+	const memory_size_type runs = 16;
+	const memory_size_type fanout = runs;
+	{
+		merge_sorter<test_t, false> s;
+		s.set_parameters(runLength, fanout);
+		s.begin();
+		for (test_t i = 0; i < runs * runLength; ++i) {
+			s.push(i);
+		}
+		s.end();
+		log_debug() << "After phase 1: " << (get_temp_file_usage()
+											 - initialUsage) << std::endl;
+		dummy_progress_indicator pi;
+		s.calc(pi);
+		log_debug() << "After phase 2: " << (get_temp_file_usage()
+											 - initialUsage) << std::endl;
+		while (s.can_pull()) s.pull();
+		log_debug() << "After phase 3: " << (get_temp_file_usage()
+											 - initialUsage) << std::endl;
+	}
+	log_debug() << "After destroying merge_sorter: "
+				<< (get_temp_file_usage() - initialUsage) << std::endl;
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tests(argc, argv)
 		.test(internal_report_test, "internal_report")
@@ -214,5 +244,6 @@ int main(int argc, char ** argv) {
 		.test(evacuate_before_merge_test, "evacuate_before_merge")
 		.test(evacuate_before_report_test, "evacuate_before_report")
 		.test(sort_upper_bound_test, "sort_upper_bound")
+		.test(temp_file_usage_test, "temp_file_usage")
 		;
 }
