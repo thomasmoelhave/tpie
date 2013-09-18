@@ -70,10 +70,56 @@ bool sort_upper_bound_test() {
 	return io == get_bytes_written();
 }
 
+bool temp_file_usage_test() {
+	bool result = true;
+	const stream_size_type initialUsage = get_temp_file_usage();
+	log_debug() << "Offsetting get_temp_file_usage by " << initialUsage
+				<< std::endl;
+	const stream_size_type runLength = get_block_size() / sizeof(size_t);
+	const memory_size_type runs = 16;
+	const stream_size_type expectedUsage = runLength * runs * sizeof(size_t);
+	// Presumably, the data is not compressed beyond 1 byte per item.
+	const stream_size_type expectedUsageLowerBound = runLength * runs;
+	const memory_size_type fanout = runs;
+	{
+		merge_sorter<size_t, false> s;
+		s.set_parameters(runLength, fanout);
+		s.begin();
+		for (size_t i = 0; i < runs * runLength; ++i) {
+			s.push(i);
+		}
+		s.end();
+		const stream_size_type afterPhase1 = get_temp_file_usage()
+											 - initialUsage;
+		log_debug() << "After phase 1: " << afterPhase1 << std::endl;
+		if (afterPhase1 < expectedUsageLowerBound) {
+			log_error() << "Used less space than expected!\nExpected is "
+						<< expectedUsage << ", but " << afterPhase1
+						<< " is way below that (< " << expectedUsageLowerBound
+						<< ")" << std::endl;
+			result = false;
+		}
+		dummy_progress_indicator pi;
+		s.calc(pi);
+		const stream_size_type afterPhase2 = get_temp_file_usage()
+											 - initialUsage;
+		log_debug() << "After phase 2: " << afterPhase2 << std::endl;
+		while (s.can_pull()) s.pull();
+		const stream_size_type afterPhase3 = get_temp_file_usage()
+											 - initialUsage;
+		log_debug() << "After phase 3: " << afterPhase3 << std::endl;
+	}
+	const stream_size_type afterDestroy = get_temp_file_usage() - initialUsage;
+	log_debug() << "After destroying merge_sorter: " << afterDestroy
+				<< std::endl;
+	return result;
+}
+
 int main(int argc, char ** argv) {
 	tests t(argc, argv);
 	return
 		sort_tester<use_merge_sort>::add_all(t)
 		.test(sort_upper_bound_test, "sort_upper_bound")
+		.test(temp_file_usage_test, "temp_file_usage")
 		;
 }
