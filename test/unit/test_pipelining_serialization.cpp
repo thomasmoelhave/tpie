@@ -141,7 +141,8 @@ public:
 
 	virtual void go() override {
 		using namespace boost::posix_time;
-		long seed = boost::posix_time::microsec_clock::local_time().time_of_day().fractional_seconds();
+		uint32_t seed = static_cast<uint32_t>
+			(boost::posix_time::microsec_clock::local_time().time_of_day().fractional_seconds());
 		boost::mt19937 rng(seed);
 		for (stream_size_type i = 0; i < n; ++i) {
 			size_t length = rng() % 10;
