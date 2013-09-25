@@ -62,7 +62,7 @@ typedef item test_t;
 struct testparams {
 	stream_size_type elements;
 	size_t times;
-	stream_size_type runLength;
+	memory_size_type runLength;
 	size_t fanout;
 	memory_size_type memoryLimit;
 };

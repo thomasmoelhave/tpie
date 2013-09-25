@@ -78,8 +78,8 @@ struct linear_memory_base {
 	/// \param size The number of elements to support
 	/// \return The amount of memory required in bytes
 	///////////////////////////////////////////////////////////////////////////
-	inline static stream_size_type memory_usage(stream_size_type size) {
-		return static_cast<stream_size_type>(
+	static memory_size_type memory_usage(memory_size_type size) {
+		return static_cast<memory_size_type>(
 			floor(static_cast<double>(size) * child_t::memory_coefficient() + child_t::memory_overhead()));
 	}
 

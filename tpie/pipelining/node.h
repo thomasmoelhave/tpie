@@ -299,6 +299,14 @@ public:
 	}
 
 protected:
+#ifdef _WIN32
+	// Disable warning C4355: 'this' : used in base member initializer list
+	// node_token does not access members of the `node *`,
+	// it merely uses it as a value in the node map.
+	// Only after this node object is completely constructed are node members accessed.
+#pragma warning( push )
+#pragma warning( disable : 4355 )
+#endif // _WIN32
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Default constructor, using a new node_token.
 	///////////////////////////////////////////////////////////////////////////
@@ -337,7 +345,7 @@ protected:
 			throw call_order_exception(
 				"Tried to copy pipeline node after prepare had been called");
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor using a given fresh node_token.
 	///////////////////////////////////////////////////////////////////////////
@@ -354,6 +362,9 @@ protected:
 		, m_state(STATE_FRESH)
 	{
 	}
+#ifdef _WIN32
+#pragma warning( pop )
+#endif // _WIN32
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare a push destination.

@@ -269,7 +269,7 @@ bool very_large_test() {
 
 template <typename T>
 bool parameter_test(double kb, double blockSizeKB) {
-	double blockFact = file<T>::calculate_block_factor(static_cast<memory_size_type>(blockSizeKB*1024.0));
+	float blockFact = file<T>::calculate_block_factor(static_cast<memory_size_type>(blockSizeKB*1024.0));
 	memory_size_type mmAvail = static_cast<memory_size_type>(kb*1024.0);
 	log_debug() << "blockFact = " << blockFact << "\nmmAvail = " << mmAvail << endl;
 	{
@@ -280,7 +280,7 @@ bool parameter_test(double kb, double blockSizeKB) {
 }
 
 template <typename T>
-bool remove_group_buffer_test(memory_size_type mmAvail, double blockFact, stream_size_type items, stream_size_type iterations) {
+bool remove_group_buffer_test(memory_size_type mmAvail, float blockFact, stream_size_type items, stream_size_type iterations) {
 	log_debug() << "blockFact = " << blockFact << "\nmmAvail = " << mmAvail << endl;
 	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(mmAvail, blockFact);
 	return cyclic_pq_test(pq, items, iterations);
@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
 		.test(parameter_test<uint64_t>, "parameters", "kb", 50000.0, "bs_kb", 128.0)
 		.test(remove_group_buffer_test<uint64_t>, "remove_group_buffer",
 			  "mmavail", static_cast<memory_size_type>(23552),
-			  "blockfact", 0.000244141,
+			  "blockfact", 0.000244141f,
 			  "items", static_cast<stream_size_type>(5000),
 			  "iterations", static_cast<stream_size_type>(100000))
 		;

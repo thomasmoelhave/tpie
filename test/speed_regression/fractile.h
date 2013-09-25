@@ -70,8 +70,8 @@ void parameters::parse_filename() {
 template <typename Impl>
 void go(parameters & params, Impl & impl) {
 	impl.open(params.filename);
-	size_t nextFrac = 0;
-	size_t nextGoal = 0;
+	tpie::stream_size_type nextFrac = 0;
+	tpie::stream_size_type nextGoal = 0;
 	tpie::stream_size_type n = impl.size();
 	for (tpie::stream_size_type i = 0; i < n; ++i) {
 		item_type x = impl.read();

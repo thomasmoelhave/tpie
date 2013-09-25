@@ -30,14 +30,14 @@ struct sort_parameters {
 	/** Memory available during output phase. */
 	memory_size_type memoryPhase3;
 	/** Run length, subject to memory restrictions during phase 2.
-	 * Although we cannot sort more than 2^32 numbers internally on 32-bit
-	 * systems, we are still able to merge sorted streams of run lengths
-	 * greater than 2^32. Therefore, a stream_size_type is necessary. */
-	stream_size_type runLength;
+	 * On 32-bit systems, although we could in principle merge runs longer than 2^32,
+	 * this is still a memory_size_type since it must be an amount
+	 * that we can have in internal memory.
+	 */
+	memory_size_type runLength;
 	/** Maximum item count for internal reporting, subject to memory
-	 * restrictions in all phases. Less or equal to runLength.
-	 * Same type as runLength. */
-	stream_size_type internalReportThreshold;
+	 * restrictions in all phases. Less or equal to runLength. */
+	memory_size_type internalReportThreshold;
 	/** Fanout of merge tree during phase 3. */
 	memory_size_type fanout;
 	/** Fanout of merge tree during phase 4. Less or equal to fanout. */

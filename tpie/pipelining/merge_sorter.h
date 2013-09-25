@@ -63,7 +63,7 @@ public:
 	/// \brief  Enable setting run length and fanout manually (for testing
 	/// purposes).
 	///////////////////////////////////////////////////////////////////////////
-	inline void set_parameters(stream_size_type runLength, memory_size_type fanout) {
+	inline void set_parameters(memory_size_type runLength, memory_size_type fanout) {
 		tp_assert(m_state == stParameters, "Merge sorting already begun");
 		p.runLength = p.internalReportThreshold = runLength;
 		p.fanout = p.finalFanout = fanout;
@@ -598,7 +598,8 @@ public:
 			log_debug() << "Decreasing run length from " << p.runLength
 				<< " to " << n << std::endl;
 
-			p.runLength = n;
+			// Since n < runLength, we may downcast to a smaller type.
+			p.runLength = static_cast<memory_size_type>(n);
 
 			// Mirror the restriction from calculate_parameters.
 			if (p.internalReportThreshold > p.runLength)
@@ -662,8 +663,10 @@ private:
 
 	array<temp_file> m_runFiles;
 
-	// number of runs already written to disk.
-	stream_size_type m_finishedRuns;
+	// Number of runs already written to disk.
+	// On 32-bit systems, we could in principle support more than 2^32 finished runs,
+	// but keeping this as a memory_size_type is nicer when doing the actual merges.
+	memory_size_type m_finishedRuns;
 
 	// current run buffer. size 0 before begin(), size runLength after begin().
 	array<T> m_currentRunItems;

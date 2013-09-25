@@ -75,7 +75,7 @@ bool temp_file_usage_test() {
 	const stream_size_type initialUsage = get_temp_file_usage();
 	log_debug() << "Offsetting get_temp_file_usage by " << initialUsage
 				<< std::endl;
-	const stream_size_type runLength = get_block_size() / sizeof(size_t);
+	const memory_size_type runLength = get_block_size() / sizeof(size_t);
 	const memory_size_type runs = 16;
 	const stream_size_type expectedUsage = runLength * runs * sizeof(size_t);
 	// Presumably, the data is not compressed beyond 1 byte per item.
