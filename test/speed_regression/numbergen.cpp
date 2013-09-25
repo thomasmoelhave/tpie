@@ -30,7 +30,7 @@ struct parameters {
 	int argi;
 	int argc;
 	const char ** argv;
-	uint64_t seed;
+	uint32_t seed;
 	double megabytes;
 	bool gen_tpie;
 	bool gen_serialization;
@@ -59,7 +59,7 @@ N parse_num(std::string arg) {
 	return res;
 }
 
-uint64_t parse_seed(std::string arg) { return parse_num<uint64_t>(arg); }
+uint32_t parse_seed(std::string arg) { return parse_num<uint32_t>(arg); }
 
 std::string next_arg(int & argi, int argc, const char ** argv) {
 	++argi;
