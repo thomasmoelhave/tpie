@@ -21,7 +21,7 @@
 #define TPIE_COMPRESSED_REQUEST_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file compressed/request.h
+/// \file compressed/request.h  Compressor thread requests and responses.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <boost/shared_ptr.hpp>
@@ -35,12 +35,18 @@
 
 namespace tpie {
 
-// The response object is used to relay information back from the compressor
-// thread to the stream class.
-// The compressor mutex must be acquired before any compressor_response method is called.
-// Each method is annotated with a (request kind, caller)-comment,
-// identifying whether the method relates to a read request or a write request,
-// and whether the stream object (main thread) or the compressor thread should call it.
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Response to an I/O request.
+///
+/// The response object is used to relay information back from the compressor
+/// thread to the stream class.
+/// The compressor mutex must be acquired before any compressor_response method
+/// is called.
+/// In the code, each method is annotated with a (request kind, caller)-comment,
+/// identifying whether the method relates to a read request or a write
+/// request, and whether the stream object (main thread) or the compressor
+/// thread should call it.
+///////////////////////////////////////////////////////////////////////////////
 class compressor_response {
 public:
 	compressor_response()
@@ -162,6 +168,12 @@ class __attribute__((__may_alias__)) read_request;
 class __attribute__((__may_alias__)) write_request;
 #endif // __GNUC__
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Base class for read_request and write_request.
+///
+/// Each request should have a pointer to the response object, which is
+/// contained in this base class.
+///////////////////////////////////////////////////////////////////////////////
 class request_base {
 protected:
 	request_base(compressor_response * response)

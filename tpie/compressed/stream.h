@@ -21,7 +21,7 @@
 #define TPIE_COMPRESSED_STREAM_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file compressed/stream.h
+/// \file compressed/stream.h  Compressed stream public API.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/array.h>
@@ -38,11 +38,18 @@
 
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Possible values for the \c compressionFlags parameter to \c open.
+///////////////////////////////////////////////////////////////////////////////
 enum compression_flags {
 	compression_none = 0,
 	compression_normal = 1
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Base class containing the implementation details that are
+/// independent of the item type.
+///////////////////////////////////////////////////////////////////////////////
 class compressed_stream_base {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
@@ -130,10 +137,16 @@ public:
 			  cache_hint cacheHint=access_sequential,
 			  int compressionFlags=compression_normal);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Open an anonymous temporary file for reading and writing.
+	///////////////////////////////////////////////////////////////////////////
 	void open(memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
 			  int compressionFlags=compression_normal);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Open a specific temporary file.
+	///////////////////////////////////////////////////////////////////////////
 	void open(temp_file & file,
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
@@ -512,7 +525,9 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// Precondition: offset is size() or 0.
+	/// \brief  Truncate to given size.
+	///
+	/// Precondition: compression is disabled or offset is size() or 0.
 	/// Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
@@ -528,6 +543,9 @@ public:
 			throw stream_exception("Arbitrary truncate is not supported");
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Truncate to given stream position.
+	///////////////////////////////////////////////////////////////////////////
 	void truncate(const stream_position & pos) {
 		tp_assert(is_open(), "truncate: !is_open");
 		uncache_read_writes();
@@ -633,6 +651,15 @@ private:
 
 public:
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Store the current stream position such that it may be found
+	/// later on.
+	///
+	/// The stream_position object is violated if the stream is eventually
+	/// truncated to before the current position.
+	///
+	/// The stream_position objects are plain old data, so they may themselves
+	/// be written to streams.
+	///
 	/// Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position() {
@@ -681,6 +708,10 @@ public:
 		return stream_position(readOffset, offset());
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Seek to a position that was previously recalled with
+	/// \c get_position.
+	///////////////////////////////////////////////////////////////////////////
 	void set_position(const stream_position & pos) {
 		// If the code is correct, short circuiting is not necessary;
 		// if the code is not correct, short circuiting might mask faults.
@@ -783,6 +814,9 @@ public:
 		return offset() < size();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Check if the next call to read_back() will succeed or not.
+	///////////////////////////////////////////////////////////////////////////
 	bool can_read_back() {
 		if (!this->m_open)
 			return false;

@@ -41,6 +41,7 @@ file \c example/CMakeLists.txt in the repository.
   - \ref memory (example snippets)
   - \ref progress (example snippets)
   - \ref fractiondb (example snippets)
+  - \ref compressed
 
 \subsection sec_history History
 

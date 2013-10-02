@@ -21,7 +21,7 @@
 #define TPIE_COMPRESSED_POSITION_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file compressed/position.h
+/// \file compressed/position.h  Stream position indicator.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/compressed/predeclare.h>
@@ -33,11 +33,11 @@ namespace tpie {
 ///
 /// A stream position is the tuple `(read_offset, offset)`.
 ///
-/// The compressed block containing the item starts at byte read_offset+8.
-/// The size of the compressed block is in `[read_offset, read_offset+8)`.
-/// In the logical block, the item is at index `offset % blockItems`.
-/// The block has the index `offset / blockItems` in the stream,
-/// and the global item offset is `offset`.
+/// For compressed streams, the stream block begins with a header at byte
+/// position `read_offset`.  After the block header, the items follow.
+///
+/// For uncompressed streams, `read_offset` is zero and the item position
+/// in the stream is determined solely by `offset`.
 ///
 /// Thus, the first item in the stream has the position tuple `(0, 0)`.
 ///////////////////////////////////////////////////////////////////////////////
