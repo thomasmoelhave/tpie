@@ -83,13 +83,9 @@ void generic_sort(Stream & instream, Compare comp,
 	push.done();
 	s.end();
 
-	std::string path = instream.path();
-	instream.close();
-	boost::filesystem::remove(path);
-
+	instream.truncate(0);
 	s.calc(merge);
 
-	instream.open(path);
 	output.init(sz);
 	while (s.can_pull()) instream.write(s.pull()), output.step();
 	output.done();
