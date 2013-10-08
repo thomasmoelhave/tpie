@@ -24,6 +24,8 @@
 /// Logging functionality and log_level codes for different priorities of log messages.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <vector>
+#include <boost/shared_ptr.hpp>
 #include <tpie/config.h>
 #include <tpie/logstream.h>
 #include <fstream>
@@ -86,47 +88,50 @@ void init_default_log();
 ///////////////////////////////////////////////////////////////////////////////
 void finish_default_log();
 
-extern logstream log_singleton;
+extern std::vector<boost::shared_ptr<logstream> > log_instances;
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Returns the only logstream object. 
-///////////////////////////////////////////////////////////////////////////
-inline logstream & get_log() {return log_singleton;}
+void initiate_log_level(log_level level);
+
+inline logstream & get_log_by_level(log_level level) {
+	if (log_instances.size() <= level || log_instances[level].get() == 0)
+		initiate_log_level(level);
+	return *log_instances[level];
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing fatal log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_fatal() {return get_log() << setlevel(LOG_FATAL);}
+inline logstream & log_fatal() {return get_log_by_level(LOG_FATAL);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing error log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_error() {return get_log() << setlevel(LOG_ERROR);}
+inline logstream & log_error() {return get_log_by_level(LOG_ERROR);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing info log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_info() {return get_log() << setlevel(LOG_INFORMATIONAL);}
+inline logstream & log_info() {return get_log_by_level(LOG_INFORMATIONAL);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing warning log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_warning() {return get_log() << setlevel(LOG_WARNING);}
+inline logstream & log_warning() {return get_log_by_level(LOG_WARNING);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing app_debug log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_app_debug() {return get_log() << setlevel(LOG_APP_DEBUG);}
+inline logstream & log_app_debug() {return get_log_by_level(LOG_APP_DEBUG);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing debug log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_debug() {return get_log() << setlevel(LOG_DEBUG);}
+inline logstream & log_debug() {return get_log_by_level(LOG_DEBUG);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing mem_debug log messages.
 ///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_mem_debug() {return get_log() << setlevel(LOG_MEM_DEBUG);}
+inline logstream & log_mem_debug() {return get_log_by_level(LOG_MEM_DEBUG);}
 
 class scoped_log_enabler {
 private:
@@ -134,13 +139,74 @@ private:
 public:
 	inline bool get_orig() {return m_orig;}
 	inline scoped_log_enabler(bool e) {
-		m_orig = get_log().enabled(); 
-		get_log().enable(e);
+		m_orig = log_bits::logging_disabled;
+		log_bits::logging_disabled = !e;
 	}
 	inline ~scoped_log_enabler() {
-		get_log().enable(m_orig);
+		log_bits::logging_disabled = m_orig;
 	}
 };
+
+class log_selector {
+private:
+	static bool s_init;
+	static log_level s_level;
+
+	logstream & get_log() {
+		if (!s_init) {
+			s_init = true;
+			s_level = LOG_INFORMATIONAL;
+		}
+		switch (s_level) {
+		case LOG_FATAL:
+			return log_fatal();
+		case LOG_ERROR:
+			return log_error();
+		case LOG_INFORMATIONAL:
+			return log_info();
+		case LOG_WARNING:
+			return log_warning();
+		case LOG_APP_DEBUG:
+			return log_app_debug();
+		case LOG_DEBUG:
+			return log_debug();
+		case LOG_MEM_DEBUG:
+			return log_mem_debug();
+		}
+		return log_info();
+	}
+
+public:
+	log_selector & operator<<(log_level_manip mi) {
+		set_level(mi.get_level());
+		return *this;
+	}
+
+	template <typename T>
+	logstream & operator<<(const T & x) {
+		logstream & res = get_log();
+		res << x;
+		return res;
+	}
+
+	void flush() {
+		get_log().flush();
+	}
+
+	void set_level(log_level level) {
+		s_init = true;
+		s_level = level;
+	}
+
+	void add_target(log_target * t) { add_log_target(t); }
+
+	void remove_target(log_target * t) { remove_log_target(t); }
+};
+
+///////////////////////////////////////////////////////////////////////////
+/// \brief Returns the only logstream object. 
+///////////////////////////////////////////////////////////////////////////
+inline log_selector get_log() {return log_selector();}
 
 #if TPL_LOGGING		
 /// \def TP_LOG_FLUSH_LOG  \deprecated Use \ref get_log().flush() instead.

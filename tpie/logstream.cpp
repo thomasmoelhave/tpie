@@ -16,11 +16,22 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+#include <vector>
+#include <algorithm>
 #include <tpie/logstream.h>
 #include <cstdio>
 namespace tpie {
 
-log_stream_buf::log_stream_buf(log_level level): m_level(level), m_enabled(true) {
+namespace log_bits {
+
+std::vector<log_target *> log_targets;
+bool logging_disabled;
+
+}
+
+using namespace log_bits;
+
+log_stream_buf::log_stream_buf(log_level level) : m_level(level) {
 	setp(m_buff, m_buff+buff_size-2);
 }
 
@@ -28,14 +39,14 @@ log_stream_buf::~log_stream_buf() {flush();}
 
 void log_stream_buf::flush() {
 	if (pptr() == m_buff) return;
-	if (m_enabled) {
+	if (!logging_disabled) {
 		*pptr() = 0;
-		if (m_log_target_count == 0)
-			//As a special service if noone is listening and
+		if (log_targets.empty())
+			// As a special service if no one is listening
 			fwrite(m_buff, 1, pptr() - m_buff, stderr);
 		else
-			for(size_t i=0; i < m_log_target_count; ++i)
-				m_log_targets[i]->log(m_level, m_buff, pptr() - m_buff);
+			for(size_t i = 0; i < log_targets.size(); ++i)
+				log_targets[i]->log(m_level, m_buff, pptr() - m_buff);
 	}
 	setp(m_buff, m_buff+buff_size-2);
 }
@@ -49,43 +60,20 @@ int log_stream_buf::overflow(int c) {
 
 int log_stream_buf::sync() {
 	//Do not display the messages before there is a target
-	if (m_log_target_count == 0) return 0; 
+	if (log_targets.empty()) return 0;
 	flush();
 	return 0;
 }
 
-void log_stream_buf::set_level(log_level level) {
-	if (m_level==level) return;
-	sync();
-	m_level=level;
+void add_log_target(log_target * t) {
+	log_targets.push_back(t);
 }
 
-void log_stream_buf::add_target(log_target * t) {
-	m_log_targets[m_log_target_count] = t;
-	++m_log_target_count;
+void remove_log_target(log_target * t) {
+	std::vector<log_target *>::iterator i =
+		std::find(log_targets.begin(), log_targets.end(), t);
+	if (i != log_targets.end()) log_targets.erase(i);
 }
-
-void log_stream_buf::remove_target(log_target * t) {
-	size_t l=m_log_target_count;
-	for(size_t i=0; i < m_log_target_count; ++i) 
-		if (m_log_targets[i] == t) 
-			l=i;
-	if (l == m_log_target_count) return;
-	--m_log_target_count;
-	std::swap(m_log_targets[l], m_log_targets[m_log_target_count]);
-	m_log_targets[m_log_target_count]=0;
-}
-
-
-// Setting priority and threshold on the fly with manipulators.
-logstream& manip_level(logstream& tpl, log_level p) {
-	tpl.set_level(p);
-    return tpl;
-}
-
-logmanip<log_level> setlevel(log_level p) {
-   return logmanip<log_level>(&manip_level, p);
-} 
 
 } //namespace tpie
 

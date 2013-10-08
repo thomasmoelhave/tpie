@@ -34,10 +34,19 @@
 
 namespace tpie {
 
+namespace log_bits {
+
+extern bool logging_disabled;
+
+}
+
 struct log_target {
 	virtual void log(log_level level, const char * message, size_t message_size) = 0;
 	virtual ~log_target() { }
 };
+
+void add_log_target(log_target * t);
+void remove_log_target(log_target * t);
 
 class log_stream_buf: public std::basic_streambuf<char, std::char_traits<char> >  {
 private:
@@ -45,24 +54,19 @@ private:
 	const static size_t max_targets = 8;
 
 	char m_buff[buff_size];
-	log_target * m_log_targets[max_targets];
-	size_t m_log_target_count;
 	log_level m_level;
-	bool m_enabled;
 
 public:
 	log_stream_buf(log_level level);
 	virtual ~log_stream_buf();
 	void flush();
-	virtual int overflow(int c = traits_type::eof());
-	virtual int sync();
-	void set_level(log_level level);
-	void add_target(log_target * t);
-	void remove_target(log_target * t);
-	inline void enable(bool e) {flush(); m_enabled=e;}
-	inline bool enabled() {return m_enabled;}
-};
+	virtual int overflow(int c = traits_type::eof()) override;
+	virtual int sync() override;
 
+	// Deprecated:
+	void add_target(log_target * t) {add_log_target(t);}
+	void remove_target(log_target * t) {remove_log_target(t);}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// A log is like a regular output stream, but it also supports messages
@@ -83,51 +87,29 @@ public:
 	inline logstream(log_level level=LOG_INFORMATIONAL): std::ostream(&m_buff), m_buff(level) {}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \deprecated
 	/// Add a target for the log messages
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_target(log_target * t) {m_buff.add_target(t);}
+	void add_target(log_target * t) {add_log_target(t);}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \deprecated
 	/// Remove a target for the log messages
 	///////////////////////////////////////////////////////////////////////////
-	inline void remove_target(log_target * t) {m_buff.remove_target(t);}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Set the current level of logging
-	///////////////////////////////////////////////////////////////////////////
-	inline void set_level(log_level level) {m_buff.set_level(level);}
-
-	inline void disable(bool d=false) {m_buff.enable(!d);}
-	inline void enable(bool e=true) {m_buff.enable(e);}
-	inline bool enabled() {return m_buff.enabled();}
+	void remove_target(log_target * t) {remove_log_target(t);}
 };
 
+class log_level_manip {
+private:
+	log_level level;
 
-///////////////////////////////////////////////////////////////////////////////
-/// The logmanip template is based on the omanip template from iomanip.h
-/// in the libg++ sources.
-///////////////////////////////////////////////////////////////////////////////
-template <class TP> class logmanip {
-	logstream& (*_f)(logstream&, TP);
-	TP _a;
 public:
-	///////////////////////////////////////////////////////////////////////////
-	/// Constructor.
-	///////////////////////////////////////////////////////////////////////////
-	logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
+	log_level_manip(log_level p) : level(p) {}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// Extracts a message from the logmanip object and inserting it into
-	/// the logstream \p o.
-	///////////////////////////////////////////////////////////////////////////
-	friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
-		(*m._f)(o, m._a);
-		return o;
-	}
+	log_level get_level() const { return level; }
 };
 
-logstream& manip_level(logstream& tpl, log_level p);
-logmanip<log_level> setlevel(log_level p);
+inline log_level_manip setlevel(log_level p) { return log_level_manip(p); }
 
 }  //  tpie namespace
 

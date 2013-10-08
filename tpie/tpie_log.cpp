@@ -56,8 +56,11 @@ namespace tpie {
 
 static file_log_target * file_target = 0;
 static stderr_log_target * stderr_target = 0;
-logstream log_singleton;
-static logstream & log = log_singleton;
+
+bool log_selector::s_init;
+log_level log_selector::s_level;
+
+std::vector<boost::shared_ptr<logstream> > log_instances;
 
 const std::string& log_name() {
 	return file_target->m_path;
@@ -67,18 +70,24 @@ void init_default_log() {
 	if (file_target) return;
 	file_target = new file_log_target(LOG_DEBUG);
 	stderr_target = new stderr_log_target(LOG_INFORMATIONAL);
-	log.add_target(file_target);
-	log.add_target(stderr_target);
+	add_log_target(file_target);
+	add_log_target(stderr_target);
 }
 
 void finish_default_log() {
 	if (!file_target) return;
-	log.remove_target(file_target);
-	log.remove_target(stderr_target);
+	remove_log_target(file_target);
+	remove_log_target(stderr_target);
 	delete file_target;
 	delete stderr_target;
 	file_target = 0;
 	stderr_target = 0;
+}
+
+void initiate_log_level(log_level level) {
+	while (log_instances.size() <= level)
+		log_instances.push_back(boost::shared_ptr<logstream>());
+	log_instances[level].reset(new logstream(level));
 }
 
 } //namespace tpie
