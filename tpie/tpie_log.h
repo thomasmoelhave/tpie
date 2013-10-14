@@ -88,13 +88,18 @@ void init_default_log();
 ///////////////////////////////////////////////////////////////////////////////
 void finish_default_log();
 
+namespace log_bits {
+
 extern std::vector<boost::shared_ptr<logstream> > log_instances;
 
 void initiate_log_level(log_level level);
 
 void flush_logs();
 
+}
+
 inline logstream & get_log_by_level(log_level level) {
+	using namespace log_bits;
 	if (log_instances.size() <= level || log_instances[level].get() == 0)
 		initiate_log_level(level);
 	return *log_instances[level];
@@ -148,6 +153,8 @@ public:
 		log_bits::logging_disabled = m_orig;
 	}
 };
+
+namespace log_bits {
 
 class log_selector {
 private:
@@ -205,10 +212,12 @@ public:
 	void remove_target(log_target * t) { remove_log_target(t); }
 };
 
+} // namespace log_bits
+
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Returns the only logstream object. 
 ///////////////////////////////////////////////////////////////////////////
-inline log_selector get_log() {return log_selector();}
+inline log_bits::log_selector get_log() {return log_bits::log_selector();}
 
 #if TPL_LOGGING		
 /// \def TP_LOG_FLUSH_LOG  \deprecated Use \ref get_log().flush() instead.

@@ -74,7 +74,7 @@ void remove_log_target(log_target * t) {
 	std::vector<log_target *>::iterator i =
 		std::find(log_targets.begin(), log_targets.end(), t);
 	if (i != log_targets.end()) {
-		flush_logs();
+		log_bits::flush_logs();
 		log_targets.erase(i);
 	}
 }

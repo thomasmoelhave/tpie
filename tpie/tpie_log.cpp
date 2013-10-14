@@ -57,10 +57,14 @@ namespace tpie {
 static file_log_target * file_target = 0;
 static stderr_log_target * stderr_target = 0;
 
+namespace log_bits {
+
 bool log_selector::s_init;
 log_level log_selector::s_level;
 
 std::vector<boost::shared_ptr<logstream> > log_instances;
+
+} // namespace log_bits
 
 const std::string& log_name() {
 	return file_target->m_path;
@@ -84,6 +88,8 @@ void finish_default_log() {
 	stderr_target = 0;
 }
 
+namespace log_bits {
+
 void initiate_log_level(log_level level) {
 	while (log_instances.size() <= level)
 		log_instances.push_back(boost::shared_ptr<logstream>());
@@ -97,5 +103,7 @@ void flush_logs() {
 		}
 	}
 }
+
+} // namespace log_bits
 
 } //namespace tpie
