@@ -92,6 +92,8 @@ extern std::vector<boost::shared_ptr<logstream> > log_instances;
 
 void initiate_log_level(log_level level);
 
+void flush_logs();
+
 inline logstream & get_log_by_level(log_level level) {
 	if (log_instances.size() <= level || log_instances[level].get() == 0)
 		initiate_log_level(level);

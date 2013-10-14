@@ -90,4 +90,12 @@ void initiate_log_level(log_level level) {
 	log_instances[level].reset(new logstream(level));
 }
 
+void flush_logs() {
+	for (size_t i = 0; i < log_instances.size(); ++i) {
+		if (log_instances[i].get() != 0) {
+			*log_instances[i] << std::flush;
+		}
+	}
+}
+
 } //namespace tpie
