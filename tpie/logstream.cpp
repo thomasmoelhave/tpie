@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <tpie/logstream.h>
 #include <cstdio>
+#include <tpie/tpie_log.h>
 namespace tpie {
 
 namespace log_bits {
@@ -72,7 +73,10 @@ void add_log_target(log_target * t) {
 void remove_log_target(log_target * t) {
 	std::vector<log_target *>::iterator i =
 		std::find(log_targets.begin(), log_targets.end(), t);
-	if (i != log_targets.end()) log_targets.erase(i);
+	if (i != log_targets.end()) {
+		flush_logs();
+		log_targets.erase(i);
+	}
 }
 
 } //namespace tpie
