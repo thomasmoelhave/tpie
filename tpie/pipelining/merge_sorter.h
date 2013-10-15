@@ -120,7 +120,14 @@ private:
 	memory_size_type m_runs[2];
 	temp_file m_positionsFile[2];
 	stream_position m_positionsPosition[2];
-	compressed_stream<stream_position> m_positions[2];
+	static const double blockFactor = 0.0625;
+	compressed_stream<stream_position> m_positions0;
+	compressed_stream<stream_position> m_positions1;
+
+	compressed_stream<stream_position> & get_positions_stream(size_t parity) {
+		if ((parity % 2) == 0) return m_positions0;
+		else return m_positions1;
+	}
 
 	/** If final: the stream positions in mergeLevel = d-2. */
 	array<stream_position> m_finalPositions;

@@ -25,6 +25,8 @@ namespace bits {
 
 run_positions::run_positions()
 	: m_open(false)
+	, m_positions0(blockFactor)
+	, m_positions1(blockFactor)
 {
 }
 
@@ -34,12 +36,12 @@ run_positions::~run_positions() {
 
 /*static*/ memory_size_type run_positions::memory_usage() {
 	return sizeof(run_positions)
-		+ 2 * compressed_stream<stream_position>::memory_usage();
+		+ 2 * compressed_stream<stream_position>::memory_usage(blockFactor);
 }
 
 void run_positions::open() {
-	m_positions[0].open(m_positionsFile[0]);
-	m_positions[1].open(m_positionsFile[1]);
+	m_positions0.open(m_positionsFile[0]);
+	m_positions1.open(m_positionsFile[1]);
 	m_runs[0] = m_runs[1] = 0;
 	m_levels = 1;
 	m_open = true;
@@ -51,8 +53,8 @@ void run_positions::open() {
 
 void run_positions::close() {
 	if (m_open) {
-		m_positions[0].close();
-		m_positions[1].close();
+		m_positions0.close();
+		m_positions1.close();
 		m_open = m_final = m_evacuated = false;
 		m_finalExtraSet = false;
 		m_finalExtra = stream_position();
@@ -66,16 +68,16 @@ void run_positions::evacuate() {
 	if (m_final) {
 		log_debug() << "run_positions::evacuate while final" << std::endl;
 		m_positionsFile[0].free();
-		m_positions[0].open(m_positionsFile[0]);
-		m_positions[0].write(m_finalPositions.begin(), m_finalPositions.end());
+		m_positions0.open(m_positionsFile[0]);
+		m_positions0.write(m_finalPositions.begin(), m_finalPositions.end());
 		m_finalPositions.resize(0);
-		m_positions[0].close();
+		m_positions0.close();
 	} else {
 		log_debug() << "run_positions::evacuate while not final" << std::endl;
-		m_positionsPosition[0] = m_positions[0].get_position();
-		m_positionsPosition[1] = m_positions[1].get_position();
-		m_positions[0].close();
-		m_positions[1].close();
+		m_positionsPosition[0] = m_positions0.get_position();
+		m_positionsPosition[1] = m_positions1.get_position();
+		m_positions0.close();
+		m_positions1.close();
 	}
 }
 
@@ -84,16 +86,16 @@ void run_positions::unevacuate() {
 	m_evacuated = false;
 	if (m_final) {
 		log_debug() << "run_positions::unevacuate while final" << std::endl;
-		m_positions[0].open(m_positionsFile[0]);
-		m_finalPositions.resize(static_cast<memory_size_type>(m_positions[0].size()));
-		m_positions[0].read(m_finalPositions.begin(), m_finalPositions.end());
-		m_positions[0].close();
+		m_positions0.open(m_positionsFile[0]);
+		m_finalPositions.resize(static_cast<memory_size_type>(m_positions0.size()));
+		m_positions0.read(m_finalPositions.begin(), m_finalPositions.end());
+		m_positions0.close();
 	} else {
 		log_debug() << "run_positions::unevacuate while not final" << std::endl;
-		m_positions[0].open(m_positionsFile[0]);
-		m_positions[1].open(m_positionsFile[1]);
-		m_positions[0].set_position(m_positionsPosition[0]);
-		m_positions[1].set_position(m_positionsPosition[1]);
+		m_positions0.open(m_positionsFile[0]);
+		m_positions1.open(m_positionsFile[1]);
+		m_positions0.set_position(m_positionsPosition[0]);
+		m_positions1.set_position(m_positionsPosition[1]);
 	}
 }
 
@@ -104,9 +106,9 @@ void run_positions::next_level() {
 		throw exception("next_level: m_evacuated == true");
 	if (!m_open)
 		throw exception("next_level: m_open == false");
-	m_positions[m_levels % 2].truncate(0);
+	get_positions_stream(m_levels).truncate(0);
 	++m_levels;
-	m_positions[m_levels % 2].seek(0);
+	get_positions_stream(m_levels).seek(0);
 
 	m_runs[0] = m_runs[1] = 0;
 }
@@ -120,15 +122,15 @@ void run_positions::final_level(memory_size_type fanout) {
 		throw exception("final_level: m_open == false");
 
 	m_final = true;
-	if (fanout > m_positions[0].size() - m_positions[0].offset()) {
+	if (fanout > m_positions0.size() - m_positions0.offset()) {
 		log_debug() << "Decrease final level fanout from " << fanout << " to ";
-		fanout = static_cast<memory_size_type>(m_positions[0].size() - m_positions[0].offset());
+		fanout = static_cast<memory_size_type>(m_positions0.size() - m_positions0.offset());
 		log_debug() << fanout << std::endl;
 	}
 	m_finalPositions.resize(fanout);
-	m_positions[0].read(m_finalPositions.begin(), m_finalPositions.end());
-	m_positions[0].close();
-	m_positions[1].close();
+	m_positions0.read(m_finalPositions.begin(), m_finalPositions.end());
+	m_positions0.close();
+	m_positions1.close();
 }
 
 void run_positions::set_position(memory_size_type mergeLevel, memory_size_type runNumber, stream_position pos) {
@@ -143,7 +145,7 @@ void run_positions::set_position(memory_size_type mergeLevel, memory_size_type r
 		m_finalExtraSet = true;
 		return;
 	}
-	compressed_stream<stream_position> & s = m_positions[mergeLevel % 2];
+	compressed_stream<stream_position> & s = get_positions_stream(mergeLevel);
 	memory_size_type & expectedRunNumber = m_runs[mergeLevel % 2];
 	if (runNumber != expectedRunNumber) {
 		throw exception("set_position: Wrong run number");
@@ -168,7 +170,7 @@ stream_position run_positions::get_position(memory_size_type mergeLevel, memory_
 	if (m_final) {
 		return m_finalPositions[runNumber];
 	}
-	compressed_stream<stream_position> & s = m_positions[mergeLevel % 2];
+	compressed_stream<stream_position> & s = get_positions_stream(mergeLevel);
 	memory_size_type & expectedRunNumber = m_runs[mergeLevel % 2];
 	if (runNumber != expectedRunNumber) {
 		throw exception("get_position: Wrong run number");
