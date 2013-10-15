@@ -381,7 +381,8 @@ public:
 
 	static memory_size_type memory_usage(double blockFactor=1.0) {
 		// m_buffer is included in m_buffers memory usage
-		return sizeof(temp_file) // m_ownedTempFile
+		return sizeof(compressed_stream)
+			+ sizeof(temp_file) // m_ownedTempFile
 			+ stream_buffers::memory_usage(block_size(blockFactor)) // m_buffers
 			;
 	}
