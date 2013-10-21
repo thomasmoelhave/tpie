@@ -107,6 +107,42 @@ private:
 	source_t source;
 };
 
+template <typename source_t>
+class pull_peek_t : public node {
+public:
+	typedef typename source_t::item_type item_type;
+
+	pull_peek_t(const source_t & source) : source(source) {
+		add_pull_source(source);
+		set_name("Peek", PRIORITY_INSIGNIFICANT);
+	}
+
+	virtual void begin() override {
+		could_pull = source.can_pull();
+		if (could_pull) item=source.pull();
+	}
+
+	item_type pull() {
+		item_type i = item;
+		could_pull = source.can_pull();
+		if (could_pull) item=source.pull();
+		return i;
+	}
+
+	const item_type & peek() const {
+		return item;
+	}
+
+	bool can_pull() const {
+		return could_pull;
+	}
+
+private:
+	item_type item;
+	bool could_pull;
+	source_t source;
+};
+
 template <typename T>
 class dummydest_t : public node {
 public:
@@ -401,6 +437,10 @@ inline pipe_middle<factory_0<bits::identity_t> > identity() {
 
 inline pullpipe_middle<factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> > > pull_identity() {
 	return factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> >(factory_0<bits::identity_t>());
+}
+
+inline pullpipe_middle<factory_0<bits::pull_peek_t> > pull_peek() {
+	return factory_0<bits::pull_peek_t>();
 }
 
 inline
