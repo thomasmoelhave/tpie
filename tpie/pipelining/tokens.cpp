@@ -80,6 +80,19 @@ node_map::ptr node_map::find_authority() {
 void node_map::add_relation(id_t from, id_t to, node_relation rel) {
 	m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
 	m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
+
+	id_t itemSource = from;
+	id_t itemSink = to;
+	switch (rel) {
+		case pushes:
+			break;
+		case pulls:
+		case depends:
+			std::swap(itemSource, itemSink);
+			break;
+	}
+
+	m_tokens.find(itemSource)->second->add_successor(itemSink);
 }
 
 size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {
