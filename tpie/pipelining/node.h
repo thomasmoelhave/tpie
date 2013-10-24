@@ -259,6 +259,12 @@ public:
 	/// node_map::send_successors.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_successor(node * succ) {
+		if (std::find(m_successors.begin(), m_successors.end(), succ) != m_successors.end()) {
+			// Duplicate successor.
+			// This is either an error, or an actor cycle with edges like
+			// "i pushes to j" and "j pulls from i".
+			return;
+		}
 		m_successors.push_back(succ);
 	}
 
