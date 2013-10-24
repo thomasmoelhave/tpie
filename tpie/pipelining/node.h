@@ -255,8 +255,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally to facilitate forwarding parameters to
-	/// successors in the item flow graph. Called by
-	/// node_map::send_successors.
+	/// successors in the item flow graph.
 	///////////////////////////////////////////////////////////////////////////
 	inline void add_successor(node * succ) {
 		if (std::find(m_successors.begin(), m_successors.end(), succ) != m_successors.end()) {

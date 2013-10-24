@@ -168,12 +168,6 @@ public:
 
 	void dump(std::ostream & os = std::cout) const;
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Internal method called by graph_traits. Iterates through the
-	/// edge lists and calls add_successor on each node in the phase.
-	///////////////////////////////////////////////////////////////////////////
-	void send_successors() const;
-
 private:
 	map_t m_tokens;
 	relmap_t m_relations;
