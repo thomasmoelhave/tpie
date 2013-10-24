@@ -368,7 +368,6 @@ graph_traits::graph_traits(const node_map & map)
 {
 	map.assert_authoritative();
 	calc_phases();
-	map.send_successors();
 }
 
 memory_size_type graph_traits::memory_usage(size_t phases) {

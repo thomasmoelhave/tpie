@@ -28,21 +28,6 @@ namespace bits {
 
 node_map::id_t node_map::nextId = 0;
 
-// Called by graph_traits
-void node_map::send_successors() const {
-	for (relmapit i = m_relations.begin(); i != m_relations.end(); ++i) {
-		switch (i->second.second) {
-			case pushes:
-				m_tokens.find(i->first)->second->add_successor(m_tokens.find(i->second.first)->second);
-				break;
-			case pulls:
-			case depends:
-				m_tokens.find(i->second.first)->second->add_successor(m_tokens.find(i->first)->second);
-				break;
-		}
-	}
-}
-
 void node_map::link(node_map::ptr target) {
 	if (target.get() == this) {
 		// self link attempted
@@ -90,6 +75,24 @@ node_map::ptr node_map::find_authority() {
 	}
 
 	return result;
+}
+
+void node_map::add_relation(id_t from, id_t to, node_relation rel) {
+	m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
+	m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
+
+	id_t itemSource = from;
+	id_t itemSink = to;
+	switch (rel) {
+		case pushes:
+			break;
+		case pulls:
+		case depends:
+			std::swap(itemSource, itemSink);
+			break;
+	}
+
+	m_tokens.find(itemSource)->second->add_successor(itemSink);
 }
 
 size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {

@@ -255,10 +255,15 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally to facilitate forwarding parameters to
-	/// successors in the item flow graph. Called by
-	/// node_map::send_successors.
+	/// successors in the item flow graph.
 	///////////////////////////////////////////////////////////////////////////
-	inline void add_successor(node * succ) {
+	void add_successor(node_token::id_t succ) {
+		if (std::find(m_successors.begin(), m_successors.end(), succ) != m_successors.end()) {
+			// Duplicate successor.
+			// This is either an error, or an actor cycle with edges like
+			// "i pushes to j" and "j pulls from i".
+			return;
+		}
 		m_successors.push_back(succ);
 	}
 
@@ -336,6 +341,7 @@ protected:
 		, m_memoryFraction(other.m_memoryFraction)
 		, m_name(other.m_name)
 		, m_namePriority(other.m_namePriority)
+		, m_successors(other.m_successors)
 		, m_stepsTotal(other.m_stepsTotal)
 		, m_stepsLeft(other.m_stepsLeft)
 		, m_pi(other.m_pi)
@@ -507,8 +513,9 @@ public:
 				break;
 		}
 
+		bits::node_map::ptr nodeMap = get_node_map()->find_authority();
 		for (size_t i = 0; i < m_successors.size(); ++i) {
-			m_successors[i]->add_forwarded_data(key, value, explicitForward);
+			nodeMap->get(m_successors[i])->add_forwarded_data(key, value, explicitForward);
 		}
 	}
 
@@ -659,7 +666,7 @@ private:
 	std::string m_name;
 	priority_type m_namePriority;
 
-	std::vector<node *> m_successors;
+	std::vector<node_token::id_t> m_successors;
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 
