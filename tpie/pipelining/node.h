@@ -494,20 +494,22 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void forward_any(std::string key, boost::any value, bool explicitForward = true) {
 		switch (get_state()) {
+			case STATE_FRESH:
 			case STATE_IN_PREPARE:
-				log_debug() << "forward in prepare" << std::endl;
+			case STATE_AFTER_PREPARE:
+				// Allowed since forward() is allowed in prepare()
 				break;
 			case STATE_IN_PROPAGATE:
-				log_debug() << "forward in propagate" << std::endl;
+			case STATE_AFTER_PROPAGATE:
+				// Allowed since forward() is allowed in propagate()
 				break;
 			case STATE_IN_BEGIN:
-				log_debug() << "forward in begin" << std::endl;
-				break;
-			case STATE_AFTER_BEGIN:
-				log_debug() << "forward after begin" << std::endl;
-				break;
-			case STATE_AFTER_END:
 				throw call_order_exception("forward");
+			case STATE_AFTER_BEGIN:
+			case STATE_IN_END:
+			case STATE_AFTER_END:
+				// Allowed since forward() is allowed in end()
+				break;
 			default:
 				log_debug() << "forward in unknown state " << get_state() << std::endl;
 				break;
