@@ -92,6 +92,11 @@ node_map::ptr node_map::find_authority() {
 	return result;
 }
 
+void node_map::add_relation(id_t from, id_t to, node_relation rel) {
+	m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
+	m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
+}
+
 size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {
 	size_t res = 0;
 	relmapit i = map.find(from);

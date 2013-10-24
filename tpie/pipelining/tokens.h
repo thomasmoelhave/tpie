@@ -148,10 +148,7 @@ public:
 	// union-find
 	ptr find_authority();
 
-	inline void add_relation(id_t from, id_t to, node_relation rel) {
-		m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
-		m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
-	}
+	void add_relation(id_t from, id_t to, node_relation rel);
 
 	inline const relmap_t & get_relations() const {
 		return m_relations;
