@@ -328,7 +328,7 @@ int main() {
 		P::pipeline p
 			= P::push_input_iterator(std::istream_iterator<int>(std::cin), std::istream_iterator<int>())
 			| make_points()
-			| P::pipesort()
+			| P::sort()
 			| graham_scan_in()
 			| graham_scan_out()
 			| print_points<int>();

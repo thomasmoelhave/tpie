@@ -74,7 +74,7 @@ void go() {
 	passive_buffer<int> buf;
 	pipeline p
 		= push_input_iterator(istream_iterator<int>(cin), istream_iterator<int>())
-		| pipesort()         // sort the input
+		| sort()             // sort the input
 		| fork(buf.input())  // buffer the sorted items
 		| reverser()         // reverse the items
 		| add(buf.output())  // add the reversed and the buffered sequence

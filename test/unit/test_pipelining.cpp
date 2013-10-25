@@ -331,7 +331,7 @@ private:
 bool sort_test(size_t elements) {
 	bool result = false;
 	pipeline p = make_pipe_begin_1<sequence_generator>(elements)
-		| pipesort().name("Test")
+		| sort().name("Test")
 		| make_pipe_end_2<sequence_verifier, size_t, bool &>(elements, result);
 	p.plot(log_info());
 	p();
@@ -360,7 +360,7 @@ bool sort_test_large() {
 bool operator_test() {
 	expectvector = inputvector;
 	std::reverse(inputvector.begin(), inputvector.end());
-	pipeline p = input_vector(inputvector) | ((pipesort() | pipesort()) | output_vector(outputvector));
+	pipeline p = input_vector(inputvector) | ((sort() | sort()) | output_vector(outputvector));
 	p.plot(log_info());
 	p();
 	return check_test_vectors();
@@ -1100,7 +1100,7 @@ bool parallel_test(size_t modulo) {
 	bool result = false;
 	pipeline p = make_pipe_begin_1<sequence_generator>(modulo-1)
 		| parallel(multiplicative_inverter(modulo))
-		| pipesort()
+		| sort()
 		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);

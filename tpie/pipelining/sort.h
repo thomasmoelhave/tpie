@@ -396,7 +396,7 @@ private:
 /// \brief Pipelining sorter using std::less.
 ///////////////////////////////////////////////////////////////////////////////
 inline pipe_middle<bits::default_pred_sort_factory>
-pipesort() {
+sort() {
 	typedef bits::default_pred_sort_factory fact;
 	return pipe_middle<fact>(fact()).name("Sort");
 }
@@ -406,7 +406,7 @@ pipesort() {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
 inline pipe_middle<bits::sort_factory<pred_t> >
-pipesort(const pred_t & p) {
+sort(const pred_t & p) {
 	typedef bits::sort_factory<pred_t> fact;
 	return pipe_middle<fact>(fact(p)).name("Sort");
 }
