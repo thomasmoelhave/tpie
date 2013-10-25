@@ -494,7 +494,7 @@ The pipelining framework comes with a library of node implementations.
 
 \subsection ssec_buffer Buffer
 
-To get simple buffering to disk of an item stream, a \c delayed_buffer() will
+To get simple buffering to disk of an item stream, a \c buffer() will
 accept pushed items, store them in a temporary file, and push them to its
 destination in another phase. This is necessary, for instance, when the item
 stream is being sorted (which is a buffering operation in itself), but the same

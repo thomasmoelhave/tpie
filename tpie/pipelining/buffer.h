@@ -34,6 +34,38 @@ namespace pipelining {
 
 namespace bits {
 
+template <typename T>
+class buffer_pull_output_t: public node {
+	file_stream<T> * m_queue;
+
+public:
+	typedef T item_type;
+
+	buffer_pull_output_t(const node_token & input_token) {
+		add_dependency(input_token);
+		set_name("Fetching items", PRIORITY_SIGNIFICANT);
+		set_minimum_memory(file_stream<T>::memory_usage());
+	}
+
+	virtual void propagate() override {
+		m_queue = fetch<file_stream<T> *>("queue");
+		m_queue->seek(0);
+		forward("items", m_queue->size());
+	}
+
+	bool can_pull() const {
+		return m_queue->can_read();
+	}
+
+	T pull() {
+		return m_queue->read();
+	}
+
+	virtual void end() override {
+		tpie_delete(m_queue);
+	}
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Input node for buffer.
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,72 +73,8 @@ template <typename T>
 class buffer_input_t: public node {
 public:
 	typedef T item_type;
-	buffer_input_t(file_stream<T> & queue, const node_token & token)
-		: node(token)
-		, queue(queue)
-	{
-		set_name("Storing items", PRIORITY_SIGNIFICANT);
-		set_minimum_memory(queue.memory_usage());
-	}
 
-	virtual void begin() override {
-		node::begin();
-		queue.open();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc node::push
-	///////////////////////////////////////////////////////////////////////////
-	void push(const item_type & item) {
-		queue.write(item);
-	}
-
-private:
-	file_stream<T> & queue;
-};
-
-template <typename T>
-class buffer_pull_output_t: public node {
-	file_stream<T> & queue;
-
-public:
-	typedef T item_type;
-
-	buffer_pull_output_t(file_stream<T> & queue, const node_token & input_token)
-		: queue(queue)
-	{
-		add_dependency(input_token);
-		set_name("Fetching items", PRIORITY_SIGNIFICANT);
-		set_minimum_memory(queue.memory_usage());
-	}
-
-	virtual void propagate() override {
-		queue.seek(0);
-		forward("items", queue.size());
-	}
-
-	bool can_pull() const {
-		return queue.can_read();
-	}
-
-	T pull() {
-		return queue.read();
-	}
-
-	virtual void end() override {
-		queue.close();
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Input node for delayed buffer.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-class delayed_buffer_input_t: public node {
-public:
-	typedef T item_type;
-
-	delayed_buffer_input_t(const node_token & token)
+	buffer_input_t(const node_token & token)
 		: node(token)
 	{
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
@@ -128,14 +96,14 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Output node for delayed buffer.
+/// \brief Output node for buffer.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class delayed_buffer_output_t: public node {
+class buffer_output_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
 
-	delayed_buffer_output_t(const dest_t &dest, const node_token & input_token)
+	buffer_output_t(const dest_t &dest, const node_token & input_token)
 		: dest(dest)
 	{
 		add_dependency(input_token);
@@ -182,8 +150,8 @@ public:
 	typedef bits::buffer_input_t<T> input_t;
 	typedef bits::buffer_pull_output_t<T> output_t;
 private:
-	typedef termfactory_2<input_t,  file_stream<T> &, const node_token &> inputfact_t;
-	typedef termfactory_2<output_t, file_stream<T> &, const node_token &> outputfact_t;
+	typedef termfactory_1<input_t,  const node_token &> inputfact_t;
+	typedef termfactory_1<output_t, const node_token &> outputfact_t;
 	typedef pipe_end      <inputfact_t>  inputpipe_t;
 	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
@@ -191,46 +159,45 @@ public:
 	passive_buffer() {}
 
 	inline input_t raw_input() {
-		return input_t(queue, input_token);
+		return input_t(input_token);
 	}
 
 	inline output_t raw_output() {
-		return output_t(queue, input_token);
+		return output_t(input_token);
 	}
 
 	inline inputpipe_t input() {
-		return inputfact_t(queue, input_token);
+		return inputfact_t(input_token);
 	}
 
 	inline outputpipe_t output() {
-		return outputfact_t(queue, input_token);
+		return outputfact_t(input_token);
 	}
 
 private:
 	node_token input_token;
-	file_stream<T> queue;
 
 	passive_buffer(const passive_buffer &);
 	passive_buffer & operator=(const passive_buffer &);
 };
 
 template <typename dest_t>
-class delayed_buffer_t: public node {
+class buffer_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
-	typedef bits::delayed_buffer_input_t<item_type> input_t;
-	typedef bits::delayed_buffer_output_t<dest_t> output_t;
+	typedef bits::buffer_input_t<item_type> input_t;
+	typedef bits::buffer_output_t<dest_t> output_t;
 
-	delayed_buffer_t(const dest_t & dest)
+	buffer_t(const dest_t & dest)
 		: input_token()
 		, input(input_token)
 		, output(dest, input_token)
 	{
 		add_push_destination(input);
-		set_name("Delayed buffer", PRIORITY_INSIGNIFICANT);
+		set_name("Buffer", PRIORITY_INSIGNIFICANT);
 	}
 
-	delayed_buffer_t(const delayed_buffer_t &o)
+	buffer_t(const buffer_t &o)
 		: node(o)
 		, input_token(o.input_token)
 		, input(o.input)
@@ -248,8 +215,8 @@ public:
 	output_t output;
 };
 
-inline pipe_middle<factory_0<delayed_buffer_t> > delayed_buffer() {
-	return factory_0<delayed_buffer_t>();
+inline pipe_middle<factory_0<buffer_t> > buffer() {
+	return factory_0<buffer_t>();
 }
 
 } // namespace pipelining
