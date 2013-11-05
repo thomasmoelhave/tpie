@@ -33,6 +33,10 @@ struct exception: public std::runtime_error {
 	exception(const std::string & s): std::runtime_error(s) {};
 };
 
+struct maybe_exception : public exception {
+	maybe_exception(const std::string & s): exception(s) {};
+};
+
 struct invalid_argument_exception: public exception {
 	invalid_argument_exception(const std::string & s): exception(s) {};
 };
