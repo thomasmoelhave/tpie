@@ -85,6 +85,12 @@ testmanip<bool> failure();
 							  << " line " << __LINE__ << ")" << std::endl; \
 		}																\
 	}																	
+
+#define TEST_FAIL(message) {											\
+		tpie::log_error() << message									\
+						  << " (line " << __LINE__ << ")" << std::endl;	\
+		return false;													\
+	}																		
 	
 
 class tests;
