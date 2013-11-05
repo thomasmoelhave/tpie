@@ -21,7 +21,7 @@
 #include <tpie/sysinfo.h>
 #include <tpie/tempname.h>
 #include <tpie/serialization_stream.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/serialization_sorter.h>
 #include <tpie/file_stream.h>
 #include <tpie/sort.h>
 #include "stat.h"
@@ -253,7 +253,7 @@ public:
 	typedef item item_type;
 
 private:
-	tpie::serialization_sort<item, std::less<item> > sorter;
+	tpie::serialization_sorter<item, std::less<item> > sorter;
 
 public:
 	serialization_sorter(parameters params)

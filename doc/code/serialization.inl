@@ -50,7 +50,7 @@ void read_lines(std::ostream & os, std::string filename) {
 }
 
 void sort_lines(std::string filename) {
-	tpie::serialization_sort<std::string> sorter;
+	tpie::serialization_sorter<std::string> sorter;
 	sorter.set_available_memory(50*1024*1024);
 	sorter.begin();
 	{

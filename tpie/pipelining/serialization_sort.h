@@ -23,7 +23,7 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_base.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/serialization_sorter.h>
 #include <tpie/serialization.h>
 
 namespace tpie {
@@ -37,7 +37,7 @@ class sorter_traits {
 public:
 	typedef T item_type;
 	typedef pred_t pred_type;
-	typedef serialization_sort<item_type, pred_type> sorter_t;
+	typedef serialization_sorter<item_type, pred_type> sorter_t;
 	typedef boost::shared_ptr<sorter_t> sorterptr;
 };
 
@@ -389,7 +389,7 @@ private:
 /// \brief Pipelining sorter using std::less.
 ///////////////////////////////////////////////////////////////////////////////
 inline pipe_middle<serialization_bits::default_pred_sort_factory>
-serialization_pipesort() {
+serialization_sort() {
 	typedef serialization_bits::default_pred_sort_factory fact;
 	return pipe_middle<fact>(fact()).name("Sort");
 }
@@ -399,7 +399,7 @@ serialization_pipesort() {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
 pipe_middle<serialization_bits::sort_factory<pred_t> >
-serialization_pipesort(const pred_t & p) {
+serialization_sort(const pred_t & p) {
 	typedef serialization_bits::sort_factory<pred_t> fact;
 	return pipe_middle<fact>(fact(p)).name("Sort");
 }

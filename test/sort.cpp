@@ -70,7 +70,7 @@ int main() {
 	const tpie::memory_size_type memory = 100*1024*1024;
 	tpie::get_memory_manager().set_limit(memory);
 	{
-	tp::pipeline p = line_reader() | tp::serialization_pipesort() | line_writer();
+	tp::pipeline p = line_reader() | tp::serialization_sort() | line_writer();
 	p.plot(std::clog);
 	p();
 	}

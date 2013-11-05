@@ -190,7 +190,7 @@ bool sort_test(stream_size_type n) {
 	bool result = false;
 	pipeline p =
 		random_strings(n)
-		| serialization_pipesort()
+		| serialization_sort()
 		| sort_verifier(result)
 		;
 	p();

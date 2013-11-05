@@ -19,7 +19,7 @@
 
 #include "common.h"
 #include <tpie/parallel_sort.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/serialization_sorter.h>
 #include <tpie/sysinfo.h>
 #include <boost/random.hpp>
 
@@ -27,10 +27,10 @@ using namespace tpie;
 
 #include "merge_sort.h"
 
-class use_serialization_sort {
+class use_serialization_sorter {
 public:
 	typedef uint64_t test_t;
-	typedef serialization_sort<test_t, std::less<test_t> > sorter;
+	typedef serialization_sorter<test_t, std::less<test_t> > sorter;
 
 	static void merge_runs(sorter & s) {
 		s.merge_runs();
@@ -40,6 +40,6 @@ public:
 int main(int argc, char ** argv) {
 	tests t(argc, argv);
 	return
-		sort_tester<use_serialization_sort>::add_all(t)
+		sort_tester<use_serialization_sorter>::add_all(t)
 		;
 }

@@ -6,7 +6,7 @@
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/serialization2.h>
 #include <tpie/serialization_stream.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/serialization_sorter.h>
 #include <tpie/sort.h>
 #include <tpie/stack.h>
 #include <tpie/tpie.h>

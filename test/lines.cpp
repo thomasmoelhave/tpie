@@ -20,7 +20,7 @@
 #include <iostream>
 
 #include <tpie/tpie.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/serialization_sorter.h>
 #include <tpie/serialization_stream.h>
 
 #include "../doc/code/serialization.inl"

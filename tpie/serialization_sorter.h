@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef TPIE_SERIALIZATION_SORT_H
-#define TPIE_SERIALIZATION_SORT_H
+#ifndef TPIE_SERIALIZATION_SORTER_H
+#define TPIE_SERIALIZATION_SORTER_H
 
 #include <queue>
 #include <boost/filesystem.hpp>
@@ -233,7 +233,7 @@ public:
 /// move_last_reader_to_next_level() to move the remaining run into the next
 /// merge level without scanning through and copying the single remaining run.
 ///
-/// See serialization_sort::merge_runs() for the logic involving
+/// See serialization_sorter::merge_runs() for the logic involving
 /// next_level_runs() and remaining_runs() in a loop.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
@@ -473,9 +473,9 @@ private:
 } // namespace serialization_bits
 
 template <typename T, typename pred_t = std::less<T> >
-class serialization_sort {
+class serialization_sorter {
 public:
-	typedef boost::shared_ptr<serialization_sort> ptr;
+	typedef boost::shared_ptr<serialization_sorter> ptr;
 
 private:
 	enum sorter_state { state_initial, state_1, state_2, state_3 };
@@ -492,7 +492,7 @@ private:
 	const T * m_nextInternalItem;
 
 public:
-	serialization_sort(memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
+	serialization_sorter(memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
 		: m_state(state_initial)
 		, m_sorter(pred)
 		, m_parametersSet(false)
@@ -622,7 +622,7 @@ private:
 		m_params.tempDir = tempname::tpie_dir_name();
 		m_files.set_temp_dir(m_params.tempDir);
 
-		log_info() << "Calculated serialization_sort parameters.\n";
+		log_info() << "Calculated serialization_sorter parameters.\n";
 		m_params.dump(log_info());
 		log_info() << std::flush;
 
@@ -887,4 +887,4 @@ public:
 
 }
 
-#endif // TPIE_SERIALIZATION_SORT_H
+#endif // TPIE_SERIALIZATION_SORTER_H

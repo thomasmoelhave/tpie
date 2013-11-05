@@ -18,11 +18,11 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/serialization_stream.h>
-#include <tpie/serialization_sort.h>
+#include <tpie/serialization_sorter.h>
 #include "fractile.h"
 
 class fractile_serialization {
-	tpie::serialization_sort<item_type, std::less<item_type> > sorter;
+	tpie::serialization_sorter<item_type, std::less<item_type> > sorter;
 	tpie::stream_size_type items;
 
 public:
