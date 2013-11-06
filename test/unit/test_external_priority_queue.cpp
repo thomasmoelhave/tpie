@@ -269,7 +269,7 @@ bool very_large_test() {
 
 template <typename T>
 bool parameter_test(double kb, double blockSizeKB) {
-	float blockFact = file<T>::calculate_block_factor(static_cast<memory_size_type>(blockSizeKB*1024.0));
+	float blockFact = file_stream<T>::calculate_block_factor(static_cast<memory_size_type>(blockSizeKB*1024.0));
 	memory_size_type mmAvail = static_cast<memory_size_type>(kb*1024.0);
 	log_debug() << "blockFact = " << blockFact << "\nmmAvail = " << mmAvail << endl;
 	{

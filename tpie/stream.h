@@ -299,7 +299,7 @@ public:
     /// that can be stored in one block.
     ////////////////////////////////////////////////////////////////////////////
     memory_size_type chunk_size(void) const { 
-		return file_base::block_size(1.0) / sizeof(T);
+		return get_block_size() / sizeof(T);
     }
     
     ////////////////////////////////////////////////////////////////////////////

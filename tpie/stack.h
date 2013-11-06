@@ -162,7 +162,7 @@ private:
 	}
 
 	inline static memory_size_type buffer_size(double blockFactor) {
-		return file<T>::block_size(blockFactor)/sizeof(T);
+		return file_stream<T>::block_size(blockFactor)/sizeof(T);
 	}
 
 };
