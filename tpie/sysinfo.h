@@ -28,7 +28,6 @@
 #include <iomanip>
 #include <boost/asio/ip/host_name.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <tpie/file.h> // for block size
 #include <tpie/tpie_log.h>
 
 namespace tpie {

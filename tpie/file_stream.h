@@ -19,7 +19,6 @@
 #ifndef __TPIE_FILE_STREAM_H__
 #define __TPIE_FILE_STREAM_H__
 #include <tpie/tempname.h>
-#include <tpie/file.h>
 #include <tpie/memory.h>
 #include <tpie/file_stream_base.h>
 ///////////////////////////////////////////////////////////////////////////////

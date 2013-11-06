@@ -22,6 +22,7 @@
 #include <tpie/tpie_log.h>
 #include <tpie/memory.h>
 #include <tpie/tpie_log.h>
+#include <tpie/exception.h>
 #include <sstream>
 #include <tpie/sysinfo.h>
 
