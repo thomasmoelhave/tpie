@@ -20,7 +20,6 @@ endmacro(add_tpie_test)
 add_tpie_test(test_ami_stack)
 add_tpie_test(test_sort)
 add_tpie_test(test_big_scan)
-add_tpie_test(test_ami_queue)
 
 add_executable(test_pipelining pipelining.cpp)
 set_target_properties(test_pipelining PROPERTIES FOLDER tpie/test)
