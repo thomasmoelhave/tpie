@@ -87,7 +87,7 @@ bool auto_ptr_test() {
 	}
 
 
-	foo.construct(new int(5));
+	foo.construct(tpie_new<int>(5));
 
 
 	// test copy constructor and = operator
