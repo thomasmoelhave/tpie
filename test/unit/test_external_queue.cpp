@@ -88,49 +88,9 @@ bool basic_test() {
 	return queue_test();
 }
 
-bool named_test(uint64_t items) {
-	tpie::temp_file tf;
-	boost::filesystem::remove(tf.path());
-	{
-		queue<uint64_t> q(tf.path(), 1.0);
-		for (uint64_t i = 0; i < items; ++i) {
-			if (q.size() != i) {
-				log_error() << "Wrong size in position " << i << "; got " << q.size() << std::endl;
-				return false;
-			}
-			q.push(i);
-		}
-		if (q.size() != items) {
-			log_error() << "Wrong size after push" << std::endl;
-			return false;
-		}
-	}
-	{
-		queue<uint64_t> q(tf.path(), 1.0);
-		if (q.size() != items) {
-			log_error() << "Wrong size after open" << std::endl;
-			return false;
-		}
-		for (uint64_t i = 0; i < items; ++i) {
-			if (q.front() != i) {
-				log_error() << "Wrong front in position " << i << std::endl;
-				return false;
-			}
-			q.pop();
-		}
-		if (q.size() != 0) {
-			log_error() << "Wrong size after pop" << std::endl;
-			return false;
-		}
-	}
-	tf.free();
-	return true;
-}
-
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv, 32)
 		.test(basic_test, "basic")
 		.test(queue_test, "sized", "n", static_cast<size_t>(32*1024*1024/sizeof(uint64_t)))
-		.test(named_test, "named", "n", static_cast<uint64_t>(32*1024*1024/sizeof(uint64_t)))
 		;
 }
