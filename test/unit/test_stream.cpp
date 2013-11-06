@@ -72,30 +72,6 @@ movable_file_stream openstream() {
 bool swap_test();
 
 template <typename T>
-struct file_colon_colon_stream {
-	tpie::file<T> m_file;
-	tpie::auto_ptr<typename tpie::file<T>::stream> m_stream;
-	typedef typename tpie::file<T>::stream stream_type;
-
-	inline ~file_colon_colon_stream() {
-		m_stream.reset();
-	}
-
-	tpie::file<T> & file() {
-		return m_file;
-	}
-
-	typename tpie::file<T>::stream & stream() {
-		if (m_stream.get() == 0) m_stream.reset(tpie::tpie_new<typename tpie::file<T>::stream>(m_file));
-		return *m_stream;
-	}
-
-	inline void close_stream() {
-		m_stream.reset();
-	}
-};
-
-template <typename T>
 struct file_stream {
 	tpie::file_stream<T> m_fs;
 	typedef tpie::file_stream<T> stream_type;
@@ -748,21 +724,14 @@ int main(int argc, char **argv) {
 		.setup(remove_temp)
 		.finish(remove_temp)
 		.test(stream_tester<file_stream>::array_test, "array")
-		.test(stream_tester<file_colon_colon_stream>::array_test, "array_file")
 		.test(swap_test, "basic")
 		.test(stream_tester<file_stream>::odd_block_test, "odd")
-		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
 		.test(stream_tester<file_stream>::truncate_test, "truncate")
-		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
 		.test(reopen, "reopen")
 		.test(stream_tester<file_stream>::extend_test, "extend")
-		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend_file")
 		.test(stream_tester<file_stream>::backwards_test, "backwards")
-		.test(stream_tester<file_colon_colon_stream>::backwards_test, "backwards_file")
 		.test(stream_tester<file_stream>::stress_test, "stress", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
-		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_stream>::user_data_test, "user_data")
-		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file")
 		.test(peek_skip_test_1, "peek_skip_1")
 		.test(peek_skip_test_2, "peek_skip_2")
 		;
