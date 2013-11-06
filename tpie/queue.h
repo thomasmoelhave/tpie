@@ -26,10 +26,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <tpie/portability.h>
 #include <tpie/deprecated.h>
-#include <tpie/file.h>
 #include <tpie/err.h>
 #include <tpie/tempname.h>
-#include <tpie/file.h>
+#include <tpie/file_stream.h>
 #include <limits>
 #include <tpie/persist.h>
 namespace tpie {
@@ -44,38 +43,17 @@ public:
 	////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for Temporary Queue
 	////////////////////////////////////////////////////////////////////
-	queue(stream_size_type elements=std::numeric_limits<stream_size_type>::max(), 
-		  double block_factor=1.0): m_size(0), m_file(block_factor) {
-		m_file.open(m_temp, access_read_write, sizeof(stream_size_type) );
-		m_back.attach(m_file);
-		m_front.attach(m_file);
-		unused(elements);
+	queue(stream_size_type /*elements*/=std::numeric_limits<stream_size_type>::max(),
+		  double blockFactor=1.0): m_size(0), m_push(blockFactor), m_pop(blockFactor) {
+		m_push.open();
+		m_pop.open();
 	}
-
-	////////////////////////////////////////////////////////////////////
-	/// \brief Does nothing.
-	///
-	/// This method is included so the interface is compatible with internal_queue
-	////////////////////////////////////////////////////////////////////
-	void resize(stream_size_type) {}
-	
-	////////////////////////////////////////////////////////////////////
-	/// \brief Load or create a named queue
-	/// \param basename The base name of the queue to load/create
-	////////////////////////////////////////////////////////////////////
-	queue(const std::string& basename, double block_factor=1.0);
-
-	////////////////////////////////////////////////////////////////////
-	/// \brief Destructor, closes the underlying stream
-	////////////////////////////////////////////////////////////////////
-	~queue() {m_file.write_user_data(m_front.offset());}
 
 	////////////////////////////////////////////////////////////////////
 	/// \brief Check if the queue is empty
 	/// \return true if the queue is empty otherwize false
 	////////////////////////////////////////////////////////////////////
 	inline bool empty() {return m_size == 0;}
-	TPIE_DEPRECATED(bool is_empty());
 
 	////////////////////////////////////////////////////////////////////
 	/// \brief Returns the number of items currently on the queue.
@@ -88,111 +66,51 @@ public:
 	/// \param t The item to be enqueued
 	////////////////////////////////////////////////////////////////////
 	inline void push(const T & t) {
-		m_back.write(t);
+		m_push.write(t);
 		++m_size;
 	}
-	TPIE_DEPRECATED(ami::err enqueue(const T &t));
 	
 	////////////////////////////////////////////////////////////////////
 	/// \brief Dequeues an item
 	/// \return The dequeued item
 	////////////////////////////////////////////////////////////////////
-	const T & pop() {
-		const T & el = m_front.read();
-		--m_size;
-		return el;
+private:
+	void check_empty_pop() {
+		if(!m_pop.can_read()) {
+			m_push.swap(m_pop);
+			m_push.truncate(0);
+			m_pop.seek(0);
+		}
 	}
-	TPIE_DEPRECATED(ami::err dequeue(const T **t));
+public:
+	const T & pop() {
+		check_empty_pop();
+		--m_size;
+		return m_pop.read();
+	}
 
 	////////////////////////////////////////////////////////////////////
 	/// \brief Returns at the frontmost item in the queue
 	/// \return The front most item in the queue
 	////////////////////////////////////////////////////////////////////
 	const T & front() {
-		const T & el = m_front.read();
-		m_front.seek(-1, file_base::stream::current);
-		return el;
+		check_empty_pop();
+		return m_pop.peek();
 	}
-	TPIE_DEPRECATED(ami::err peek(const T **t));
-
-	////////////////////////////////////////////////////////////////////
-	/// \brief Deprecated, does nothing
-	////////////////////////////////////////////////////////////////////
-	TPIE_DEPRECATED(ami::err trim());
 
 	////////////////////////////////////////////////////////////////////
 	/// \brief Compute the memory used by the queue
 	////////////////////////////////////////////////////////////////////
 	static memory_size_type memory_usage(double blockFactor=1.0) {
 		return sizeof(queue<T>)
-			+ file<T>::memory_usage() - sizeof(file<T>)
-			+ 2*file<T>::stream::memory_usage(blockFactor) - 2*sizeof(typename file<T>::stream);
+			+ 2*file_stream<T>::memory_usage(blockFactor) - 2*sizeof(file_stream<T>);
 	}
 
-	////////////////////////////////////////////////////////////////////
-	/// Set the persistence status of the (stacks underlying the) queue.
-	/// \param p A persistence status.
-	////////////////////////////////////////////////////////////////////
-	TPIE_DEPRECATED(void persist(persistence p));
 private:
-	temp_file m_temp;
 	stream_size_type m_size;
-	file<T> m_file;
-	typename file<T>::stream m_back;
-	typename file<T>::stream m_front;
+	file_stream<T> m_push;
+	file_stream<T> m_pop;
 };
-
-
-template<class T>
-void queue<T>::persist(persistence p) {
-	m_temp.set_persistent(p != PERSIST_DELETE);
-}
-
-template<class T>
-queue<T>::queue(const std::string& basename, double blockFactor): 
-	m_temp(basename), m_size(0), m_file(blockFactor) {
-	m_temp.set_persistent(true);
-	m_file.open(basename, access_read_write, sizeof(stream_size_type) );
-	m_front.attach(m_file);
-	m_back.attach(m_file);
-	if (m_file.size() != 0) {
-		stream_size_type t;
-		m_file.read_user_data(t);
-		m_front.seek(t);
-	}
-	m_back.seek(0, file_base::stream::end);
-	m_size = m_back.offset() - m_front.offset();
-}
-
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-bool queue<T>::is_empty() {return empty();}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-ami::err queue<T>::enqueue(const T &t) {
-	push(t);
-	return ami::NO_ERROR;
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-ami::err queue<T>::dequeue(const T **t) {
-	*t = &pop();
-	return ami::NO_ERROR;
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-ami::err queue<T>::peek(const T **t) {
-	*t = &front();
-	return ami::NO_ERROR;
-}
 
 namespace ami {
 	TPIE_DEPRECATED_CLASS_A(
@@ -201,7 +119,57 @@ namespace ami {
 		public:
 			queue() {}
 			queue(const std::string& basename): tpie::queue<T>(basename) {}
-		}
+
+			////////////////////////////////////////////////////////////////////
+			/// \brief Check if the queue is empty
+			/// \return true if the queue is empty otherwise false
+			////////////////////////////////////////////////////////////////////
+			bool is_empty() {
+				return this->empty();
+			}
+
+			////////////////////////////////////////////////////////////////////
+			/// \brief Enqueue an item
+			/// \param t The item to be enqueued
+			////////////////////////////////////////////////////////////////////
+			err enqueue(const T &t) {
+				this->push(t);
+				return NO_ERROR;
+			}
+
+			////////////////////////////////////////////////////////////////////
+			/// \brief Dequeue an item and make *t point to the items
+			/// \return NO_ERROR if the element was popped successfully
+			////////////////////////////////////////////////////////////////////
+			err dequeue(const T **t) {
+				*t = &this->pop();
+				return NO_ERROR;
+			}
+
+			///////////////////////////////////////////////////////////////////////////////
+			/// \brief Makes *t point to the first element of the queue
+			/// \return NO_ERROR if the element was pushed successfully
+			///////////////////////////////////////////////////////////////////////////////
+			err peek(const T **t) {
+				*t = &this->front();
+				return NO_ERROR;
+			}
+
+			////////////////////////////////////////////////////////////////////
+			/// \brief Deprecated, does nothing
+			////////////////////////////////////////////////////////////////////
+			err trim() {
+
+			}
+
+			////////////////////////////////////////////////////////////////////
+			/// Deprecated, does nothing
+			/// \param p A persistence status.
+			////////////////////////////////////////////////////////////////////
+			void persist(persistence) {
+
+			}
+		};
 	);
 }
 }  //  tpie namespace
