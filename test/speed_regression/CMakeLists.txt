@@ -14,6 +14,10 @@ add_executable(sort_speed_test sort.cpp ${SPEED_DEPS})
 target_link_libraries(sort_speed_test tpie)
 set_target_properties(sort_speed_test PROPERTIES FOLDER tpie/test)
 
+add_executable(queue_speed_test queue.cpp ${SPEED_DEPS})
+target_link_libraries(queue_speed_test tpie)
+set_target_properties(queue_speed_test PROPERTIES FOLDER tpie/test)
+
 add_executable(pq_speed_test priority_queue.cpp ${SPEED_DEPS})
 target_link_libraries(pq_speed_test tpie)
 set_target_properties(pq_speed_test PROPERTIES FOLDER tpie/test)
