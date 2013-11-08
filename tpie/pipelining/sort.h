@@ -112,6 +112,10 @@ public:
 		return this->m_sorter->pull();
 	}
 
+	virtual void end() override {
+		this->m_sorter->release();
+	}
+
 	// Despite this go() implementation, a sort_pull_output_t CANNOT be used as
 	// an initiator node. Normally, it is a type error to have a phase without
 	// an initiator, but with a passive_sorter you can circumvent this
@@ -168,6 +172,7 @@ public:
 			dest.push(this->m_sorter->pull());
 			this->step();
 		}
+		this->m_sorter->release();
 	}
 
 protected:
