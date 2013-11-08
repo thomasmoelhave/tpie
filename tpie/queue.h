@@ -182,7 +182,11 @@ ami::err queue<T>::enqueue(const T &t) {
 
 template<class T>
 ami::err queue<T>::dequeue(const T **t) {
-	*t = &pop();
+	try {
+		*t = &pop();
+	} catch (end_of_stream_exception e) {
+		return ami::END_OF_STREAM;
+	}
 	return ami::NO_ERROR;
 }
 
