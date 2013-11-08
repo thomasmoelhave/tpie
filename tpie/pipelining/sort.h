@@ -63,6 +63,9 @@ public:
 	}
 
 protected:
+	// We allocate the merge_sorter before we need to,
+	// but this is not a problem since it does not allocate
+	// any resources before merge_sorter::begin().
 	sort_output_base(pred_t pred)
 		: m_sorter(new sorter_t(pred))
 	{
