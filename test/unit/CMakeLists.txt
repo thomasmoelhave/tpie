@@ -45,6 +45,7 @@ add_unittest(stream_exception basic)
 add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual_ref virtual virtual_cref_item_type prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple parallel_own_buffer parallel_push_in_end node_map join copy_ctor)
 add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic auto_ptr)
+add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
 
 add_fulltest(ami_stream stress)
 add_fulltest(disjoint_set large large_cycle very_large medium ovelflow)
