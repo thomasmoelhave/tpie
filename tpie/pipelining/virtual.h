@@ -262,7 +262,7 @@ public:
 		m_node->set_container(ctr);
 	}
 
-	operator bool() { return m_node; }
+	operator bool() { return m_node.get() != 0; }
 };
 
 } // namespace bits
