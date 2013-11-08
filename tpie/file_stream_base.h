@@ -65,13 +65,17 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline void truncate(stream_size_type size) {
 		stream_size_type o=offset();
-		flush_block();
-		m_block.number = std::numeric_limits<stream_size_type>::max();
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
+		if(!(m_size <= m_blockSize && size <= m_blockSize)) {
+			flush_block();
+			m_block.number = std::numeric_limits<stream_size_type>::max();
+			m_nextBlock = std::numeric_limits<stream_size_type>::max();
+			m_nextIndex = std::numeric_limits<memory_size_type>::max();
+			m_index = std::numeric_limits<memory_size_type>::max();
+			m_fileAccessor->truncate(size);
+		}
+
 		m_size = size;
-		m_fileAccessor->truncate(size);
+
 		if (m_tempFile)
 			m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 		seek(std::min(o, size));
