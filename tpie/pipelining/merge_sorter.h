@@ -659,9 +659,12 @@ private:
 	sort_parameters p;
 	bool m_parametersSet;
 
-	merger<T, pred_t> m_merger;
-
+	// m_runFiles should occur before m_merger,
+	// so that the merger object is destroyed before the temp_files are freed
+	// (and removed in the filesystem)
 	array<temp_file> m_runFiles;
+
+	merger<T, pred_t> m_merger;
 
 	// Number of runs already written to disk.
 	// On 32-bit systems, we could in principle support more than 2^32 finished runs,
