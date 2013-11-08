@@ -73,12 +73,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the item that has been in the queue for the longest time.
 	///////////////////////////////////////////////////////////////////////////
-	inline T front() {tp_assert(!empty(), "front() on empty queue"); return m_elements[m_first % m_elements.size()];}
+	inline const T & front() const {tp_assert(!empty(), "front() on empty queue"); return m_elements[m_first % m_elements.size()];}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the last item pushed to the queue.
 	///////////////////////////////////////////////////////////////////////////
-	inline T back() {return m_elements[(m_last-1) % m_elements.size()];}
+	inline const T & back() const {return m_elements[(m_last-1) % m_elements.size()];}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Add an element to the front of the queue.
