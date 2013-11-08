@@ -209,6 +209,21 @@ bool stream_test() {
 	return result;
 }
 
+bool stream_dtor_test() {
+	temp_file f;
+	{
+		serialization_writer ss;
+		ss.open(f.path());
+		ss.serialize(serializable_dummy());
+	}
+	{
+		serialization_reader ss;
+		ss.open(f.path());
+		TEST_ENSURE(ss.can_read(), "writer did not write");
+	}
+	return true;
+}
+
 bool stream_reopen_test() {
 	temp_file f;
 	const int src = 42;
@@ -346,6 +361,7 @@ int main(int argc, char ** argv) {
 		.test(unsafe_test, "unsafe")
 		.test(testSer2, "serialization2")
 		.test(stream_test, "stream")
+		.test(stream_dtor_test, "stream_dtor")
 		.test(stream_reopen_test, "stream_reopen")
 		.test(stream_reverse_test, "stream_reverse")
 		.test(stream_temp_test, "stream_temp")
