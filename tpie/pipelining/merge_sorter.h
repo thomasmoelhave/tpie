@@ -415,6 +415,21 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  After the sorted stream has been reported with pull(),
+	/// free the resources used by the merge_sorter.
+	///////////////////////////////////////////////////////////////////////////
+	void release() {
+		// This is already done in pull() when the last item has been reported.
+		m_currentRunItems.resize(0);
+
+		// Close any open streams
+		m_merger.reset();
+
+		// Removes the temporary files
+		m_runFiles.resize(0);
+	}
+
 	inline stream_size_type item_count() {
 		return m_itemCount;
 	}
