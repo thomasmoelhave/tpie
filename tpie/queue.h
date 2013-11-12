@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, 2010, The TPIE development team
+// Copyright 2008, 2010, 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
