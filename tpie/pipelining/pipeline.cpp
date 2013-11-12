@@ -104,7 +104,6 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 
 void pipeline_base::forward_any(std::string key, const boost::any & value) {
 	typedef graph_traits::nodes_t nodes_t;
-	typedef graph_traits::nodeit it;
 
 	node_map::ptr map = m_segmap->find_authority();
 	graph_traits g(*map);
@@ -116,7 +115,6 @@ void pipeline_base::forward_any(std::string key, const boost::any & value) {
 
 bool pipeline_base::can_fetch(std::string key) {
 	typedef graph_traits::nodes_t nodes_t;
-	typedef graph_traits::nodeit it;
 
 	node_map::ptr map = m_segmap->find_authority();
 	graph_traits g(*map);
@@ -129,7 +127,6 @@ bool pipeline_base::can_fetch(std::string key) {
 
 boost::any pipeline_base::fetch_any(std::string key) {
 	typedef graph_traits::nodes_t nodes_t;
-	typedef graph_traits::nodeit it;
 
 	node_map::ptr map = m_segmap->find_authority();
 	graph_traits g(*map);
