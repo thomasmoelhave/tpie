@@ -68,19 +68,6 @@ public:
 	////////////////////////////////////////////////////////////////////
 	inline stream_size_type size() {return m_size;}
 
-private:
-	file_stream<T> & push_queue() {
-		if(m_currentQueue)
-			return m_queueA;
-		return m_queueB;
-	}
-
-	file_stream<T> & pop_queue() {
-		if(m_currentQueue)
-			return m_queueB;
-		return m_queueA;
-	}
-public:
 	////////////////////////////////////////////////////////////////////
 	/// \brief Enqueue an item
 	/// \param t The item to be enqueued
@@ -96,13 +83,6 @@ public:
 	/// \brief Dequeues an item
 	/// \return The dequeued item
 	////////////////////////////////////////////////////////////////////
-private:
-	void swap_file_streams() {
-		m_currentQueue = !m_currentQueue;
-		pop_queue().seek(0);
-		push_queue().truncate(0);
-	}
-public:
 	const T & pop() {
 		if(pop_queue().can_read())
 			return pop_queue().read();
@@ -141,6 +121,24 @@ public:
 	}
 
 private:
+	file_stream<T> & push_queue() {
+		if(m_currentQueue)
+			return m_queueA;
+		return m_queueB;
+	}
+
+	file_stream<T> & pop_queue() {
+		if(m_currentQueue)
+			return m_queueB;
+		return m_queueA;
+	}
+
+	void swap_file_streams() {
+		m_currentQueue = !m_currentQueue;
+		pop_queue().seek(0);
+		push_queue().truncate(0);
+	}
+
 	stream_size_type m_size;
 	file_stream<T> m_queueA;
 	file_stream<T> m_queueB;
