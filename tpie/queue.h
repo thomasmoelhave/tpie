@@ -34,10 +34,21 @@
 #include <tpie/persist.h>
 namespace tpie {
 
-///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Basic Implementation of I/O Efficient FIFO queue
-/// \author The TPIE Project
-///////////////////////////////////////////////////////////////////
+///
+/// The queue uses a pop stream, a center queue, and a push stream, to model
+/// a queue. The front elements of the queue are the pop stream items,
+/// followed by the center queue items, followed by the push stream items.
+///
+/// Elements are pushed to the center queue. When the center queue is full,
+/// subsequent pushed elements are written to the push stream.
+///
+/// Elements are popped from the pop stream.
+/// When this is empty, the center queue is used instead.
+/// When the center queue is also empty,
+/// the push stream and the pop stream are swapped.
+///////////////////////////////////////////////////////////////////////////////
 template<class T>
 class queue {
 public:
@@ -73,10 +84,13 @@ public:
 	/// \param t The item to be enqueued
 	////////////////////////////////////////////////////////////////////
 	inline void push(const T & t) {
-		if(push_queue().size() == 0 && !m_centerQueue.full())
+		if (push_queue().size() == 0 && !m_centerQueue.full()) {
+			// The back of the queue is the center queue
 			m_centerQueue.push(t);
-		else
+		} else {
+			// The back of the queue is the push stream
 			push_queue().write(t);
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -84,14 +98,17 @@ public:
 	/// \return The dequeued item
 	////////////////////////////////////////////////////////////////////
 	const T & pop() {
-		if(pop_queue().can_read())
+		if(pop_queue().can_read()) {
+			// The front of the queue is the pop stream
 			return pop_queue().read();
-		else if(!m_centerQueue.empty()) {
+		} else if (!m_centerQueue.empty()) {
+			// The front of the queue is the center queue
 			const T & i = m_centerQueue.front();
 			m_centerQueue.pop();
 			return i;
-		}
-		else {
+		} else {
+			// The front of the queue is the push stream,
+			// so we swap the push stream and the pop stream.
 			swap_file_streams();
 			return pop_queue().read();
 		}
