@@ -263,6 +263,10 @@ template <typename T>
 class null_sink_t: public node {
 public:
 	typedef T item_type;
+	null_sink_t() {
+		set_name("Null sink");
+	}
+
 	void push(const T &) {}
 };
 
