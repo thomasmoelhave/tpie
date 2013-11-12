@@ -69,13 +69,13 @@ public:
 	inline stream_size_type size() {return m_size;}
 
 private:
-	inline file_stream<T> & push_queue() {
+	file_stream<T> & push_queue() {
 		if(m_currentQueue)
 			return m_queueA;
 		return m_queueB;
 	}
 
-	inline file_stream<T> & pop_queue() {
+	file_stream<T> & pop_queue() {
 		if(m_currentQueue)
 			return m_queueB;
 		return m_queueA;
