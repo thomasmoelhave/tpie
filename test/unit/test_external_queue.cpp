@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2011, The TPIE development team
+// Copyright 2011, 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -88,9 +88,37 @@ bool basic_test() {
 	return queue_test();
 }
 
+bool empty_size_test() {
+	queue<uint64_t> q;
+	bool result = true;
+	TEST_ENSURE(q.empty(), "Wrong empty");
+	TEST_ENSURE(q.size() == 0, "Wrong size");
+	q.push(0);
+	TEST_ENSURE(!q.empty(), "Wrong empty");
+	TEST_ENSURE(q.size() == 1, "Wrong size");
+	q.push(0);
+	TEST_ENSURE(q.size() == 2, "Wrong size");
+	for (size_t i = 0; i < 1000; ++i) q.push(42);
+	TEST_ENSURE(q.size() == 1002, "Wrong size");
+	for (size_t i = 0; i < 1000000; ++i) q.push(42);
+	TEST_ENSURE(q.size() == 1001002, "Wrong size");
+	for (size_t i = 0; i < 1000000; ++i) q.pop();
+	TEST_ENSURE(q.size() == 1002, "Wrong size");
+	for (size_t i = 0; i < 1000; ++i) q.pop();
+	TEST_ENSURE(q.size() == 2, "Wrong size");
+	q.pop();
+	TEST_ENSURE(q.size() == 1, "Wrong size");
+	TEST_ENSURE(!q.empty(), "Wrong empty");
+	q.pop();
+	TEST_ENSURE(q.size() == 0, "Wrong size");
+	TEST_ENSURE(q.empty(), "Wrong empty");
+	return result;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv, 32)
 		.test(basic_test, "basic")
+		.test(empty_size_test, "empty_size")
 		.test(queue_test, "sized", "n", static_cast<size_t>(32*1024*1024/sizeof(uint64_t)))
 		;
 }

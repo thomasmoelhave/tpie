@@ -38,7 +38,7 @@ add_unittest(array
 add_unittest(atomic basic parallel)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
-add_unittest(external_queue basic sized)
+add_unittest(external_queue basic empty_size sized)
 add_unittest(external_sort amismall small tiny)
 add_unittest(external_stack new named-new ami named-ami io)
 add_unittest(file_count basic)
