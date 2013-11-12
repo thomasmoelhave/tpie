@@ -49,7 +49,7 @@ public:
 		: m_size(0)
 		, m_queue_a(blockFactor)
 		, m_queue_b(blockFactor)
-		, m_center_queue(file_stream<T>::memory_usage(blockFactor)/sizeof(T))
+		, m_center_queue(blockFactor*get_block_size()/sizeof(T))
 		, m_current_queue(true)
 	{
 		m_queue_a.open();
