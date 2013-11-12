@@ -77,6 +77,7 @@
 #include <tpie/types.h>
 #include <tpie/tpie_assert.h>
 #include <map>
+#include <vector>
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
@@ -167,6 +168,12 @@ public:
 	}
 
 	void dump(std::ostream & os = std::cout) const;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Compute the transitive closure of the given node in the item
+	/// flow graph.
+	///////////////////////////////////////////////////////////////////////////
+	void get_successors(id_t from, std::vector<id_t> & successors);
 
 private:
 	map_t m_tokens;
