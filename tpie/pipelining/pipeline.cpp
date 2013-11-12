@@ -109,7 +109,7 @@ void pipeline_base::forward_any(std::string key, const boost::any & value) {
 	graph_traits g(*map);
 	const nodes_t & sources = g.item_sources();
 	for (size_t j = 0; j < sources.size(); ++j) {
-		sources[j]->add_forwarded_data(key, value);
+		sources[j]->forward_any(key, value);
 	}
 }
 
