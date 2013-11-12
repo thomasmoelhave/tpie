@@ -47,13 +47,13 @@ public:
 	queue(stream_size_type /*elements*/=std::numeric_limits<stream_size_type>::max(),
 		  double blockFactor=1.0)
 		: m_size(0)
-		, m_queue_a(blockFactor)
-		, m_queue_b(blockFactor)
-		, m_center_queue(blockFactor*get_block_size()/sizeof(T))
-		, m_current_queue(true)
+		, m_queueA(blockFactor)
+		, m_queueB(blockFactor)
+		, m_centerQueue(blockFactor*get_block_size()/sizeof(T))
+		, m_currentQueue(true)
 	{
-		m_queue_a.open();
-		m_queue_b.open();
+		m_queueA.open();
+		m_queueB.open();
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -70,15 +70,15 @@ public:
 
 private:
 	inline file_stream<T> & push_queue() {
-		if(m_current_queue)
-			return m_queue_a;
-		return m_queue_b;
+		if(m_currentQueue)
+			return m_queueA;
+		return m_queueB;
 	}
 
 	inline file_stream<T> & pop_queue() {
-		if(m_current_queue)
-			return m_queue_b;
-		return m_queue_a;
+		if(m_currentQueue)
+			return m_queueB;
+		return m_queueA;
 	}
 public:
 	////////////////////////////////////////////////////////////////////
@@ -86,8 +86,8 @@ public:
 	/// \param t The item to be enqueued
 	////////////////////////////////////////////////////////////////////
 	inline void push(const T & t) {
-		if(push_queue().size() == 0 && !m_center_queue.full())
-			m_center_queue.push(t);
+		if(push_queue().size() == 0 && !m_centerQueue.full())
+			m_centerQueue.push(t);
 		else
 			push_queue().write(t);
 	}
@@ -98,7 +98,7 @@ public:
 	////////////////////////////////////////////////////////////////////
 private:
 	void swap_file_streams() {
-		m_current_queue = !m_current_queue;
+		m_currentQueue = !m_currentQueue;
 		pop_queue().seek(0);
 		push_queue().truncate(0);
 	}
@@ -106,9 +106,9 @@ public:
 	const T & pop() {
 		if(pop_queue().can_read())
 			return pop_queue().read();
-		else if(!m_center_queue.empty()) {
-			const T & i = m_center_queue.front();
-			m_center_queue.pop();
+		else if(!m_centerQueue.empty()) {
+			const T & i = m_centerQueue.front();
+			m_centerQueue.pop();
 			return i;
 		}
 		else {
@@ -124,8 +124,8 @@ public:
 	const T & front() {
 		if(pop_queue().can_read())
 			return pop_queue().peek();
-		else if(!m_center_queue.empty())
-			return m_center_queue.front();
+		else if(!m_centerQueue.empty())
+			return m_centerQueue.front();
 		else {
 			swap_file_streams();
 			return pop_queue().peek();
@@ -142,10 +142,10 @@ public:
 
 private:
 	stream_size_type m_size;
-	file_stream<T> m_queue_a;
-	file_stream<T> m_queue_b;
-	internal_queue<T> m_center_queue;
-	bool m_current_queue;
+	file_stream<T> m_queueA;
+	file_stream<T> m_queueB;
+	internal_queue<T> m_centerQueue;
+	bool m_currentQueue;
 };
 
 namespace ami {
