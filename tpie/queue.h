@@ -91,6 +91,7 @@ public:
 			// The back of the queue is the push stream
 			push_queue().write(t);
 		}
+		++m_size;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -98,6 +99,7 @@ public:
 	/// \return The dequeued item
 	////////////////////////////////////////////////////////////////////
 	const T & pop() {
+		--m_size;
 		if(pop_queue().can_read()) {
 			// The front of the queue is the pop stream
 			return pop_queue().read();
