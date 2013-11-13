@@ -4,3 +4,4 @@
 add_subdirectory(convex_hull)
 add_subdirectory(merge_fractions)
 add_subdirectory(pipelining_datastructures)
+add_subdirectory(unique)
