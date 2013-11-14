@@ -54,13 +54,17 @@ void tpie_init(int subsystems) {
 	if (subsystems & JOB_MANAGER)
 		init_job();
 
-	init_stream_buffer_pool();
-	init_compressor();
+	if (subsystems & STREAMS) {
+		init_stream_buffer_pool();
+		init_compressor();
+	}
 }
 
 void tpie_finish(int subsystems) {
-	finish_compressor();
-	finish_stream_buffer_pool();
+	if (subsystems & STREAMS) {
+		finish_compressor();
+		finish_stream_buffer_pool();
+	}
 
 	if (subsystems & JOB_MANAGER)
 		finish_job();
