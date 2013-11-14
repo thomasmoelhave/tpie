@@ -65,7 +65,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline void truncate(stream_size_type size) {
 		stream_size_type o=offset();
-		if(!(size <= m_size && m_size <= m_blockSize)) {
+		if(size <= m_size && m_size <= m_blockSize) {
+			m_block.size = size;
+		} else {
 			flush_block();
 			m_block.number = std::numeric_limits<stream_size_type>::max();
 			m_nextBlock = std::numeric_limits<stream_size_type>::max();
