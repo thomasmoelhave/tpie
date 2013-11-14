@@ -695,12 +695,13 @@ public:
 		}
 
 		stream_size_type readOffset;
+		stream_size_type blockNumber = block_number(offset());
 		compressor_thread_lock l(compressor());
 		if (size() % m_blockItems == 0)
 			readOffset = current_file_size(l);
-		else if (block_number() == m_streamBlocks)
+		else if (blockNumber == m_streamBlocks)
 			readOffset = current_file_size(l);
-		else if (block_number() == m_streamBlocks - 1)
+		else if (blockNumber == m_streamBlocks - 1)
 			readOffset = last_block_read_offset(l);
 		else {
 			tp_assert(false, "get_position: Invalid block_number");
