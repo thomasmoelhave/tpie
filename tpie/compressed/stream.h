@@ -768,6 +768,27 @@ private:
 			++m_offset;
 			return *m_nextItem++;
 		}
+		const T & res = peek_ref();
+		++m_offset;
+		++m_nextItem;
+		cache_read_writes();
+		return res;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// Peeks next item from stream if can_read() == true.
+	///
+	/// If can_read() == false, throws an end_of_stream_exception.
+	///
+	/// Blocks to take the compressor lock.
+	///
+	/// If a stream_exception is thrown, the stream is left in the state it was
+	/// in before the call to peek().
+	///////////////////////////////////////////////////////////////////////////
+	const T & peek_ref() {
+		if (m_cachedReads > 0) {
+			return *m_nextItem;
+		}
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_offset == m_size) throw end_of_stream_exception();
 		if (m_nextItem == m_bufferEnd) {
@@ -777,10 +798,7 @@ private:
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
 		}
-		++m_offset;
-		const T & res = *m_nextItem++;
-		cache_read_writes();
-		return res;
+		return *m_nextItem;
 	}
 
 public:
@@ -790,6 +808,22 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	T read() {
 		return read_ref();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief peek_ref()
+	/// \copydetails peek_ref()
+	///////////////////////////////////////////////////////////////////////////
+	T peek() {
+		return peek_ref();
+	}
+
+	void skip() {
+		read();
+	}
+
+	void skip_back() {
+		read_back();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
