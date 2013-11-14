@@ -1209,6 +1209,7 @@ private:
 	/// read/written item.
 	///
 	/// Precondition: m_buffer.get() != 0.
+	/// Precondition: m_seekState == none
 	///////////////////////////////////////////////////////////////////////////
 	stream_size_type block_number() {
 		return block_number(m_offset);
@@ -1218,6 +1219,7 @@ private:
 	/// \brief  Compute the number of the block currently loaded into m_buffer.
 	///
 	/// Precondition: m_buffer.get() != 0.
+	/// Precondition: m_seekState == none
 	///////////////////////////////////////////////////////////////////////////
 	stream_size_type buffer_block_number() {
 		stream_size_type blockNumber = block_number();
