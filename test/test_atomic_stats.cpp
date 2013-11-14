@@ -22,6 +22,7 @@
 #include <tpie/tpie.h>
 #include <tpie/sysinfo.h>
 #include <tpie/array.h>
+#include <tpie/stats.h>
 
 namespace {
 
