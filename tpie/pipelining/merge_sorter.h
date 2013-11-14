@@ -620,9 +620,9 @@ private:
 		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 
 		log_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-		memory_size_type min_m1 = sizeof(T) + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
+		memory_size_type min_m1 = 128*1024 / sizeof(T) + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
 		if (p.memoryPhase1 < min_m1) {
-			log_warning() << "Not enough phase 1 memory for an item and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
+			log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
 			p.memoryPhase1 = min_m1;
 		}
 		p.runLength = (p.memoryPhase1 - bits::run_positions::memory_usage() - streamMemory - tempFileMemory)/sizeof(T);
