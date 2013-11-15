@@ -83,6 +83,7 @@ testmanip<bool> failure();
 			tpie::log_error() << message								\
 							  << " (" << v1 << " != " << v2				\
 							  << " line " << __LINE__ << ")" << std::endl; \
+			return false; 												\
 		}																\
 	}																	
 
