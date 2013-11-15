@@ -20,6 +20,9 @@
 #include <queue>
 #include <boost/filesystem.hpp>
 #include <tpie/queue.h>
+#include <cmath>
+#include <boost/random/uniform_01.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
 using namespace tpie;
 
@@ -115,10 +118,44 @@ bool empty_size_test() {
 	return result;
 }
 
+double pop_probability(uint64_t i, uint64_t max_size) {
+	double factor = 3.14159f / max_size;
+	return (1-cos(factor * i))/2;
+}
+
+bool large_test() {
+	boost::mt19937 rng(42);
+	boost::uniform_01<boost::mt19937, double> doublegenerator(rng);
+
+	queue<uint64_t> q1(0.001);
+	std::queue<uint64_t> q2;
+
+	for(uint64_t i = 0; i < 1024*1024*10; ++i) {
+		TEST_ENSURE_EQUALITY(q1.size(), q2.size(), "size() does not agree with STL queue");
+		TEST_ENSURE_EQUALITY(q1.empty(), q1.empty(), "empty() does not agree with STL queue");
+
+		if(!q1.empty())
+			TEST_ENSURE_EQUALITY(q1.front(), q2.front(), "front() does not agree with STL queue. Size " << q1.size());
+
+		if(!q1.empty() && doublegenerator() <= pop_probability(i, 1024*1024)) {
+			TEST_ENSURE_EQUALITY(q1.pop(), q2.front(), "pop() does not agree with STL queue");
+			q2.pop();
+		}
+		else {
+			uint64_t el = element(i);
+			q1.push(el);
+			q2.push(el);
+		}
+	}
+
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv, 32)
 		.test(basic_test, "basic")
 		.test(empty_size_test, "empty_size")
 		.test(queue_test, "sized", "n", static_cast<size_t>(32*1024*1024/sizeof(uint64_t)))
+		.test(large_test, "large")
 		;
 }
