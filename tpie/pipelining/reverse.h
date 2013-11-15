@@ -32,6 +32,83 @@ namespace pipelining {
 template <typename T>
 class passive_reverser {
 public:
+	typedef stack<T> stack_t;
+
+	class sink_t : public node {
+	public:
+		typedef T item_type;
+
+		inline sink_t(stack_t & stack, const node_token & token)
+			: node(token)
+			, stack(stack)
+		{
+			set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
+		}
+
+		inline void push(const T & item) {
+			stack.push(item);
+		}
+
+	private:
+		stack_t & stack;
+	};
+
+	template <typename dest_t>
+	class source_t : public node {
+	public:
+		typedef T item_type;
+
+		inline source_t(const dest_t & dest, const stack_t & stack, const node_token & sink)
+			: dest(dest)
+		   	, stack(stack)
+		{
+			add_push_destination(dest);
+			add_dependency(sink);
+			set_name("Output reversed items", PRIORITY_INSIGNIFICANT);
+		}
+
+		virtual void propagate() override {
+			forward("items", static_cast<stream_size_type>(stack.size()));
+		}
+
+		inline void go(progress_indicator_base & pi) {
+			pi.init(stack.size());
+			while (!stack.empty()) {
+				dest.push(stack.pop());
+				pi.step();
+			}
+			pi.done();
+		}
+
+	private:
+		dest_t dest;
+		const stack_t & stack;
+
+		source_t & operator=(const source_t & other);
+	};
+
+	TPIE_DEPRECATED(inline passive_reverser(size_t) {})
+
+	inline passive_reverser() {}
+
+	inline pipe_end<termfactory_2<sink_t, stack_t &, const node_token &> >
+	sink() {
+		return termfactory_2<sink_t, stack_t &, const node_token &>(buffer, sink_token);
+	}
+
+	inline pipe_begin<factory_2<source_t, const stack_t &, const node_token &> >
+	source() {
+		return factory_2<source_t, const stack_t &, const node_token &>(buffer, sink_token);
+	}
+
+private:
+	stack_t stack;
+	node_token sink_token;
+};
+
+template <typename T>
+class passive_reverser_internal {
+public:
 	typedef std::vector<T> buf_t;
 
 	class sink_t : public node {
@@ -91,7 +168,7 @@ public:
 		source_t & operator=(const source_t & other);
 	};
 
-	inline passive_reverser(size_t buffer_size)
+	inline passive_reverser_internal(size_t buffer_size)
 		: buffer(buffer_size)
 	{
 	}
