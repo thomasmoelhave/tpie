@@ -326,7 +326,6 @@ public:
 	template <typename dest_t>
 	typename constructed<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename dest_t::item_type item_type;
-		typedef typename constructed<dest_t>::pred_type pred_type;
 		typedef typename constructed<dest_t>::Traits Traits;
 
 		sort_output_t<Traits, dest_t> output(dest, self().template get_pred<item_type>());
