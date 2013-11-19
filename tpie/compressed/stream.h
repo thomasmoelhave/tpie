@@ -616,6 +616,7 @@ private:
 			finish_requests(l);
 			m_byteStreamAccessor.truncate(offset);
 			m_size = offset;
+			m_streamBlocks = (offset + m_blockItems - 1) / m_blockItems;
 		}
 		seek(std::min(currentOffset, offset));
 
