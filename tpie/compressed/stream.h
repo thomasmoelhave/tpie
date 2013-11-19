@@ -604,12 +604,12 @@ private:
 			// We need to do a truncate on the file accessor.
 			// Get rid of the current block first.
 			compressor_thread_lock l(compressor());
-			if (offset > size()) {
-				// Extend file.
+			if (offset < buffer_block_number() * m_blockItems) {
+				// No need to flush current block, since we are truncating it away.
+			} else {
+				// Changes to the current block may still be visible after the truncate.
 				if (m_bufferDirty)
 					flush_block(l);
-			} else {
-				// No need to flush current block, since we are truncating it away.
 			}
 			m_buffer.reset();
 			m_bufferDirty = false;
