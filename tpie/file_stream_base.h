@@ -67,6 +67,7 @@ public:
 		stream_size_type o=offset();
 		if(size <= m_size && m_size <= m_blockSize) {
 			m_block.size = size;
+			m_index = std::min(m_index, size);
 		} else {
 			flush_block();
 			m_block.number = std::numeric_limits<stream_size_type>::max();
