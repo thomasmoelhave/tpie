@@ -29,166 +29,11 @@ namespace tpie {
 
 namespace pipelining {
 
-template <typename T>
-class passive_reverser {
-public:
-	typedef stack<T> stack_t;
-
-	class sink_t : public node {
-	public:
-		typedef T item_type;
-
-		inline sink_t(stack_t & stack, const node_token & token)
-			: node(token)
-			, stack(stack)
-		{
-			set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
-		}
-
-		inline void push(const T & item) {
-			stack.push(item);
-		}
-
-	private:
-		stack_t & stack;
-	};
-
-	template <typename dest_t>
-	class source_t : public node {
-	public:
-		typedef T item_type;
-
-		inline source_t(const dest_t & dest, const stack_t & stack, const node_token & sink)
-			: dest(dest)
-		   	, stack(stack)
-		{
-			add_push_destination(dest);
-			add_dependency(sink);
-			set_name("Output reversed items", PRIORITY_INSIGNIFICANT);
-		}
-
-		virtual void propagate() override {
-			forward("items", static_cast<stream_size_type>(stack.size()));
-		}
-
-		inline void go(progress_indicator_base & pi) {
-			pi.init(stack.size());
-			while (!stack.empty()) {
-				dest.push(stack.pop());
-				pi.step();
-			}
-			pi.done();
-		}
-
-	private:
-		dest_t dest;
-		const stack_t & stack;
-
-		source_t & operator=(const source_t & other);
-	};
-
-	TPIE_DEPRECATED(inline passive_reverser(size_t) {})
-
-	inline passive_reverser() {}
-
-	inline pipe_end<termfactory_2<sink_t, stack_t &, const node_token &> >
-	sink() {
-		return termfactory_2<sink_t, stack_t &, const node_token &>(buffer, sink_token);
-	}
-
-	inline pipe_begin<factory_2<source_t, const stack_t &, const node_token &> >
-	source() {
-		return factory_2<source_t, const stack_t &, const node_token &>(buffer, sink_token);
-	}
-
-private:
-	stack_t stack;
-	node_token sink_token;
-};
-
-template <typename T>
-class passive_reverser_internal {
-public:
-	typedef std::vector<T> buf_t;
-
-	class sink_t : public node {
-	public:
-		typedef T item_type;
-
-		inline sink_t(buf_t & buffer, const node_token & token)
-			: node(token)
-			, buffer(buffer)
-		{
-			it = buffer.begin();
-			set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
-		}
-
-		inline void push(const T & item) {
-			*it++ = item;
-		}
-
-	private:
-		buf_t & buffer;
-		typename buf_t::iterator it;
-	};
-
-	template <typename dest_t>
-	class source_t : public node {
-	public:
-		typedef T item_type;
-
-		inline source_t(const dest_t & dest, const buf_t & buffer, const node_token & sink)
-			: dest(dest)
-		   	, buffer(buffer)
-			, it(buffer.rbegin())
-		{
-			add_push_destination(dest);
-			add_dependency(sink);
-			set_name("Output reversed items", PRIORITY_INSIGNIFICANT);
-		}
-
-		virtual void propagate() override {
-			forward("items", static_cast<stream_size_type>(buffer.size()));
-		}
-
-		inline void go(progress_indicator_base & pi) {
-			pi.init(buffer.size());
-			while (it != buffer.rend()) {
-				dest.push(*it++);
-				pi.step();
-			}
-			pi.done();
-		}
-
-	private:
-		dest_t dest;
-		const buf_t & buffer;
-		typename buf_t::const_reverse_iterator it;
-
-		source_t & operator=(const source_t & other);
-	};
-
-	inline passive_reverser_internal(size_t buffer_size)
-		: buffer(buffer_size)
-	{
-	}
-
-	inline pipe_end<termfactory_2<sink_t, buf_t &, const node_token &> >
-	sink() {
-		return termfactory_2<sink_t, buf_t &, const node_token &>(buffer, sink_token);
-	}
-
-	inline pipe_begin<factory_2<source_t, const buf_t &, const node_token &> >
-	source() {
-		return factory_2<source_t, const buf_t &, const node_token &>(buffer, sink_token);
-	}
-
-private:
-	buf_t buffer;
-	node_token sink_token;
-};
-
 namespace bits {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief input node for reverser stored in external memory
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 class reverser_input_t: public node {
@@ -199,21 +44,58 @@ public:
 		: node(token)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
-		set_minimum_memory(this->the_stack->memory_usage());
+		set_minimum_memory(this->m_stack->memory_usage());
 	}
 
 	virtual void propagate() override {
-		the_stack = tpie_new<stack<item_type> >();
-		forward("stack", the_stack);
+		m_stack = tpie_new<stack<item_type> >();
+		forward("stack", m_stack);
 	}
 
-	void push(const T & t) {
-		the_stack->push(t);
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Pushes an item to the node
+	///////////////////////////////////////////////////////////////////////////////
+	void push(const item_type & t) {
+		m_stack->push(t);
 	}
-
-	stack<T> * the_stack;
+private:
+	stack<item_type> * m_stack;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief input node for reverser stored in internal memory
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+class internal_reverser_input_t: public node {
+public:
+	typedef T item_type;
+
+	inline internal_reverser_input_t(const node_token & token)
+		: node(token)
+	{
+		set_name("Store items", PRIORITY_SIGNIFICANT);
+		set_minimum_memory(sizeof(std::stack<item_type>));
+	}
+
+	virtual void propagate() override {
+		m_stack = tpie_new<std::stack<item_type> >();
+		forward("stack", m_stack);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Pushes an item to the node
+	///////////////////////////////////////////////////////////////////////////////
+	void push(const item_type & t) {
+		m_stack->push(t);
+	}
+private:
+	std::stack<item_type> * m_stack;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output node for reverser stored in external memory
+///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
 class reverser_output_t: public node {
 public:
@@ -225,28 +107,148 @@ public:
 		add_dependency(input_token);
 		add_push_destination(dest);
 		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
-		set_minimum_memory(this->the_stack->memory_usage());
+		set_minimum_memory(this->m_stack->memory_usage());
 	}
 
 	virtual void propagate() override {
-		the_stack = fetch<stack<item_type> *>("stack");
-		forward("items", the_stack->size());
-		set_steps(the_stack->size());
+		m_stack = fetch<stack<item_type> *>("stack");
+		forward("items", m_stack->size());
+		set_steps(m_stack->size());
 	}
 
 	virtual void go() override {
-		while (!the_stack->empty()) {
-			dest.push(the_stack->pop());
+		while (!m_stack->empty()) {
+			dest.push(m_stack->pop());
 			step();
 		}
 	}
 
 	virtual void end() override {
-		tpie_delete(the_stack);
+		tpie_delete(m_stack);
+	}
+private:
+	dest_t dest;
+	stack<item_type> * m_stack;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output node for reverser stored in internal memory
+///////////////////////////////////////////////////////////////////////////////
+template <typename dest_t>
+class internal_reverser_output_t: public node {
+public:
+	typedef typename dest_t::item_type item_type;
+
+	internal_reverser_output_t(const dest_t & dest, const node_token & input_token)
+		: dest(dest)
+	{
+		add_dependency(input_token);
+		add_push_destination(dest);
+		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(sizeof(std::stack<item_type>));
 	}
 
+	virtual void propagate() override {
+		m_stack = fetch<std::stack<item_type> *>("stack");
+		forward("items", m_stack->size());
+		set_steps(m_stack->size());
+	}
+
+	virtual void go() override {
+		while (!m_stack->empty()) {
+			dest.push(m_stack->pop());
+			step();
+		}
+	}
+
+	virtual void end() override {
+		tpie_delete(m_stack);
+	}
+private:
 	dest_t dest;
-	stack<item_type> * the_stack;
+	std::stack<item_type> * m_stack;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output node for passive reverser stored in external memory
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class reverser_pull_output_t : public node {
+public:
+	typedef T item_type;
+
+	reverser_pull_output_t(const node_token & input_token) {
+		add_dependency(input_token);
+		set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(this->m_stack->memory_usage());
+	}
+
+	virtual void propagate() override {
+		m_stack = fetch<stack<item_type> *>("stack");
+		forward("items", m_stack->size());
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Whether an item can be pulled from the node
+	///////////////////////////////////////////////////////////////////////////////
+	bool can_pull() const {
+		return !m_stack->empty();
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Pulls an item from the node
+	///////////////////////////////////////////////////////////////////////////////
+	T pull() {
+		return m_stack->pop();
+	}
+
+	virtual void end() override {
+		tpie_delete(m_stack);
+	}
+private:
+	stack<item_type> * m_stack;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output node for passive reverser stored in internal memory
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class internal_reverser_pull_output_t : public node {
+public:
+	typedef T item_type;
+
+	internal_reverser_pull_output_t(const node_token & input_token) {
+		add_dependency(input_token);
+		set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(sizeof(std::stack<item_type>));
+	}
+
+	virtual void propagate() override {
+		m_stack = fetch<std::stack<item_type> *>("stack");
+		forward("items", m_stack->size());
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Whether an item can be pulled from the node
+	///////////////////////////////////////////////////////////////////////////////
+	bool can_pull() const {
+		return !m_stack->empty();
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Pull an item from the node
+	///////////////////////////////////////////////////////////////////////////////
+	T pull() {
+		T r = m_stack->top();
+		m_stack->pop();
+		return r;
+	}
+
+	virtual void end() override {
+		tpie_delete(m_stack);
+	}
+private:
+	std::stack<item_type> * m_stack;
 };
 
 
@@ -254,7 +256,6 @@ template <typename dest_t>
 class reverser_t: public node {
 public:
 	typedef typename dest_t::item_type item_type;
-
 	typedef reverser_output_t<dest_t> output_t;
 	typedef reverser_input_t<item_type> input_t;
 
@@ -283,9 +284,144 @@ private:
 	output_t output;
 };
 
+template <typename dest_t>
+class internal_reverser_t: public node {
+public:
+	typedef typename dest_t::item_type item_type;
+	typedef internal_reverser_output_t<dest_t> output_t;
+	typedef internal_reverser_input_t<item_type> input_t;
+
+	inline internal_reverser_t(const dest_t & dest)
+		: input_token()
+		, input(input_token)
+		, output(dest, input_token)
+	{
+		add_push_destination(input);
+		set_name("Reverser", PRIORITY_INSIGNIFICANT);
+	}
+
+	inline internal_reverser_t(const internal_reverser_t & o)
+		: node(o)
+		, input_token(o.input_token)
+		, input(o.input)
+		, output(o.output)
+	{
+	}
+
+	void push(const item_type & i) {input.push(i);}
+private:
+	node_token input_token;
+
+	input_t input;
+	output_t output;
+};
+
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A passive reverser stored in external memory. Reverses the input
+/// stream and creates a phase boundary.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class passive_reverser {
+public:
+	typedef T item_type;
+	typedef bits::reverser_input_t<T> input_t;
+	typedef bits::reverser_pull_output_t<T> output_t;
+private:
+	typedef termfactory_1<input_t,  const node_token &> inputfact_t;
+	typedef termfactory_1<output_t, const node_token &> outputfact_t;
+	typedef pipe_end<inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
+public:
+	passive_reverser() {}
+
+	inline input_t raw_input() {
+		return input_t(input_token);
+	}
+
+	inline output_t raw_output() {
+		return output_t(input_token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a termfactory for the input nodes
+	///////////////////////////////////////////////////////////////////////////////
+	inline inputpipe_t input() {
+		return inputfact_t(input_token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a termfactory for the output nodes
+	///////////////////////////////////////////////////////////////////////////////
+	inline outputpipe_t output() {
+		return outputfact_t(input_token);
+	}
+private:
+	node_token input_token;
+
+	passive_reverser(const passive_reverser &);
+	passive_reverser & operator=(const passive_reverser &);
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A passive reverser stored in internal memory. Reverses the input
+/// stream and creates a phase boundary.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class internal_passive_reverser {
+public:
+	typedef T item_type;
+	typedef bits::internal_reverser_input_t<T> input_t;
+	typedef bits::internal_reverser_pull_output_t<T> output_t;
+private:
+	typedef termfactory_1<input_t,  const node_token &> inputfact_t;
+	typedef termfactory_1<output_t, const node_token &> outputfact_t;
+	typedef pipe_end<inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
+public:
+	internal_passive_reverser() {}
+
+	inline input_t raw_input() {
+		return input_t(input_token);
+	}
+
+	inline output_t raw_output() {
+		return output_t(input_token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a termfactory for the input nodes
+	///////////////////////////////////////////////////////////////////////////////
+	inline inputpipe_t input() {
+		return inputfact_t(input_token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a termfactory for the output nodes
+	///////////////////////////////////////////////////////////////////////////////
+	inline outputpipe_t output() {
+		return outputfact_t(input_token);
+	}
+private:
+	node_token input_token;
+
+	internal_passive_reverser(const internal_passive_reverser &);
+	internal_passive_reverser & operator=(const internal_passive_reverser &);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Constructs a reverser node stored in external memory. Reverses
+/// the stream and creates a phase boundary
+///////////////////////////////////////////////////////////////////////////////
 inline pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Constructs a reverser node stored in internal memory. Reverses
+/// the stream and creates a phase boundary
+///////////////////////////////////////////////////////////////////////////////
+inline pipe_middle<factory_0<bits::internal_reverser_t> > internal_reverser() {return factory_0<bits::internal_reverser_t>();}
 
 } // namespace pipelining
 
