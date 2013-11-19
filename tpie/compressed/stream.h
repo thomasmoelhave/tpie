@@ -246,7 +246,8 @@ protected:
 	/** Buffer holding the items of the block currently being read/written. */
 	buffer_t m_buffer;
 
-	/** The number of blocks written to the file. */
+	/** The number of blocks written to the file.
+	 * We must always have (m_streamBlocks+1) * m_blockItems <= m_size. */
 	stream_size_type m_streamBlocks;
 
 	/** When use_compression() is true:
