@@ -254,20 +254,6 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Used internally to facilitate forwarding parameters to
-	/// successors in the item flow graph.
-	///////////////////////////////////////////////////////////////////////////
-	void add_successor(node_token::id_t succ) {
-		if (std::find(m_successors.begin(), m_successors.end(), succ) != m_successors.end()) {
-			// Duplicate successor.
-			// This is either an error, or an actor cycle with edges like
-			// "i pushes to j" and "j pulls from i".
-			return;
-		}
-		m_successors.push_back(succ);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally for progress indication. Get the number of times
 	/// the node expects to call step() at most.
 	///////////////////////////////////////////////////////////////////////////
@@ -341,7 +327,6 @@ protected:
 		, m_memoryFraction(other.m_memoryFraction)
 		, m_name(other.m_name)
 		, m_namePriority(other.m_namePriority)
-		, m_successors(other.m_successors)
 		, m_stepsTotal(other.m_stepsTotal)
 		, m_stepsLeft(other.m_stepsLeft)
 		, m_pi(other.m_pi)
@@ -485,14 +470,14 @@ public:
 	// See http://stackoverflow.com/a/5392050
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	void forward(std::string key, T value, bool explicitForward = true) {
-		forward_any(key, boost::any(value), explicitForward);
+	void forward(std::string key, T value) {
+		forward_any(key, boost::any(value));
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief See \ref node::forward.
 	///////////////////////////////////////////////////////////////////////////
-	void forward_any(std::string key, boost::any value, bool explicitForward = true) {
+	void forward_any(std::string key, boost::any value) {
 		switch (get_state()) {
 			case STATE_FRESH:
 			case STATE_IN_PREPARE:
@@ -515,26 +500,35 @@ public:
 				break;
 		}
 
+		add_forwarded_data(key, value, true);
+
 		bits::node_map::ptr nodeMap = get_node_map()->find_authority();
-		for (size_t i = 0; i < m_successors.size(); ++i) {
-			nodeMap->get(m_successors[i])->add_forwarded_data(key, value, explicitForward);
+
+		typedef node_token::id_t id_t;
+		typedef std::set<id_t> successor_set;
+		typedef typename successor_set::iterator successor_set_it;
+		successor_set successors;
+		nodeMap->get_successors(get_id(), successors);
+		for (successor_set_it i = successors.begin(); i != successors.end(); ++i) {
+			nodeMap->get(*i)->add_forwarded_data(key, value, false);
 		}
 	}
 
+private:
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by users to add forwarded data to this node and
-	/// recursively to its successors.
+	/// \brief Called by forward_any to add forwarded data.
+	//
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
 	///////////////////////////////////////////////////////////////////////////
-	void add_forwarded_data(std::string key, boost::any value, bool explicitForward = true) {
+	void add_forwarded_data(std::string key, boost::any value, bool explicitForward) {
 		if (m_values.count(key) &&
 			!explicitForward && m_values[key].second) return;
 		m_values[key].first = value;
 		m_values[key].second = explicitForward;
-		forward_any(key, value, false);
 	}
 
+public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Find out if there is a piece of auxiliary data forwarded with a
 	/// given name.
@@ -668,7 +662,6 @@ private:
 	std::string m_name;
 	priority_type m_namePriority;
 
-	std::vector<node_token::id_t> m_successors;
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 

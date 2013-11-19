@@ -234,7 +234,6 @@ bool reverse_test() {
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
 
-	
 	//reverser<test_t> r(inputvector.size());
 	//pipeline p1 = input_vector(inputvector) | r.sink();
 	//pipeline p2 = r.source() | output_vector(outputvector);
@@ -242,6 +241,85 @@ bool reverse_test() {
 	//p1();
 
 	return check_test_vectors();
+}
+
+bool internal_reverse_test() {
+	pipeline p1 = input_vector(inputvector) | reverser() | output_vector(outputvector);
+	p1();
+	expectvector = inputvector;
+	std::reverse(expectvector.begin(), expectvector.end());
+
+	return check_test_vectors();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sums the two components of the input pair
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename factory_type>
+class add_pairs_type {
+public:
+	template <typename dest_t>
+	class type : public tpie::pipelining::node {
+	public:
+		dest_t dest;
+		typename factory_type::constructed_type pullSource;
+		typedef uint64_t item_type;
+
+		type(const dest_t & dest, const factory_type & factory)
+		: dest(dest)
+		, pullSource(factory.construct())
+		{
+			add_push_destination(dest);
+			add_pull_source(pullSource);
+			set_name("Add pairs");
+		}
+
+		void push(const item_type &item) {
+			dest.push(item + pullSource.pull());
+		}
+	};
+};
+
+template <typename pipe_type>
+tpie::pipelining::pipe_middle<tpie::pipelining::tempfactory_1<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type> >
+add_pairs(const pipe_type &pipe) {
+	return tpie::pipelining::tempfactory_1<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type>(pipe.factory);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief templated test for the passive reversers
+///////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+bool templated_passive_reverse_test(size_t n) {
+	std::vector<test_t> input;
+	std::vector<test_t> output;
+
+	for(size_t i = 0; i < n; ++i)
+		input.push_back(i);
+
+	T p_reverser;
+	pipeline p = input_vector(input)
+	| fork(p_reverser.input())
+	| buffer()
+	| add_pairs(p_reverser.output())
+	| output_vector(output);
+
+	p();
+
+	TEST_ENSURE_EQUALITY(output.size(), n, "The passive reverser didn't output the correct number of elements");
+	for(std::vector<test_t>::iterator i = output.begin(); i != output.end(); ++i)
+		TEST_ENSURE_EQUALITY(*i, n-1, "The passive reverser did not output in the correct order");
+	return true;
+}
+
+bool internal_passive_reverse_test(size_t n) {
+	return templated_passive_reverse_test<passive_reverser<test_t> >(n);
+}
+
+bool passive_reverse_test(size_t n) {
+	return templated_passive_reverse_test<internal_passive_reverser<test_t> >(n);
 }
 
 template <typename dest_t>
@@ -1615,6 +1693,9 @@ int main(int argc, char ** argv) {
 	.test(file_stream_alt_push_test, "fsaltpush")
 	.test(merge_test, "merge")
 	.test(reverse_test, "reverse")
+	.test(internal_reverse_test, "internal_reverse")
+	.test(passive_reverse_test, "passive_reverse", "n", static_cast<size_t>(50000))
+	.test(internal_passive_reverse_test, "internal_passive_reverse", "n", static_cast<size_t>(50000))
 	.test(sort_test_trivial, "sorttrivial")
 	.test(sort_test_small, "sort")
 	.test(sort_test_large, "sortbig")

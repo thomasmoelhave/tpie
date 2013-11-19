@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+#include <queue>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/node.h>
 
@@ -80,19 +81,6 @@ node_map::ptr node_map::find_authority() {
 void node_map::add_relation(id_t from, id_t to, node_relation rel) {
 	m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
 	m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
-
-	id_t itemSource = from;
-	id_t itemSink = to;
-	switch (rel) {
-		case pushes:
-			break;
-		case pulls:
-		case depends:
-			std::swap(itemSource, itemSink);
-			break;
-	}
-
-	m_tokens.find(itemSource)->second->add_successor(itemSink);
 }
 
 size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {
@@ -103,6 +91,45 @@ size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) 
 		++i;
 	}
 	return res;
+}
+
+void node_map::get_successors(id_t from, std::set<id_t> & successors) {
+	std::queue<id_t> q;
+	std::set<id_t> seen;
+	q.push(from);
+	while (!q.empty()) {
+		id_t v = q.front();
+		q.pop();
+		if (seen.count(v)) continue;
+		seen.insert(v);
+		successors.insert(v);
+		{
+			std::pair<relmapit, relmapit> is = m_relations.equal_range(v);
+			for (relmapit i = is.first; i != is.second; ++i) {
+				switch (i->second.second) {
+					case pushes:
+						q.push(i->second.first);
+						break;
+					case pulls:
+					case depends:
+						break;
+				}
+			}
+		}
+		{
+			std::pair<relmapit, relmapit> is = m_relationsInv.equal_range(v);
+			for (relmapit i = is.first; i != is.second; ++i) {
+				switch (i->second.second) {
+					case pushes:
+						break;
+					case pulls:
+					case depends:
+						q.push(i->second.first);
+						break;
+				}
+			}
+		}
+	}
 }
 
 } // namespace bits
