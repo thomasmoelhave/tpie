@@ -599,6 +599,7 @@ private:
 			}
 			m_bufferDirty = true;
 			m_seekState = seek_state::none;
+			// No need to update m_streamBlocks
 		} else {
 			// We need to do a truncate on the file accessor.
 			// Get rid of the current block first.
