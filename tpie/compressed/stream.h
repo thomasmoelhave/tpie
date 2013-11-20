@@ -755,7 +755,6 @@ public:
 		uncache_read_writes();
 	}
 
-private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Reads next item from stream if can_read() == true.
 	///
@@ -766,13 +765,13 @@ private:
 	/// If a stream_exception is thrown, the stream is left in the state it was
 	/// in before the call to read().
 	///////////////////////////////////////////////////////////////////////////
-	const T & read_ref() {
+	const T & read() {
 		if (m_cachedReads > 0) {
 			--m_cachedReads;
 			++m_offset;
 			return *m_nextItem++;
 		}
-		const T & res = peek_ref();
+		const T & res = peek();
 		++m_offset;
 		++m_nextItem;
 		cache_read_writes();
@@ -789,7 +788,7 @@ private:
 	/// If a stream_exception is thrown, the stream is left in the state it was
 	/// in before the call to peek().
 	///////////////////////////////////////////////////////////////////////////
-	const T & peek_ref() {
+	const T & peek() {
 		if (m_cachedReads > 0) {
 			return *m_nextItem;
 		}
@@ -803,23 +802,6 @@ private:
 			read_next_block(l, block_number());
 		}
 		return *m_nextItem;
-	}
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief read_ref()
-	/// \copydetails read_ref()
-	///////////////////////////////////////////////////////////////////////////
-	T read() {
-		return read_ref();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief peek_ref()
-	/// \copydetails peek_ref()
-	///////////////////////////////////////////////////////////////////////////
-	T peek() {
-		return peek_ref();
 	}
 
 	void skip() {
@@ -864,8 +846,7 @@ public:
 		return offset() > 0;
 	}
 
-private:
-	const T & read_back_ref() {
+	const T & read_back() {
 		if (m_seekState != seek_state::none) {
 			if (offset() == 0) throw end_of_stream_exception();
 			perform_seek(read_direction::backward);
@@ -886,11 +867,6 @@ private:
 		++m_cachedReads;
 		--m_offset;
 		return *--m_nextItem;
-	}
-
-public:
-	T read_back() {
-		return read_back_ref();
 	}
 
 	void write(const T & item) {
