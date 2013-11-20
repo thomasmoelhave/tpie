@@ -57,7 +57,6 @@ set (HEADERS
 		pipelining/file_stream.h
 		pipelining/graph.h
 		pipelining/helpers.h
-		pipelining/join.h
 		pipelining/maintain_order_type.h
 		pipelining/merge.h
 		pipelining/merge_sorter.h
