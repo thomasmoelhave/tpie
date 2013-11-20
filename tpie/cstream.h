@@ -83,7 +83,7 @@ public:
 		if (!m_stream.can_read())
 		return END_OF_STREAM;
 
-		*elt = &(const_cast<T &>(m_stream.read_ref()));
+		*elt = &(const_cast<T &>(m_stream.read()));
 		return NO_ERROR;
 	}
 

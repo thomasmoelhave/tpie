@@ -112,7 +112,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 	inline const T & pop() throw(stream_exception) {
 		if (m_bufferItems) return m_buffer[--m_bufferItems];
-		const T & item = m_stream.read_back_ref();
+		const T & item = m_stream.read_back();
 		return item;
 	}
 
