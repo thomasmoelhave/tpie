@@ -70,7 +70,7 @@ public:
 		self().update_vars();
 		stream_size_type b = static_cast<stream_size_type>(offset) / self().get_file().block_items();
 		m_index = static_cast<memory_size_type>(offset - b* self().get_file().block_items());
-		if (b == self().__block().number) {
+		if (b == self().get_block().number) {
 			m_nextBlock = std::numeric_limits<stream_size_type>::max();
 			m_nextIndex = std::numeric_limits<memory_size_type>::max();
 			assert(self().offset() == (stream_size_type)offset);
@@ -107,7 +107,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read() const throw() {
 		assert(self().get_file().is_open());
-		if (m_index < self().__block().size ) return true;
+		if (m_index < self().get_block().size ) return true;
 		return offset() < self().size();
 	}
 
@@ -179,7 +179,7 @@ protected:
 				stream.update_block();
 			}
 
-			T * src = reinterpret_cast<T*>(stream.__block().data) + stream.m_index;
+			T * src = reinterpret_cast<T*>(stream.get_block().data) + stream.m_index;
 
 			// either read the rest of the block or until `end'
 			memory_size_type count = std::min(stream.block_items()-stream.m_index, static_cast<memory_size_type>(end-i));
@@ -219,7 +219,7 @@ protected:
 
 			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
 
-			T * dest = reinterpret_cast<T*>(stream.__block().data) + stream.m_index;
+			T * dest = reinterpret_cast<T*>(stream.get_block().data) + stream.m_index;
 
 			std::copy(i, till, dest);
 

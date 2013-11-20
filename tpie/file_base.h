@@ -90,8 +90,8 @@ public:
 		file_base * m_file;
 
 	protected:
-		block_t & __block() {return *m_block;}
-		const block_t & __block() const {return *m_block;}
+		block_t & get_block() {return *m_block;}
+		const block_t & get_block() const {return *m_block;}
 		inline file_base & get_file() {assert(m_file != 0); return *m_file;}
 		inline const file_base & get_file() const {assert(m_file != 0); return *m_file;}
 

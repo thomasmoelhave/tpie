@@ -24,7 +24,7 @@ namespace tpie {
 template <typename child_t>
 void stream_crtp<child_t>::update_block() {
 	if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
-		m_nextBlock = self().__block().number+1;
+		m_nextBlock = self().get_block().number+1;
 		m_nextIndex = 0;
 	}
 	self().update_block_core();
