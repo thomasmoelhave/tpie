@@ -44,6 +44,23 @@ public:
 	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Generate a GraphViz plot of the pipeline
+	///
+	/// When rendered with dot, GraphViz will place the nodes in the
+	/// topological order of the item flow graph with items flowing from the
+	/// top downwards.
+	///
+	/// Thus, a downwards arrow in the plot is a push edge, and an upwards
+	/// arrow is a pull edge (assuming no cycles in the item flow graph).
+	///
+	/// Compared to plot_full, sorts, buffers and reversers will be represented
+	/// as one node in the graph as apposed to 3 or 2. Nodes added by
+	/// virtual wrapping will not be showed at all
+	///
+	///////////////////////////////////////////////////////////////////////////
+	void plot(std::ostream & out) {plot_impl(out, false);}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz plot of the actor graph.
 	///
 	/// When rendered with dot, GraphViz will place the nodes in the
@@ -53,7 +70,7 @@ public:
 	/// Thus, a downwards arrow in the plot is a push edge, and an upwards
 	/// arrow is a pull edge (assuming no cycles in the item flow graph).
 	///////////////////////////////////////////////////////////////////////////
-	void plot(std::ostream & out);
+	void plot_full(std::ostream & out) {plot_impl(out, true);}
 
 	double memory() const {
 		return m_memory;
@@ -77,6 +94,8 @@ public:
 protected:
 	node_map::ptr m_segmap;
 	double m_memory;
+private:
+	void plot_impl(std::ostream & out, bool full);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -123,6 +123,7 @@ public:
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(this->the_stack->memory_usage());
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
@@ -149,6 +150,7 @@ public:
 		add_push_destination(dest);
 		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(this->the_stack->memory_usage());
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
@@ -188,6 +190,7 @@ public:
 	{
 		add_push_destination(input);
 		set_name("Reverser", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	inline reverser_t(const reverser_t & o)

@@ -45,6 +45,7 @@ public:
 		add_dependency(input_token);
 		set_name("Fetching items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(file_stream<T>::memory_usage());
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	virtual void propagate() override {
@@ -79,6 +80,7 @@ public:
 	{
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
@@ -110,6 +112,7 @@ public:
 		add_push_destination(dest);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 		set_name("Fetching items", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
@@ -195,6 +198,7 @@ public:
 	{
 		add_push_destination(input);
 		set_name("Buffer", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	buffer_t(const buffer_t &o)

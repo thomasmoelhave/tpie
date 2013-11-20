@@ -101,6 +101,7 @@ public:
 	{
 		node::add_push_destination(dest);
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
 
 	const node_token & get_token() {
@@ -130,7 +131,8 @@ public:
 		, m_virtdest(0)
 	{
 		m_self = this;
-		set_name("Virtual destination", PRIORITY_INSIGNIFICANT);
+		this->set_name("Virtual destination", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtrecv(const virtrecv & other)
