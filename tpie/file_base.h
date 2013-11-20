@@ -92,8 +92,8 @@ public:
 	protected:
 		block_t & __block() {return *m_block;}
 		const block_t & __block() const {return *m_block;}
-		inline file_base & __file() {assert(m_file != 0); return *m_file;}
-		inline const file_base & __file() const {assert(m_file != 0); return *m_file;}
+		inline file_base & get_file() {assert(m_file != 0); return *m_file;}
+		inline const file_base & get_file() const {assert(m_file != 0); return *m_file;}
 
 		void update_block_core();
 
@@ -124,7 +124,7 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Fetch number of items per block.
 		///////////////////////////////////////////////////////////////////////
-		inline memory_size_type block_items() const {return __file().m_blockItems;}
+		inline memory_size_type block_items() const {return get_file().m_blockItems;}
 
 	protected:
 		///////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ public:
 		inline void write_update() {
 			m_block->dirty = true;
 			m_block->size = std::max(m_block->size, m_index);
-			__file().update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
+			get_file().update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
 
 	public:
@@ -165,9 +165,9 @@ public:
 		/// \brief Set up block buffers and offsets.
 		///////////////////////////////////////////////////////////////////////
 		inline void initialize() {
-			if (m_block != &__file().m_emptyBlock) __file().free_block(m_block);
+			if (m_block != &get_file().m_emptyBlock) get_file().free_block(m_block);
 			p_t::initialize();
-			m_block = &__file().m_emptyBlock;
+			m_block = &get_file().m_emptyBlock;
 		}
 	};
 

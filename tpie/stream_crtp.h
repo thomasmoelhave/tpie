@@ -48,7 +48,7 @@ public:
 	/// \param whence Move the offset relative to what.
 	/////////////////////////////////////////////////////////////////////////
 	inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception) {
-		assert(self().__file().is_open());
+		assert(self().get_file().is_open());
 		if (whence == end)
 			offset += self().size();
 		else if (whence == current) {
@@ -56,7 +56,7 @@ public:
 			if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
 				stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
 
-				if (new_index < self().__file().block_items()) {
+				if (new_index < self().get_file().block_items()) {
 					self().update_vars();
 					m_index = static_cast<memory_size_type>(new_index);
 					return;
@@ -68,8 +68,8 @@ public:
 		if (0 > offset || (stream_size_type)offset > self().size())
 			throw io_exception("Tried to seek out of file");
 		self().update_vars();
-		stream_size_type b = static_cast<stream_size_type>(offset) / self().__file().block_items();
-		m_index = static_cast<memory_size_type>(offset - b* self().__file().block_items());
+		stream_size_type b = static_cast<stream_size_type>(offset) / self().get_file().block_items();
+		m_index = static_cast<memory_size_type>(offset - b* self().get_file().block_items());
 		if (b == self().__block().number) {
 			m_nextBlock = std::numeric_limits<stream_size_type>::max();
 			m_nextIndex = std::numeric_limits<memory_size_type>::max();
@@ -88,10 +88,10 @@ public:
 	/// \returns The current offset in the stream
 	/////////////////////////////////////////////////////////////////////////
 	inline stream_size_type offset() const throw() {
-		assert(self().__file().is_open());
+		assert(self().get_file().is_open());
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 			return m_index + m_blockStartIndex;
-		return m_nextIndex + m_nextBlock * self().__file().block_items();
+		return m_nextIndex + m_nextBlock * self().get_file().block_items();
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ public:
 	/// \returns Whether or not we can read more items from the stream.
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read() const throw() {
-		assert(self().__file().is_open());
+		assert(self().get_file().is_open());
 		if (m_index < self().__block().size ) return true;
 		return offset() < self().size();
 	}
@@ -117,7 +117,7 @@ public:
 	/// \returns Whether or not we can read an item with read_back().
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read_back() const throw() {
-		assert(self().__file().is_open());
+		assert(self().get_file().is_open());
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 			return m_index > 0 || m_blockStartIndex > 0;
 		else
@@ -134,7 +134,7 @@ public:
 		// through the class interface.
 		// therefore, a const_cast is warranted.
 		const_cast<child_t&>(self()).update_vars();
-		return self().__file().file_size();
+		return self().get_file().file_size();
 	}
 
 protected:

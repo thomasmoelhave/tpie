@@ -169,8 +169,8 @@ protected:
 
 private:
 	friend class stream_crtp<file_stream_base>;
-	file_stream_base & __file() {return *this;}
-	const file_stream_base & __file() const {return *this;}
+	file_stream_base & get_file() {return *this;}
+	const file_stream_base & get_file() const {return *this;}
 	block_t & __block() {return m_block;}
 	const block_t & __block() const {return m_block;}
 	void update_block_core();
