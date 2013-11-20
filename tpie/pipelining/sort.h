@@ -93,6 +93,7 @@ public:
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 		this->set_memory_fraction(1.0);
+		this->set_plot_options(node::PLOT_BUFFERED);
 	}
 
 	virtual void propagate() override {
@@ -153,6 +154,7 @@ public:
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 		this->set_memory_fraction(1.0);
+		this->set_plot_options(node::PLOT_BUFFERED);
 	}
 
 	virtual void propagate() override {
@@ -220,6 +222,7 @@ public:
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
@@ -281,6 +284,7 @@ public:
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {

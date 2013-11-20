@@ -115,6 +115,7 @@ public:
 	pull_peek_t(const source_t & source) : source(source) {
 		add_pull_source(source);
 		set_name("Peek", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void begin() override {

@@ -52,23 +52,47 @@ namespace bits {
 
 typedef boost::unordered_map<const node *, size_t> nodes_t;
 
-void pipeline_base::plot(std::ostream & out) {
-	out << "digraph {\n";
+void pipeline_base::plot_impl(std::ostream & out, bool full) {
+	typedef tpie::pipelining::bits::node_map::id_t id_t;
+
 	node_map::ptr segmap = m_segmap->find_authority();
-	for (node_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
-		out << '"' << name(segmap, i->first) << "\";\n";
-	}
 	const node_map::relmap_t & relations = segmap->get_relations();
+	
+	boost::unordered_map<id_t, id_t> repr;
+	if (!full) {
+	 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+			id_t s = i->first;
+			id_t t = i->second.first;
+			if (i->second.second != pushes) std::swap(s,t);
+			if (segmap->get(s)->get_plot_options() & node::PLOT_SIMPLIFIED_HIDE)
+				repr[s] = t;
+		}
+	}
+	
+	out << "digraph {\n";
+	for (node_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
+		if (repr.count(i->first)) continue;
+		if (!full && (segmap->get(i->first)->get_plot_options() & node::PLOT_BUFFERED))
+			out << '"' << name(segmap, i->first) << "\" [shape=box];\n";
+		else
+			out << '"' << name(segmap, i->first) << "\";\n";
+	}
+
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+		id_t s = i->first;
+		id_t t = i->second.first;
+		if (i->second.second != pushes) std::swap(s,t);
+		if (repr.count(s)) continue;
+		while (repr.count(t)) t=repr[t];
 		switch (i->second.second) {
 			case pushes:
-				out << '"' << name(segmap, i->first) << "\" -> \"" << name(segmap, i->second.first) << "\";\n";
+				out << '"' << name(segmap, s) << "\" -> \"" << name(segmap, t) << "\";\n";
 				break;
 			case pulls:
-				out << '"' << name(segmap, i->second.first) << "\" -> \"" << name(segmap, i->first) << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
+				out << '"' << name(segmap, s) << "\" -> \"" << name(segmap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
 				break;
 			case depends:
-				out << '"' << name(segmap, i->second.first) << "\" -> \"" << name(segmap, i->first) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
+				out << '"' << name(segmap, s) << "\" -> \"" << name(segmap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
 				break;
 		}
 	}
