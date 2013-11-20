@@ -575,10 +575,11 @@ private:
 		m_streamBlocks = 0;
 		m_byteStreamAccessor.truncate(0);
 
-		// Since block_number == 0, seek(0) should short circuit
-		// and not do any I/O.
-		seek(0);
-		tp_assert(!(m_seekState != seek_state::none), "Unexpected seek state in truncate");
+		m_readOffset = 0;
+		m_offset = 0;
+		m_nextItem = m_bufferBegin;
+		m_seekState = seek_state::none;
+		uncache_read_writes();
 	}
 
 	void truncate_uncompressed(stream_size_type offset) {
