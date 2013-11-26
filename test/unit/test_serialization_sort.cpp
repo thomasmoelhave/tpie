@@ -35,6 +35,21 @@ public:
 	static void merge_runs(sorter & s) {
 		s.merge_runs();
 	}
+
+	class item_generator {
+	private:
+		stream_size_type m_items;
+		boost::rand48 m_rng;
+
+	public:
+		item_generator(stream_size_type bytes)
+			: m_items(bytes / sizeof(test_t))
+		{
+		}
+
+		stream_size_type items() const { return m_items; }
+		test_t operator()() { return m_rng(); }
+	};
 };
 
 int main(int argc, char ** argv) {

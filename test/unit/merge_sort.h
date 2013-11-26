@@ -67,6 +67,7 @@ template <typename Traits>
 class sort_tester {
 	typedef typename Traits::test_t test_t;
 	typedef typename Traits::sorter sorter;
+	typedef typename Traits::item_generator item_generator;
 
 static bool sort_test(memory_size_type m1,
 					  memory_size_type m2,
@@ -80,9 +81,10 @@ static bool sort_test(memory_size_type m1,
 	m2 *= 1024*1024;
 	m3 *= 1024*1024;
 	extraMemory *= 1024*1024;
-	stream_size_type items = static_cast<stream_size_type>(mb_data*1024/sizeof(test_t)*1024);
+	const stream_size_type bytes = static_cast<stream_size_type>(mb_data*(1024*1024));
+	item_generator gen(bytes);
+	const stream_size_type items = gen.items();
 	log_debug() << "sort_test with " << items << " items\n";
-	boost::rand48 rng;
 	relative_memory_usage m(extraMemory);
 	sorter s;
 	s.set_available_memory(m1, m2, m3);
@@ -92,7 +94,7 @@ static bool sort_test(memory_size_type m1,
 	s.begin();
 	if (!m.below()) return false;
 	for (stream_size_type i = 0; i < items; ++i) {
-		s.push(rng());
+		s.push(gen());
 		if (!m.below()) return false;
 	}
 	s.end();
