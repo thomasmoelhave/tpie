@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <queue>
+#include <set>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/node.h>
 
