@@ -29,7 +29,7 @@ using namespace tpie;
 
 class use_serialization_sorter {
 public:
-	typedef uint64_t test_t;
+	typedef std::vector<int> test_t;
 	typedef serialization_sorter<test_t, std::less<test_t> > sorter;
 
 	static void merge_runs(sorter & s) {
@@ -40,15 +40,30 @@ public:
 	private:
 		stream_size_type m_items;
 		boost::rand48 m_rng;
+		const static size_t expectedSize = 24;
+		const static size_t modulus = 2*expectedSize;
+		stream_size_type m_generated;
 
 	public:
 		item_generator(stream_size_type bytes)
-			: m_items(bytes / sizeof(test_t))
+			: m_items(bytes / sizeof(int) / expectedSize)
+			, m_generated(0)
 		{
 		}
 
+		~item_generator() {
+			log_info() << "serialization_sort item generator generated " << m_generated*sizeof(int) << " bytes" << std::endl;
+		}
+
 		stream_size_type items() const { return m_items; }
-		test_t operator()() { return m_rng(); }
+
+		test_t operator()() {
+			size_t length = m_rng() % modulus;
+			test_t res(length);
+			m_generated += length;
+			std::generate(res.begin(), res.end(), m_rng);
+			return res;
+		}
 	};
 };
 
