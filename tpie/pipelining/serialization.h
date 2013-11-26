@@ -156,6 +156,7 @@ public:
 	}
 
 	virtual void end() override {
+		rd.close();
 		delete m_stack;
 	}
 };
