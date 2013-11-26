@@ -33,11 +33,6 @@ struct item {
 	uint32_t c;
 	uint32_t d;
 
-	item & operator=(uint32_t v) {
-		a = v;
-		return *this;
-	}
-
 	item & operator=(uint64_t v) {
 		a = static_cast<uint32_t>(v);
 		return *this;
