@@ -223,6 +223,10 @@ stream_size_type serialization_writer_base::file_size() {
 
 } // namespace bits
 
+serialization_writer::~serialization_writer() {
+	close();
+}
+
 void serialization_writer::write_block() {
 	p_t::write_block(m_block.get(), m_index);
 	m_index = 0;
@@ -245,6 +249,10 @@ void serialization_writer::close() {
 	m_block.resize(0);
 	m_index = 0;
 	p_t::close(false);
+}
+
+serialization_reverse_writer::~serialization_reverse_writer() {
+	close();
 }
 
 void serialization_reverse_writer::write_block() {
