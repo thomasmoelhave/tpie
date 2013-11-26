@@ -39,7 +39,6 @@
 
 using tpie::uint64_t;
 
-static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}
 static const size_t TESTSIZE = 8*1024*1024;
 static const size_t ITEMS = TESTSIZE/sizeof(uint64_t);
@@ -62,12 +61,6 @@ struct movable_file_stream {
 		return *this;
 	}
 };
-
-movable_file_stream openstream() {
-	tpie::file_stream<uint64_t> fs;
-	fs.open(TEMPFILE);
-	return fs;
-}
 
 bool swap_test();
 
@@ -118,8 +111,9 @@ struct stream_tester {
 
 static bool array_test() {
 	try {
+		tpie::temp_file tmp;
 		Stream<uint64_t> fs;
-		fs.file().open(TEMPFILE);
+		fs.file().open(tmp.path());
 		tpie::memory_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
 		std::vector<uint64_t> data(items, 1);
 		fs.stream().write(data.begin(), data.end());
@@ -183,7 +177,8 @@ static bool truncate_test() {
 static bool extend_test() {
 	typedef int test_t;
 	Stream<test_t> fs;
-	fs.file().open(TEMPFILE);
+	tpie::temp_file tmp;
+	fs.file().open(tmp.path());
 	tpie::stream_size_type ante = 0;
 	tpie::stream_size_type pred = 1;
 	tpie::stream_size_type n = 1;
@@ -216,9 +211,10 @@ static bool odd_block_test() {
 	test_t initial_item;
 	for (size_t i = 0; i < initial_item.size(); ++i) initial_item[i] = static_cast<char>(i+42);
 
+	tpie::temp_file tmp;
 	{
 		Stream<test_t> fs;
-		fs.file().open(TEMPFILE);
+		fs.file().open(tmp.path());
 		test_t item = initial_item;
 		for (size_t i = 0; i < items; ++i) {
 			fs.stream().write(item);
@@ -228,7 +224,7 @@ static bool odd_block_test() {
 
 	{
 		Stream<test_t> fs;
-		fs.file().open(TEMPFILE);
+		fs.file().open(tmp.path());
 
 		test_t item = initial_item;
 		for (size_t i = 0; i < items; ++i) {
@@ -245,9 +241,10 @@ static bool odd_block_test() {
 }
 
 static bool backwards_test() {
+	tpie::temp_file tmp;
 	Stream<int> fs;
 
-	fs.file().open(TEMPFILE);
+	fs.file().open(tmp);
 	TEST_ENSURE(!fs.stream().can_read_back(), "can_read_back() after open()")
 
 	fs.stream().write(1);
@@ -316,7 +313,8 @@ struct stress_tester {
 	}
 
 	bool go() {
-		fs.file().open(TEMPFILE);
+		tpie::temp_file tmp;
+		fs.file().open(tmp.path());
 		boost::uniform_int<> todo(0, actionCount - 1);
 		const size_t stepEvery = 256;
 		tpie::progress_indicator_arrow pi("Test", actions/stepEvery);
@@ -574,11 +572,18 @@ static bool user_data_test() {
 
 }; // template stream_tester
 
+movable_file_stream openstream(tpie::temp_file & file) {
+	tpie::file_stream<uint64_t> fs;
+	fs.open(file.path());
+	return fs;
+}
+
 bool swap_test() {
-	// Write ITEMS items sequentially to TEMPFILE
+	// Write ITEMS items sequentially to the temporary file
+	tpie::temp_file tmp;
 	{
-		movable_file_stream fs;
-		fs = openstream();
+		movable_file_stream fs = openstream(tmp);
+
 		tpie::file_stream<uint64_t> s;
 		s.swap(*fs.fs);
 		for(size_t i=0; i < ITEMS; ++i) s.write(ITEM(i));
@@ -586,8 +591,7 @@ bool swap_test() {
 
 	// Sequential verify
 	{
-		movable_file_stream fs;
-		fs = openstream();
+		movable_file_stream fs = openstream(tmp);
 		tpie::file_stream<uint64_t> s;
 		s.swap(*fs.fs);
 		tpie::file_stream<uint64_t> t;
@@ -603,10 +607,10 @@ bool swap_test() {
 		s.swap(t);
 	}
 
-	// Write an ARRAYSIZE array ARRAYS times sequentially to TEMPFILE
+	// Write an ARRAYSIZE array ARRAYS times sequentially to the temporary file
 	{
 		tpie::file_stream<uint64_t> s;
-		s.open(TEMPFILE);
+		s.open(tmp.path());
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYSIZE; ++i) {
 			x[i] = ITEM(i);
@@ -617,7 +621,7 @@ bool swap_test() {
 	// Sequentially verify the arrays
 	{
 		tpie::file_stream<uint64_t> s;
-		s.open(TEMPFILE);
+		s.open(tmp.path());
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYS; ++i) {
 			TPIE_OS_SIZE_T len = ARRAYSIZE;
@@ -639,7 +643,7 @@ bool swap_test() {
 	// Random read/write of items
 	{
 		tpie::file_stream<uint64_t> s;
-		s.open(TEMPFILE);
+		s.open(tmp.path());
 		tpie::array<uint64_t> data(ITEMS);
 		for (size_t i=0; i < ITEMS; ++i) {
 			data[i] = ITEM(i);
@@ -671,10 +675,6 @@ bool swap_test() {
 	}
 
 	return true;
-}
-
-void remove_temp() {
-	boost::filesystem::remove(TEMPFILE);
 }
 
 bool peek_skip_test_1() {
@@ -745,8 +745,6 @@ bool reopen() {
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.setup(remove_temp)
-		.finish(remove_temp)
 		.test(stream_tester<file_stream>::array_test, "array")
 		.test(stream_tester<file_colon_colon_stream>::array_test, "array_file")
 		.test(swap_test, "basic")

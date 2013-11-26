@@ -37,7 +37,6 @@
 
 using tpie::uint64_t;
 
-static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}
 static const size_t TESTSIZE = 8*1024*1024;
 static const size_t ITEMS = TESTSIZE/sizeof(uint64_t);
@@ -45,17 +44,18 @@ static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
 bool basic() {
-	boost::filesystem::remove(TEMPFILE);
 
-	// Write ITEMS items sequentially to TEMPFILE
+	tpie::temp_file tmp;
+
+	// Write ITEMS items sequentially to the temporary file
 	{
-		tpie::ami::stream<uint64_t> s(TEMPFILE, tpie::ami::WRITE_STREAM);
+		tpie::ami::stream<uint64_t> s(tmp.path(), tpie::ami::WRITE_STREAM);
 		for(size_t i=0; i < ITEMS; ++i) s.write_item(ITEM(i));
 	}
 
 	// Sequential verify
 	{
-		tpie::ami::stream<uint64_t> s(TEMPFILE, tpie::ami::READ_STREAM);
+		tpie::ami::stream<uint64_t> s(tmp.path(), tpie::ami::READ_STREAM);
 		uint64_t *x = 0;
 		for(size_t i=0; i < ITEMS; ++i) {
 			s.read_item(&x);
@@ -66,9 +66,9 @@ bool basic() {
 		}
 	}
 
-	// Write an ARRAYSIZE array ARRAYS times sequentially to TEMPFILE
+	// Write an ARRAYSIZE array ARRAYS times sequentially to the temporary file
 	{
-		tpie::ami::stream<uint64_t> s(TEMPFILE, tpie::ami::WRITE_STREAM);
+		tpie::ami::stream<uint64_t> s(tmp.path(), tpie::ami::WRITE_STREAM);
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYSIZE; ++i) {
 			x[i] = ITEM(i);
@@ -78,7 +78,7 @@ bool basic() {
 
 	// Sequentially verify the arrays
 	{
-		tpie::ami::stream<uint64_t> s(TEMPFILE, tpie::ami::READ_STREAM);
+		tpie::ami::stream<uint64_t> s(tmp.path(), tpie::ami::READ_STREAM);
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYS; ++i) {
 			TPIE_OS_SIZE_T len = ARRAYSIZE;
@@ -98,7 +98,7 @@ bool basic() {
 
 	// Random read/write of items
 	{
-		tpie::ami::stream<uint64_t> s(TEMPFILE, tpie::ami::WRITE_STREAM);
+		tpie::ami::stream<uint64_t> s(tmp.path(), tpie::ami::WRITE_STREAM);
 		tpie::array<uint64_t> data(ITEMS);
 		for (size_t i=0; i < ITEMS; ++i) {
 			data[i] = ITEM(i);

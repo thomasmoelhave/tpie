@@ -104,25 +104,21 @@ bool vector_multiply_test() {
 	return check_test_vectors();
 }
 
-void file_system_cleanup() {
-	boost::filesystem::remove("input");
-	boost::filesystem::remove("output");
-}
-
 bool file_stream_test() {
-	file_system_cleanup();
+	tpie::temp_file input_file;
+	tpie::temp_file output_file;
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		in.write(1);
 		in.write(2);
 		in.write(3);
 	}
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		// p is actually an input_t<multiply_t<multiply_t<output_t<test_t> > > >
 		pipeline p = (input(in) | multiply(3) | multiply(2) | output(out));
 		p.plot(log_info());
@@ -130,7 +126,7 @@ bool file_stream_test() {
 	}
 	{
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		if (6 != out.read()) return false;
 		if (12 != out.read()) return false;
 		if (18 != out.read()) return false;
@@ -139,19 +135,20 @@ bool file_stream_test() {
 }
 
 bool file_stream_pull_test() {
-	file_system_cleanup();
+	tpie::temp_file input_file;
+	tpie::temp_file output_file;
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		in.write(1);
 		in.write(2);
 		in.write(3);
 	}
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		pipeline p = (pull_input(in) | pull_identity() | pull_output(out));
 		p.get_node_map()->dump(log_info());
 		p.plot(log_info());
@@ -159,7 +156,7 @@ bool file_stream_pull_test() {
 	}
 	{
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		if (1 != out.read()) return false;
 		if (2 != out.read()) return false;
 		if (3 != out.read()) return false;
@@ -168,26 +165,27 @@ bool file_stream_pull_test() {
 }
 
 bool file_stream_alt_push_test() {
-	file_system_cleanup();
+	tpie::temp_file input_file;
+	tpie::temp_file output_file;
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		in.write(1);
 		in.write(2);
 		in.write(3);
 	}
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		pipeline p = (input(in) | alt_identity() | output(out));
 		p.plot(log_info());
 		p();
 	}
 	{
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		if (1 != out.read()) return false;
 		if (2 != out.read()) return false;
 		if (3 != out.read()) return false;
@@ -196,9 +194,11 @@ bool file_stream_alt_push_test() {
 }
 
 bool merge_test() {
+	tpie::temp_file input_file;
+	tpie::temp_file output_file;
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		pipeline p = input_vector(inputvector) | output(in);
 		p.plot(log_info());
 		p();
@@ -210,9 +210,9 @@ bool merge_test() {
 	}
 	{
 		file_stream<test_t> in;
-		in.open("input");
+		in.open(input_file.path());
 		file_stream<test_t> out;
-		out.open("output");
+		out.open(output_file.path());
 		std::vector<test_t> inputvector2 = inputvector;
 		pipeline p = input_vector(inputvector) | merge(pull_input(in)) | output(out);
 		p.plot(log_info());
@@ -220,7 +220,7 @@ bool merge_test() {
 	}
 	{
 		file_stream<test_t> in;
-		in.open("output");
+		in.open(output_file.path());
 		pipeline p = input(in) | output_vector(outputvector);
 		p.plot(log_info());
 		p();
@@ -1686,7 +1686,6 @@ bool copy_ctor_test() {
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
-	.setup(file_system_cleanup)
 	.test(vector_multiply_test, "vector")
 	.test(file_stream_test, "filestream")
 	.test(file_stream_pull_test, "fspull")
