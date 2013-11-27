@@ -131,8 +131,8 @@ static bool array_test() {
 
 static bool truncate_test() {
 	typedef int test_t;
-	Stream<test_t> fs;
 	tpie::temp_file tempFile;
+	Stream<test_t> fs;
 	fs.file().open(tempFile);
 	for (size_t i = 0; i < 10000000; ++i)
 		fs.stream().write(42);
