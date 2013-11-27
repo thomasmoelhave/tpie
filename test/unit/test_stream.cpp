@@ -176,8 +176,8 @@ static bool truncate_test() {
 // test using truncate to extend the stream
 static bool extend_test() {
 	typedef int test_t;
-	Stream<test_t> fs;
 	tpie::temp_file tmp;
+	Stream<test_t> fs;
 	fs.file().open(tmp.path());
 	tpie::stream_size_type ante = 0;
 	tpie::stream_size_type pred = 1;
