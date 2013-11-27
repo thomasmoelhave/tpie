@@ -116,6 +116,7 @@ private:
 	friend class serializer;
 
 public:
+	serialization_writer();
 	~serialization_writer();
 
 	void open(std::string path);
@@ -208,6 +209,7 @@ class serialization_reverse_writer : public bits::serialization_writer_base {
 	friend class serializer;
 
 public:
+	serialization_reverse_writer();
 	~serialization_reverse_writer();
 
 	void open(std::string path);
