@@ -116,6 +116,7 @@ set (HEADERS
 		array_view_base.h
 		array_view.h
 		hash_map.h
+		hash.h
 		prime.h
 		concepts.h
 		concept_doc.h
@@ -143,6 +144,7 @@ set (SOURCES
 	progress_indicator_base.cpp
 	progress_indicator_subindicator.cpp
 	serialization_stream.cpp
+	hash.cpp
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
