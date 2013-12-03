@@ -416,13 +416,13 @@ private:
 /// \brief Constructs a reverser node stored in external memory. Reverses
 /// the stream and creates a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<factory_0<bits::reverser_t> > reverser() {return factory_0<bits::reverser_t>();}
+typedef pipe_middle<factory_0<bits::reverser_t> > reverser;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Constructs a reverser node stored in internal memory. Reverses
 /// the stream and creates a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<factory_0<bits::internal_reverser_t> > internal_reverser() {return factory_0<bits::internal_reverser_t>();}
+typedef pipe_middle<factory_0<bits::internal_reverser_t> > internal_reverser;
 
 } // namespace pipelining
 
