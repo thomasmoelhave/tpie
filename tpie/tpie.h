@@ -49,8 +49,10 @@ enum subsystem {
 	JOB_MANAGER=16,
 	/** \brief Capture fractions. */
 	CAPTURE_FRACTIONS=32,
+	/** \brief Generate random hashcodes for tabulation hashing*/
+	HASH=64,
 	/** \brief Alias for all default subsystems. */
-    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER
+    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | HASH
 };
 
 ///////////////////////////////////////////////////////////////////////////////
