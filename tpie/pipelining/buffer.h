@@ -219,9 +219,7 @@ public:
 	output_t output;
 };
 
-inline pipe_middle<factory_0<buffer_t> > buffer() {
-	return factory_0<buffer_t>();
-}
+typedef pipe_middle<factory_0<buffer_t> > buffer;
 
 } // namespace pipelining
 
