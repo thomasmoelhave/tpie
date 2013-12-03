@@ -25,6 +25,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include <vector>
+#include <stack>
 #include <boost/shared_ptr.hpp>
 #include <tpie/config.h>
 #include <tpie/logstream.h>
@@ -34,6 +35,8 @@ namespace tpie {
 
 /** A simple logger that writes messages to a tpie temporary file */
 class file_log_target: public log_target {
+private:
+	std::stack<std::string> groups;
 public:
 	std::ofstream m_out;
 	std::string m_path;
@@ -49,10 +52,25 @@ public:
 	 * \param message content of message
 	 * */
 	void log(log_level level, const char * message, size_t);
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new logging group. All console output that occurs after 
+	/// this will appear in the same visual group.
+	///////////////////////////////////////////////////////////////////////////////
+	void begin_group(const std::string & name);
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Closes the most recently created logging group.
+	///////////////////////////////////////////////////////////////////////////////
+	void end_group();
+private:
+	std::string build_prefix(size_t length);
 };
 
 /** A simple logger that writes messages to stderr */
 class stderr_log_target: public log_target {
+private:
+	std::stack<std::string> groups;
 public:
 	log_level m_threshold;
 
@@ -67,6 +85,19 @@ public:
 	 * \param size lenght of message array
 	 * */
 	void log(log_level level, const char * message, size_t size);
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new logging group. All console output that occurs after 
+	/// this will appear in the same visual group.
+	///////////////////////////////////////////////////////////////////////////////
+	void begin_group(const std::string & name);
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Closes the most recently created logging group.
+	///////////////////////////////////////////////////////////////////////////////
+	void end_group();
+private:
+	std::string build_prefix(size_t length);	
 };
 
 

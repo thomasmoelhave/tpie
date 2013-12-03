@@ -34,16 +34,82 @@ tpie::file_log_target::file_log_target(log_level threshold): m_threshold(thresho
 
 void tpie::file_log_target::log(log_level level, const char * message, size_t) {
 	if (level > m_threshold) return;
-	m_out << message;
+
+	if(LOG_DEBUG > level) { // print without indentation
+		m_out << message;
+		m_out.flush();
+		return;
+	}
+
+	m_out << build_prefix(groups.size()) << " " << message;
 	m_out.flush();
+}
+
+std::string tpie::file_log_target::build_prefix(size_t size) {
+	return std::string(size, '|');
+}
+
+void tpie::file_log_target::begin_group(const std::string & name) {
+	if(LOG_DEBUG > m_threshold) return;
+
+	groups.push(name);
+
+	m_out << build_prefix(groups.size()-1) << "> " << "Entering " << name << std::endl;
+}
+
+void tpie::file_log_target::end_group() {
+	if(LOG_DEBUG > m_threshold) return;
+
+	m_out << build_prefix(groups.size()-1) << "x " << "Leaving " << groups.top() << std::endl;
+	groups.pop();
 }
 
 tpie::stderr_log_target::stderr_log_target(log_level threshold): m_threshold(threshold) {}
 
+std::string tpie::stderr_log_target::build_prefix(size_t size) {
+	std::string prefix;
+	for(size_t i = 0; i < size; ++i) prefix += "|";
+	return prefix;
+}
+
 void tpie::stderr_log_target::log(log_level level, const char * message, size_t size) {
 	if (level > m_threshold) return;
+
+	if(LOG_DEBUG > level) { // print without indentation
+		fwrite(message, 1, size, stderr);
+		return;
+	}
+
+	std::string prefix = build_prefix(groups.size()) + " ";
+
+	fwrite(prefix.c_str(), 1, prefix.size(), stderr);
 	fwrite(message, 1, size, stderr);
+
 }	
+
+void tpie::stderr_log_target::begin_group(const std::string & name) {
+	if(LOG_DEBUG > m_threshold) return;
+
+	groups.push(name);
+	
+	std::string prefix = build_prefix(groups.size()-1) + "> ";
+	std::string text = "Entering " + name + "\n";
+
+	fwrite(prefix.c_str(), sizeof(char), prefix.size(), stderr);
+	fwrite(text.c_str(), sizeof(char), text.size(), stderr);
+}
+
+void tpie::stderr_log_target::end_group() {
+	if(LOG_DEBUG > m_threshold) return;
+
+	std::string text = "Leaving " + groups.top() + "\n";
+	std::string prefix = build_prefix(groups.size()-1) + "x ";
+
+	groups.pop();
+
+	fwrite(prefix.c_str(), sizeof(char), prefix.size(), stderr);	
+	fwrite(text.c_str(), sizeof(char), text.size(), stderr);
+}
 
 
 

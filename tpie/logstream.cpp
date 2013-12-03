@@ -79,6 +79,24 @@ void remove_log_target(log_target * t) {
 	}
 }
 
+void begin_log_group(const std::string & name) {
+	for(size_t i = 0; i < log_targets.size(); ++i)
+		log_targets[i]->begin_group(name);
+}
+
+void end_log_group() {
+	for(size_t i = 0; i < log_targets.size(); ++i)
+		log_targets[i]->end_group();
+}
+
+log_group::log_group(const std::string & name)  {
+	begin_log_group(name);
+}
+
+log_group::~log_group()  {
+	end_log_group();
+}
+
 } //namespace tpie
 
 
