@@ -436,17 +436,13 @@ cout_logger() {
 	return factory_1<bits::ostream_logger_t, std::ostream &>(std::cout);
 }
 
-inline pipe_middle<factory_0<bits::identity_t> > identity() {
-	return pipe_middle<factory_0<bits::identity_t> >();
-}
+typedef pipe_middle<factory_0<bits::identity_t> > identity;
 
 inline pullpipe_middle<factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> > > pull_identity() {
 	return factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> >(factory_0<bits::identity_t>());
 }
 
-inline pullpipe_middle<factory_0<bits::pull_peek_t> > pull_peek() {
-	return factory_0<bits::pull_peek_t>();
-}
+typedef pullpipe_middle<factory_0<bits::pull_peek_t> > pull_peek;
 
 inline
 pipe_middle<factory_1<
