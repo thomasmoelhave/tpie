@@ -24,6 +24,7 @@
 #include <tpie/prime.h>
 #include <tpie/memory.h>
 #include <tpie/job.h>
+#include <tpie/hash.h>
 
 namespace {
 static tpie::memory_size_type the_block_size=0;
@@ -51,6 +52,9 @@ void tpie_init(int subsystems) {
 
 	if (subsystems & JOB_MANAGER)
 		init_job();
+
+	if (subsystems & HASH)
+		init_hash();
 }
 
 void tpie_finish(int subsystems) {
