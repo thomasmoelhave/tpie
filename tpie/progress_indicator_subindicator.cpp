@@ -41,9 +41,10 @@ void progress_indicator_subindicator::pop_breadcrumb() {
 progress_indicator_subindicator::progress_indicator_subindicator(progress_indicator_base * parent,
 																 stream_size_type outerRange,
 																 const char * crumb,
-																 description_importance importance):
+																 description_importance importance,
+																 log_group_mode logGroupMode):
 	progress_indicator_base(0) {
-	setup(parent, outerRange, crumb, importance);
+	setup(parent, outerRange, crumb, importance, logGroupMode);
 }
 
 
@@ -53,11 +54,13 @@ progress_indicator_subindicator::progress_indicator_subindicator():
 void progress_indicator_subindicator::setup(progress_indicator_base * parent,
 											stream_size_type outerRange,
 											const char * crumb,
-											description_importance importance) {
+											description_importance importance,
+											log_group_mode logGroupMode) {
 	m_parent = parent;
 	m_outerRange = outerRange;
 	m_importance = importance;
 	m_oldValue = 0;
+	m_logGroupMode = logGroupMode;
 #ifndef TPIE_NDEBUG
 	m_init_called = false;
 	m_done_called = false;
@@ -101,6 +104,9 @@ void progress_indicator_subindicator::init(stream_size_type range) {
 #endif
 	if (!m_crumb.empty() && m_parent) m_parent->push_breadcrumb(m_crumb.c_str(), IMPORTANCE_MAJOR);
 	progress_indicator_base::init(range);
+
+	if(m_logGroupMode == LOG_GROUPS_ENABLED)
+		begin_log_group(m_crumb);
 }
 
 void progress_indicator_subindicator::done() {
@@ -108,6 +114,9 @@ void progress_indicator_subindicator::done() {
 	softassert(m_init_called);
 	softassert(!m_done_called);
 	m_done_called=true;
+
+	if(m_logGroupMode == LOG_GROUPS_ENABLED)
+		end_log_group();
 #endif
 	if (!m_crumb.empty() && m_parent) m_parent->pop_breadcrumb();
 	progress_indicator_base::done();
