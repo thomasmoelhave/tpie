@@ -82,7 +82,7 @@ public:
 	}
 
 	~progress_indicators() {
-		fp->done();
+		if (fp) fp->done();
 		for (size_t i = 0; i < m_progressIndicators.size(); ++i) {
 			delete m_progressIndicators[i];
 		}
@@ -91,13 +91,40 @@ public:
 		fp = NULL;
 	}
 
-	void init(const std::vector<std::vector<node *> > & phases) {
-		// TODO initialize progress indicators, get phase names
-
+	void init(stream_size_type n, progress_indicator_base * pi, const std::vector<std::vector<node *> > & phases) {
+		fp = new fractional_progress(pi);
+		const size_t N = phases.size();
+		m_progressIndicators.resize(N);
+		for (size_t i = 0; i < N; ++i) {
+			std::string uid = get_phase_uid(phases[i]);
+			std::string name = get_phase_name(phases[i]);
+			m_progressIndicators[i] = new progress_indicator_subindicator(
+				fp, uid.c_str(), TPIE_FSI, n, name.c_str());
+		}
 		fp->init();
 	}
 
 private:
+	std::string get_phase_uid(const std::vector<node *> & phase) {
+		std::stringstream uid;
+		for (size_t i = 0; i < phase.size(); ++i) {
+			uid << typeid(*phase[i]).name() << ':';
+		}
+		return uid.str();
+	}
+
+	std::string get_phase_name(const std::vector<node *> & phase) {
+		priority_type highest = std::numeric_limits<priority_type>::min();
+		size_t highest_node = 0;
+		for (size_t i = 0; i < phase.size(); ++i) {
+			if (phase[i]->get_name_priority() > highest) {
+				highest_node = i;
+				highest = phase[i]->get_name_priority();
+			}
+		}
+		return phase[highest_node]->get_name();
+	}
+
 	friend class phase_progress_indicator;
 
 	fractional_progress * fp;
@@ -147,23 +174,16 @@ private:
 
 class runtime {
 	node_map::ptr m_nodeMap;
-	stream_size_type m_items;
-	progress_indicator_base * m_progress;
-	memory_size_type m_memory;
 
 public:
-	runtime(node_map::ptr nodeMap,
-			stream_size_type items,
-			progress_indicator_base * progress,
-			memory_size_type memory)
+	runtime(node_map::ptr nodeMap)
 		: m_nodeMap(nodeMap)
-		, m_items(items)
-		, m_progress(progress)
-		, m_memory(memory)
 	{
 	}
 
-	void go() {
+	void go(stream_size_type items,
+			progress_indicator_base * progress,
+			memory_size_type memory) {
 		// Partition nodes into phases (using union-find)
 		std::map<node *, size_t> phaseMap;
 		get_phase_map(*nodeMap, phaseMap);
@@ -183,16 +203,16 @@ public:
 		get_actor_graphs(phases, actor);
 
 		// Check that each phase has at least one initiator
-		ensure_initiators(phases);
+		ensure_initiators(*nodeMap, phases);
 
 		// Toposort item flow graph for each phase and call node::prepare in item source to item sink order
 		prepare_all(itemFlow);
 
 		// Gather node memory requirements and assign memory to each phase
-		assign_memory(phases);
+		assign_memory(phases, memory);
 
 		// Construct fractional progress indicators (getting the name of each phase)
-		progress_indicators pi;
+		progress_indicators pi(progress);
 		pi.init(phases);
 
 		for (size_t i = 0; i < phases.size(); ++i) {
@@ -204,9 +224,8 @@ public:
 			// call begin in leaf to root actor order
 			begin_end beginEnd(actor[i]);
 			// call go on initiators
-			go_initators(phases[i]);
-			// call end in root to leaf actor order
-			//begin_end::~begin_end
+			go_initators(phases[i], phaseProgress.get());
+			// call end in root to leaf actor order in begin_end dtor
 		}
 	}
 
@@ -255,6 +274,23 @@ private:
 		}
 	}
 
+	// Compute the inverse of a permutation f : {0, 1, ... N-1} -> {0, 1, ... N-1}
+	static std::vector<size_t> inverse_permutation(const std::vector<size_t> & f) {
+		std::vector<size_t> result(f.size(), f.size());
+		for (size_t i = 0; i < f.size(); ++i) {
+			if (f[i] >= f.size())
+				throw tpie::exception("inverse_permutation: f has bad range");
+			if (result[f[i]] != f.size())
+				throw tpie::exception("inverse_permutation: f is not injective");
+			result[f[i]] = i;
+		}
+		for (size_t i = 0; i < result.size(); ++i) {
+			if (result[i] == f.size())
+				throw tpie::exception("inverse_permutation: f is not surjective");
+		}
+		return result;
+	}
+
 	static get_phases(const std::map<node *, size_t> & phaseMap,
 					  const graph<size_t> & phaseGraph,
 					  std::vector<bool> & evacuateWhenDone,
@@ -267,9 +303,7 @@ private:
 
 		// Compute inverse permutation such that
 		// topoOrderMap[i] is the time at which we run phase i.
-		std::vector<size_t> topoOrderMap(topologicalOrder.size());
-		for (size_t i = 0; i < topologicalOrder.size(); ++i)
-			topoOrderMap[topologicalOrder[i]] = i;
+		std::vector<size_t> topoOrderMap = inverse_permutation(topologicalOrder);
 
 		// Distribute nodes according to the topological order
 		phases.resize(topologicalOrder.size());
@@ -320,17 +354,26 @@ private:
 		}
 	}
 
+	static bool is_initiator(node_map & m, node * n) {
+		node_map::id_t id = n->get_id();
+		return m.in_degree(id, pushes) == 0 && m.in_degree(id, pulls) == 0;
+	}
+
+	static bool has_initiator(node_map & m, const std::vector<node *> & phase) {
+		for (size_t i = 0; i < phase.size(); ++i) {
+			if (is_initiator(m, phase[i])) return true;
+		}
+		return false;
+	}
+
 	static void ensure_initiators(const std::vector<std::vector<node *> > & phases) {
 		for (size_t i = 0; i < phases.size(); ++i) {
-			// TODO
-			/*
 			if (!has_initiator(phases[i]))
 				throw no_initiator_node();
-			*/
 		}
 	}
 
-	static void prepare_all(const std::vector<graph<node *> > itemFlow) {
+	static void prepare_all(const std::vector<graph<node *> > & itemFlow) {
 		for (size_t i = 0; i < itemFlow.size(); ++i) {
 			const graph<node *> & g = itemFlow[i];
 			std::vector<node *> topoOrder;
@@ -358,8 +401,14 @@ private:
 		}
 	}
 
-	static void go_initators(const std::vector<node *> phase) {
-		// TODO identify initiators and call go
+	static void go_initators(const std::vector<node *> phase, progress_indicator_base * pi) {
+		std::vector<node *> initiators;
+		for (size_t i = 0; i < phase.size(); ++i) {
+			if (is_initiator(m, phase[i])) initiators.push_back(phase[i]);
+		}
+		for (size_t i = 0; i < initiators.size(); ++i) {
+			initiators[i]->go(pi);
+		}
 	}
 
 

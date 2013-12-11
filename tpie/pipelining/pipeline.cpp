@@ -100,10 +100,14 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 }
 
 void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type initialMemory) {
+	node_map::ptr map = m_segmap->find_authority();
+	runtime rt(map, items, &pi, initialMemory);
+	rt.go();
+
+	/*
 	typedef std::vector<phase> phases_t;
 	typedef phases_t::const_iterator it;
 
-	node_map::ptr map = m_segmap->find_authority();
 	graph_traits g(*map);
 	const phases_t & phases = g.phases();
 	if (initialMemory == 0) log_warning() << "No memory for pipelining" << std::endl;
@@ -124,6 +128,7 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 #endif // TPIE_NDEBUG
 	}
 	g.go_all(items, pi);
+	*/
 }
 
 void pipeline_base::forward_any(std::string key, const boost::any & value) {
