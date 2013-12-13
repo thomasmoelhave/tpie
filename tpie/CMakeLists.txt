@@ -6,6 +6,7 @@ set (HEADERS
 		access_type.h
 		atomic.h
 		backtrace.h
+		blocking_queue.h
 		cache_hint.h
 		comparator.h
 		config.h.cmake
