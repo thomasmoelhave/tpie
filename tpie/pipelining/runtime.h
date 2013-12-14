@@ -68,7 +68,7 @@ private:
 		}
 
 		size_t visit(T u) {
-			if (m_finishTime.count(u)) return;
+			if (m_finishTime.count(u)) return m_finishTime[u];
 			m_finishTime[u] = 0;
 			++m_time;
 			const std::vector<T> & edgeList = m_edgeLists[u];
@@ -182,7 +182,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class begin_end {
 public:
-	begin_end(graph<node> & actorGraph) {
+	begin_end(graph<node *> & actorGraph) {
 		actorGraph.topological_order(m_topologicalOrder);
 		for (size_t i = 0; i < m_topologicalOrder.size(); ++i)
 			m_topologicalOrder[i]->begin();
@@ -198,24 +198,25 @@ private:
 };
 
 class runtime {
-	node_map::ptr m_nodeMap;
+	node_map & m_nodeMap;
 
 public:
 	runtime(node_map::ptr nodeMap)
-		: m_nodeMap(nodeMap)
+		: m_nodeMap(*nodeMap)
 	{
 	}
 
 	void go(stream_size_type items,
 			progress_indicator_base * progress,
-			memory_size_type memory) {
+			memory_size_type memory)
+	{
 		// Partition nodes into phases (using union-find)
 		std::map<node *, size_t> phaseMap;
-		get_phase_map(*nodeMap, phaseMap);
+		get_phase_map(phaseMap);
 
 		// Build phase graph
 		graph<size_t> phaseGraph;
-		get_phase_graph(*nodeMap, phaseMap, phaseGraph);
+		get_phase_graph(phaseMap, phaseGraph);
 
 		std::vector<std::vector<node *> > phases;
 		std::vector<bool> evacuateWhenDone;
@@ -228,15 +229,17 @@ public:
 		get_actor_graphs(phases, actor);
 
 		// Check that each phase has at least one initiator
-		ensure_initiators(*nodeMap, phases);
+		ensure_initiators(phases);
 
-		// Toposort item flow graph for each phase and call node::prepare in item source to item sink order
+		// Toposort item flow graph for each phase
+		// and call node::prepare in item source to item sink order
 		prepare_all(itemFlow);
 
 		// Gather node memory requirements and assign memory to each phase
 		assign_memory(phases, memory);
 
-		// Construct fractional progress indicators (getting the name of each phase)
+		// Construct fractional progress indicators
+		// (getting the name of each phase)
 		progress_indicators pi(progress);
 		pi.init(phases);
 
@@ -254,12 +257,10 @@ public:
 		}
 	}
 
-private:
-	static
-	get_phase_map(node_map & nodeMap, std::map<node *, size_t> & phaseMap) {
+	get_phase_map(std::map<node *, size_t> & phaseMap) {
 		std::map<node *, size_t> numbering;
 		std::vector<node *> nodeOrder;
-		for (node_map::map_it i = nodeMap.begin(); i != nodeMap.end(); ++i) {
+		for (node_map::map_it i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
 			numbering[i->second] = nodeOrder.size();
 			nodeOrder.push_back(i->second);
 		}
@@ -286,12 +287,10 @@ private:
 		}
 	}
 
-	static
-	get_phase_graph(const node_map & nodeMap,
-					const std::map<node *, size_t> & phaseMap,
+	get_phase_graph(const std::map<node *, size_t> & phaseMap,
 					graph<size_t> & phaseGraph)
 	{
-		const node_map::relmap_t & relations = nodeMap.get_relations();
+		const node_map::relmap_t & relations = m_nodeMap.get_relations();
 		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 			if (i->second.second == depends)
 				phaseGraph.add_edge(phaseMap[i->second.first],
@@ -316,10 +315,10 @@ private:
 		return result;
 	}
 
-	static get_phases(const std::map<node *, size_t> & phaseMap,
-					  const graph<size_t> & phaseGraph,
-					  std::vector<bool> & evacuateWhenDone,
-					  std::vector<std::vector<node *> > & phases)
+	get_phases(const std::map<node *, size_t> & phaseMap,
+			   const graph<size_t> & phaseGraph,
+			   std::vector<bool> & evacuateWhenDone,
+			   std::vector<std::vector<node *> > & phases)
 	{
 		std::vector<size_t> topologicalOrder;
 		phaseGraph.topological_order(topologicalOrder);
@@ -345,33 +344,30 @@ private:
 		}
 	}
 
-	static get_item_flow_graphs(const node_map & nodeMap,
-								std::vector<std::vector<node *> > & phases,
-								std::vector<graph<node *> > & itemFlow)
+	get_item_flow_graphs(std::vector<std::vector<node *> > & phases,
+						 std::vector<graph<node *> > & itemFlow)
 	{
 		itemFlow.resize(phases.size());
 		for (size_t i = 0; i < phases.size(); ++i)
-			get_graph(nodeMap, phases[i], itemFlow[i], true);
+			get_graph(phases[i], itemFlow[i], true);
 	}
 
-	static get_actor_graphs(const node_map & nodeMap,
-							std::vector<std::vector<node *> > & phases,
-							std::vector<graph<node *> > & actors) {
+	get_actor_graphs(std::vector<std::vector<node *> > & phases,
+					 std::vector<graph<node *> > & actors) {
 		actors.resize(phases.size());
 		for (size_t i = 0; i < phases.size(); ++i)
-			get_graph(nodeMap, phases[i], actors[i], false);
+			get_graph(phases[i], actors[i], false);
 	}
 
-	static get_graph(const node_map & nodeMap, std::vector<node *> & phase,
-					 graph<node *> & result, bool itemFlow)
-	{
-		const node_map::relmap_t & relations = nodeMap.get_relations();
+	get_graph(std::vector<node *> & phase, graph<node *> & result,
+			  bool itemFlow) {
+		const node_map::relmap_t & relations = m_nodeMap.get_relations();
 		typedef node_map::relmapit relmapit;
 		for (size_t i = 0; i < phase.size(); ++i) {
 			std::pair<relmapit, relmapit> edges = relations.equal_range(phase[i]->get_id());
 			for (relmapit j = edges.first; j != edges.second; ++j) {
-				node * u = nodeMap.find(j->first);
-				node * v = nodeMap.find(j->second.first);
+				node * u = m_nodeMap.find(j->first);
+				node * v = m_nodeMap.find(j->second.first);
 				if (j->second.second == depends) continue;
 				if (itemFlow && j->second.second == pulls) std::swap(u, v);
 				result.add_edge(u, v);
@@ -379,14 +375,14 @@ private:
 		}
 	}
 
-	static bool is_initiator(node_map & m, node * n) {
+	bool is_initiator(node * n) {
 		node_map::id_t id = n->get_id();
-		return m.in_degree(id, pushes) == 0 && m.in_degree(id, pulls) == 0;
+		return m_nodeMap.in_degree(id, pushes) == 0 && m_nodeMap.in_degree(id, pulls) == 0;
 	}
 
-	static bool has_initiator(node_map & m, const std::vector<node *> & phase) {
+	bool has_initiator(const std::vector<node *> & phase) {
 		for (size_t i = 0; i < phase.size(); ++i) {
-			if (is_initiator(m, phase[i])) return true;
+			if (is_initiator(phase[i])) return true;
 		}
 		return false;
 	}
