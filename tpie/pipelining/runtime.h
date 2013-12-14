@@ -26,6 +26,13 @@ namespace pipelining {
 
 namespace bits {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Directed graph with nodes of type T.
+///
+/// The node set is implied by the endpoints of the edges.
+///
+/// Computes the topological order using depth first search.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class graph {
 public:
@@ -76,6 +83,15 @@ private:
 	};
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Helper class for RAII-style progress indicators.
+///
+/// init calls fractional_progress::init,
+/// and the destructor calls fractional_progress::done.
+///
+/// Instantiate phase_progress_indicators
+/// to call init and done on subindicators.
+///////////////////////////////////////////////////////////////////////////////
 class progress_indicators {
 public:
 	progress_indicators() {
@@ -131,6 +147,10 @@ private:
 	std::vector<progress_indicator_subindicator *> m_progressIndicators;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// RAII-style progress indicator for a single phase.
+/// Constructor computes number of steps and calls init; destructor calls done.
+///////////////////////////////////////////////////////////////////////////////
 class phase_progress_indicator {
 public:
 	phase_progress_indicator(progress_indicators & pi, size_t phaseNumber,
@@ -155,6 +175,11 @@ private:
 	progress_indicator_subindicator * m_pi;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// RAII-style begin/end handling on nodes.
+/// The constructor calls begin on nodes in the phase in actor graph,
+/// and the destructor calls end in the reverse order.
+///////////////////////////////////////////////////////////////////////////////
 class begin_end {
 public:
 	begin_end(graph<node> & actorGraph) {
