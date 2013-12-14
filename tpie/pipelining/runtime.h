@@ -197,6 +197,77 @@ private:
 	std::vector<node *> m_topologicalOrder;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// Helper methods for memory assignment.
+/// The memory assignment algorithm is in runtime::assign_phase_memory.
+///////////////////////////////////////////////////////////////////////////////
+class memory_runtime {
+public:
+	memory_runtime(const std::vector<node *> & nodes)
+		: m_nodes(nodes)
+		, m_minimumMemory(0)
+		, m_maximumMemory(0)
+		, m_fraction(0.0)
+	{
+		const size_t N = m_nodes.size();
+		for (size_t i = 0; i < N; ++i) {
+			m_minimumMemory += minimum_memory(i);
+			m_maximumMemory += maximum_memory(i);
+			m_fraction += fraction(i);
+		}
+	}
+
+	// Node accessors
+	memory_size_type minimum_memory(size_t i) { return m_nodes[i]->get_minimum_memory(); }
+	memory_size_type maximum_memory(size_t i) { return m_nodes[i]->get_maximum_memory(); }
+	double fraction(size_t i) { return m_nodes[i]->get_memory_fraction(); }
+
+	// Node accessor aggregates
+	memory_size_type sum_minimum_memory() { return m_minimumMemory; }
+	memory_size_type sum_maximum_memory() { return m_maximumMemory; }
+	double sum_fraction() { return m_fraction; }
+
+	// Node mutator
+	void set_memory(size_t i, memory_size_type mem) { m_nodes[i]->set_available_memory(mem); }
+
+	void assign_memory(double factor) {
+		for (size_t i = 0; i < m_nodes.size(); ++i)
+			set_memory(i, get_assigned_memory(i, factor));
+	}
+
+	// Special case of assign_memory when factor is zero.
+	void assign_minimum_memory() {
+		for (size_t i = 0; i < m_nodes.size(); ++i)
+			set_memory(i, minimum_memory(i));
+	}
+
+	memory_size_type sum_assigned_memory(double factor) {
+		memory_size_type memoryAssigned = 0;
+		for (size_t i = 0; i < m_nodes.size(); ++i)
+			memoryAssigned += get_assigned_memory(i, factor);
+		return memoryAssigned;
+	}
+
+	memory_size_type get_assigned_memory(size_t i, double factor) {
+		return clamp(minimum_memory(i), maximum_memory(i),
+					 factor * fraction(i));
+	}
+
+	static memory_size_type clamp(memory_size_type lo, memory_size_type hi,
+								  double v)
+	{
+		if (v < lo) return lo;
+		if (v > hi) return hi;
+		return static_cast<memory_size_type>(v);
+	}
+
+private:
+	const std::vector<node *> & m_nodes;
+	memory_size_type m_minimumMemory;
+	memory_size_type m_maximumMemory;
+	double m_fraction;
+};
+
 class runtime {
 	node_map & m_nodeMap;
 
@@ -267,7 +338,8 @@ public:
 		const size_t N = nodeOrder.size();
 
 		tpie::disjoint_sets<size_t> unionFind(N);
-		for (size_t i = 0; i < N; ++i) unionFind.make_set(i);
+		for (size_t i = 0; i < N; ++i)
+			unionFind.make_set(i);
 
 		const node_map::relmap_t & relations = map.get_relations();
 		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
@@ -381,57 +453,92 @@ public:
 	}
 
 	bool has_initiator(const std::vector<node *> & phase) {
-		for (size_t i = 0; i < phase.size(); ++i) {
+		for (size_t i = 0; i < phase.size(); ++i)
 			if (is_initiator(phase[i])) return true;
-		}
 		return false;
 	}
 
-	static void ensure_initiators(const std::vector<std::vector<node *> > & phases) {
-		for (size_t i = 0; i < phases.size(); ++i) {
-			if (!has_initiator(phases[i]))
-				throw no_initiator_node();
-		}
+	void ensure_initiators(const std::vector<std::vector<node *> > & phases) {
+		for (size_t i = 0; i < phases.size(); ++i)
+			if (!has_initiator(phases[i])) throw no_initiator_node();
 	}
 
-	static void prepare_all(const std::vector<graph<node *> > & itemFlow) {
+	void prepare_all(const std::vector<graph<node *> > & itemFlow) {
 		for (size_t i = 0; i < itemFlow.size(); ++i) {
 			const graph<node *> & g = itemFlow[i];
 			std::vector<node *> topoOrder;
 			g.topological_order(topoOrder);
-			for (size_t i = 0; i < topoOrder.size(); ++i) {
+			for (size_t i = 0; i < topoOrder.size(); ++i)
 				topoOrder[i]->prepare();
-			}
 		}
 	}
 
-	static void assign_memory(const std::vector<std::vector<node *> > & phases) {
-		for (size_t i = 0; i < phases.size(); ++i)
-			assign_phase_memory(phases[i]);
-	}
-
-	static void assign_phase_memory(const std::vector<node *> & phase) {
-		// TODO: Insert code from graph.cpp phase::assign_memory
-	}
-
-	static void propagate_all(const graph<node *> itemFlow) {
+	void propagate_all(const graph<node *> & itemFlow) {
 		std::vector<node *> topoOrder;
 		itemFlow.topological_order(topoOrder);
-		for (size_t i = 0; i < topoOrder.size(); ++i) {
+		for (size_t i = 0; i < topoOrder.size(); ++i)
 			topoOrder[i]->propagate();
-		}
 	}
 
-	static void go_initators(const std::vector<node *> phase, progress_indicator_base * pi) {
+	void go_initators(const std::vector<node *> & phase, progress_indicator_base * pi) {
 		std::vector<node *> initiators;
-		for (size_t i = 0; i < phase.size(); ++i) {
-			if (is_initiator(m, phase[i])) initiators.push_back(phase[i]);
-		}
-		for (size_t i = 0; i < initiators.size(); ++i) {
+		for (size_t i = 0; i < phase.size(); ++i)
+			if (is_initiator(phase[i])) initiators.push_back(phase[i]);
+		for (size_t i = 0; i < initiators.size(); ++i)
 			initiators[i]->go(pi);
-		}
 	}
 
+	static void assign_memory(const std::vector<std::vector<node *> > & phases, memory_size_type memory) {
+		for (size_t i = 0; i < phases.size(); ++i)
+			assign_phase_memory(phases[i], memory);
+	}
+
+	static void assign_phase_memory(const std::vector<node *> & phase, memory_size_type memory) {
+		memory_runtime rt(phase);
+
+		if (rt.sum_minimum_memory() > memory) {
+			log_warning() << "Not enough memory for pipelining phase ("
+						  << rt.sum_minimum_memory() << " > " << memory << ")"
+						  << std::endl;
+			rt.assign_minimum_memory();
+			return;
+		}
+
+		// This case is handled specially to avoid dividing by zero later on.
+		if (rt.sum_fraction() < 1e-9) {
+			rt.assign_minimum_memory();
+			return;
+		}
+
+		double c_lo = 0.0;
+		double c_hi = 1.0;
+		// Exponential search
+		memory_size_type oldMemoryAssigned = 0;
+		while (true) {
+			double factor = memory * c_hi / rt.sum_fraction();
+			memory_size_type memoryAssigned = rt.sum_assigned_memory(factor);
+			if (memoryAssigned < memory && memoryAssigned != oldMemoryAssigned)
+				c_hi *= 2;
+			else
+				break;
+			oldMemoryAssigned = memoryAssigned;
+		}
+
+		// Binary search
+		while (c_hi - c_lo > 1e-6) {
+			double c = c_lo + (c_hi-c_lo)/2;
+			double factor = memory * c / rt.sum_fraction();
+			memory_size_type memoryAssigned = sum_assigned_memory(factor);
+
+			if (memoryAssigned > memory) {
+				c_hi = c;
+			} else {
+				c_lo = c;
+			}
+		}
+
+		assign_memory(c_lo);
+	}
 
 };
 
