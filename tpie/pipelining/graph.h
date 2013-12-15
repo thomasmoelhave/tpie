@@ -24,6 +24,7 @@
 #ifndef __TPIE_PIPELINING_GRAPH_H__
 #define __TPIE_PIPELINING_GRAPH_H__
 
+#error Don't use me!
 #include <tpie/disjoint_sets.h>
 #include <tpie/dummy_progress.h>
 #include <tpie/tpie_assert.h>

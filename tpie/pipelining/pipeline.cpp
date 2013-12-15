@@ -19,10 +19,10 @@
 
 #include <tpie/pipelining/pipeline.h>
 #include <tpie/pipelining/node.h>
-#include <tpie/pipelining/graph.h>
 #include <boost/unordered_map.hpp>
 #include <iostream>
 #include <boost/unordered_set.hpp>
+#include <tpie/pipelining/runtime.h>
 
 namespace {
 	typedef tpie::pipelining::bits::node_map S;
@@ -101,8 +101,8 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 
 void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type initialMemory) {
 	node_map::ptr map = m_segmap->find_authority();
-	runtime rt(map, items, &pi, initialMemory);
-	rt.go();
+	runtime rt(map);
+	rt.go(items, pi, initialMemory);
 
 	/*
 	typedef std::vector<phase> phases_t;

@@ -20,6 +20,10 @@
 #ifndef TPIE_PIPELINING_RUNTIME_H
 #define TPIE_PIPELINING_RUNTIME_H
 
+#include <tpie/fractional_progress.h>
+#include <tpie/pipelining/tokens.h>
+#include <tpie/disjoint_sets.h>
+
 namespace tpie {
 
 namespace pipelining {
@@ -38,25 +42,29 @@ class graph {
 public:
 	void add_edge(T u, T v) {
 		m_edgeLists[u].push_back(v);
+		m_nodes.insert(u);
+		m_nodes.insert(v);
 	}
 
-	bool has_edge(T u, T v) {
+	bool has_edge(T u, T v) const {
 		const std::vector<T> & edgeList = m_edgeLists[u];
 		return std::find(edgeList.begin(), edgeList.end(), v) != edgeList.end();
 	}
 
-	void topological_order(std::vector<T> & result) {
+	void topological_order(std::vector<T> & result) const {
+		const size_t N = m_nodes.size();
 		depth_first_search dfs(m_edgeLists);
-		std::vector<std::pair<size_t, T> > nodes(nodeCount);
-		for (std::map<T, std::vector<T> >::iterator i = m_edgeLists.begin();
+		std::vector<std::pair<size_t, T> > nodes(N);
+		for (typename std::map<T, std::vector<T> >::iterator i = m_edgeLists.begin();
 			 i != m_edgeLists.end(); ++i)
 			nodes.push_back(std::make_pair(dfs.visit(i->first), i->first));
 		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
-		result.resize(nodes.size());
-		for (size_t i = 0; i < result.size(); ++i) result[i] = nodes[i].second;
+		result.resize(N);
+		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
 	}
 
 private:
+	std::set<T> m_nodes;
 	std::map<T, std::vector<T> > m_edgeLists;
 
 	class depth_first_search {
@@ -107,15 +115,15 @@ public:
 		fp = NULL;
 	}
 
-	void init(stream_size_type n, progress_indicator_base * pi, const std::vector<std::vector<node *> > & phases) {
-		fp = new fractional_progress(pi);
+	void init(stream_size_type n, progress_indicator_base & pi, const std::vector<std::vector<node *> > & phases) {
+		fp = new fractional_progress(&pi);
 		const size_t N = phases.size();
 		m_progressIndicators.resize(N);
 		for (size_t i = 0; i < N; ++i) {
 			std::string uid = get_phase_uid(phases[i]);
 			std::string name = get_phase_name(phases[i]);
-			m_progressIndicators[i] = new progress_indicator_subindicator(
-				fp, uid.c_str(), TPIE_FSI, n, name.c_str());
+			m_progressIndicators[i] = new fractional_subindicator(
+				*fp, uid.c_str(), TPIE_FSI, n, name.c_str());
 		}
 		fp->init();
 	}
@@ -144,7 +152,7 @@ private:
 	friend class phase_progress_indicator;
 
 	fractional_progress * fp;
-	std::vector<progress_indicator_subindicator *> m_progressIndicators;
+	std::vector<fractional_subindicator *> m_progressIndicators;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -157,8 +165,9 @@ public:
 							 const std::vector<node *> & nodes)
 		: m_pi(pi.m_progressIndicators[phaseNumber])
 	{
-		for (size_t j = 0; j < phase.size(); ++j) {
-			steps += phase[j]->get_steps();
+		stream_size_type steps = 0;
+		for (size_t j = 0; j < nodes.size(); ++j) {
+			steps += nodes[j]->get_steps();
 		}
 		m_pi->init(steps);
 	}
@@ -167,12 +176,12 @@ public:
 		m_pi->done();
 	}
 
-	progress_indicator_subindicator * get() {
-		return m_pi;
+	fractional_subindicator & get() {
+		return *m_pi;
 	}
 
 private:
-	progress_indicator_subindicator * m_pi;
+	fractional_subindicator * m_pi;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -278,7 +287,7 @@ public:
 	}
 
 	void go(stream_size_type items,
-			progress_indicator_base * progress,
+			progress_indicator_base & progress,
 			memory_size_type memory)
 	{
 		// Partition nodes into phases (using union-find)
@@ -311,8 +320,8 @@ public:
 
 		// Construct fractional progress indicators
 		// (getting the name of each phase)
-		progress_indicators pi(progress);
-		pi.init(phases);
+		progress_indicators pi;
+		pi.init(items, progress, phases);
 
 		for (size_t i = 0; i < phases.size(); ++i) {
 			// Run each phase:
@@ -328,11 +337,11 @@ public:
 		}
 	}
 
-	get_phase_map(std::map<node *, size_t> & phaseMap) {
-		std::map<node *, size_t> numbering;
+	void get_phase_map(std::map<node *, size_t> & phaseMap) {
+		std::map<size_t, size_t> numbering;
 		std::vector<node *> nodeOrder;
-		for (node_map::map_it i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
-			numbering[i->second] = nodeOrder.size();
+		for (node_map::mapit i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
+			numbering[i->second->get_id()] = nodeOrder.size();
 			nodeOrder.push_back(i->second);
 		}
 		const size_t N = nodeOrder.size();
@@ -341,10 +350,10 @@ public:
 		for (size_t i = 0; i < N; ++i)
 			unionFind.make_set(i);
 
-		const node_map::relmap_t & relations = map.get_relations();
+		const node_map::relmap_t & relations = m_nodeMap.get_relations();
 		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 			if (i->second.second != depends)
-				unionFind.union_set(ids[i->first], ids[i->second.first]);
+				unionFind.union_set(numbering[i->first], numbering[i->second.first]);
 		}
 
 		const size_t NIL = N;
@@ -359,14 +368,14 @@ public:
 		}
 	}
 
-	get_phase_graph(const std::map<node *, size_t> & phaseMap,
-					graph<size_t> & phaseGraph)
+	void get_phase_graph(const std::map<node *, size_t> & phaseMap,
+						 graph<size_t> & phaseGraph)
 	{
 		const node_map::relmap_t & relations = m_nodeMap.get_relations();
 		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 			if (i->second.second == depends)
-				phaseGraph.add_edge(phaseMap[i->second.first],
-									phaseMap[i->first]);
+				phaseGraph.add_edge(phaseMap.find(m_nodeMap.get(i->second.first))->second,
+									phaseMap.find(m_nodeMap.get(i->first))->second);
 		}
 	}
 
@@ -387,10 +396,10 @@ public:
 		return result;
 	}
 
-	get_phases(const std::map<node *, size_t> & phaseMap,
-			   const graph<size_t> & phaseGraph,
-			   std::vector<bool> & evacuateWhenDone,
-			   std::vector<std::vector<node *> > & phases)
+	void get_phases(const std::map<node *, size_t> & phaseMap,
+					const graph<size_t> & phaseGraph,
+					std::vector<bool> & evacuateWhenDone,
+					std::vector<std::vector<node *> > & phases)
 	{
 		std::vector<size_t> topologicalOrder;
 		phaseGraph.topological_order(topologicalOrder);
@@ -416,30 +425,32 @@ public:
 		}
 	}
 
-	get_item_flow_graphs(std::vector<std::vector<node *> > & phases,
-						 std::vector<graph<node *> > & itemFlow)
+	void get_item_flow_graphs(std::vector<std::vector<node *> > & phases,
+							  std::vector<graph<node *> > & itemFlow)
 	{
 		itemFlow.resize(phases.size());
 		for (size_t i = 0; i < phases.size(); ++i)
 			get_graph(phases[i], itemFlow[i], true);
 	}
 
-	get_actor_graphs(std::vector<std::vector<node *> > & phases,
-					 std::vector<graph<node *> > & actors) {
+	void get_actor_graphs(std::vector<std::vector<node *> > & phases,
+						  std::vector<graph<node *> > & actors)
+	{
 		actors.resize(phases.size());
 		for (size_t i = 0; i < phases.size(); ++i)
 			get_graph(phases[i], actors[i], false);
 	}
 
-	get_graph(std::vector<node *> & phase, graph<node *> & result,
-			  bool itemFlow) {
+	void get_graph(std::vector<node *> & phase, graph<node *> & result,
+				   bool itemFlow)
+	{
 		const node_map::relmap_t & relations = m_nodeMap.get_relations();
 		typedef node_map::relmapit relmapit;
 		for (size_t i = 0; i < phase.size(); ++i) {
 			std::pair<relmapit, relmapit> edges = relations.equal_range(phase[i]->get_id());
 			for (relmapit j = edges.first; j != edges.second; ++j) {
-				node * u = m_nodeMap.find(j->first);
-				node * v = m_nodeMap.find(j->second.first);
+				node * u = m_nodeMap.get(j->first);
+				node * v = m_nodeMap.get(j->second.first);
 				if (j->second.second == depends) continue;
 				if (itemFlow && j->second.second == pulls) std::swap(u, v);
 				result.add_edge(u, v);
@@ -480,7 +491,7 @@ public:
 			topoOrder[i]->propagate();
 	}
 
-	void go_initators(const std::vector<node *> & phase, progress_indicator_base * pi) {
+	void go_initators(const std::vector<node *> & phase, progress_indicator_base & pi) {
 		std::vector<node *> initiators;
 		for (size_t i = 0; i < phase.size(); ++i)
 			if (is_initiator(phase[i])) initiators.push_back(phase[i]);
@@ -528,7 +539,7 @@ public:
 		while (c_hi - c_lo > 1e-6) {
 			double c = c_lo + (c_hi-c_lo)/2;
 			double factor = memory * c / rt.sum_fraction();
-			memory_size_type memoryAssigned = sum_assigned_memory(factor);
+			memory_size_type memoryAssigned = rt.sum_assigned_memory(factor);
 
 			if (memoryAssigned > memory) {
 				c_hi = c;
@@ -537,7 +548,7 @@ public:
 			}
 		}
 
-		assign_memory(c_lo);
+		rt.assign_memory(c_lo);
 	}
 
 };
