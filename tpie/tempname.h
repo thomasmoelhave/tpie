@@ -29,6 +29,7 @@
 #include <tpie/stats.h>
 #include <stdexcept>
 #include <boost/utility.hpp>
+#include <boost/smart_ptr.hpp>
 // The name of the environment variable pointing to a tmp directory.
 #define TMPDIR_ENV "TMPDIR"
 
@@ -144,67 +145,103 @@ namespace tpie {
 		static std::string get_actual_path();
 	};
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Class representing the existence of a temporary file.
-	/// When a temp_file object goes out of scope and is not set to persistent,
-	/// the associated temporary file will be deleted.
-	///////////////////////////////////////////////////////////////////////////
-	class temp_file : boost::noncopyable {
+	namespace bits {
+	
+	class temp_file_inner : public boost::noncopyable {
+	public:
+		temp_file_inner();
+		temp_file_inner(const std::string & path, bool persist);
+		~temp_file_inner();
+
+		const std::string & path();
+		void update_recorded_size(stream_size_type size);
+
+		bool is_persistent() const {
+			return m_persist;
+		}
+
+		void set_persistent(bool p) {
+			m_persist = p;
+		}
+
+		friend void intrusive_ptr_add_ref(temp_file_inner * p);
+		friend void intrusive_ptr_release(temp_file_inner * p);
+
 	private:
 		std::string m_path;
 		bool m_persist;
 		stream_size_type m_recordedSize;
+		memory_size_type m_count;			
+	};
+
+	void intrusive_ptr_add_ref(temp_file_inner * p);
+	void intrusive_ptr_release(temp_file_inner * p);
+
+	} // namespace bits
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Class representing a reference to a temporary file.
+	/// When all temp_file objects to a file go out of scope and are not set 
+	/// to persistent, the associated temporary file will be deleted.
+	///////////////////////////////////////////////////////////////////////////
+	class temp_file {
 	public:
+		///////////////////////////////////////////////////////////////////////////////
+		/// \brief Create a temp_file associated with a temporary file
+		///////////////////////////////////////////////////////////////////////////////
+		temp_file() {
+			m_inner = new bits::temp_file_inner();
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Create a temp_file associated with a specific file.
+		///////////////////////////////////////////////////////////////////////
+		temp_file(const std::string & path, bool persist=false) {
+			m_inner = new bits::temp_file_inner(path, persist);
+		}
+
 		///////////////////////////////////////////////////////////////////////
 		/// \returns Whether this file should not be deleted when this object
 		/// goes out of scope.
 		///////////////////////////////////////////////////////////////////////
-		inline bool is_persistent() const {return m_persist;}
+		bool is_persistent() const {
+			return m_inner->is_persistent();
+		}
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Set persistence. When true, the file will not be deleted
 		/// when this goes out of scope.
 		///////////////////////////////////////////////////////////////////////
-		inline void set_persistent(bool p) {m_persist=p;}
-
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Create a temp_file associated with a specific file.
-		///////////////////////////////////////////////////////////////////////
-		temp_file(const std::string & path, bool persist=false);
+		void set_persistent(bool p) {
+			m_inner->set_persistent(p);
+		}
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Associate with a specific file.
 		///////////////////////////////////////////////////////////////////////
-		void set_path(const std::string & path, bool persist=false);
-
-		void update_recorded_size(stream_size_type size) {
-			increment_temp_file_usage(static_cast<stream_offset_type>(size)-
-									  static_cast<stream_offset_type>(m_recordedSize));
-			m_recordedSize=size;
-			
+		void set_path(const std::string & path, bool persist=false) {
+			m_inner = new bits::temp_file_inner(path, persist);
 		}
-
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Create a temp_file and generate a random temporary file
-		/// name.
-		///////////////////////////////////////////////////////////////////////
-		temp_file();
-
-		///////////////////////////////////////////////////////////////////////
-		/// \brief temp_file destructor. If not persistent, unlink the
-		/// associated file.
-		///////////////////////////////////////////////////////////////////////
-		~temp_file();
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Get the path of the associated file.
 		///////////////////////////////////////////////////////////////////////
-		const std::string & path();
+		const std::string & path() {
+			return m_inner->path();
+		}
 
-		///////////////////////////////////////////////////////////////////////
-		/// \brief If not persistent, unlink the associated file.
-		///////////////////////////////////////////////////////////////////////
-		void free();
+		///////////////////////////////////////////////////////////////////////////////
+		/// \brief Clears the current object reference
+		///////////////////////////////////////////////////////////////////////////////
+		void free() {
+			m_inner = new bits::temp_file_inner();
+		}
+
+		void update_recorded_size(stream_size_type size) {
+			m_inner->update_recorded_size(size);
+		}
+	private:
+		boost::intrusive_ptr<bits::temp_file_inner> m_inner;
 	};
 	
 }

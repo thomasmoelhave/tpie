@@ -201,30 +201,40 @@ const std::string& tempname::get_default_extension() {
 	return default_extension;
 }
 
-temp_file::temp_file(): m_persist(false), m_recordedSize(0) {}
+namespace tpie {
+namespace bits {
 
-temp_file::temp_file(const std::string & path, bool persist): m_path(path), m_persist(persist), m_recordedSize(0) {}
+temp_file_inner::~temp_file_inner() {
+	if (m_path.empty() || m_persist || !boost::filesystem::exists(m_path)) 
+		return;
 
-const std::string & temp_file::path() {
-	if (m_path.empty())
+	boost::filesystem::remove(m_path);
+	update_recorded_size(0);
+}
+
+temp_file_inner::temp_file_inner() : m_persist(false), m_recordedSize(0), m_count(0) {}
+
+temp_file_inner::temp_file_inner(const std::string & path, bool persist): m_path(path), m_persist(persist), m_recordedSize(0), m_count(0) {}
+
+const std::string & temp_file_inner::path() {
+	if(m_path.empty())
 		m_path = tempname::tpie_name();
 	return m_path;
 }
 
-void temp_file::set_path(const std::string & path, bool persist) {
-	free();
-	m_path=path;
-	m_persist=persist;
+void temp_file_inner::update_recorded_size(stream_size_type size) {
+	increment_temp_file_usage(static_cast<stream_offset_type>(size) - static_cast<stream_offset_type>(m_recordedSize));
+	m_recordedSize=size;
 }
 
-temp_file::~temp_file() {
-	free();
+void intrusive_ptr_add_ref(temp_file_inner * p) {
+	++p->m_count;
 }
 
-void temp_file::free() {
-	if (!m_path.empty() && !m_persist && boost::filesystem::exists(m_path)) {
-		boost::filesystem::remove(m_path);
-		update_recorded_size(0);
-	}
-	m_path="";
+void intrusive_ptr_release(temp_file_inner * p) {
+	if(--p->m_count == 0)
+		delete p;
 }
+
+} // namespace bits
+} // namespace tpie
