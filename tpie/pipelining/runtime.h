@@ -40,14 +40,23 @@ namespace bits {
 template <typename T>
 class graph {
 public:
-	void add_edge(T u, T v) {
-		m_edgeLists[u].push_back(v);
-		m_nodes.insert(u);
+	void add_node(T v) {
 		m_nodes.insert(v);
+		m_edgeLists[v]; // ensure v has an edge list
+	}
+
+	void add_edge(T u, T v) {
+		add_node(u);
+		add_node(v);
+		m_edgeLists[u].push_back(v);
+	}
+
+	size_t size() const {
+		return m_nodes.size();
 	}
 
 	bool has_edge(T u, T v) const {
-		const std::vector<T> & edgeList = m_edgeLists[u];
+		const std::vector<T> & edgeList = m_edgeLists.find(u)->second;
 		return std::find(edgeList.begin(), edgeList.end(), v) != edgeList.end();
 	}
 
@@ -55,7 +64,7 @@ public:
 		const size_t N = m_nodes.size();
 		depth_first_search dfs(m_edgeLists);
 		std::vector<std::pair<size_t, T> > nodes(N);
-		for (typename std::map<T, std::vector<T> >::iterator i = m_edgeLists.begin();
+		for (typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.begin();
 			 i != m_edgeLists.end(); ++i)
 			nodes.push_back(std::make_pair(dfs.visit(i->first), i->first));
 		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
@@ -79,12 +88,19 @@ private:
 			if (m_finishTime.count(u)) return m_finishTime[u];
 			m_finishTime[u] = 0;
 			++m_time;
-			const std::vector<T> & edgeList = m_edgeLists[u];
+			const std::vector<T> & edgeList = get_edge_list(u);
 			for (size_t i = 0; i < edgeList.size(); ++i) visit(edgeList[i]);
-			m_finishTime[u] = m_time++;
+			return m_finishTime[u] = m_time++;
 		}
 
 	private:
+		const std::vector<T> & get_edge_list(T u) {
+			typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.find(u);
+			if (i == m_edgeLists.end())
+				throw tpie::exception("get_edge_list: no such node");
+			return i->second;
+		}
+
 		size_t m_time;
 		const std::map<T, std::vector<T> > & m_edgeLists;
 		std::map<T, size_t> m_finishTime;
@@ -286,13 +302,22 @@ public:
 	{
 	}
 
+	size_t get_node_count() {
+		return m_nodeMap.size();
+	}
+
 	void go(stream_size_type items,
 			progress_indicator_base & progress,
 			memory_size_type memory)
 	{
+		if (get_node_count() == 0)
+			throw tpie::exception("no nodes in pipelining graph");
+
 		// Partition nodes into phases (using union-find)
 		std::map<node *, size_t> phaseMap;
 		get_phase_map(phaseMap);
+		if (phaseMap.size() != get_node_count())
+			throw tpie::exception("get_phase_map did not return correct number of nodes");
 
 		// Build phase graph
 		graph<size_t> phaseGraph;
@@ -333,7 +358,55 @@ public:
 			begin_end beginEnd(actor[i]);
 			// call go on initiators
 			go_initators(phases[i], phaseProgress.get());
-			// call end in root to leaf actor order in begin_end dtor
+			// call end in root to leaf actor order in ~begin_end
+			// call pi.done in ~phase_progress_indicator
+		}
+		// call fp->done in ~progress_indicators
+	}
+
+	void get_item_sources(std::vector<node *> & itemSources) {
+		typedef node_map::id_t id_t;
+		std::set<id_t> possibleSources;
+		for (node_map::mapit i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
+			possibleSources.insert(i->first);
+		}
+		const node_map::relmap_t & relations = m_nodeMap.get_relations();
+		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+			if (i->second.second == depends) continue;
+
+			id_t from = i->first;
+			id_t to = i->second.first;
+
+			if (i->second.second == pulls) std::swap(from, to);
+
+			possibleSources.erase(from);
+		}
+		for (std::set<id_t>::iterator i = possibleSources.begin();
+			 i != possibleSources.end(); ++i) {
+			itemSources.push_back(m_nodeMap.get(*i));
+		}
+	}
+
+	void get_item_sinks(std::vector<node *> & itemSinks) {
+		typedef node_map::id_t id_t;
+		std::set<id_t> possibleSinks;
+		for (node_map::mapit i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
+			possibleSinks.insert(i->first);
+		}
+		const node_map::relmap_t & relations = m_nodeMap.get_relations();
+		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+			if (i->second.second == depends) continue;
+
+			id_t from = i->first;
+			id_t to = i->second.first;
+
+			if (i->second.second == pulls) std::swap(from, to);
+
+			possibleSinks.erase(to);
+		}
+		for (std::set<id_t>::iterator i = possibleSinks.begin();
+			 i != possibleSinks.end(); ++i) {
+			itemSinks.push_back(m_nodeMap.get(*i));
 		}
 	}
 
@@ -371,6 +444,11 @@ public:
 	void get_phase_graph(const std::map<node *, size_t> & phaseMap,
 						 graph<size_t> & phaseGraph)
 	{
+		for (std::map<node *, size_t>::const_iterator i = phaseMap.begin();
+			 i != phaseMap.end(); ++i) {
+			phaseGraph.add_node(i->second);
+		}
+
 		const node_map::relmap_t & relations = m_nodeMap.get_relations();
 		for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 			if (i->second.second == depends)
@@ -415,6 +493,8 @@ public:
 		for (std::map<node *, size_t>::const_iterator i = phaseMap.begin();
 			 i != phaseMap.end(); ++i)
 		{
+			log_debug() << "Node " << i->first << " goes to phase " << i->second
+				<< std::endl;
 			phases[topoOrderMap[i->second]].push_back(i->first);
 		}
 

@@ -22,7 +22,6 @@
 #include <tpie/file_stream.h>
 #include <boost/filesystem.hpp>
 #include <algorithm>
-#include <tpie/pipelining/graph.h>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
 #include <tpie/progress_indicator_arrow.h>

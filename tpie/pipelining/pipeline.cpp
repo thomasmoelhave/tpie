@@ -132,22 +132,20 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 }
 
 void pipeline_base::forward_any(std::string key, const boost::any & value) {
-	typedef graph_traits::nodes_t nodes_t;
-
 	node_map::ptr map = m_segmap->find_authority();
-	graph_traits g(*map);
-	const nodes_t & sources = g.item_sources();
+	runtime rt(map);
+	std::vector<node *> sources;
+	rt.get_item_sources(sources);
 	for (size_t j = 0; j < sources.size(); ++j) {
 		sources[j]->forward_any(key, value);
 	}
 }
 
 bool pipeline_base::can_fetch(std::string key) {
-	typedef graph_traits::nodes_t nodes_t;
-
 	node_map::ptr map = m_segmap->find_authority();
-	graph_traits g(*map);
-	const nodes_t & sinks = g.item_sinks();
+	runtime rt(map);
+	std::vector<node *> sinks;
+	rt.get_item_sinks(sinks);
 	for (size_t j = 0; j < sinks.size(); ++j) {
 		if (sinks[j]->can_fetch(key)) return true;
 	}
@@ -155,11 +153,10 @@ bool pipeline_base::can_fetch(std::string key) {
 }
 
 boost::any pipeline_base::fetch_any(std::string key) {
-	typedef graph_traits::nodes_t nodes_t;
-
 	node_map::ptr map = m_segmap->find_authority();
-	graph_traits g(*map);
-	const nodes_t & sinks = g.item_sinks();
+	runtime rt(map);
+	std::vector<node *> sinks;
+	rt.get_item_sinks(sinks);
 	for (size_t j = 0; j < sinks.size(); ++j) {
 		if (sinks[j]->can_fetch(key)) return sinks[j]->fetch_any(key);
 	}
