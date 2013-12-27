@@ -209,13 +209,19 @@ class begin_end {
 public:
 	begin_end(graph<node *> & actorGraph) {
 		actorGraph.topological_order(m_topologicalOrder);
-		for (size_t i = 0; i < m_topologicalOrder.size(); ++i)
+		for (size_t i = m_topologicalOrder.size(); i--;) {
+			m_topologicalOrder[i]->set_state(node::STATE_IN_BEGIN);
 			m_topologicalOrder[i]->begin();
+			m_topologicalOrder[i]->set_state(node::STATE_AFTER_BEGIN);
+		}
 	}
 
 	~begin_end() {
-		for (size_t i = m_topologicalOrder.size(); i--;)
+		for (size_t i = 0; i < m_topologicalOrder.size(); ++i) {
+			m_topologicalOrder[i]->set_state(node::STATE_IN_END);
 			m_topologicalOrder[i]->end();
+			m_topologicalOrder[i]->set_state(node::STATE_AFTER_END);
+		}
 	}
 
 private:
