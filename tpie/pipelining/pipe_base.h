@@ -135,6 +135,9 @@ public:
 
 	pipe_end(const pipe_end & other) : factory(other.factory) {}
 	pipe_end(pipe_end & other) : factory(other.factory) {}
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	pipe_end(pipe_end && other) : factory(std::move(other.factory)) {}
+#endif
 
 	#ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////////
@@ -177,7 +180,9 @@ public:
 
 	pipe_middle(const pipe_middle & other) : factory(other.factory) {}
 	pipe_middle(pipe_middle & other) : factory(other.factory) {}
-	//defined(TPIE_CPP_RVALUE_REFERENCE) todo explicit move constructor
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	pipe_middle(pipe_middle && other) : factory(std::move(other.factory)) {}
+#endif
 
 	#ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////////
@@ -231,6 +236,9 @@ public:
 
 	pipe_begin(const pipe_begin & other) : factory(other.factory) {}
 	pipe_begin(pipe_begin & other) : factory(other.factory) {}
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	pipe_begin(pipe_begin && other) : factory(std::move(other.factory)) {}
+#endif
 
 	#ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////////
@@ -277,6 +285,9 @@ public:
 
 	pullpipe_end(const pullpipe_end & other) : factory(other.factory) {}
 	pullpipe_end(pullpipe_end & other) : factory(other.factory) {}
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	pullpipe_end(pullpipe_end && other) : factory(std::move(other.factory)) {}
+#endif
 
 	#ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////////
@@ -311,6 +322,9 @@ public:
 
 	pullpipe_middle(const pullpipe_middle & other) : factory(other.factory) {}
 	pullpipe_middle(pullpipe_middle & other) : factory(other.factory) {}
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	pullpipe_middle(pullpipe_middle && other) : factory(std::move(other.factory)) {}
+#endif
 
 	#ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////////
@@ -357,6 +371,9 @@ public:
 
 	pullpipe_begin(const pullpipe_begin & other) : factory(other.factory) {}
 	pullpipe_begin(pullpipe_begin & other) : factory(other.factory) {}
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	pullpipe_begin(pullpipe_begin && other) : factory(std::move(other.factory)) {}
+#endif
 
 	#ifdef DOXYGEN
 	///////////////////////////////////////////////////////////////////////////////
