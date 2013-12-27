@@ -565,16 +565,22 @@ public:
 			const graph<node *> & g = itemFlow[i];
 			std::vector<node *> topoOrder;
 			g.topological_order(topoOrder);
-			for (size_t i = 0; i < topoOrder.size(); ++i)
+			for (size_t i = 0; i < topoOrder.size(); ++i) {
+				topoOrder[i]->set_state(node::STATE_IN_PREPARE);
 				topoOrder[i]->prepare();
+				topoOrder[i]->set_state(node::STATE_AFTER_PREPARE);
+			}
 		}
 	}
 
 	void propagate_all(const graph<node *> & itemFlow) {
 		std::vector<node *> topoOrder;
 		itemFlow.topological_order(topoOrder);
-		for (size_t i = 0; i < topoOrder.size(); ++i)
+		for (size_t i = 0; i < topoOrder.size(); ++i) {
+			topoOrder[i]->set_state(node::STATE_IN_PROPAGATE);
 			topoOrder[i]->propagate();
+			topoOrder[i]->set_state(node::STATE_AFTER_PROPAGATE);
+		}
 	}
 
 	void go_initators(const std::vector<node *> & phase, progress_indicator_base & pi) {
