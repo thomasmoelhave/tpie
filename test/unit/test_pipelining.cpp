@@ -57,9 +57,7 @@ struct multiply_t : public node {
 	uint64_t factor;
 };
 
-pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
-	return factory_1<multiply_t, uint64_t>(factor);
-}
+typedef pipe_middle<factory_1<multiply_t, uint64_t> > multiply;
 
 std::vector<test_t> inputvector;
 std::vector<test_t> expectvector;
