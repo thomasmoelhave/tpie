@@ -585,10 +585,12 @@ public:
 
 	void go_initators(const std::vector<node *> & phase, progress_indicator_base & pi) {
 		std::vector<node *> initiators;
-		for (size_t i = 0; i < phase.size(); ++i)
+		for (size_t i = 0; i < phase.size(); ++i) {
+			phase[i]->set_progress_indicator(&pi);
 			if (is_initiator(phase[i])) initiators.push_back(phase[i]);
+		}
 		for (size_t i = 0; i < initiators.size(); ++i)
-			initiators[i]->go(pi);
+			initiators[i]->go();
 	}
 
 	static void assign_memory(const std::vector<std::vector<node *> > & phases, memory_size_type memory) {
