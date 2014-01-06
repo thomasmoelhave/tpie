@@ -436,7 +436,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 	evacuateWhenDone.resize(phases.size(), false);
 	for (size_t i = 0; i + 1 < phases.size(); ++i) {
-		if (!phaseGraph.has_edge(topoOrderMap[i], topoOrderMap[i+1]))
+		if (!phaseGraph.has_edge(topologicalOrder[i], topologicalOrder[i+1]))
 			evacuateWhenDone[i] = true;
 	}
 }
