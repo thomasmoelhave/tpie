@@ -53,7 +53,9 @@ public:
 		fp = NULL;
 	}
 
-	void init(stream_size_type n, progress_indicator_base & pi, const std::vector<std::vector<node *> > & phases) {
+	void init(stream_size_type n,
+			  progress_indicator_base & pi,
+			  const std::vector<std::vector<node *> > & phases) {
 		fp = new fractional_progress(&pi);
 		const size_t N = phases.size();
 		m_progressIndicators.resize(N);
@@ -165,17 +167,35 @@ memory_runtime::memory_runtime(const std::vector<node *> & nodes)
 }
 
 // Node accessors
-memory_size_type memory_runtime::minimum_memory(size_t i) const { return m_nodes[i]->get_minimum_memory(); }
-memory_size_type memory_runtime::maximum_memory(size_t i) const { return m_nodes[i]->get_maximum_memory(); }
-double memory_runtime::fraction(size_t i) const { return m_nodes[i]->get_memory_fraction(); }
+memory_size_type memory_runtime::minimum_memory(size_t i) const {
+	return m_nodes[i]->get_minimum_memory();
+}
+
+memory_size_type memory_runtime::maximum_memory(size_t i) const {
+	return m_nodes[i]->get_maximum_memory();
+}
+
+double memory_runtime::fraction(size_t i) const {
+	return m_nodes[i]->get_memory_fraction();
+}
 
 // Node accessor aggregates
-memory_size_type memory_runtime::sum_minimum_memory() const { return m_minimumMemory; }
-memory_size_type memory_runtime::sum_maximum_memory() const { return m_maximumMemory; }
-double memory_runtime::sum_fraction() const { return m_fraction; }
+memory_size_type memory_runtime::sum_minimum_memory() const {
+	return m_minimumMemory;
+}
+
+memory_size_type memory_runtime::sum_maximum_memory() const {
+	return m_maximumMemory;
+}
+
+double memory_runtime::sum_fraction() const {
+	return m_fraction;
+}
 
 // Node mutator
-void memory_runtime::set_memory(size_t i, memory_size_type mem) { m_nodes[i]->set_available_memory(mem); }
+void memory_runtime::set_memory(size_t i, memory_size_type mem) {
+	m_nodes[i]->set_available_memory(mem);
+}
 
 void memory_runtime::assign_memory(double factor) {
 	for (size_t i = 0; i < m_nodes.size(); ++i)
@@ -195,12 +215,16 @@ memory_size_type memory_runtime::sum_assigned_memory(double factor) const {
 	return memoryAssigned;
 }
 
-memory_size_type memory_runtime::get_assigned_memory(size_t i, double factor) const {
+memory_size_type memory_runtime::get_assigned_memory(size_t i,
+													 double factor) const {
 	return clamp(minimum_memory(i), maximum_memory(i),
 				 factor * fraction(i));
 }
 
-/*static*/ memory_size_type memory_runtime::clamp(memory_size_type lo, memory_size_type hi, double v)
+/*static*/
+memory_size_type memory_runtime::clamp(memory_size_type lo,
+									   memory_size_type hi,
+									   double v)
 {
 	if (v < lo) return lo;
 	if (v > hi) return hi;
@@ -216,7 +240,9 @@ size_t runtime::get_node_count() {
 	return m_nodeMap.size();
 }
 
-void runtime::go(stream_size_type items, progress_indicator_base & progress, memory_size_type memory)
+void runtime::go(stream_size_type items,
+				 progress_indicator_base & progress,
+				 memory_size_type memory)
 {
 	if (get_node_count() == 0)
 		throw tpie::exception("no nodes in pipelining graph");
@@ -225,7 +251,8 @@ void runtime::go(stream_size_type items, progress_indicator_base & progress, mem
 	std::map<node *, size_t> phaseMap;
 	get_phase_map(phaseMap);
 	if (phaseMap.size() != get_node_count())
-		throw tpie::exception("get_phase_map did not return correct number of nodes");
+		throw tpie::exception("get_phase_map did not return "
+							  "correct number of nodes");
 
 	// Build phase graph
 	graph<size_t> phaseGraph;
@@ -349,7 +376,8 @@ void runtime::get_phase_map(std::map<node *, size_t> & phaseMap) {
 	}
 }
 
-void runtime::get_phase_graph(const std::map<node *, size_t> & phaseMap, graph<size_t> & phaseGraph)
+void runtime::get_phase_graph(const std::map<node *, size_t> & phaseMap,
+							  graph<size_t> & phaseGraph)
 {
 	for (std::map<node *, size_t>::const_iterator i = phaseMap.begin();
 		 i != phaseMap.end(); ++i) {
@@ -365,7 +393,8 @@ void runtime::get_phase_graph(const std::map<node *, size_t> & phaseMap, graph<s
 }
 
 // Compute the inverse of a permutation f : {0, 1, ... N-1} -> {0, 1, ... N-1}
-/*static*/ std::vector<size_t> runtime::inverse_permutation(const std::vector<size_t> & f) {
+/*static*/
+std::vector<size_t> runtime::inverse_permutation(const std::vector<size_t> & f) {
 	std::vector<size_t> result(f.size(), f.size());
 	for (size_t i = 0; i < f.size(); ++i) {
 		if (f[i] >= f.size())
@@ -432,7 +461,8 @@ void runtime::get_graph(std::vector<node *> & phase, graph<node *> & result,
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	typedef node_map::relmapit relmapit;
 	for (size_t i = 0; i < phase.size(); ++i) {
-		std::pair<relmapit, relmapit> edges = relations.equal_range(phase[i]->get_id());
+		std::pair<relmapit, relmapit> edges =
+			relations.equal_range(phase[i]->get_id());
 		for (relmapit j = edges.first; j != edges.second; ++j) {
 			node * u = m_nodeMap.get(j->first);
 			node * v = m_nodeMap.get(j->second.first);
@@ -445,7 +475,8 @@ void runtime::get_graph(std::vector<node *> & phase, graph<node *> & result,
 
 bool runtime::is_initiator(node * n) {
 	node_map::id_t id = n->get_id();
-	return m_nodeMap.in_degree(id, pushes) == 0 && m_nodeMap.in_degree(id, pulls) == 0;
+	return m_nodeMap.in_degree(id, pushes) == 0
+		&& m_nodeMap.in_degree(id, pulls) == 0;
 }
 
 bool runtime::has_initiator(const std::vector<node *> & phase) {
@@ -482,7 +513,8 @@ void runtime::propagate_all(const graph<node *> & itemFlow) {
 	}
 }
 
-void runtime::go_initators(const std::vector<node *> & phase, progress_indicator_base & pi) {
+void runtime::go_initators(const std::vector<node *> & phase,
+						   progress_indicator_base & pi) {
 	std::vector<node *> initiators;
 	for (size_t i = 0; i < phase.size(); ++i) {
 		phase[i]->set_progress_indicator(&pi);
@@ -492,7 +524,9 @@ void runtime::go_initators(const std::vector<node *> & phase, progress_indicator
 		initiators[i]->go();
 }
 
-/*static*/ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases, memory_size_type memory) {
+/*static*/
+void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
+							memory_size_type memory) {
 	for (size_t i = 0; i < phases.size(); ++i) {
 		memory_runtime rt(phases[i]);
 		double c = get_memory_factor(rt, memory);
@@ -500,7 +534,9 @@ void runtime::go_initators(const std::vector<node *> & phase, progress_indicator
 	}
 }
 
-/*static*/ double runtime::get_memory_factor(const memory_runtime & rt, memory_size_type memory) {
+/*static*/
+double runtime::get_memory_factor(const memory_runtime & rt,
+								  memory_size_type memory) {
 	if (rt.sum_minimum_memory() > memory) {
 		log_warning() << "Not enough memory for pipelining phase ("
 					  << rt.sum_minimum_memory() << " > " << memory << ")"
