@@ -285,6 +285,8 @@ void runtime::go(stream_size_type items,
 
 	for (size_t i = 0; i < phases.size(); ++i) {
 		// Run each phase:
+		// Evacuate previous if necessary
+		if (i > 0 && evacuateWhenDone[i-1]) evacuate_all(phases[i-1]);
 		// call propagate in item source to item sink order
 		propagate_all(itemFlow[i]);
 		// sum number of steps and call pi.init()
@@ -501,6 +503,11 @@ void runtime::prepare_all(const std::vector<graph<node *> > & itemFlow) {
 			topoOrder[i]->set_state(node::STATE_AFTER_PREPARE);
 		}
 	}
+}
+
+void runtime::evacuate_all(const std::vector<node *> & phase) {
+	for (size_t i = 0; i < phase.size(); ++i)
+		if (phase[i]->can_evacuate()) phase[i]->evacuate(), std::cout << "\nEvacuated node " << phase[i]->get_id() << std::endl;
 }
 
 void runtime::propagate_all(const graph<node *> & itemFlow) {
