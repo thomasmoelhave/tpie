@@ -280,8 +280,8 @@ public:
 	/// \brief  Call go() on all initiators after setting the given progress
 	/// indicator.
 	///////////////////////////////////////////////////////////////////////////
-	void go_initators(const std::vector<node *> & phase,
-					  progress_indicator_base & pi);
+	void go_initiators(const std::vector<node *> & phase,
+					   progress_indicator_base & pi);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by go().

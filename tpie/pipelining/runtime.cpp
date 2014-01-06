@@ -292,7 +292,7 @@ void runtime::go(stream_size_type items,
 		// call begin in leaf to root actor order
 		begin_end beginEnd(actor[i]);
 		// call go on initiators
-		go_initators(phases[i], phaseProgress.get());
+		go_initiators(phases[i], phaseProgress.get());
 		// call end in root to leaf actor order in ~begin_end
 		// call pi.done in ~phase_progress_indicator
 	}
@@ -513,8 +513,8 @@ void runtime::propagate_all(const graph<node *> & itemFlow) {
 	}
 }
 
-void runtime::go_initators(const std::vector<node *> & phase,
-						   progress_indicator_base & pi) {
+void runtime::go_initiators(const std::vector<node *> & phase,
+							progress_indicator_base & pi) {
 	std::vector<node *> initiators;
 	for (size_t i = 0; i < phase.size(); ++i) {
 		phase[i]->set_progress_indicator(&pi);
