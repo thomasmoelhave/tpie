@@ -231,6 +231,45 @@ memory_size_type memory_runtime::clamp(memory_size_type lo,
 	return static_cast<memory_size_type>(v);
 }
 
+void memory_runtime::print_memory(double c, std::ostream & os) {
+	size_t cw = 12;
+	size_t prec_frac = 2;
+	std::string sep(2, ' ');
+
+	os	<< "\nPipelining phase memory assigned\n"
+		<< std::setw(cw) << "Minimum"
+		<< std::setw(cw) << "Maximum"
+		<< std::setw(cw) << "Fraction"
+		<< std::setw(cw) << "Assigned"
+		<< sep << "Name\n";
+
+	for (size_t i = 0; i < m_nodes.size(); ++i) {
+		std::string frac;
+		{
+			std::stringstream ss;
+			ss << std::fixed << std::setprecision(prec_frac)
+				<< fraction(i);
+			frac = ss.str();
+		}
+
+		stream_size_type lo = minimum_memory(i);
+		stream_size_type hi = maximum_memory(i);
+		stream_size_type assigned = get_assigned_memory(i, c);
+
+		os	<< std::setw(cw) << lo;
+		if (hi == std::numeric_limits<stream_size_type>::max()) {
+			os << std::setw(cw) << "inf";
+		} else {
+			os << std::setw(cw) << hi;
+		}
+		os	<< std::setw(cw) << frac
+			<< std::setw(cw) << assigned
+			<< sep
+			<< m_nodes[i]->get_name().substr(0, 50) << '\n';
+	}
+	os << std::endl;
+}
+
 runtime::runtime(node_map::ptr nodeMap)
 	: m_nodeMap(*nodeMap)
 {
@@ -537,6 +576,9 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 	for (size_t i = 0; i < phases.size(); ++i) {
 		memory_runtime rt(phases[i]);
 		double c = get_memory_factor(rt, memory);
+#ifndef TPIE_NDEBUG
+		rt.print_memory(c, log_debug());
+#endif // TPIE_NDEBUG
 		rt.assign_memory(c);
 	}
 }

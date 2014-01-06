@@ -139,6 +139,8 @@ public:
 	static memory_size_type clamp(memory_size_type lo, memory_size_type hi,
 								  double v);
 
+	void print_memory(double c, std::ostream & os);
+
 private:
 	const std::vector<node *> & m_nodes;
 	memory_size_type m_minimumMemory;
