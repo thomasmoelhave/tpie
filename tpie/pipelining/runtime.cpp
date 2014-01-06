@@ -400,8 +400,6 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 	for (std::map<node *, size_t>::const_iterator i = phaseMap.begin();
 		 i != phaseMap.end(); ++i)
 	{
-		log_debug() << "Node " << i->first << " goes to phase " << i->second
-			<< std::endl;
 		phases[topoOrderMap[i->second]].push_back(i->first);
 	}
 
