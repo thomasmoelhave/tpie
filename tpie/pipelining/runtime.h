@@ -210,7 +210,7 @@ public:
 	void get_phase_map(std::map<node *, size_t> & phaseMap);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Internal method used by go().
+	/// \brief  Set up phase graph so we can find a topological order.
 	///////////////////////////////////////////////////////////////////////////
 	void get_phase_graph(const std::map<node *, size_t> & phaseMap,
 						 graph<size_t> & phaseGraph);
@@ -226,7 +226,11 @@ public:
 	static std::vector<size_t> inverse_permutation(const std::vector<size_t> & f);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Internal method used by go().
+	/// \brief  Compute topological phase order.
+	///
+	/// The vector phases[i] will contain the nodes in the ith phase to run.
+	/// If no node in phases[i] has a dependency to a node in phases[i-1],
+	/// evacuateWhenDone[i] is set to true.
 	///////////////////////////////////////////////////////////////////////////
 	void get_phases(const std::map<node *, size_t> & phaseMap,
 					const graph<size_t> & phaseGraph,
@@ -252,12 +256,15 @@ public:
 				   bool itemFlow);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Internal method used by go_initiators() and has_initiator().
+	/// \brief  Check if the node is a phase initiator.
+	///
+	/// A node is a phase initiator if it has no ingoing edges in the actor
+	/// graph, or in other words if no node pushes to it or pulls from it.
 	///////////////////////////////////////////////////////////////////////////
 	bool is_initiator(node * n);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Internal method used by ensure_initiators().
+	/// \brief  Equivalent to any_of(begin(phase), end(phase), is_initiator).
 	///////////////////////////////////////////////////////////////////////////
 	bool has_initiator(const std::vector<node *> & phase);
 
