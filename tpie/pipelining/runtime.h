@@ -385,7 +385,7 @@ public:
 
 			if (i->second.second == pulls) std::swap(from, to);
 
-			possibleSources.erase(from);
+			possibleSources.erase(to);
 		}
 		for (std::set<id_t>::iterator i = possibleSources.begin();
 			 i != possibleSources.end(); ++i) {
@@ -408,7 +408,7 @@ public:
 
 			if (i->second.second == pulls) std::swap(from, to);
 
-			possibleSinks.erase(to);
+			possibleSinks.erase(from);
 		}
 		for (std::set<id_t>::iterator i = possibleSinks.begin();
 			 i != possibleSinks.end(); ++i) {
