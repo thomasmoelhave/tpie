@@ -137,6 +137,7 @@ set (SOURCES
 	memory.cpp
 	pipelining/node_name.cpp
 	pipelining/pipeline.cpp
+	pipelining/runtime.cpp
 	pipelining/tokens.cpp
 	portability.cpp
 	prime.cpp
