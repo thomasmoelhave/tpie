@@ -230,7 +230,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper methods for memory assignment.
-/// The memory assignment algorithm is in runtime::assign_phase_memory.
+/// The memory assignment algorithm is in runtime::get_memory_factor.
 ///////////////////////////////////////////////////////////////////////////////
 class memory_runtime {
 public:
@@ -249,14 +249,14 @@ public:
 	}
 
 	// Node accessors
-	memory_size_type minimum_memory(size_t i) { return m_nodes[i]->get_minimum_memory(); }
-	memory_size_type maximum_memory(size_t i) { return m_nodes[i]->get_maximum_memory(); }
-	double fraction(size_t i) { return m_nodes[i]->get_memory_fraction(); }
+	memory_size_type minimum_memory(size_t i) const { return m_nodes[i]->get_minimum_memory(); }
+	memory_size_type maximum_memory(size_t i) const { return m_nodes[i]->get_maximum_memory(); }
+	double fraction(size_t i) const { return m_nodes[i]->get_memory_fraction(); }
 
 	// Node accessor aggregates
-	memory_size_type sum_minimum_memory() { return m_minimumMemory; }
-	memory_size_type sum_maximum_memory() { return m_maximumMemory; }
-	double sum_fraction() { return m_fraction; }
+	memory_size_type sum_minimum_memory() const { return m_minimumMemory; }
+	memory_size_type sum_maximum_memory() const { return m_maximumMemory; }
+	double sum_fraction() const { return m_fraction; }
 
 	// Node mutator
 	void set_memory(size_t i, memory_size_type mem) { m_nodes[i]->set_available_memory(mem); }
@@ -272,14 +272,14 @@ public:
 			set_memory(i, minimum_memory(i));
 	}
 
-	memory_size_type sum_assigned_memory(double factor) {
+	memory_size_type sum_assigned_memory(double factor) const {
 		memory_size_type memoryAssigned = 0;
 		for (size_t i = 0; i < m_nodes.size(); ++i)
 			memoryAssigned += get_assigned_memory(i, factor);
 		return memoryAssigned;
 	}
 
-	memory_size_type get_assigned_memory(size_t i, double factor) {
+	memory_size_type get_assigned_memory(size_t i, double factor) const {
 		return clamp(minimum_memory(i), maximum_memory(i),
 					 factor * fraction(i));
 	}
@@ -594,25 +594,24 @@ public:
 	}
 
 	static void assign_memory(const std::vector<std::vector<node *> > & phases, memory_size_type memory) {
-		for (size_t i = 0; i < phases.size(); ++i)
-			assign_phase_memory(phases[i], memory);
+		for (size_t i = 0; i < phases.size(); ++i) {
+			memory_runtime rt(phases[i]);
+			double c = get_memory_factor(rt, memory);
+			rt.assign_memory(c);
+		}
 	}
 
-	static void assign_phase_memory(const std::vector<node *> & phase, memory_size_type memory) {
-		memory_runtime rt(phase);
-
+	static double get_memory_factor(const memory_runtime & rt, memory_size_type memory) {
 		if (rt.sum_minimum_memory() > memory) {
 			log_warning() << "Not enough memory for pipelining phase ("
 						  << rt.sum_minimum_memory() << " > " << memory << ")"
 						  << std::endl;
-			rt.assign_minimum_memory();
-			return;
+			return 0.0;
 		}
 
 		// This case is handled specially to avoid dividing by zero later on.
 		if (rt.sum_fraction() < 1e-9) {
-			rt.assign_minimum_memory();
-			return;
+			return 0.0;
 		}
 
 		double c_lo = 0.0;
@@ -642,7 +641,7 @@ public:
 			}
 		}
 
-		rt.assign_memory(c_lo);
+		return memory * c_lo / rt.sum_fraction();
 	}
 
 };
