@@ -133,6 +133,9 @@ class begin_end {
 public:
 	begin_end(graph<node *> & actorGraph) {
 		actorGraph.topological_order(m_topologicalOrder);
+	}
+
+	void begin() {
 		for (size_t i = m_topologicalOrder.size(); i--;) {
 			m_topologicalOrder[i]->set_state(node::STATE_IN_BEGIN);
 			m_topologicalOrder[i]->begin();
@@ -140,7 +143,7 @@ public:
 		}
 	}
 
-	~begin_end() {
+	void end() {
 		for (size_t i = 0; i < m_topologicalOrder.size(); ++i) {
 			m_topologicalOrder[i]->set_state(node::STATE_IN_END);
 			m_topologicalOrder[i]->end();
@@ -332,9 +335,11 @@ void runtime::go(stream_size_type items,
 		phase_progress_indicator phaseProgress(pi, i, phases[i]);
 		// call begin in leaf to root actor order
 		begin_end beginEnd(actor[i]);
+		beginEnd.begin();
 		// call go on initiators
 		go_initiators(phases[i], phaseProgress.get());
-		// call end in root to leaf actor order in ~begin_end
+		// call end in root to leaf actor order
+		beginEnd.end();
 		// call pi.done in ~phase_progress_indicator
 	}
 	// call fp->done in ~progress_indicators
