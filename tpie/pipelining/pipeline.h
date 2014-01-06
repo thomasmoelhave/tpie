@@ -159,6 +159,9 @@ public:
 	inline void plot(std::ostream & os = std::cout) {
 		p->plot(os);
 	}
+	void plot_full(std::ostream & os = std::cout) {
+		p->plot_full(os);
+	}
 	inline double memory() const {
 		return p->memory();
 	}
