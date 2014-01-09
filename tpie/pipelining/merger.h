@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2012, The TPIE development team
+// Copyright 2012, 2013, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -23,6 +23,7 @@
 #include <tpie/internal_priority_queue.h>
 #include <tpie/file_stream.h>
 #include <tpie/tpie_assert.h>
+#include <tpie/pipelining/run_file_container.h>
 
 namespace tpie {
 
@@ -30,69 +31,66 @@ template <typename T, typename pred_t>
 class merger {
 public:
 	inline merger(pred_t pred)
-		: pq(0, predwrap(pred))
+		: m_priority_queue(0, predwrap(pred))
 	{
 	}
 
 	inline bool can_pull() {
-		return !pq.empty();
+		return !m_priority_queue.empty();
 	}
 
 	inline T pull() {
 		tp_assert(can_pull(), "pull() while !can_pull()");
-		T el = pq.top().first;
-		size_t i = pq.top().second;
-		if (in[i].can_read() && itemsRead[i] < runLength) {
-			pq.pop_and_push(std::make_pair(in[i].read(), i));
-			++itemsRead[i];
-		} else {
-			pq.pop();
+		T el = m_priority_queue.top().first;
+		memory_size_type i = m_priority_queue.top().second;
+
+		if(m_containers[i].can_pull()) {
+			m_priority_queue.pop_and_push(std::make_pair(m_containers[i].pull(), i));
+		} 
+		else {
+			m_priority_queue.pop();
 		}
-		if (!can_pull()) {
+		
+		if(!can_pull()) {
 			reset();
 		}
+
 		return el;
 	}
 
 	inline void reset() {
-		in.resize(0);
-		pq.resize(0);
-		itemsRead.resize(0);
+		m_priority_queue.resize(0);
 	}
 
 	// Initialize merger with given sorted input runs. Each file stream is
-	// assumed to have a stream offset pointing to the first item in the run,
-	// and runLength items are read from each stream (unless end of stream
-	// occurs earlier).
+	// assumed to have a stream offset pointing to the first item in the run.
 	// Precondition: !can_pull()
-	void reset(array<file_stream<T> > & inputs, stream_size_type runLength) {
-		this->runLength = runLength;
-		tp_assert(pq.empty(), "Reset before we are done");
-		in.swap(inputs);
-		pq.resize(in.size());
-		for (size_t i = 0; i < in.size(); ++i) {
-			pq.unsafe_push(std::make_pair(in[i].read(), i));
+	void reset(bits::run_file_container<T> * containers, memory_size_type fanout = 0) {
+		tp_assert(m_priority_queue.empty(), "Reset before we are done");
+
+		m_containers = containers;
+		m_fanout = fanout;
+
+		m_priority_queue.resize(fanout);
+		for(memory_size_type i = 0; i < fanout; ++i) {
+			if(m_containers[i].can_pull()) {
+				m_priority_queue.unsafe_push(std::make_pair(m_containers[i].pull(), i));
+			}
 		}
-		pq.make_safe();
-		itemsRead.resize(in.size(), 1);
+
+		m_priority_queue.make_safe();
 	}
 
 	inline static memory_size_type memory_usage(memory_size_type fanout) {
 		return sizeof(merger)
-			- sizeof(internal_priority_queue<std::pair<T, size_t>, predwrap>) // pq
-			+ static_cast<memory_size_type>(internal_priority_queue<std::pair<T, size_t>, predwrap>::memory_usage(fanout)) // pq
-			- sizeof(array<file_stream<T> >) // in
-			+ static_cast<memory_size_type>(array<file_stream<T> >::memory_usage(fanout)) // in
-			- fanout*sizeof(file_stream<T>) // in file_streams
-			+ fanout*file_stream<T>::memory_usage() // in file_streams
-			- sizeof(array<size_t>) // itemsRead
-			+ static_cast<memory_size_type>(array<size_t>::memory_usage(fanout)) // itemsRead
+			- sizeof(internal_priority_queue<std::pair<T, memory_size_type>, predwrap>) // m_priority_queue
+			+ static_cast<memory_size_type>(internal_priority_queue<std::pair<T, memory_size_type>, predwrap>::memory_usage(fanout)) // m_priority_queue
 			;
 	}
 
 	class predwrap {
 	public:
-		typedef std::pair<T, size_t> item_type;
+		typedef std::pair<T, memory_size_type> item_type;
 		typedef item_type first_argument_type;
 		typedef item_type second_argument_type;
 		typedef bool result_type;
@@ -111,10 +109,9 @@ public:
 	};
 
 private:
-	internal_priority_queue<std::pair<T, size_t>, predwrap> pq;
-	array<file_stream<T> > in;
-	array<stream_size_type> itemsRead;
-	stream_size_type runLength;
+	internal_priority_queue<std::pair<T, memory_size_type>, predwrap> m_priority_queue;
+	bits::run_file_container<T> * m_containers;
+	memory_size_type m_fanout;
 };
 
 } // namespace tpie
