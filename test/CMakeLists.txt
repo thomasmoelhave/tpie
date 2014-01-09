@@ -19,6 +19,7 @@ endmacro(add_tpie_test)
 
 add_tpie_test(test_ami_stack)
 add_tpie_test(test_sort)
+add_tpie_test(test_pipesort)
 add_tpie_test(test_big_scan)
 add_tpie_test(test_ami_queue)
 
