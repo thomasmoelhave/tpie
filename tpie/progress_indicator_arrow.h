@@ -119,7 +119,7 @@ namespace tpie {
 		}
 
 		if (newStatus != m_status) {
-			m_os << '\r' << newStatus << std::flush;
+			m_os << "\r\e[K" << newStatus << std::flush;
 			std::swap(newStatus, m_status);
 		}
 	}
