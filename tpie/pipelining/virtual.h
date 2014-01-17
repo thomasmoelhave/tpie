@@ -96,6 +96,7 @@ private:
 	dest_t dest;
 
 public:
+#ifndef TPIE_CPP_RVALUE_REFERENCE
 	virtsrc_impl(const dest_t & dest)
 		: dest(dest)
 	{
@@ -103,6 +104,15 @@ public:
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
 		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
+#else // TPIE_CPP_RVALUE_REFERENCE
+	virtsrc_impl(dest_t dest)
+		: dest(std::move(dest))
+	{
+		node::add_push_destination(dest);
+		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
+	}
+#endif // TPIE_CPP_RVALUE_REFERENCE
 
 	const node_token & get_token() {
 		return node::get_token();
@@ -419,9 +429,13 @@ public:
 		}
 		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
-		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct(temp));
-		this->m_node = bits::virt_node::take_own(m_src);
 		this->m_segmap = temp.get_node_map();
+#ifndef TPIE_CPP_RVALUE_REFERENCE
+		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct(temp));
+#else // TPIE_CPP_RVALUE_REFERENCE
+		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct(std::move(temp)));
+#endif // TPIE_CPP_RVALUE_REFERENCE
+		this->m_node = bits::virt_node::take_own(m_src);
 
 		return *this;
 	}
@@ -521,8 +535,12 @@ public:
 		}
 		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
-		this->m_node = bits::virt_node::take_own(new constructed_type(pipe.factory.construct(temp)));
 		this->m_segmap = m_recv->get_node_map();
+#ifndef TPIE_CPP_RVALUE_REFERENCE
+		this->m_node = bits::virt_node::take_own(new constructed_type(pipe.factory.construct(temp)));
+#else // TPIE_CPP_RVALUE_REFERENCE
+		this->m_node = bits::virt_node::take_own(new constructed_type(pipe.factory.construct(std::move(temp))));
+#endif // TPIE_CPP_RVALUE_REFERENCE
 		return *this;
 	}
 
