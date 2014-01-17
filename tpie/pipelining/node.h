@@ -354,6 +354,31 @@ protected:
 				"Tried to copy pipeline node after prepare had been called");
 	}
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Move constructor. We need to define this explicitly since the
+	/// node_token needs to know its new owner.
+	///////////////////////////////////////////////////////////////////////////
+	node(node && other)
+		: token(std::move(other.token), this)
+		, m_minimumMemory(std::move(other.m_minimumMemory))
+		, m_maximumMemory(std::move(other.m_maximumMemory))
+		, m_availableMemory(std::move(other.m_availableMemory))
+		, m_memoryFraction(std::move(other.m_memoryFraction))
+		, m_name(std::move(other.m_name))
+		, m_namePriority(std::move(other.m_namePriority))
+		, m_stepsTotal(std::move(other.m_stepsTotal))
+		, m_stepsLeft(std::move(other.m_stepsLeft))
+		, m_pi(std::move(other.m_pi))
+		, m_state(std::move(other.m_state))
+		, m_plotOptions(std::move(other.m_plotOptions))
+	{
+		if (m_state != STATE_FRESH)
+			throw call_order_exception(
+				"Tried to move pipeline node after prepare had been called");
+	}
+#endif // TPIE_CPP_RVALUE_REFERENCE
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor using a given fresh node_token.
 	///////////////////////////////////////////////////////////////////////////
