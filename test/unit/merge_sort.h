@@ -134,6 +134,7 @@ static bool sort_test(memory_size_type m1,
 		prev = read;
 		++itemsRead;
 	}
+
 	if (itemsRead != items) {
 		log_error() << "Read the wrong number of items. Got " << itemsRead << ", expected " << items << std::endl;
 		return false;
@@ -150,7 +151,7 @@ static bool empty_input_test() {
 }
 
 static bool internal_report_test() {
-	return sort_test(100,100,100,40);
+	return sort_test(100,100,100,20);
 }
 
 static bool internal_report_after_resize_test() {
