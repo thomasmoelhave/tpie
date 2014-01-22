@@ -642,7 +642,7 @@ buffer_node() {
 	return pipe_middle<factory_0<buffer_node_t> >();
 }
 
-struct merger_memory : public memory_test {
+/*struct merger_memory : public memory_test {
 	typedef int test_t;
 	size_t n;
 	array<file_stream<test_t> > inputs;
@@ -687,7 +687,7 @@ struct merger_memory : public memory_test {
 bool merger_memory_test(size_t n) {
 	merger_memory m(n);
 	return m();
-}
+}*/
 
 struct my_item {
 	my_item() : v1(42), v2(9001) {}
@@ -1672,7 +1672,7 @@ int main(int argc, char ** argv) {
 	.test(uniq_test, "uniq")
 	.multi_test(memory_test_multi, "memory")
 	.test(fork_test, "fork")
-	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
+	//.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
