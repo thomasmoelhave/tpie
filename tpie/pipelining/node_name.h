@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2011, 2012, The TPIE development team
+// Copyright 2014, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,11 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_MERGE_H__
-#define __TPIE_PIPELINING_MERGE_H__
+#ifndef TPIE_PIPELINING_NODE_NAME_H
+#define TPIE_PIPELINING_NODE_NAME_H
 
-#include <tpie/pipelining/pipe_base.h>
-#include <tpie/pipelining/factory_helpers.h>
+#include <string>
 
 namespace tpie {
 
@@ -30,47 +29,19 @@ namespace pipelining {
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class merge_t
-/// \brief Merge a pull pipeline into a push pipeline
-///
-/// Currently, it is not very well defined what constitutes a merge.
+/// \brief Extract the class name from a mangled typeid name.
 ///////////////////////////////////////////////////////////////////////////////
+std::string extract_pipe_class_name(std::string mangled);
 
-template <typename fact_t>
-class merge_t {
-public:
-	typedef typename fact_t::constructed_type pull_t;
-
-	template <typename dest_t>
-	class type : public node {
-	public:
-		typedef typename push_type<dest_t>::type item_type;
-
-		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {
-			add_push_destination(dest);
-			add_pull_source(with);
-		}
-
-		inline void push(const item_type & item) {
-			dest.push(item);
-			dest.push(with.pull());
-		}
-
-		dest_t dest;
-		pull_t with;
-	};
-};
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Extract a sensible default name for a node given its typeid name.
+///////////////////////////////////////////////////////////////////////////////
+std::string extract_pipe_name(std::string mangled);
 
 } // namespace bits
-
-template <typename pull_t>
-inline pipe_middle<factory_1<bits::merge_t<pull_t>::template type, pull_t> >
-merge(const pullpipe_begin<pull_t> & with) {
-	return factory_1<bits::merge_t<pull_t>::template type, pull_t>(with.factory);
-}
 
 } // namespace pipelining
 
 } // namespace tpie
 
-#endif
+#endif // TPIE_PIPELINING_NODE_NAME_H

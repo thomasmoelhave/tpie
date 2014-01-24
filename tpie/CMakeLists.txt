@@ -53,6 +53,7 @@ set (HEADERS
 		pipelining/merger.h
 		pipelining/node.h
 		pipelining/node_map_dump.h
+		pipelining/node_name.h
 		pipelining/numeric.h
 		pipelining/pair_factory.h
 		pipelining/parallel.h
@@ -137,6 +138,7 @@ set (SOURCES
 	logstream.cpp
 	memory.cpp
 	pipelining/graph.cpp
+	pipelining/node_name.cpp
 	pipelining/pipeline.cpp
 	pipelining/tokens.cpp
 	portability.cpp

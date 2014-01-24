@@ -27,9 +27,11 @@
 #include <boost/any.hpp>
 #include <tpie/pipelining/priority_type.h>
 #include <tpie/pipelining/predeclare.h>
+#include <tpie/pipelining/node_name.h>
 #ifdef TPIE_CPP_DECLTYPE
 #include <type_traits>
 #endif
+
 namespace tpie {
 
 namespace pipelining {
@@ -352,6 +354,9 @@ public:
 	/// phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline const std::string & get_name() {
+		if (m_name.empty()) {
+			m_name = bits::extract_pipe_name(typeid(*this).name());
+		}
 		return m_name;
 	}
 

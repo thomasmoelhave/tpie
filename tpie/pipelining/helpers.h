@@ -75,7 +75,6 @@ public:
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
-		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void push(const item_type & item) {
@@ -114,7 +113,6 @@ public:
 
 	pull_peek_t(const source_t & source) : source(source) {
 		add_pull_source(source);
-		set_name("Peek", PRIORITY_INSIGNIFICANT);
 		set_plot_options(PLOT_SIMPLIFIED_HIDE);
 	}
 
@@ -246,7 +244,6 @@ public:
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
 			add_push_destination(dest);
 			add_push_destination(dest2);
-			set_name("Fork", PRIORITY_INSIGNIFICANT);
 		}
 
 		inline void push(const item_type & item) {
@@ -265,7 +262,6 @@ class null_sink_t: public node {
 public:
 	typedef T item_type;
 	null_sink_t() {
-		set_name("Null sink");
 	}
 
 	void push(const T &) {}
@@ -281,7 +277,6 @@ public:
 		: i(from)
 		, till(to)
 	{
-		set_name("Input iterator", PRIORITY_INSIGNIFICANT);
 	}
 
 	bool can_pull() {
@@ -307,7 +302,6 @@ public:
 			, till(to)
 			, dest(dest)
 		{
-			set_name("Input iterator", PRIORITY_INSIGNIFICANT);
 			add_push_destination(dest);
 		}
 
@@ -331,7 +325,6 @@ public:
 	push_output_iterator_t(Iterator to)
 		: i(to)
 	{
-		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
 	}
 
 	void push(const item_type & item) {
@@ -348,7 +341,6 @@ public:
 	push_output_iterator_t(Iterator to)
 		: i(to)
 	{
-		set_name("Output iterator", PRIORITY_INSIGNIFICANT);
 	}
 
 	void push(const item_type & item) {
@@ -369,7 +361,6 @@ public:
 			: i(to)
 			, dest(dest)
 		{
-			set_name("Output iterator", PRIORITY_INSIGNIFICANT);
 			add_pull_source(dest);
 		}
 
@@ -394,7 +385,6 @@ public:
 		typedef typename push_type<dest_t>::type item_type;
 		type(const dest_t & dest, const F & functor): functor(functor), dest(dest) {
 			add_push_destination(dest);
-			set_name("preparer");
 		}
 
 		void prepare() override {
@@ -418,7 +408,6 @@ public:
 		typedef typename push_type<dest_t>::type item_type;
 		type(const dest_t & dest, const F & functor): functor(functor), dest(dest) {
 			add_push_destination(dest);
-			set_name("propagater");
 		}
 
 		void propagate() override {

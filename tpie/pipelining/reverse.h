@@ -265,7 +265,6 @@ public:
 		, output(dest, input_token)
 	{
 		add_push_destination(input);
-		set_name("Reverser", PRIORITY_INSIGNIFICANT);
 		set_plot_options(PLOT_BUFFERED);
 	}
 

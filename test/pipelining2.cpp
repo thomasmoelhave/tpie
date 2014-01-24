@@ -55,7 +55,6 @@ public:
 		{
 			add_push_destination(dest);
 			add_pull_source(src);
-			this->set_name("Adder", PRIORITY_INSIGNIFICANT);
 		}
 
 		void push(int i) {

@@ -136,7 +136,6 @@ public:
 		, n(n)
 	{
 		add_push_destination(dest);
-		set_name("Random strings");
 	}
 
 	virtual void go() override {
@@ -168,7 +167,6 @@ public:
 	sort_verifier_type(bool & res)
 		: res(res)
 	{
-		set_name("Sort verifier");
 		res = true;
 	}
 

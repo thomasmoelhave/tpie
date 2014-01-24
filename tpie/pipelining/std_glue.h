@@ -39,7 +39,6 @@ public:
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
 		add_push_destination(dest);
-		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void propagate() override {
@@ -65,7 +64,6 @@ public:
 	typedef T item_type;
 
 	inline output_vector_t(std::vector<T> & output) : output(output) {
-		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void push(const T & item) {
@@ -84,7 +82,6 @@ public:
 		typedef typename F::argument_type item_type;
 		
 		type(const dest_t & dest, const F & f): f(f), dest(dest) {
-			set_name("Lambda", PRIORITY_INSIGNIFICANT);
 		}
 		
 		void push(const item_type & item) {
@@ -105,7 +102,6 @@ public:
 		typedef typename F::argument_type item_type;
 		
 		type(const dest_t & dest, const F & f): f(f), dest(dest) {
-			set_name("Lambda", PRIORITY_INSIGNIFICANT);
 		}
 		
 		void push(const item_type & item) {
