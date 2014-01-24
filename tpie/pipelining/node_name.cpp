@@ -19,6 +19,30 @@
 
 #include <tpie/pipelining/node_name.h>
 
+namespace {
+
+bool isupper(char c) {
+	return 'A' <= c && c <= 'Z';
+}
+
+bool islower(char c) {
+	return 'a' <= c && c <= 'z';
+}
+
+char toupper(char c) {
+	return islower(c) ? (c ^ ('A' ^ 'a')) : c;
+}
+
+char tolower(char c) {
+	return isupper(c) ? (c ^ ('A' ^ 'a')) : c;
+}
+
+bool endswith(const std::string & s, const std::string & suffix) {
+	return s.size() >= suffix.size() && std::equal(s.begin() + (s.size() - suffix.size()), s.end(), suffix.begin());
+}
+
+} // unnamed namespace
+
 namespace tpie {
 
 namespace pipelining {
@@ -63,6 +87,31 @@ std::string extract_pipe_class_name(std::string mangled) {
 		if (last.empty()) return mangled;
 		return last;
 	}
+}
+
+std::string extract_pipe_name(std::string mangled) {
+	std::string className = extract_pipe_class_name(mangled);
+	std::string name;
+	name.reserve(2*className.size());
+
+	size_t n = className.size();
+	if (endswith(className, "_type")) n -= 5;
+	else if (endswith(className, "_t")) n -= 2;
+
+	for (size_t i = 0; i < n; ++i) {
+		char c = className[i];
+		if (i == 0) {
+			name += toupper(c);
+		} else if (isupper(c) && i > 0) {
+			name += ' ';
+			name += tolower(c);
+		} else if (c == '_') {
+			name += ' ';
+		} else {
+			name += c;
+		}
+	}
+	return name;
 }
 
 } // namespace bits
