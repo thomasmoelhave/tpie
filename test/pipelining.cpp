@@ -88,7 +88,6 @@ public:
 		: dest(dest)
 		, nodes(nodes)
 	{
-		add_push_destination(dest);
 		set_steps(nodes);
 	}
 
