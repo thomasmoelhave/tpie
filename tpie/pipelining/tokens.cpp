@@ -93,10 +93,9 @@ void node_map::add_relation(id_t from, id_t to, node_relation rel) {
 
 size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {
 	size_t res = 0;
-	relmapit i = map.find(from);
-	while (i != map.end() && i->first == from) {
+	std::pair<relmapit, relmapit> is = map.equal_range(from);
+	for (relmapit i = is.first; i != is.second; ++i) {
 		if (i->second.second == rel) ++res;
-		++i;
 	}
 	return res;
 }
