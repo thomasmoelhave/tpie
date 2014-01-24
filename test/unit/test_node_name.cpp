@@ -49,7 +49,7 @@ private:
 	tpie::teststream & ts;
 };
 
-void basic_test(tpie::teststream & ts) {
+void gcc_test(tpie::teststream & ts) {
 	node_name_tester(ts)
 .test("multiply_t<TB::virtrecv<unsigned long> >", "10multiply_tIN4tpie10pipelining4bits8virtrecvImEEE", "multiply_t")
 .test("multiply_t<multiply_t<TB::output_vector_t<unsigned long> > >", "10multiply_tIS_IN4tpie10pipelining4bits15output_vector_tImEEEE", "multiply_t")
@@ -89,8 +89,49 @@ void basic_test(tpie::teststream & ts) {
 		;
 }
 
+void msvc_test(tpie::teststream & ts) {
+	node_name_tester(ts)
+.test("multiply_t<TB::virtrecv<unsigned long> >", "struct multiply_t<class tpie::pipelining::bits::virtrecv<unsigned __int64> >", "multiply_t")
+.test("multiply_t<multiply_t<TB::output_vector_t<unsigned long> > >", "struct multiply_t<struct multiply_t<class tpie::pipelining::bits::output_vector_t<unsigned __int64> > >", "multiply_t")
+.test("push_zero_t<TB::virtrecv<...> >", "class push_zero_t<class tpie::pipelining::bits::virtrecv<class tpie::array<unsigned __int64,class tpie::allocator<unsigned __int64> > const & __ptr64> >", "push_zero_t")
+.test("step_begin_type<TB::producer<unsigned long, unsigned long> >", "class step_begin_type<class tpie::pipelining::parallel_bits::producer<unsigned __int64,unsigned __int64> >", "step_begin_type")
+.test("push_in_end_type<TB::after<unsigned long> >", "class push_in_end_type<class tpie::pipelining::parallel_bits::after<unsigned __int64> >", "push_in_end_type")
+.test("sequence_verifier", "struct sequence_verifier", "sequence_verifier")
+.test("prepare_begin_type<prepare_middle_type<prepare_end_type> >", "class prepare_begin_type<class prepare_middle_type<class prepare_end_type> >", "prepare_begin_type")
+.test("sequence_generator<TB::producer<unsigned long, unsigned long> >", "struct sequence_generator<class tpie::pipelining::parallel_bits::producer<unsigned __int64,unsigned __int64> >", "sequence_generator")
+.test("noop_initiator_type<TB::producer<unsigned long, unsigned long> >", "class noop_initiator_type<class tpie::pipelining::parallel_bits::producer<unsigned __int64,unsigned __int64> >", "noop_initiator_type")
+.test("buffering_accumulator_type<TB::after<unsigned long> >", "class buffering_accumulator_type<class tpie::pipelining::parallel_bits::after<unsigned __int64> >", "buffering_accumulator_type")
+.test("multiplicative_inverter_type<TB::after<unsigned long> >", "class multiplicative_inverter_type<class tpie::pipelining::parallel_bits::after<unsigned __int64> >", "multiplicative_inverter_type")
+.test("FF1<FF2<FF3> >", "struct FF1<struct FF2<struct FF3> >", "FF1")
+.test("FF2<FF3>", "struct FF2<struct FF3>", "FF2")
+.test("FF3", "struct FF3", "FF3")
+.test("Summer", "class Summer", "Summer")
+.test("Splitter<TB::after<unsigned long> >", "class Splitter<class tpie::pipelining::parallel_bits::after<unsigned __int64> >", "Splitter")
+.test("Monotonic<TB::producer<unsigned long, unsigned long> >", "class Monotonic<class tpie::pipelining::parallel_bits::producer<unsigned __int64,unsigned __int64> >", "Monotonic")
+.test("memtest_1<memtest_2>", "class memtest_1<class memtest_2>", "memtest_1")
+.test("TB::identity_t<TB::dummydest_t<unsigned long> >", "class tpie::pipelining::bits::identity_t<class tpie::pipelining::bits::dummydest_t<unsigned __int64> >", "identity_t")
+.test("TB::bitbucket_t<...>", "class tpie::pipelining::bits::bitbucket_t<class tpie::array<unsigned __int64,class tpie::allocator<unsigned __int64> > const & __ptr64>", "bitbucket_t")
+.test("TB::dummydest_t<unsigned long>", "class tpie::pipelining::bits::dummydest_t<unsigned __int64>", "dummydest_t")
+.test("TB::pull_to_push<...>::pusher_t<...>", "class tpie::pipelining::bits::pull_to_push<class tpie::pipelining::factory_0<class tpie::pipelining::bits::pull_identity_t> >::pusher_t<class tpie::pipelining::bits::output_t<unsigned __int64> >", "pull_to_push")
+.test("TB::push_to_pull<...>::puller_t<...>", "class tpie::pipelining::bits::push_to_pull<class tpie::pipelining::factory_0<class tpie::pipelining::bits::identity_t> >::puller_t<class tpie::pipelining::bits::pull_input_t<unsigned __int64> >", "push_to_pull")
+.test("TB::input_vector_t<TP::join<int>::sink_impl>", "class tpie::pipelining::bits::input_vector_t<class tpie::pipelining::join<int>::sink_impl>", "input_vector_t")
+.test("TB::extract_first_t<TB::output_vector_t<unsigned long> >", "class tpie::pipelining::bits::extract_first_t<class tpie::pipelining::bits::output_vector_t<unsigned __int64> >", "extract_first_t")
+.test("TB::output_vector_t<int>", "class tpie::pipelining::bits::output_vector_t<int>", "output_vector_t")
+.test("TB::output_vector_t<unsigned long>", "class tpie::pipelining::bits::output_vector_t<unsigned __int64>", "output_vector_t")
+.test("TB::count_consecutive_t<...>", "class tpie::pipelining::bits::count_consecutive_t<class tpie::pipelining::bits::extract_first_t<class tpie::pipelining::bits::output_vector_t<unsigned __int64> > >", "count_consecutive_t")
+.test("TB::pull_input_iterator_t<...>", "class tpie::pipelining::bits::pull_input_iterator_t<class std::_Vector_iterator<class std::_Vector_val<unsigned __int64,class std::allocator<unsigned __int64> > > >", "pull_input_iterator_t")
+.test("TB::push_input_iterator_t<...>::type<TB::push_output_iterator_t<...> >", "class tpie::pipelining::bits::push_input_iterator_t<class std::_Vector_iterator<class std::_Vector_val<unsigned __int64,class std::allocator<unsigned __int64> > > >::type<class tpie::pipelining::bits::push_output_iterator_t<class std::_Vector_iterator<class std::_Vector_val<unsigned __int64,class std::allocator<unsigned __int64> > >,void> >", "push_input_iterator_t")
+.test("TB::pull_output_iterator_t<...>::type<TB::pull_input_iterator_t<...> >", "class tpie::pipelining::bits::pull_output_iterator_t<class std::_Vector_iterator<class std::_Vector_val<unsigned __int64,class std::allocator<unsigned __int64> > > >::type<class tpie::pipelining::bits::pull_input_iterator_t<class std::_Vector_iterator<class std::_Vector_val<unsigned __int64,class std::allocator<unsigned __int64> > > > >", "pull_output_iterator_t")
+.test("TB::push_output_iterator_t<...>", "class tpie::pipelining::bits::push_output_iterator_t<class std::_Vector_iterator<class std::_Vector_val<unsigned __int64,class std::allocator<unsigned __int64> > >,void>", "push_output_iterator_t")
+.test("TB::merge_t<...>::type<TB::output_t<unsigned long> >", "class tpie::pipelining::bits::merge_t<class tpie::pipelining::termfactory_1<class tpie::pipelining::bits::pull_input_t<unsigned __int64>,class tpie::file_stream<unsigned __int64> & __ptr64> >::type<class tpie::pipelining::bits::output_t<unsigned __int64> >", "merge_t")
+.test("end_time::begin_type", "class end_time::begin_type", "begin_type")
+.test("end_time::end_type<end_time::begin_type>", "class end_time::end_type<class end_time::begin_type>", "end_type")
+		;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
-		.multi_test(basic_test, "basic")
+		.multi_test(gcc_test, "gcc")
+		.multi_test(msvc_test, "msvc")
 		;
 }
