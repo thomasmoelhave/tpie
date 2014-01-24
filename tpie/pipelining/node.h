@@ -27,7 +27,9 @@
 #include <boost/any.hpp>
 #include <tpie/pipelining/priority_type.h>
 #include <tpie/pipelining/predeclare.h>
-
+#ifdef TPIE_CPP_DECLTYPE
+#include <type_traits>
+#endif
 namespace tpie {
 
 namespace pipelining {
@@ -47,7 +49,115 @@ public:
 	inline void refresh();
 };
 
+
+#ifdef TPIE_CPP_DECLTYPE
+
+template <typename T>
+struct remove {
+	typedef T type;
+};
+
+template <typename T>
+struct remove<const T> {
+	typedef typename remove<T>::type type;
+};
+
+template <typename T>
+struct remove<T &> {
+	typedef typename remove<T>::type type;
+};
+
+template <typename T>
+struct remove<T &&> {
+	typedef typename remove<T>::type type;
+};
+
+
+template <typename T>
+struct push_traits {};
+
+template <typename ClassType, typename ArgType>
+struct push_traits< void(ClassType::*)(ArgType) > {
+	typedef ArgType type;
+};
+
+template <typename T, bool>
+struct push_type_help {
+	typedef typename push_traits<decltype(&T::push)>::type type_;
+	typedef typename remove<type_>::type type;
+};
+
+template <typename T>
+struct push_type_help<T, true> {
+	typedef typename T::item_type type;
+};
+
+template <typename T>
+struct pull_traits {};
+
+template <typename ClassType, typename ArgType>
+struct pull_traits< ArgType(ClassType::*)() > {
+	typedef ArgType type;
+};
+
+template <typename T, bool>
+struct pull_type_help {
+	typedef typename pull_traits<decltype(&T::pull)>::type type_;
+	typedef typename remove<type_>::type type;
+};
+
+template <typename T>
+struct pull_type_help<T, true> {
+	typedef typename T::item_type type;
+};
+
+template <typename T>
+struct has_itemtype {
+	typedef char yes[1];
+	typedef char no[2];
+	
+	template <typename C>
+	static yes& test(typename C::item_type*);
+	
+	template <typename>
+	static no& test(...);
+	//static_assert(sizeof(test<T>(nullptr)) == sizeof(yes), "WTF");
+	static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+#endif //TPIE_CPP_DECLTYPE
+
+
 } // namespace bits
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class to deduce the item_type of a node of type T.
+/// typedef item_type to T::item_type if that exists
+/// otherwise typedef it to the type of whatever paramater push takes
+///////////////////////////////////////////////////////////////////////////////
+#ifdef TPIE_CPP_DECLTYPE
+template <typename T>
+struct push_type {
+	typedef typename bits::push_type_help<T, bits::has_itemtype<T>::value>::type type;
+};
+
+template <typename T>
+struct pull_type {
+	typedef typename bits::pull_type_help<T, bits::has_itemtype<T>::value>::type type;
+};
+
+#else //TPIE_CPP_DECLTYPE
+
+template <typename T>
+struct push_type {
+  typedef typename T::item_type type;
+};
+
+template <typename T>
+struct pull_type {
+  typedef typename T::item_type type;
+};
+
+#endif //TPIE_CPP_DECLTYPE
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all nodes. A node should inherit from the node class,
