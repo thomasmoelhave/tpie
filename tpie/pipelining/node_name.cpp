@@ -37,8 +37,20 @@ char tolower(char c) {
 	return isupper(c) ? (c ^ ('A' ^ 'a')) : c;
 }
 
+bool beginswith(const std::string & s, const std::string & prefix) {
+	return s.size() >= prefix.size() && std::equal(s.begin(), s.begin() + prefix.size(), prefix.begin());
+}
+
 bool endswith(const std::string & s, const std::string & suffix) {
 	return s.size() >= suffix.size() && std::equal(s.begin() + (s.size() - suffix.size()), s.end(), suffix.begin());
+}
+
+std::string extract_pipe_class_name_pretty(std::string typeName) {
+	std::string qname = typeName.substr(0, typeName.find('<'));
+	size_t n = endswith(qname, "::type") ? qname.size() - 6 : qname.size();
+	size_t i = qname.rfind("::", n);
+	if (i == std::string::npos) return qname.substr(0, n);
+	else return qname.substr(i+2, n - (i+2));
 }
 
 } // unnamed namespace
@@ -51,7 +63,7 @@ namespace bits {
 
 std::string extract_pipe_class_name(std::string mangled) {
 	if (mangled[0] == '?') {
-		// MSVC mangling
+		// MSVC mangling -- untested code
 		size_t i=1;
 		size_t j=mangled.find("@", i);
 		if (j== std::string::npos || j== i) return mangled;
@@ -61,6 +73,12 @@ std::string extract_pipe_class_name(std::string mangled) {
 		j=mangled.find("@", i);
 		if (j== std::string::npos || j== i) return mangled;
 		return mangled.substr(i, j-i);
+	} else if (beginswith(mangled, "struct ")) {
+		// Pretty-printed typenames from MSVC
+		return extract_pipe_class_name_pretty(mangled.substr(7));
+	} else if (beginswith(mangled, "class ")) {
+		// Pretty-printed typenames from MSVC
+		return extract_pipe_class_name_pretty(mangled.substr(6));
 	} else {
 		// Assume GCC mangling
 		size_t i=0;
