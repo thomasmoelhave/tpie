@@ -39,7 +39,7 @@ namespace bits {
 template <typename dest_t>
 class input_t : public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
 		add_push_destination(dest);
@@ -132,7 +132,7 @@ private:
 template <typename source_t>
 class pull_output_t : public node {
 public:
-	typedef typename source_t::item_type item_type;
+	typedef typename pull_type<source_t>::type item_type;
 
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
 		add_pull_source(source);
@@ -197,8 +197,8 @@ inline pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_outp
 }
 
 template <typename T>
-inline pipe_middle<factory_1<bits::tee_t<typename T::item_type>::template type, T &> >
-tee(T & fs) {return factory_1<bits::tee_t<typename T::item_type>::template type, T &>(fs);}
+inline pipe_middle<factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &> >
+tee(T & fs) {return factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &>(fs);}
 
 } // namespace pipelining
 

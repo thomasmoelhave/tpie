@@ -134,10 +134,10 @@ protected:
 /// \tparam dest_t   Destination node type.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename dest_t>
-class sort_output_t : public sort_output_base<typename dest_t::item_type, pred_t> {
+class sort_output_t : public sort_output_base<typename push_type<dest_t>::type, pred_t> {
 public:
 	/** Type of items sorted. */
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 	/** Base class */
 	typedef sort_output_base<item_type, pred_t> p_t;
 	/** Type of the merge sort implementation used. */
@@ -329,7 +329,7 @@ public:
 	struct constructed {
 	private:
 		/** Type of items sorted. */
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 	public:
 		typedef typename child_t::template predicate<item_type>::type pred_type;
 		typedef sort_input_t<item_type, pred_type> type;
@@ -337,7 +337,7 @@ public:
 
 	template <typename dest_t>
 	typename constructed<dest_t>::type construct(const dest_t & dest) const {
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 		typedef typename constructed<dest_t>::pred_type pred_type;
 
 		sort_output_t<pred_type, dest_t> output(dest, self().template get_pred<item_type>());

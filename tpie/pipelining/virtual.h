@@ -87,9 +87,9 @@ public:
 /// \brief Concrete implementation of virtsrc.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class virtsrc_impl : public virtsrc<typename dest_t::item_type> {
+class virtsrc_impl : public virtsrc<typename push_type<dest_t>::type> {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 private:
 	typedef typename maybe_add_const_ref<item_type>::type input_type;

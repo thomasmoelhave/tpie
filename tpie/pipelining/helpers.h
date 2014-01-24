@@ -35,7 +35,7 @@ namespace bits {
 template <typename dest_t>
 class ostream_logger_t : public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
 		add_push_destination(dest);
@@ -71,7 +71,7 @@ private:
 template <typename dest_t>
 class identity_t : public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
@@ -88,7 +88,7 @@ private:
 template <typename source_t>
 class pull_identity_t : public node {
 public:
-	typedef typename source_t::item_type item_type;
+	typedef typename pull_type<source_t>::type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
 		add_pull_source(source);
@@ -110,7 +110,7 @@ private:
 template <typename source_t>
 class pull_peek_t : public node {
 public:
-	typedef typename source_t::item_type item_type;
+	typedef typename pull_type<source_t>::type item_type;
 
 	pull_peek_t(const source_t & source) : source(source) {
 		add_pull_source(source);
@@ -167,7 +167,7 @@ public:
 	class puller_t : public node {
 	public:
 
-		typedef typename source_t::item_type item_type;
+		typedef typename pull_type<source_t>::type item_type;
 		typedef typename pushfact_t::template constructed<dummydest_t<item_type> >::type pusher_t;
 
 		source_t source;
@@ -201,7 +201,7 @@ public:
 	template <typename dest_t>
 	class pusher_t : public node {
 	public:
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 		typedef typename pullfact_t::template constructed<dummydest_t<item_type> >::type puller_t;
 
 		dest_t dest;
@@ -241,7 +241,7 @@ public:
 	template <typename dest_t>
 	class type : public node {
 	public:
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
 			add_push_destination(dest);
@@ -391,7 +391,7 @@ public:
 		F functor;
 		dest_t dest;
 	public:
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 		type(const dest_t & dest, const F & functor): functor(functor), dest(dest) {
 			add_push_destination(dest);
 			set_name("preparer");
@@ -415,7 +415,7 @@ public:
 		F functor;
 		dest_t dest;
 	public:
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 		type(const dest_t & dest, const F & functor): functor(functor), dest(dest) {
 			add_push_destination(dest);
 			set_name("propagater");
