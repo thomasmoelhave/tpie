@@ -68,7 +68,7 @@ std::string extract_pipe_class_name(std::string mangled) {
 		std::string last;
 		std::string cur;
 		while (true) {
-			if (i >= mangled.size() || mangled[i] == 'I') break;
+			if (i >= mangled.size() || mangled[i] == 'I' || mangled[i] == 'E') break;
 			int v=0;
 			while (i < mangled.size()
 					&& mangled[i] >= '0'
