@@ -213,6 +213,7 @@ public:
 	template <typename fact2_t>
 	inline pipe_middle<bits::pair_factory<fact_t, fact2_t> >
 	operator|(const pipe_middle<fact2_t> & r) {
+		factory.set_destination_kind_push();
 		return bits::pair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
 
@@ -223,6 +224,7 @@ public:
 	template <typename fact2_t>
 	inline pipe_end<bits::termpair_factory<fact_t, fact2_t> >
 	operator|(const pipe_end<fact2_t> & r) {
+		factory.set_destination_kind_push();
 		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
 
@@ -266,12 +268,14 @@ public:
 	template <typename fact2_t>
 	inline pipe_begin<bits::pair_factory<fact_t, fact2_t> >
 	operator|(const pipe_middle<fact2_t> & r) {
+		factory.set_destination_kind_push();
 		return bits::pair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
 
 	template <typename fact2_t>
 	inline bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
 	operator|(const pipe_end<fact2_t> & r) {
+		factory.set_destination_kind_push();
 		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory).final();
 	}
 
@@ -352,13 +356,17 @@ public:
 	template <typename fact2_t>
 	inline pullpipe_middle<bits::pair_factory<fact2_t, fact_t> >
 	operator|(const pipe_middle<fact2_t> & r) {
-		return bits::pair_factory<fact2_t, fact_t>(r.factory, factory);
+		fact2_t f = r.factory;
+		f.set_destination_kind_pull();
+		return bits::pair_factory<fact2_t, fact_t>(f, factory);
 	}
 
 	template <typename fact2_t>
 	inline pullpipe_end<bits::termpair_factory<fact2_t, fact_t> >
 	operator|(const pipe_end<fact2_t> & r) {
-		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory);
+		fact2_t f = r.factory;
+		f.set_destination_kind_pull();
+		return bits::termpair_factory<fact2_t, fact_t>(f, factory);
 	}
 
 	fact_t factory;
@@ -401,13 +409,17 @@ public:
 	template <typename fact2_t>
 	inline pullpipe_begin<bits::termpair_factory<fact2_t, fact_t> >
 	operator|(const pullpipe_middle<fact2_t> & r) {
-		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory);
+		fact2_t f = r.factory;
+		f.set_destination_kind_pull();
+		return bits::termpair_factory<fact2_t, fact_t>(f, factory);
 	}
 
 	template <typename fact2_t>
 	inline bits::pipeline_impl<bits::termpair_factory<fact2_t, fact_t> >
 	operator|(const pullpipe_end<fact2_t> & r) {
-		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory).final();
+		fact2_t f = r.factory;
+		f.set_destination_kind_pull();
+		return bits::termpair_factory<fact2_t, fact_t>(f, factory).final();
 	}
 
 	fact_t factory;

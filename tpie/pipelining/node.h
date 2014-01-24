@@ -31,6 +31,7 @@
 #ifdef TPIE_CPP_DECLTYPE
 #include <type_traits>
 #endif
+#include <utility>
 
 namespace tpie {
 
@@ -806,6 +807,8 @@ protected:
 #endif
 
 	friend class bits::phase;
+
+	friend class factory_base;
 
 private:
 	node_token token;

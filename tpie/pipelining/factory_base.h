@@ -38,6 +38,14 @@ public:
 	}
 };
 
+struct destination_kind {
+	enum type {
+		none,
+		push,
+		pull
+	};
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Base class of all pipelining factories.
 ///
@@ -64,7 +72,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class factory_base {
 public:
-	factory_base() : m_amount(0), m_set(false) {
+	factory_base() : m_amount(0), m_set(false), m_destinationKind(destination_kind::none) {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -170,6 +178,20 @@ public:
 		}
 	}
 
+	void add_default_edge(node & r, const node & dest) const {
+		if (r.get_node_map()->find_authority()->out_degree(r.get_id()) > 0) return;
+		switch (m_destinationKind) {
+		case destination_kind::none:
+			break;
+		case destination_kind::push:
+			r.add_push_destination(dest);
+			break;
+		case destination_kind::pull:
+			r.add_pull_source(dest);
+			break;
+		}
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \copybrief bits::pipe_base::name
 	/// \copydetails bits::pipe_base::name
@@ -192,9 +214,24 @@ public:
 		else m_breadcrumbs = n + " | " + m_breadcrumbs;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief
+	///////////////////////////////////////////////////////////////////////////
+	void set_destination_kind_push() {
+		m_destinationKind = destination_kind::push;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief
+	///////////////////////////////////////////////////////////////////////////
+	void set_destination_kind_pull() {
+		m_destinationKind = destination_kind::pull;
+	}
+
 private:
 	double m_amount;
 	bool m_set;
+	destination_kind::type m_destinationKind;
 	std::string m_name;
 	std::string m_breadcrumbs;
 	priority_type m_namePriority;
