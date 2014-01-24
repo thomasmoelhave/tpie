@@ -789,18 +789,6 @@ push_zero() {
 	return factory_0<push_zero_t>();
 }
 
-bool virtual_ref_test() {
-	typedef const array<test_t> & reftype;
-	pipeline p =
-		virtual_chunk_begin<reftype>(push_zero())
-		| virtual_chunk<reftype, reftype>(identity())
-		| virtual_chunk_end<reftype>(bitbucket<reftype>(*static_cast<const array<test_t> *>(0)));
-	p.plot(log_info());
-	p();
-
-	return true;
-}
-
 bool virtual_test() {
 	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
 		| virtual_chunk<test_t, test_t>(multiply(3) | multiply(2))
@@ -1704,7 +1692,6 @@ int main(int argc, char ** argv) {
 	.test(fork_test, "fork")
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
-	.test(virtual_ref_test, "virtual_ref")
 	.test(virtual_test, "virtual")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
 	.test(prepare_test, "prepare")

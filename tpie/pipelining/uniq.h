@@ -35,7 +35,7 @@ template <typename dest_t>
 class count_consecutive_t : public node {
 public:
 	typedef uint64_t count_t;
-	typedef typename dest_t::item_type::first_type item_type;
+	typedef typename push_type<dest_t>::type::first_type item_type;
 
 	inline count_consecutive_t(const dest_t & dest)
 		: dest(dest)
@@ -81,7 +81,7 @@ public:
 template <typename dest_t>
 class extract_first_t : public node {
 public:
-	typedef std::pair<typename dest_t::item_type, any_type> item_type;
+	typedef std::pair<typename push_type<dest_t>::type, any_type> item_type;
 
 	inline extract_first_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);

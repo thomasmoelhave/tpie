@@ -41,7 +41,7 @@ class input_t : public node {
 	serialization_reader * rd;
 
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	input_t(const dest_t & dest, serialization_reader * rd)
 		: dest(dest)
@@ -124,7 +124,7 @@ class rev_output_t : public node {
 	serialization_reverse_reader rd;
 
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	rev_output_t(const dest_t & dest)
 		: dest(dest)
@@ -175,7 +175,7 @@ class rev_input_t<rev_output_t<output_dest_t> > : public node {
 	stream_size_type items;
 
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	rev_input_t(const dest_t & dest)
 		: dest(dest)

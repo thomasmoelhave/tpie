@@ -43,7 +43,7 @@ add_unittest(serialization_sort empty_input internal_report internal_report_afte
 add_unittest(stats simple)
 add_unittest(stream basic array odd reopen truncate extend backwards array_file odd_file truncate_file extend_file backwards_file user_data user_data_file peek_skip_1 peek_skip_2)
 add_unittest(stream_exception basic)
-add_unittest(pipelining vector filestream fspull fsaltpush merge reverse internal_reverse passive_reverse internal_passive_reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual_ref virtual virtual_cref_item_type prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple parallel_own_buffer parallel_push_in_end node_map join copy_ctor)
+add_unittest(pipelining vector filestream fspull fsaltpush merge reverse internal_reverse passive_reverse internal_passive_reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual virtual_cref_item_type prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple parallel_own_buffer parallel_push_in_end node_map join copy_ctor)
 add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic auto_ptr)
 add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)

@@ -103,7 +103,7 @@ private:
 template <typename dest_t>
 class buffer_output_t: public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	buffer_output_t(const dest_t &dest, const node_token & input_token)
 		: dest(dest)
@@ -187,7 +187,7 @@ private:
 template <typename dest_t>
 class buffer_t: public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 	typedef bits::buffer_input_t<item_type> input_t;
 	typedef bits::buffer_output_t<dest_t> output_t;
 

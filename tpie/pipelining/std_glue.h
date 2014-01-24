@@ -35,7 +35,7 @@ namespace bits {
 template <typename dest_t>
 class input_vector_t : public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
 		add_push_destination(dest);

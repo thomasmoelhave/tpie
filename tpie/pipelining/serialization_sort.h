@@ -316,7 +316,7 @@ public:
 	struct constructed {
 	private:
 		/** Type of items sorted. */
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 	public:
 		typedef typename child_t::template predicate<item_type>::type pred_type;
 		typedef sorter_traits<item_type, pred_type> Traits;
@@ -325,7 +325,7 @@ public:
 
 	template <typename dest_t>
 	typename constructed<dest_t>::type construct(const dest_t & dest) const {
-		typedef typename dest_t::item_type item_type;
+		typedef typename push_type<dest_t>::type item_type;
 		typedef typename constructed<dest_t>::Traits Traits;
 
 		sort_output_t<Traits, dest_t> output(dest, self().template get_pred<item_type>());

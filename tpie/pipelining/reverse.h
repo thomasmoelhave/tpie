@@ -99,7 +99,7 @@ private:
 template <typename dest_t>
 class reverser_output_t: public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	reverser_output_t(const dest_t & dest, const node_token & input_token)
 		: dest(dest)
@@ -137,7 +137,7 @@ private:
 template <typename dest_t>
 class internal_reverser_output_t: public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	internal_reverser_output_t(const dest_t & dest, const node_token & input_token)
 		: dest(dest)
@@ -255,7 +255,7 @@ private:
 template <typename dest_t>
 class reverser_t: public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 	typedef reverser_output_t<dest_t> output_t;
 	typedef reverser_input_t<item_type> input_t;
 
@@ -288,7 +288,7 @@ private:
 template <typename dest_t>
 class internal_reverser_t: public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 	typedef internal_reverser_output_t<dest_t> output_t;
 	typedef internal_reverser_input_t<item_type> input_t;
 

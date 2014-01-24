@@ -34,7 +34,7 @@ namespace bits {
 template <typename dest_t>
 class linear_t : public node {
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	inline linear_t(const dest_t & dest, item_type factor, item_type term) : dest(dest), factor(factor), term(term) {
 		add_push_destination(dest);
