@@ -110,9 +110,11 @@ def gen(types, terminal, templated):
 			", ".join(["t%d" % x for x in indices]),
 			")" if not terminal or types > 0 else "",
 			)
-	print """\t\tthis->init_node(r);
-		return r;
-	}"""
+	print "\t\tthis->init_node(r);"
+	if not terminal:
+		print "\t\tthis->add_default_edge(r, dest);"
+	print "\t\treturn r;"
+	print "\t}"
 
 	for x in indices:
 		if x == 1:
