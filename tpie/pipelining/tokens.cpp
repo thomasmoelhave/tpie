@@ -80,6 +80,13 @@ node_map::ptr node_map::find_authority() {
 }
 
 void node_map::add_relation(id_t from, id_t to, node_relation rel) {
+	// Check that the edge is not already in the "set"
+	std::pair<relmapit, relmapit> is = m_relations.equal_range(from);
+	for (relmapit i = is.first; i != is.second; ++i) {
+		if (i->second.first == to && i->second.second == rel) return;
+	}
+
+	// Insert edge
 	m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
 	m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
 }
