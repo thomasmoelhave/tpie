@@ -229,6 +229,7 @@ bool merge_test() {
 
 bool reverse_test() {
 	pipeline p1 = input_vector(inputvector) | reverser() | output_vector(outputvector);
+	p1.plot_full(log_info());
 	p1();
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());

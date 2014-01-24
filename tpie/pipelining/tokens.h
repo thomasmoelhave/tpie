@@ -163,6 +163,10 @@ public:
 		return out_degree(m_relations, from, rel);
 	}
 
+	size_t out_degree(id_t from) const {
+		return out_degree(m_relations, from);
+	}
+
 	void assert_authoritative() const {
 		if (m_authority) throw non_authoritative_node_map();
 	}
@@ -181,6 +185,7 @@ private:
 	relmap_t m_relationsInv;
 
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
+	size_t out_degree(const relmap_t & map, id_t from) const;
 
 	wptr self;
 

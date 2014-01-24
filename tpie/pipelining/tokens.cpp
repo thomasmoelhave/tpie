@@ -80,18 +80,29 @@ node_map::ptr node_map::find_authority() {
 }
 
 void node_map::add_relation(id_t from, id_t to, node_relation rel) {
+	// Check that the edge is not already in the "set"
+	std::pair<relmapit, relmapit> is = m_relations.equal_range(from);
+	for (relmapit i = is.first; i != is.second; ++i) {
+		if (i->second.first == to && i->second.second == rel) return;
+	}
+
+	// Insert edge
 	m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
 	m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
 }
 
 size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) const {
 	size_t res = 0;
-	relmapit i = map.find(from);
-	while (i != map.end() && i->first == from) {
+	std::pair<relmapit, relmapit> is = map.equal_range(from);
+	for (relmapit i = is.first; i != is.second; ++i) {
 		if (i->second.second == rel) ++res;
-		++i;
 	}
 	return res;
+}
+
+size_t node_map::out_degree(const relmap_t & map, id_t from) const {
+	std::pair<relmapit, relmapit> is = map.equal_range(from);
+	return std::distance(is.first, is.second);
 }
 
 void node_map::get_successors(id_t from, std::vector<id_t> & successors) {

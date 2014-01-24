@@ -20,9 +20,10 @@ public:
 	};
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 };
@@ -40,9 +41,10 @@ public:
 	};
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 };
@@ -59,12 +61,13 @@ public:
 		typedef R<dest_t> type;
 	};
 
-	inline factory_1(T1 t1) : t1(t1) {}
+	factory_1(T1 t1) : t1(t1) {}
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -83,12 +86,13 @@ public:
 		typedef typename Holder::template type<dest_t> type;
 	};
 
-	inline tempfactory_1(T1 t1) : t1(t1) {}
+	tempfactory_1(T1 t1) : t1(t1) {}
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -107,12 +111,13 @@ public:
 		typedef R<dest_t> type;
 	};
 
-	inline factory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
+	factory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -132,12 +137,13 @@ public:
 		typedef typename Holder::template type<dest_t> type;
 	};
 
-	inline tempfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
+	tempfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -157,12 +163,13 @@ public:
 		typedef R<dest_t> type;
 	};
 
-	inline factory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
+	factory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -183,12 +190,13 @@ public:
 		typedef typename Holder::template type<dest_t> type;
 	};
 
-	inline tempfactory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
+	tempfactory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -209,12 +217,13 @@ public:
 		typedef R<dest_t> type;
 	};
 
-	inline factory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
+	factory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3, t4);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -236,12 +245,13 @@ public:
 		typedef typename Holder::template type<dest_t> type;
 	};
 
-	inline tempfactory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
+	tempfactory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -263,12 +273,13 @@ public:
 		typedef R<dest_t> type;
 	};
 
-	inline factory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
+	factory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3, t4, t5);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -291,12 +302,13 @@ public:
 		typedef typename Holder::template type<dest_t> type;
 	};
 
-	inline tempfactory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
+	tempfactory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4, t5);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -319,12 +331,13 @@ public:
 		typedef R<dest_t> type;
 	};
 
-	inline factory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
+	factory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
 
 	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
+	R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -348,12 +361,13 @@ public:
 		typedef typename Holder::template type<dest_t> type;
 	};
 
-	inline tempfactory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
+	tempfactory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
 
 	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
+	typename Holder::template type<dest_t> construct(const dest_t & dest) const {
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
+		this->add_default_edge(r, dest);
 		return r;
 	}
 private:
@@ -374,7 +388,7 @@ class termfactory_0 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline R construct() const {
+	R construct() const {
 		R r;
 		this->init_node(r);
 		return r;
@@ -390,9 +404,9 @@ class termfactory_1 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline termfactory_1(T1 t1) : t1(t1) {}
+	termfactory_1(T1 t1) : t1(t1) {}
 
-	inline R construct() const {
+	R construct() const {
 		R r(t1);
 		this->init_node(r);
 		return r;
@@ -410,9 +424,9 @@ class termfactory_2 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
+	termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 
-	inline R construct() const {
+	R construct() const {
 		R r(t1, t2);
 		this->init_node(r);
 		return r;
@@ -431,9 +445,9 @@ class termfactory_3 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline termfactory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
+	termfactory_3(T1 t1, T2 t2, T3 t3) : t1(t1), t2(t2), t3(t3) {}
 
-	inline R construct() const {
+	R construct() const {
 		R r(t1, t2, t3);
 		this->init_node(r);
 		return r;
@@ -453,9 +467,9 @@ class termfactory_4 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline termfactory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
+	termfactory_4(T1 t1, T2 t2, T3 t3, T4 t4) : t1(t1), t2(t2), t3(t3), t4(t4) {}
 
-	inline R construct() const {
+	R construct() const {
 		R r(t1, t2, t3, t4);
 		this->init_node(r);
 		return r;
@@ -476,9 +490,9 @@ class termfactory_5 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline termfactory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
+	termfactory_5(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5) {}
 
-	inline R construct() const {
+	R construct() const {
 		R r(t1, t2, t3, t4, t5);
 		this->init_node(r);
 		return r;
@@ -500,9 +514,9 @@ class termfactory_6 : public factory_base {
 public:
 	typedef R constructed_type;
 
-	inline termfactory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
+	termfactory_6(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) : t1(t1), t2(t2), t3(t3), t4(t4), t5(t5), t6(t6) {}
 
-	inline R construct() const {
+	R construct() const {
 		R r(t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
 		return r;
