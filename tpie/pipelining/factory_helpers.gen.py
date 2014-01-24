@@ -94,11 +94,11 @@ def gen(types, terminal, templated):
 """ % (generator,)
 
 	if types > 0:
-		print "\tinline " + cl + "(%s) : %s {}\n" % (
+		print "\t" + cl + "(%s) : %s {}\n" % (
 				", ".join(["T%d t%d" % (x, x) for x in indices]),
 				", ".join(["t%d(t%d)" % (x, x) for x in indices]),)
 
-	print "%s\tinline %s construct(%s) const {" % (
+	print "%s\t%s construct(%s) const {" % (
 			"" if terminal else "\ttemplate <typename dest_t>\n",
 			generator,
 			"" if terminal else "const dest_t & dest")
