@@ -42,7 +42,6 @@ struct multiply_t : public node {
 	{
 		set_minimum_memory(17000000);
 		add_push_destination(dest);
-		set_name("Multiply");
 	}
 
 	virtual void begin() override {
@@ -272,7 +271,6 @@ public:
 		{
 			add_push_destination(dest);
 			add_pull_source(pullSource);
-			set_name("Add pairs");
 		}
 
 		void push(const item_type &item) {
@@ -332,7 +330,6 @@ struct sequence_generator : public node {
 		, reverse(reverse)
 	{
 		add_push_destination(dest);
-		set_name("Generate integers", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void propagate() override {
@@ -369,7 +366,6 @@ struct sequence_verifier : public node {
 		, bad(false)
 	{
 		result = false;
-		set_name("Verify integers", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void propagate() override {
@@ -485,7 +481,6 @@ public:
 		, settings(settings)
 	{
 		add_push_destination(dest);
-		set_name("Memory test");
 	}
 
 	void prepare() {
@@ -704,7 +699,6 @@ struct FF1 : public node {
 	dest_t dest;
 	FF1(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
-		set_name("FF1");
 	}
 	virtual void propagate() override {
 		my_item i;
@@ -720,7 +714,6 @@ struct FF2 : public node {
 	dest_t dest;
 	FF2(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
-		set_name("FF2");
 	}
 };
 
@@ -728,7 +721,6 @@ bool fetch_forward_result;
 
 struct FF3 : public node {
 	FF3() {
-		set_name("FF3");
 	}
 	virtual void propagate() override {
 		if (!can_fetch("my_item")) {
@@ -861,7 +853,6 @@ public:
 		, r(r)
 	{
 		add_push_destination(dest);
-		set_name("Begin", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void prepare() override {
@@ -914,7 +905,6 @@ public:
 		, r(r)
 	{
 		add_push_destination(dest);
-		set_name("Middle", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void prepare() override {
@@ -964,7 +954,6 @@ public:
 	prepare_end_type(prepare_result & r)
 		: r(r)
 	{
-		set_name("End", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void prepare() override {
@@ -1058,7 +1047,6 @@ class begin_type : public node {
 
 public:
 	begin_type(result & r) : r(r) {
-		set_name("Begin", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void end() override {
@@ -1079,7 +1067,6 @@ class end_type : public node {
 public:
 	end_type(dest_t dest, result & r) : r(r), dest(dest) {
 		add_pull_source(dest);
-		set_name("End", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void go() override {
@@ -1145,7 +1132,6 @@ public:
 		, p(p)
 	{
 		add_push_destination(dest);
-		set_name("Multiplicative inverter");
 		set_steps(p);
 	}
 
@@ -1198,7 +1184,6 @@ public:
 		, chunkSize(chunkSize)
 	{
 		add_push_destination(dest);
-		set_name("Monotonic");
 	}
 
 	virtual void go() override {
@@ -1227,7 +1212,6 @@ public:
 		: dest(dest)
 	{
 		add_push_destination(dest);
-		set_name("Splitter");
 	}
 
 	void push(test_t item) {
@@ -1250,7 +1234,6 @@ public:
 	Summer(test_t & result)
 		: result(result)
 	{
-		set_name("Summer");
 	}
 
 	void push(test_t item) {
@@ -1342,7 +1325,6 @@ public:
 		: dest(dest)
 	{
 		add_push_destination(dest);
-		set_name("No-op initiator");
 	}
 
 	virtual void go() override {
@@ -1365,7 +1347,6 @@ public:
 		: dest(dest)
 	{
 		add_push_destination(dest);
-		set_name("Push in end");
 	}
 
 	void push(item_type) {

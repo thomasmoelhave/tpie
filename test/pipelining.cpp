@@ -89,7 +89,6 @@ public:
 		, nodes(nodes)
 	{
 		add_push_destination(dest);
-		set_name("Input nodes");
 		set_steps(nodes);
 	}
 
@@ -127,7 +126,6 @@ public:
 		add_push_destination(dest);
 		add_pull_source(byid);
 		add_pull_source(byparent);
-		set_name("Count items");
 	}
 
 	virtual void go() override {
@@ -206,7 +204,6 @@ public:
 		: children(0)
 		, nodes(0)
 	{
-		set_name("Output");
 	}
 
 	virtual void begin() override {

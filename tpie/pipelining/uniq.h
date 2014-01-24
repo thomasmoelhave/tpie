@@ -42,7 +42,6 @@ public:
 		, current_count(0)
 	{
 		add_push_destination(dest);
-		set_name("Count consecutive", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void end() override {

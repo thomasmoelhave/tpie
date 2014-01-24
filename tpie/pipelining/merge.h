@@ -49,7 +49,6 @@ public:
 		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {
 			add_push_destination(dest);
 			add_pull_source(with);
-			set_name("Merge", PRIORITY_INSIGNIFICANT);
 		}
 
 		inline void push(const item_type & item) {

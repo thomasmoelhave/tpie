@@ -38,7 +38,6 @@ public:
 
 	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
 		add_push_destination(dest);
-		set_name("Read", PRIORITY_INSIGNIFICANT);
 	}
 
 	virtual void go() override {
@@ -57,7 +56,6 @@ public:
 	typedef int item_type;
 
 	inline printf_ints_t() {
-		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
 	inline void push(item_type i) {
