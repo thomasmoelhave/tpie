@@ -53,7 +53,7 @@ public:
 	template <typename dest_t>
 	class source_impl : public source_base {
 	public:
-		source_impl(const dest_t & dest, node_token token, source_base * & the_source)
+		source_impl(const dest_t & dest, node_token token, source_base ** the_source)
 			: source_base(token)
 			, the_source(the_source)
 			, dest(dest)
@@ -63,13 +63,13 @@ public:
 		}
 
 		virtual void prepare() override {
-			if (the_source != NULL && the_source != this) {
+			if (*the_source != NULL && *the_source != this) {
 				// If join.source() is used twice, the second construction of node()
 				// should fail since the node_token is already used.
 				// Thus, this exception should never be thrown.
 				throw exception("Attempted to set join source a second time");
 			}
-			the_source = this;
+			*the_source = this;
 		};
 
 		virtual void push(const T & v) override {
@@ -77,19 +77,19 @@ public:
 		}
 
 	private:
-		source_base * & the_source;
+		source_base ** the_source;
 		dest_t dest;
 	};
 
-	pipe_begin<factory_2<source_impl, node_token, source_base * &> > source() {
-		return factory_2<source_impl, node_token, source_base * &>(source_token, the_source);
+	pipe_begin<factory_2<source_impl, node_token, source_base **> > source() {
+		return factory_2<source_impl, node_token, source_base **>(source_token, &the_source);
 	}
 
 	class sink_impl : public node {
 	public:
 		typedef T item_type;
 
-		sink_impl(node_token source_token, source_base * & the_source)
+		sink_impl(node_token source_token, source_base ** the_source)
 			: the_source(the_source)
 		{
 			set_name("Join sink", PRIORITY_INSIGNIFICANT);
@@ -97,7 +97,7 @@ public:
 		}
 
 		virtual void begin() override {
-			the_source_cache = the_source;
+			the_source_cache = *the_source;
 		}
 
 		void push(const T & v) {
@@ -106,11 +106,11 @@ public:
 
 	private:
 		source_base * the_source_cache;
-		source_base * & the_source;
+		source_base ** the_source;
 	};
 
-	pipe_end<termfactory_2<sink_impl, node_token, source_base * &> > sink() {
-		return termfactory_2<sink_impl, node_token, source_base * &>(source_token, the_source);
+	pipe_end<termfactory_2<sink_impl, node_token, source_base **> > sink() {
+		return termfactory_2<sink_impl, node_token, source_base **>(source_token, &the_source);
 	}
 
 	join() : the_source(NULL) {}
