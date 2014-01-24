@@ -100,6 +100,11 @@ size_t node_map::out_degree(const relmap_t & map, id_t from, node_relation rel) 
 	return res;
 }
 
+size_t node_map::out_degree(const relmap_t & map, id_t from) const {
+	std::pair<relmapit, relmapit> is = map.equal_range(from);
+	return std::distance(is.first, is.second);
+}
+
 void node_map::get_successors(id_t from, std::vector<id_t> & successors) {
 	std::queue<id_t> q;
 	std::set<id_t> seen;
