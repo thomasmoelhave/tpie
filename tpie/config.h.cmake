@@ -35,6 +35,7 @@
 #cmakedefine TPIE_CPP_RVALUE_REFERENCE
 #cmakedefine TPIE_CPP_OVERRIDE_KEYWORD
 #cmakedefine TPIE_CPP_DECLTYPE
+#cmakedefine TPIE_CPP_TEMPLATE_ALIAS
 
 #ifndef TPIE_CPP_OVERRIDE_KEYWORD
 	#define override
