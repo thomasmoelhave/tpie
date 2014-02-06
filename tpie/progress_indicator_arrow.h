@@ -119,7 +119,12 @@ namespace tpie {
 		}
 
 		if (newStatus != m_status) {
-			m_os << "\r\e[K" << newStatus << std::flush;
+#ifdef WIN32
+			m_os << '\r' << std::string(m_status.size(), ' ') << '\r'
+				<< newStatus << std::flush;
+#else
+			m_os << "\r\x1B[K" << newStatus << std::flush;
+#endif
 			std::swap(newStatus, m_status);
 		}
 	}
