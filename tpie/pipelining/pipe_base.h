@@ -26,6 +26,17 @@
 #include <tpie/pipelining/pair_factory.h>
 #include <tpie/pipelining/pipeline.h>
 
+#ifdef WIN32
+// Silence warning C4521: multiple copy constructors specified.
+// This warning is emitted since we declare both
+// pipe_middle(const pipe_middle &) and
+// pipe_middle(pipe_middle &).
+// However, both of these are necessary to ensure that copying takes
+// preference over the template <T> pipe_middle(T) constructor.
+#pragma warning(push)
+#pragma warning(disable: 4521)
+#endif
+
 namespace tpie {
 
 namespace pipelining {
@@ -428,5 +439,9 @@ public:
 } // namespace pipelining
 
 } // namespace tpie
+
+#ifdef WIN32
+#pragma warning(pop)
+#endif
 
 #endif // __TPIE_PIPELINING_PIPE_BASE_H__
