@@ -156,9 +156,10 @@ private:
         }
 
         static memory_size_type fanout_memory_usage(memory_size_type fanout) {
-        	return sizeof(merge)
-                return merger<T, pred_t>::memory_usage(fanout) // acounts for the merger used during phase 2
-                         + file_stream<T>::memory_usage(); // accounts for the output stream
+        	return sizeof(merge_sorter<T, UseProgress, pred_t>)
+                	- sizeof(merger<T, pred_t>)
+                	+ merger<T, pred_t>::memory_usage(fanout)
+                    + file_stream<T>::memory_usage();
         }
 public:
 
@@ -503,12 +504,13 @@ public:
         }
 public:
         static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
-                return params.runLength * sizeof(T) + file_stream<T>::memory_usage();
+                return sizeof(merge_sorter<T, UseProgress, pred_t>)
+                		+ params.runLength * sizeof(T) * bufferCount;
         }
 
         static memory_size_type minimum_memory_phase_1() {
-                // a runlength of 1 and the memory usage of a filestream
-                return sizeof(T) + file_stream<T>::memory_usage();
+                // a runlength of 1
+                return sizeof(T) + sizeof(merge_sorter<T, UseProgress, pred_t>);
         }
 
         static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
@@ -537,7 +539,7 @@ public:
         /// \brief The memory usage when the sorter is evacuated.
         ///////////////////////////////////////////////////////////////////////////////
         memory_size_type evacuated_memory_usage() const {
-                return 0; // The only memory used is the memory used by the temp files, which is close to nothing
+                return sizeof(merge_sorter<T, UseProgress, pred_t>) + sizeof(temp_file) * maximumFanout;
         }
 
         ///////////////////////////////////////////////////////////////////////////
