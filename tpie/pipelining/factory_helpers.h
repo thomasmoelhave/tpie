@@ -21,13 +21,14 @@
 #define __TPIE_PIPELINING_FACTORY_HELPERS_H__
 
 #include <tpie/pipelining/factory_base.h>
+#ifdef TPIE_CPP_VARIADIC_TEMPLATES
+#include <tuple>
+#endif // TPIE_CPP_VARIADIC_TEMPLATES
 
 namespace tpie {
 namespace pipelining {
 
 #ifdef TPIE_CPP_VARIADIC_TEMPLATES
-
-#include <tuple>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory
