@@ -140,12 +140,14 @@ struct has_itemtype {
 #ifdef TPIE_CPP_DECLTYPE
 template <typename T>
 struct push_type {
-	typedef typename bits::push_type_help<T, bits::has_itemtype<T>::value>::type type;
+	typedef typename bits::remove<T>::type node_type;
+	typedef typename bits::push_type_help<node_type, bits::has_itemtype<T>::value>::type type;
 };
 
 template <typename T>
 struct pull_type {
-	typedef typename bits::pull_type_help<T, bits::has_itemtype<T>::value>::type type;
+	typedef typename bits::remove<T>::type node_type;
+	typedef typename bits::pull_type_help<node_type, bits::has_itemtype<T>::value>::type type;
 };
 
 #else //TPIE_CPP_DECLTYPE
