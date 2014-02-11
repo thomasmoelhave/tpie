@@ -85,7 +85,8 @@ public:
 
 	void assert_connected() const {
 		if (m_maps[0]->find_authority() != m_maps[1]->find_authority()) {
-			log_error() << "Segment map disconnected - more information in debug log." << std::endl;
+			log_error() << "Segment map disconnected - more information in debug log"
+						<< " (" << typeid(child_t).name() << ")" << std::endl;
 			log_debug()
 				<< "Note about node implementations.\n\n"
 				   "In a node constructor that accepts a destination node,\n"
