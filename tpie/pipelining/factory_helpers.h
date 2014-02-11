@@ -28,7 +28,11 @@
 namespace tpie {
 namespace pipelining {
 
-#ifdef TPIE_CPP_VARIADIC_TEMPLATES
+#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
+#define TPIE_VARIADIC_FACTORIES
+#endif
+
+#ifdef TPIE_VARIADIC_FACTORIES
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory
@@ -44,17 +48,10 @@ public:
 		typedef R<typename bits::remove<dest_t>::type> type;
 	};
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 	template <typename dest_t>
 	typename constructed<dest_t>::type construct(dest_t && dest) const {
 		return invoker<sizeof...(T)>::go(std::forward<dest_t>(dest), *this);
 	}
-#else // TPIE_CPP_RVALUE_REFERENCE
-	template <typename dest_t>
-	inline R<dest_t> construct(const dest_t & dest) const {
-		return invoker<sizeof...(T)>::go(dest, *this);
-	}
-#endif // TPIE_CPP_RVALUE_REFERENCE
 
 private:
 	std::tuple<T...> m_v;
@@ -62,24 +59,16 @@ private:
 	template <size_t N, size_t... S>
 	class invoker {
 	public:
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 		template <typename dest_t>
 		static typename constructed<dest_t>::type
 		go(dest_t && dest, const factory & parent) {
 			return invoker<N-1, N-1, S...>::go(std::forward<dest_t>(dest), parent);
 		}
-#else // TPIE_CPP_RVALUE_REFERENCE
-		template <typename dest_t>
-		static R<dest_t> go(const dest_t & dest, const factory & parent) {
-			return invoker<N-1, N-1, S...>::go(dest, parent);
-		}
-#endif
 	};
 
 	template <size_t... S>
 	class invoker<0, S...> {
 	public:
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 		template <typename dest_t>
 		static typename constructed<dest_t>::type
 		go(dest_t && dest, const factory & parent) {
@@ -90,15 +79,6 @@ private:
 			parent.add_default_edge(r, tok);
 			return r;
 		}
-#else // TPIE_CPP_RVALUE_REFERENCE
-		template <typename dest_t>
-		static R<dest_t> go(const dest_t & dest, const factory & parent) {
-			R<dest_t> r(dest, std::get<S>(parent.m_v)...);
-			parent.init_node(r);
-			parent.add_default_edge(r, dest);
-			return r;
-		}
-#endif
 	};
 
 	template <size_t N, size_t... S>
@@ -119,17 +99,10 @@ public:
 		typedef typename Holder::template type<typename bits::remove<dest_t>::type> type;
 	};
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 	template <typename dest_t>
 	typename constructed<dest_t>::type construct(dest_t && dest) const {
 		return invoker<sizeof...(T)>::go(std::forward<dest_t>(dest), *this);
 	}
-#else // TPIE_CPP_RVALUE_REFERENCE
-	template <typename dest_t>
-	inline typename Holder::template type<dest_t> construct(const dest_t & dest) const {
-		return invoker<sizeof...(T)>::go(dest, *this);
-	}
-#endif
 
 private:
 	std::tuple<T...> m_v;
@@ -137,23 +110,15 @@ private:
 	template <size_t N, size_t... S>
 	class invoker {
 	public:
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 		template <typename dest_t>
 		static typename constructed<dest_t>::type go(dest_t && dest, const tempfactory & parent) {
 			return invoker<N-1, N-1, S...>::go(std::forward<dest_t>(dest), parent);
 		}
-#else // TPIE_CPP_RVALUE_REFERENCE
-		template <typename dest_t>
-		static typename Holder::template type<dest_t> go(const dest_t & dest, const tempfactory & parent) {
-			return invoker<N-1, N-1, S...>::go(dest, parent);
-		}
-#endif
 	};
 
 	template <size_t... S>
 	class invoker<0, S...> {
 	public:
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 		template <typename dest_t>
 		static typename constructed<dest_t>::type go(dest_t && dest, const tempfactory & parent) {
 			node_token tok = dest.get_token();
@@ -162,15 +127,6 @@ private:
 			parent.add_default_edge(r, tok);
 			return r;
 		}
-#else // TPIE_CPP_RVALUE_REFERENCE
-		template <typename dest_t>
-		static typename Holder::template type<dest_t> go(const dest_t & dest, const tempfactory & parent) {
-			typename Holder::template type<dest_t> r(dest, std::get<S>(parent.m_v)...);
-			parent.init_node(r);
-			parent.add_default_edge(r, dest);
-			return r;
-		}
-#endif
 	};
 
 	template <size_t N, size_t... S>
@@ -223,7 +179,7 @@ private:
 // Legacy typedefs
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(TPIE_CPP_TEMPLATE_ALIAS) && defined(TPIE_CPP_VARIADIC_TEMPLATES)
+#if defined(TPIE_CPP_TEMPLATE_ALIAS) && defined(TPIE_VARIADIC_FACTORIES)
 
 template <template <typename dest_t> class R>
 using factory_0 = factory<R>;
