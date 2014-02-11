@@ -108,7 +108,7 @@ public:
 	virtsrc_impl(dest_t dest)
 		: dest(std::move(dest))
 	{
-		node::add_push_destination(dest);
+		node::add_push_destination(this->dest);
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
 		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
