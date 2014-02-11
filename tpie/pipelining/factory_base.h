@@ -179,6 +179,10 @@ public:
 	}
 
 	void add_default_edge(node & r, const node & dest) const {
+		add_default_edge(r, dest.get_token());
+	}
+
+	void add_default_edge(node & r, const node_token & dest) const {
 		if (r.get_node_map()->find_authority()->out_degree(r.get_id()) > 0) return;
 		switch (m_destinationKind) {
 		case destination_kind::none:
