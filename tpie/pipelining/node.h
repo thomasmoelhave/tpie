@@ -730,15 +730,15 @@ public:
 		}
 	}
 
-protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the node_token that maps this node's ID to a pointer
 	/// to this.
 	///////////////////////////////////////////////////////////////////////////
-	const node_token & get_token() {
+	const node_token & get_token() const {
 		return token;
 	}
 
+public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers that intend to call step().
 	/// \param steps  The number of times step() is called at most.
