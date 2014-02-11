@@ -41,7 +41,7 @@ public:
 
 	template<typename dest_t>
 	struct constructed {
-		typedef R<dest_t> type;
+		typedef R<typename bits::remove<dest_t>::type> type;
 	};
 
 	template <typename dest_t>
@@ -88,7 +88,7 @@ public:
 
 	template<typename dest_t>
 	struct constructed {
-		typedef typename Holder::template type<dest_t> type;
+		typedef typename Holder::template type<typename bits::remove<dest_t>::type> type;
 	};
 
 	template <typename dest_t>
