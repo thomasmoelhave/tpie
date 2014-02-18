@@ -360,7 +360,7 @@ private:
                 m_merger.reset(input);
 
                 // empty the streams and tree
-                while(!m_merger.can_pull()) {
+                while(m_merger.can_pull()) {
                         out.write(m_merger.pull());
                         pi.step();
                 }
@@ -369,6 +369,7 @@ private:
                     	m_runFiles.pop_front();
                 }
 
+                out.close();
                 m_runFiles.push_back(runFile);
         }
 
