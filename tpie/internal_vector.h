@@ -24,6 +24,8 @@
 /// Generic internal vector with known memory requirements.
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/array.h>
+#include <tpie/tpie.h>
+#include <tpie/tpie_assert.h>
 #include <tpie/util.h>
 #include <tpie/internal_stack_vector_base.h>
 namespace tpie {
@@ -49,45 +51,66 @@ public:
 	internal_vector(size_t size=0): parent_t(size){}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Element access. No range checking is done.
+	/// \brief Element access.
 	///////////////////////////////////////////////////////////////////////////
-	inline T & operator[](size_t s){return m_elements[s];}
+	T & operator[](size_t s) {
+		tp_assert(s < this->size(), "index out of bounds");
+		return m_elements[s];
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Element access. No range checking is done.
+	/// \brief Element access.
 	///////////////////////////////////////////////////////////////////////////
-	inline const T & operator[](size_t s)const {return m_elements[s];}
+	const T & operator[](size_t s) const {
+		tp_assert(s < this->size(), "index out of bounds");
+		return m_elements[s];
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the first item pushed. Requires \c !empty().
 	///////////////////////////////////////////////////////////////////////////
-	inline T & front(){return m_elements[0];}
+	T & front(){
+		tp_assert(!this->empty(), "internal_vector is empty");
+		return m_elements[0];
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the first item pushed. Requires \c !empty().
 	///////////////////////////////////////////////////////////////////////////
-	inline const T & front()const {return m_elements[0];}
+	const T & front() const {
+		tp_assert(!this->empty(), "internal_vector is empty");
+		return m_elements[0];
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the last item pushed. Requires \c !empty().
 	///////////////////////////////////////////////////////////////////////////
-	inline T & back(){return m_elements[m_size-1];}
+	T & back(){
+		tp_assert(!this->empty(), "internal_vector is empty");
+		return m_elements[m_size-1];
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the last item pushed. Requires \c !empty().
 	///////////////////////////////////////////////////////////////////////////
-	inline const T & back()const {return m_elements[m_size-1];}
+	const T & back() const {
+		tp_assert(!this->empty(), "internal_vector is empty");
+		return m_elements[m_size-1];}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Add an element to the end of the vector.
 	/// If size() is equal to the capacity (set in the constructor or in
-	/// resize()), effects are undefined. resize() is not called implicitly.
+	/// resize()), an assertion is raised. resize() is not called implicitly.
 	///
 	/// Iterators are invalidated by this call.
 	///
 	/// \param val The element to add.
 	///////////////////////////////////////////////////////////////////////////
-	inline T & push_back(const T & val){m_elements[m_size++] = val; return back();}
+	T & push_back(const T & val) {
+		tp_assert(this->size() < m_elements.size(), "size() is equal to the capacity");
+		m_elements[m_size++] = val;
+		return back();
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief If an item was previously popped from this point in the
@@ -98,14 +121,21 @@ public:
 	///
 	/// \param val The element to add.
 	///////////////////////////////////////////////////////////////////////////
-	inline T & push_back(){++m_size; return back();}
+	T & push_back() {
+		tp_assert(this->size() < m_elements.size(), "size() is equal to the capacity");
+		++m_size;
+		return back();
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Remove the last element from the vector.
 	///
 	/// Iterators are invalidated by this call.
 	///////////////////////////////////////////////////////////////////////////
-	inline void pop_back(){--m_size;}
+	void pop_back() {
+		tp_assert(this->size() > 0, "internal_vector is empty");
+		--m_size;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get an iterator to the beginning of the structure.
