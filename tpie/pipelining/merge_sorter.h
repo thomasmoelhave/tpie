@@ -54,7 +54,7 @@ public:
         typedef progress_types<UseProgress> Progress;
 
         static const memory_size_type maximumFanout = 250; // This is the max number of runs to merge at a time when running a k-way merge.
-        static const memory_size_type bufferCount = 4; // This is the number of buffers to be used during phase 1
+        static const memory_size_type bufferCount = 2; // This is the number of buffers to be used during phase 1
 
         ///////////////////////////////////////////////////////////////////////////////
         /// \brief Create a new merger_sorter object with the given predicate
