@@ -135,6 +135,7 @@ public:
 	{
 		typename p_t::progress_indicator_hook hook(this);
 		fact.hook_initialization(&hook);
+		fact.set_destination_kind_push();
 		// uninitialized allocation
 		m_data.realloc(numJobs);
 		this->m_progressIndicators.realloc(numJobs);
