@@ -151,7 +151,7 @@ static bool empty_input_test() {
 }
 
 static bool internal_report_test() {
-	return sort_test(100,100,100,20);
+	return sort_test(100,100,100,15);
 }
 
 static bool internal_report_after_resize_test() {
