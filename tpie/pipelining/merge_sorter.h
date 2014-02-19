@@ -47,6 +47,8 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, bool UseProgress, typename pred_t = std::less<T> >
 class merge_sorter {
+private:
+	typedef tpie::internal_vector<T> run_container_type;
 public:
         typedef boost::shared_ptr<merge_sorter> ptr;
         typedef progress_types<UseProgress> Progress;
@@ -83,6 +85,7 @@ public:
             m_parameters.fanout = m_parameters.finalFanout = fanout;
 
             m_state = STATE_PARAMETERS;
+            m_parameters_set = true;
     }
 
 private:
@@ -110,7 +113,8 @@ private:
                 /// The run length is determined by the number of items we can hold in memory
                 /// and the number of buffers we are using
                 ///////////////////////////////////////////////////////////////////////////////
-                m_parameters.runLength = (m_parameters.memoryPhase1 - file_stream<T>::memory_usage()) / sizeof(T);
+
+                m_parameters.runLength = (m_parameters.memoryPhase1 - file_stream<T>::memory_usage() - sizeof(merge_sorter<T, UseProgress, pred_t>)) / (sizeof(T) * bufferCount);
 
                 // if we receive less items than internalReportThreshold, internal report mode will be used(no I/O)
                 m_parameters.internalReportThreshold = std::min(m_parameters.memoryPhase1, std::min(m_parameters.memoryPhase2, m_parameters.memoryPhase3)) / sizeof(T);
@@ -225,7 +229,7 @@ public:
 
         void phase1_sort() {
                 while(true) {
-                        std::vector<T> * run = m_fullBuffers.pop();
+                        run_container_type * run = m_fullBuffers.pop();
                         if(run == NULL) {
                         	m_sortedBuffers.push(NULL);
                         	break;
@@ -238,7 +242,7 @@ public:
 
         void phase1_write() {
                 while(true) {
-                        std::vector<T> * run = m_sortedBuffers.pop();
+                        run_container_type * run = m_sortedBuffers.pop();
                         if(run == NULL) {
                         	break;
                         }
@@ -246,13 +250,13 @@ public:
                         temp_file runFile;
                         file_stream<T> out;
                         out.open(runFile, access_read_write);
-                        for(typename std::vector<T>::iterator i = run->begin(); i != run->end(); ++i) {
+                        for(typename run_container_type::iterator i = run->begin(); i != run->end(); ++i) {
                                 out.write(*i);
                         }
                         out.close();
 
                         m_runFiles.push_back(runFile);
-                        run->resize(0);
+                        run->clear();
                         m_emptyBuffers.push(run); // push a new empty buffer
                 }
         }
@@ -266,7 +270,7 @@ public:
                 m_state = STATE_RUN_FORMATION;
 
                 for(memory_size_type i = 0; i < bufferCount; ++i)
-                        m_emptyBuffers.push(new std::vector<T>());
+                        m_emptyBuffers.push(new run_container_type(m_parameters.runLength));
 
                 m_SortThread = boost::thread(boost::bind(&merge_sorter::phase1_sort, this));
                 m_WriteThread = boost::thread(boost::bind(&merge_sorter::phase1_write, this));
@@ -420,7 +424,7 @@ public:
                                 temp_file runFile;
                                 file_stream<T> out;
                                 out.open(runFile, access_read_write);
-                                for(typename std::vector<T>::iterator i = m_emptyBuffers.front()->begin(); i != m_emptyBuffers.front()->end(); ++i)
+                                for(typename run_container_type::iterator i = m_emptyBuffers.front()->begin(); i != m_emptyBuffers.front()->end(); ++i)
                                         out.write(*i);
                                 out.close();
                                 m_runFiles.push_back(runFile);
@@ -483,7 +487,7 @@ public:
         T pull() {
                 tp_assert(m_state == STATE_REPORT, "Wrong phase");
                 if(m_reporting_mode == REPORTING_MODE_INTERNAL) {
-                        T el = m_emptyBuffers.front()->at(m_itemsPulled++);
+                        T el = (*m_emptyBuffers.front())[m_itemsPulled++];
                         if(!can_pull()) {
                         	while(!m_emptyBuffers.empty()) 
                         		delete m_emptyBuffers.pop();
@@ -505,13 +509,12 @@ public:
         }
 public:
         static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
-                return sizeof(merge_sorter<T, UseProgress, pred_t>)
-                		+ params.runLength * sizeof(T) * bufferCount;
+                return sizeof(merge_sorter<T, UseProgress, pred_t>) + params.runLength * sizeof(T) * bufferCount + file_stream<T>::memory_usage();
         }
 
         static memory_size_type minimum_memory_phase_1() {
                 // a runlength of 1
-                return sizeof(T) + sizeof(merge_sorter<T, UseProgress, pred_t>);
+                return sizeof(T) * bufferCount + sizeof(merge_sorter<T, UseProgress, pred_t>) + file_stream<T>::memory_usage();
         }
 
         static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
@@ -577,9 +580,9 @@ private:
         memory_size_type m_itemsPushed;
         memory_size_type m_itemsPulled;
 
-        bits::blocking_queue<std::vector<T> *> m_emptyBuffers; // the buffers that are to be consumed by the push method
-        bits::blocking_queue<std::vector<T> *> m_fullBuffers; // the buffers that are to be consumed by the sorting thread
-        bits::blocking_queue<std::vector<T> *> m_sortedBuffers; // the buffers that are to be consumed by the write thread
+        bits::blocking_queue<run_container_type *> m_emptyBuffers; // the buffers that are to be consumed by the push method
+        bits::blocking_queue<run_container_type *> m_fullBuffers; // the buffers that are to be consumed by the sorting thread
+        bits::blocking_queue<run_container_type *> m_sortedBuffers; // the buffers that are to be consumed by the write thread
 
         std::deque<temp_file> m_runFiles;
 
