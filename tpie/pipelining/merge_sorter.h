@@ -270,7 +270,7 @@ public:
                 m_state = STATE_RUN_FORMATION;
 
                 for(memory_size_type i = 0; i < bufferCount; ++i)
-                        m_emptyBuffers.push(new run_container_type(m_parameters.runLength));
+                        m_emptyBuffers.push(tpie_new<run_container_type>(m_parameters.runLength));
 
                 m_SortThread = boost::thread(boost::bind(&merge_sorter::phase1_sort, this));
                 m_WriteThread = boost::thread(boost::bind(&merge_sorter::phase1_write, this));
@@ -334,9 +334,9 @@ public:
                 m_WriteThread.join();
                 m_state = STATE_MERGE;
 
-                if(m_reporting_mode == REPORTING_MODE_EXTERNAL) { // clean up
+                if(m_reporting_mode == REPORTING_MODE_EXTERNAL || m_itemsPushed == 0) { // clean up
                 	while(!m_emptyBuffers.empty())
-                		delete m_emptyBuffers.pop();
+                		tpie_delete(m_emptyBuffers.pop());
                 }
         }
 
@@ -430,7 +430,7 @@ public:
                                 m_runFiles.push_back(runFile);
 
                                 while(!m_emptyBuffers.empty())
-                					delete m_emptyBuffers.pop();
+                					tpie_delete(m_emptyBuffers.pop());
                         }
                 }
                 else {
@@ -490,7 +490,7 @@ public:
                         T el = (*m_emptyBuffers.front())[m_itemsPulled++];
                         if(!can_pull()) {
                         	while(!m_emptyBuffers.empty()) 
-                        		delete m_emptyBuffers.pop();
+                        		tpie_delete(m_emptyBuffers.pop());
                         }
                         return el;
                 }
