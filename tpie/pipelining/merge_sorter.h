@@ -84,7 +84,6 @@ public:
             m_parameters.runLength = m_parameters.internalReportThreshold = runLength;
             m_parameters.fanout = m_parameters.finalFanout = fanout;
 
-            m_state = STATE_PARAMETERS;
             m_parameters_set = true;
     }
 
