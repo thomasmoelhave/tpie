@@ -81,7 +81,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void set_parameters(memory_size_type runLength, memory_size_type fanout) {
             tp_assert(m_state == STATE_PARAMETERS, "Merge sorting already begun");
-            m_parameters.runLength = m_parameters.internalReportThreshold = runLength;
+            m_parameters.runLength = runLength;
+            m_parameters.internalReportThreshold = runLength/3;
             m_parameters.fanout = m_parameters.finalFanout = fanout;
 
             m_parameters_set = true;
@@ -117,8 +118,8 @@ private:
 
                 // if we receive less items than internalReportThreshold, internal report mode will be used(no I/O)
                 m_parameters.internalReportThreshold = std::min(m_parameters.memoryPhase1, std::min(m_parameters.memoryPhase2, m_parameters.memoryPhase3)) / sizeof(T);
-                if(m_parameters.internalReportThreshold > m_parameters.runLength)
-                        m_parameters.internalReportThreshold = m_parameters.runLength;
+                if(m_parameters.internalReportThreshold > m_parameters.runLength/3)
+                        m_parameters.internalReportThreshold = m_parameters.runLength/3;
 
                 ///////////////////////////////////////////////////////////////////////////////
                 /// Phase 3
@@ -240,6 +241,9 @@ public:
         }
 
         void phase1_write() {
+        		for(memory_size_type i = 1; i < bufferCount; ++i)
+                        m_emptyBuffers.push(tpie_new<run_container_type>(m_parameters.runLength));
+
                 while(true) {
                         run_container_type * run = m_sortedBuffers.pop();
                         if(run == NULL) {
@@ -268,8 +272,7 @@ public:
                 tp_assert(m_parameters_set, "Parameters have not been set");
                 m_state = STATE_RUN_FORMATION;
 
-                for(memory_size_type i = 0; i < bufferCount; ++i)
-                        m_emptyBuffers.push(tpie_new<run_container_type>(m_parameters.runLength));
+                m_currentRun = tpie_new<run_container_type>(m_parameters.runLength); // Init the rest of the buffers in another thread.
 
                 m_SortThread = boost::thread(boost::bind(&merge_sorter::phase1_sort, this));
                 m_WriteThread = boost::thread(boost::bind(&merge_sorter::phase1_write, this));
@@ -283,12 +286,13 @@ public:
         		if(m_runsPushed == 0) desired_size /= 3;
         		else if(m_runsPushed == 1) desired_size /= 2;
 
-                if(m_emptyBuffers.front()->size() == desired_size) {
-                        m_fullBuffers.push(m_emptyBuffers.pop());
+                if(m_currentRun->size() == desired_size) {
+                        m_fullBuffers.push(m_currentRun);
+                        m_currentRun = m_emptyBuffers.pop();
                         ++m_runsPushed;
                 }
 
-                m_emptyBuffers.front()->push_back(item);
+                m_currentRun->push_back(item);
                	++m_itemsPushed;
         }
 
@@ -311,7 +315,7 @@ public:
                         // TODO: Resize vector
 
                 		m_fullBuffers.push(NULL);
-                        tpie::parallel_sort(m_emptyBuffers.front()->begin(), m_emptyBuffers.front()->end(), m_pred);
+                        tpie::parallel_sort(m_currentRun->begin(), m_currentRun->end(), m_pred);
                         m_reporting_mode = REPORTING_MODE_INTERNAL;
                 }
                 else {
@@ -323,8 +327,11 @@ public:
                         
                         // use external report mode
 
-                        if(!m_emptyBuffers.front()->empty()) {
-                                m_fullBuffers.push(m_emptyBuffers.pop());        
+                        if(!m_currentRun->empty()) {
+                                m_fullBuffers.push(m_currentRun);
+                        }
+                        else {
+                        	tpie_delete(m_currentRun);
                         }
                         m_fullBuffers.push(NULL);
                 }
@@ -333,10 +340,8 @@ public:
                 m_WriteThread.join();
                 m_state = STATE_MERGE;
 
-                if(m_reporting_mode == REPORTING_MODE_EXTERNAL || m_itemsPushed == 0) { // clean up
-                	while(!m_emptyBuffers.empty())
-                		tpie_delete(m_emptyBuffers.pop());
-                }
+            	while(!m_emptyBuffers.empty())
+            		tpie_delete(m_emptyBuffers.pop());
         }
 
 private:
@@ -419,17 +424,16 @@ public:
                 if(m_reporting_mode == REPORTING_MODE_INTERNAL) {
                         m_reporting_mode = REPORTING_MODE_EXTERNAL; // write the buffer to disk and use external reporting mode
 
-                        if(!m_emptyBuffers.front()->empty()) { // write the buffer to disk
+                        if(!m_currentRun->empty()) { // write the buffer to disk
                                 temp_file runFile;
                                 file_stream<T> out;
                                 out.open(runFile, access_read_write);
-                                for(typename run_container_type::iterator i = m_emptyBuffers.front()->begin(); i != m_emptyBuffers.front()->end(); ++i)
+                                for(typename run_container_type::iterator i = m_currentRun->begin(); i != m_currentRun->end(); ++i)
                                         out.write(*i);
                                 out.close();
                                 m_runFiles.push_back(runFile);
 
-                                while(!m_emptyBuffers.empty())
-                					tpie_delete(m_emptyBuffers.pop());
+                				tpie_delete(m_currentRun);
                         }
                 }
                 else {
@@ -486,10 +490,9 @@ public:
         T pull() {
                 tp_assert(m_state == STATE_REPORT, "Wrong phase");
                 if(m_reporting_mode == REPORTING_MODE_INTERNAL) {
-                        T el = (*m_emptyBuffers.front())[m_itemsPulled++];
+                        T el = (*m_currentRun)[m_itemsPulled++];
                         if(!can_pull()) {
-                        	while(!m_emptyBuffers.empty()) 
-                        		tpie_delete(m_emptyBuffers.pop());
+                        	tpie_delete(m_currentRun);
                         }
                         return el;
                 }
@@ -579,6 +582,7 @@ private:
         memory_size_type m_itemsPushed;
         memory_size_type m_itemsPulled;
 
+        run_container_type * m_currentRun;
         bits::blocking_queue<run_container_type *> m_emptyBuffers; // the buffers that are to be consumed by the push method
         bits::blocking_queue<run_container_type *> m_fullBuffers; // the buffers that are to be consumed by the sorting thread
         bits::blocking_queue<run_container_type *> m_sortedBuffers; // the buffers that are to be consumed by the write thread
