@@ -41,6 +41,10 @@
 	#define override
 #endif
 
+#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
+#define TPIE_VARIADIC_FACTORIES
+#endif
+
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings
 	#define _CRT_SECURE_NO_DEPRECATE 

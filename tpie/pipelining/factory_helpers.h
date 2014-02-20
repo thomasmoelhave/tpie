@@ -21,16 +21,12 @@
 #define __TPIE_PIPELINING_FACTORY_HELPERS_H__
 
 #include <tpie/pipelining/factory_base.h>
-#ifdef TPIE_CPP_VARIADIC_TEMPLATES
+#ifdef TPIE_VARIADIC_FACTORIES
 #include <tuple>
-#endif // TPIE_CPP_VARIADIC_TEMPLATES
+#endif // TPIE_VARIADIC_FACTORIES
 
 namespace tpie {
 namespace pipelining {
-
-#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
-#define TPIE_VARIADIC_FACTORIES
-#endif
 
 #ifdef TPIE_VARIADIC_FACTORIES
 
