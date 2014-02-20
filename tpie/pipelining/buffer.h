@@ -64,6 +64,7 @@ public:
 
 	virtual void end() override {
 		tpie_delete(m_queue);
+		m_queue=NULL;
 	}
 };
 
