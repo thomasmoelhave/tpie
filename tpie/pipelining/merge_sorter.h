@@ -315,7 +315,15 @@ public:
                         // TODO: Resize vector
 
                 		m_fullBuffers.push(NULL);
-                        tpie::parallel_sort(m_currentRun->begin(), m_currentRun->end(), m_pred);
+
+                		if(!m_currentRun->empty()) {
+                        	tpie::parallel_sort(m_currentRun->begin(), m_currentRun->end(), m_pred);
+                		}
+                		else {
+                			tpie_delete(m_currentRun);
+                			m_currentRun = NULL;
+                		}
+
                         m_reporting_mode = REPORTING_MODE_INTERNAL;
                 }
                 else {
@@ -422,9 +430,8 @@ public:
                 tp_assert(m_state == STATE_MERGE || m_state == STATE_REPORT, "Wrong phase");
 
                 if(m_reporting_mode == REPORTING_MODE_INTERNAL) {
-                        m_reporting_mode = REPORTING_MODE_EXTERNAL; // write the buffer to disk and use external reporting mode
-
-                        if(!m_currentRun->empty()) { // write the buffer to disk
+                        if(m_currentRun != NULL) { // the buffer is non-empty -> write the buffer to disk
+                        		m_reporting_mode = REPORTING_MODE_EXTERNAL; // write the buffer to disk and use external reporting mode
                                 temp_file runFile;
                                 file_stream<T> out;
                                 out.open(runFile, access_read_write);
