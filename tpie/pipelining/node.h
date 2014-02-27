@@ -68,10 +68,12 @@ struct remove<T &> {
 	typedef typename remove<T>::type type;
 };
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
 template <typename T>
 struct remove<T &&> {
 	typedef typename remove<T>::type type;
 };
+#endif // TPIE_CPP_RVALUE_REFERENCE
 
 
 #ifdef TPIE_CPP_DECLTYPE
