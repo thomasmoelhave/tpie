@@ -166,12 +166,21 @@ private:
 
 	execution_time_predictor * m_predictor;
 
+	/** Structure to support the implementation of call_refresh. */
 	struct refresh_impl;
+	/** Structure to support the implementation of call_refresh. */
 	refresh_impl * m_refreshImpl;
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Recompute m_remainingSteps and call the virtual refresh().
+	///////////////////////////////////////////////////////////////////////////
 	void call_refresh();
 
+	/// Deleted default constructor.
 	progress_indicator_base();
-	progress_indicator_base(const progress_indicator_base& other);
+	/// Deleted copy constructor.
+	progress_indicator_base(const progress_indicator_base &);
+	/// Deleted assignment operator.
+	progress_indicator_base & operator=(const progress_indicator_base &);
 };
 
 }  //  tpie namespace
