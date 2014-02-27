@@ -27,7 +27,6 @@
 #include <tpie/portability.h>
 #include <algorithm>
 #include <boost/thread.hpp>
-#include <tpie/imported/cycle.h>
 #include <tpie/execution_time_predictor.h>
 #include <tpie/tpie_log.h>
 
