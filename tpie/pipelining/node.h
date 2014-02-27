@@ -53,8 +53,6 @@ public:
 };
 
 
-#ifdef TPIE_CPP_DECLTYPE
-
 template <typename T>
 struct remove {
 	typedef T type;
@@ -75,6 +73,8 @@ struct remove<T &&> {
 	typedef typename remove<T>::type type;
 };
 
+
+#ifdef TPIE_CPP_DECLTYPE
 
 template <typename T>
 struct push_traits {};
