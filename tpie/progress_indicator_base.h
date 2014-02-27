@@ -98,6 +98,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void raw_step(stream_size_type step) {
 		m_current += step;
+		// Don't call call_refresh(); call refresh() directly instead.
 		refresh();
 	}
 
