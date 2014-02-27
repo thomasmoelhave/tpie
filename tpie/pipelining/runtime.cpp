@@ -402,7 +402,8 @@ void runtime::get_item_sinks(std::vector<node *> & itemSinks) {
 }
 
 void runtime::get_phase_map(std::map<node *, size_t> & phaseMap) {
-	std::map<size_t, size_t> numbering;
+	typedef node_map::id_t id_t;
+	std::map<id_t, size_t> numbering;
 	std::vector<node *> nodeOrder;
 	for (node_map::mapit i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
 		numbering[i->second->get_id()] = nodeOrder.size();
