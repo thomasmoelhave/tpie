@@ -22,7 +22,6 @@
 
 #include <tpie/types.h>
 #include <tpie/pipelining/priority_type.h>
-#include <tpie/pipelining/graph.h>
 #include <tpie/pipelining/pair_factory.h>
 #include <tpie/pipelining/pipeline.h>
 

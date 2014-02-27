@@ -43,7 +43,6 @@ set (HEADERS
 		pipelining/factory_base.h
 		pipelining/factory_helpers.h
 		pipelining/file_stream.h
-		pipelining/graph.h
 		pipelining/helpers.h
 		pipelining/join.h
 		pipelining/maintain_order_type.h
@@ -136,9 +135,9 @@ set (SOURCES
 	job.cpp
 	logstream.cpp
 	memory.cpp
-	pipelining/graph.cpp
 	pipelining/node_name.cpp
 	pipelining/pipeline.cpp
+	pipelining/runtime.cpp
 	pipelining/tokens.cpp
 	portability.cpp
 	prime.cpp

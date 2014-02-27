@@ -34,7 +34,8 @@ class not_initiator_node;
 
 namespace bits {
 	class node_map;
-	class phase;
+	class runtime;
+	class memory_runtime;
 }
 
 } // namespace pipelining

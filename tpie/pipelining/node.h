@@ -813,7 +813,7 @@ public:
 	inline void push(const item_type & item);
 #endif
 
-	friend class bits::phase;
+	friend class bits::memory_runtime;
 
 	friend class factory_base;
 

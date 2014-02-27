@@ -24,6 +24,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/stack.h>
+#include <stack>
 
 namespace tpie {
 

@@ -146,6 +146,10 @@ public:
 		return m_tokens.end();
 	}
 
+	size_t size() const {
+		return m_tokens.size();
+	}
+
 	// union-find
 	ptr find_authority();
 
