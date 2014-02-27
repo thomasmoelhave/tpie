@@ -26,6 +26,7 @@
 #include <boost/filesystem.hpp>
 #include <tpie/tempname.h>
 #include <tpie/serialization_stream.h>
+#include <tpie/config.h>
 
 #ifdef WIN32
 class open_file_monitor {
@@ -37,10 +38,19 @@ public:
 		}
 		try {
 			boost::filesystem::remove(fileName);
+#if BOOST_FILESYSTEM_VERSION == 2
 		} catch (const boost::filesystem::basic_filesystem_error<std::string> & e) {
 			tpie::log_debug() << "Caught basic_filesystem_error: " << e.what() << std::endl;
 			// Already open?
 			return false;
+#elif BOOST_FILESYSTEM_VERSION == 3
+		} catch (const boost::filesystem::filesystem_error & e) {
+			tpie::log_debug() << "Caught filesystem_error: " << e.what() << std::endl;
+			// Already open?
+			return false;
+#else
+#error What version of Boost filesystem?
+#endif
 		} catch (const boost::system::system_error & e) {
 			tpie::log_debug() << "Caught system_error: " << e.what() << std::endl;
 			// Already open?
