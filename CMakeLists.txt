@@ -88,6 +88,7 @@ try_compile(TPIE_CPP_VARIADIC_TEMPLATES ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/
 try_compile(TPIE_CPP_RVALUE_REFERENCE ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/rvalueref.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 try_compile(TPIE_CPP_OVERRIDE_KEYWORD ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/override_keyword.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 try_compile(TPIE_CPP_DECLTYPE ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/decltype.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
+try_compile(TPIE_CPP_TEMPLATE_ALIAS ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/template_alias.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})

@@ -53,8 +53,6 @@ public:
 };
 
 
-#ifdef TPIE_CPP_DECLTYPE
-
 template <typename T>
 struct remove {
 	typedef T type;
@@ -70,11 +68,15 @@ struct remove<T &> {
 	typedef typename remove<T>::type type;
 };
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
 template <typename T>
 struct remove<T &&> {
 	typedef typename remove<T>::type type;
 };
+#endif // TPIE_CPP_RVALUE_REFERENCE
 
+
+#ifdef TPIE_CPP_DECLTYPE
 
 template <typename T>
 struct push_traits {};
@@ -140,12 +142,14 @@ struct has_itemtype {
 #ifdef TPIE_CPP_DECLTYPE
 template <typename T>
 struct push_type {
-	typedef typename bits::push_type_help<T, bits::has_itemtype<T>::value>::type type;
+	typedef typename bits::remove<T>::type node_type;
+	typedef typename bits::push_type_help<node_type, bits::has_itemtype<T>::value>::type type;
 };
 
 template <typename T>
 struct pull_type {
-	typedef typename bits::pull_type_help<T, bits::has_itemtype<T>::value>::type type;
+	typedef typename bits::remove<T>::type node_type;
+	typedef typename bits::pull_type_help<node_type, bits::has_itemtype<T>::value>::type type;
 };
 
 #else //TPIE_CPP_DECLTYPE
@@ -730,15 +734,15 @@ public:
 		}
 	}
 
-protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the node_token that maps this node's ID to a pointer
 	/// to this.
 	///////////////////////////////////////////////////////////////////////////
-	const node_token & get_token() {
+	const node_token & get_token() const {
 		return token;
 	}
 
+public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers that intend to call step().
 	/// \param steps  The number of times step() is called at most.
@@ -766,8 +770,11 @@ protected:
 	void step(stream_size_type steps = 1) {
 		assert(get_state() == STATE_IN_END || get_state() == STATE_AFTER_BEGIN || get_state() == STATE_IN_END);
 		if (m_stepsLeft < steps) {
-			log_warning() << typeid(*this).name() << " ==== Too many steps!" << std::endl;
-			m_stepsLeft = 0;
+			if (m_stepsTotal != std::numeric_limits<stream_size_type>::max()) {
+				log_warning() << typeid(*this).name() << " ==== Too many steps " << m_stepsTotal << std::endl;
+				m_stepsLeft = 0;
+				m_stepsTotal = std::numeric_limits<stream_size_type>::max();
+			}
 		} else {
 			m_stepsLeft -= steps;
 		}
