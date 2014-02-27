@@ -22,6 +22,7 @@
 
 #include <tpie/fractional_progress.h>
 #include <tpie/pipelining/tokens.h>
+#include <set>
 
 namespace tpie {
 
