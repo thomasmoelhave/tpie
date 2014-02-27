@@ -109,6 +109,16 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used in fractional progress.
+	///
+	/// In a hierarchy of fractional progress subindicators, only the lowest
+	/// level of indicators should determine how many steps should pass until
+	/// the next call to refresh(). When this happens, the subindicator calls
+	/// raw_step() on its parent indicator rather than step(), which will
+	/// short-circuit the logic and call the virtual method refresh() directly.
+	/// You should probably not use this method; use step() instead.
+	///////////////////////////////////////////////////////////////////////////
 	void raw_step(stream_size_type step) {
 		m_current += step;
 #ifndef TPIE_NDEBUG
