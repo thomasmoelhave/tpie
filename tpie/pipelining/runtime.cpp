@@ -125,9 +125,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// RAII-style begin/end handling on nodes.
-/// The constructor calls begin on nodes in the phase in actor graph,
-/// and the destructor calls end in the reverse order.
+/// begin/end handling on nodes.
 ///////////////////////////////////////////////////////////////////////////////
 class begin_end {
 public:
@@ -320,8 +318,20 @@ void runtime::go(stream_size_type items,
 	// Gather node memory requirements and assign memory to each phase
 	assign_memory(phases, memory);
 
-	// Construct fractional progress indicators
-	// (getting the name of each phase)
+	// Exception guarantees are the following:
+	//   Progress indicators:
+	//     We use RAII to match init() calls with done() calls.
+	//     This means that we call done() on a progress indicator
+	//     during stack unwinding if an exception is thrown.
+	//   begin() and end():
+	//     If an exception is thrown by an initiator,
+	//     we do not call end() even though we called begin().
+	//     This is to signal to the nodes that processing was aborted.
+	//     A node may do finalization cleanup in its destructor
+	//     rather than in end() to handle exceptions robustly.
+
+	// Construct fractional progress indicators:
+	// Get the name of each phase and call init() on the given indicator.
 	progress_indicators pi;
 	pi.init(items, progress, phases);
 
