@@ -66,46 +66,23 @@ public:
 	/// Initializes the indicator.
 	/// \param  range     The upper bound of the counting range.
 	///////////////////////////////////////////////////////////////////////////
-	
-	progress_indicator_base(stream_size_type range) : 
-	    m_range(range),
-	    m_current(0),
-		//m_lastUpdate(getticks()),
-		m_next(0),
-		m_predictor(0) {
-		compute_threshold();
-	}
+	progress_indicator_base(stream_size_type range);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// The destructor. Nothing is done.
+	/// Destructor.
 	///////////////////////////////////////////////////////////////////////////
-	virtual ~progress_indicator_base() {
-	    // Do nothing.
-	};
+	virtual ~progress_indicator_base();
 
 	///////////////////////////////////////////////////////////////////////////
 	///  Record an increment to the indicator and advance the indicator.
 	///////////////////////////////////////////////////////////////////////////
 	void step(stream_size_type step=1) {
 	    m_current += step;
- 		
-#ifndef TPIE_NDEBUG
-		{
-			ticks currentTicks = getticks();
-			if (elapsed(currentTicks,m_lastCalled) > m_frequency * m_threshold * 5)
-				tpie::log_debug() << "Step was not called for an estimated " 
-								  << (elapsed(currentTicks,m_lastCalled) / (m_frequency * m_threshold))
-								  << " seconds" << std::endl;;
-			m_lastCalled = currentTicks;
-		}
-#endif	
-		if (m_current > m_next) {
-			ticks currentTicks = getticks();
-			m_next = static_cast<stream_size_type>(
-				static_cast<double>(m_current) * (elapsed(currentTicks, m_start) + m_threshold)/
-				elapsed(currentTicks, m_start));
-			if (m_next > m_current *2) m_next=m_current*2; //For bad guestimation in the beginning
-			refresh();
+
+		if (step >= m_remainingSteps) {
+			call_refresh();
+		} else {
+			m_remainingSteps -= step;
 		}
 	}
 
@@ -121,9 +98,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void raw_step(stream_size_type step) {
 		m_current += step;
-#ifndef TPIE_NDEBUG
-		m_lastCalled = getticks();
-#endif	
 		refresh();
 	}
 
@@ -134,14 +108,7 @@ public:
 	virtual void init(stream_size_type range=0) {
 		if (range != 0) set_range(range);
 	    m_current = 0;
-		refresh();
-		
-		m_start = getticks();
-		m_next = 1;
-
-#ifndef TPIE_NDEBUG
-		m_lastCalled = getticks();
-#endif
+		call_refresh();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -194,28 +161,13 @@ protected:
 	stream_size_type m_current;
 	
 private:
-	/**  The number of ticks elapsed when refresh was called last */
-#ifndef TPIE_NDEBUG
-	ticks m_lastCalled;
-#endif
-
-	stream_size_type m_next;
-	ticks m_start;
-
-	/**  The approximate frequency of calls to refresh in hz */
-	static const unsigned int m_frequency;
-
-	/**  The threshold for elapsed ticks before refresh is called again */
-	static double m_threshold;
-
-	/**  Indicates whether or not m_threshold has been computed */
-	static bool m_thresholdComputed;
+	stream_size_type m_remainingSteps;
 
 	execution_time_predictor * m_predictor;
-	///////////////////////////////////////////////////////////////////////////
-	/// Makes sure m_threshold has been set.
-	///////////////////////////////////////////////////////////////////////////
-	static void compute_threshold();
+
+	struct refresh_impl;
+	refresh_impl * m_refreshImpl;
+	void call_refresh();
 
 	progress_indicator_base();
 	progress_indicator_base(const progress_indicator_base& other);
