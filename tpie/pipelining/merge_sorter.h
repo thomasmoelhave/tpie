@@ -254,9 +254,7 @@ public:
 			temp_file runFile;
 			file_stream<T> out;
 			out.open(runFile, access_read_write);
-			for(typename run_container_type::iterator i = run->begin(); i != run->end(); ++i) {
-				out.write(*i);
-			}
+			out.write(run->begin(), run->end());
 			out.close();
 
 			m_runFiles.push_back(runFile);
