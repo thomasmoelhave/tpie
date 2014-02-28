@@ -49,7 +49,7 @@ public:
 			   stream_size_type outerRange,
 			   const char * crumb=0,
 			   description_importance importance=IMPORTANCE_MAJOR,
-			   log_group_mode::type logGroupMode=log_group_mode::disabled);
+			   log_group_mode::type logGroupMode=log_group_mode::enabled);
 	
 	progress_indicator_subindicator();
 	
@@ -57,7 +57,7 @@ public:
 									stream_size_type outerRange,
 									const char * crumb=0,
 									description_importance importance=IMPORTANCE_MAJOR,
-									log_group_mode::type logGroupMode=log_group_mode::disabled);
+									log_group_mode::type logGroupMode=log_group_mode::enabled);
 #ifndef TPIE_NDEBUG
 	~progress_indicator_subindicator();
 #endif
