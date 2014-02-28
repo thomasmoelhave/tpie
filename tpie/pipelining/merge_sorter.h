@@ -228,6 +228,10 @@ public:
 	}
 
 	void phase1_sort() {
+		for(memory_size_type i = 1; i < bufferCount; ++i)
+			m_emptyBuffers.push(tpie_new<run_container_type>(m_parameters.runLength));
+		m_WriteThread = boost::thread(boost::bind(&merge_sorter::phase1_write, this));
+
 		while(true) {
 			run_container_type * run = m_fullBuffers.pop();
 			if(run == NULL) {
@@ -241,9 +245,6 @@ public:
 	}
 
 	void phase1_write() {
-		for(memory_size_type i = 1; i < bufferCount; ++i)
-			m_emptyBuffers.push(tpie_new<run_container_type>(m_parameters.runLength));
-
 		while(true) {
 			run_container_type * run = m_sortedBuffers.pop();
 			if(run == NULL) {
@@ -272,10 +273,8 @@ public:
 		tp_assert(m_parameters_set, "Parameters have not been set");
 		m_state = STATE_RUN_FORMATION;
 
-		m_currentRun = tpie_new<run_container_type>(m_parameters.runLength); // Init the rest of the buffers in another thread.
-
-		m_SortThread = boost::thread(boost::bind(&merge_sorter::phase1_sort, this));
-		m_WriteThread = boost::thread(boost::bind(&merge_sorter::phase1_write, this));
+		m_currentRun = tpie_new<run_container_type>(m_parameters.runLength);
+		m_SortThread = boost::thread(boost::bind(&merge_sorter::phase1_sort, this)); // perform the rest of the initialization in the sort thread
 	}
 
 	///////////////////////////////////////////////////////////////////////////
