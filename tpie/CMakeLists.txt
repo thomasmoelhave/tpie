@@ -75,7 +75,6 @@ set (HEADERS
 		pipelining/pipe_base.h
 		pipelining/pipeline.h
 		pipelining/reverse.h
-		pipelining/serialization_sort.h
 		pipelining/sort.h
 		pipelining/std_glue.h
 		pipelining/stdio.h
