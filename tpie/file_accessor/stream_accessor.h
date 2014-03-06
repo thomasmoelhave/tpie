@@ -24,7 +24,6 @@
 /// blocks from TPIE streams.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <tpie/file_accessor/file_accessor.h>
 #include <tpie/stream_header.h>
 #include <tpie/cache_hint.h>
 
