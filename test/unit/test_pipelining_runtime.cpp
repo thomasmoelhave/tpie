@@ -27,6 +27,9 @@ using namespace tpie::pipelining::bits;
 
 class evac_node : public node {
 public:
+	// This override makes no difference for the evacuate unit test.
+	// The pipelining runtime concludes that the phase should be evacuated
+	// without consulting the can_evacuate of each node in the phase.
 	virtual bool can_evacuate() override {
 		return true;
 	}
