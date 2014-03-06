@@ -451,7 +451,7 @@ public:
 	typedef sort_pull_output_t<Traits> output_t;
 	typedef output_t constructed_type;
 
-	passive_sorter_factory_2(const passive_sorter<Traits> & sorter)
+	passive_sorter_factory_2(const serialization_passive_sorter<Traits> & sorter)
 		: m_sorter(sorter)
 	{
 	}
@@ -459,7 +459,7 @@ public:
 	constructed_type construct() const;
 
 private:
-	const passive_sorter<Traits> & m_sorter;
+	const serialization_passive_sorter<Traits> & m_sorter;
 };
 
 } // namespace serialization_bits
