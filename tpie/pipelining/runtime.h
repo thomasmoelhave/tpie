@@ -292,11 +292,16 @@ public:
 	void propagate_all(const graph<node *> & itemFlow);
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Call set_progress_indicator on all nodes in the phase.
+	///////////////////////////////////////////////////////////////////////////
+	void set_progress_indicators(const std::vector<node *> & phase,
+								 progress_indicator_base & pi);
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Call go() on all initiators after setting the given progress
 	/// indicator.
 	///////////////////////////////////////////////////////////////////////////
-	void go_initiators(const std::vector<node *> & phase,
-					   progress_indicator_base & pi);
+	void go_initiators(const std::vector<node *> & phase);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by go().
