@@ -27,7 +27,7 @@ using namespace tpie::pipelining::bits;
 
 class evac_node : public node {
 public:
-	virtual bool can_evacuate() const {
+	virtual bool can_evacuate() override {
 		return true;
 	}
 };
