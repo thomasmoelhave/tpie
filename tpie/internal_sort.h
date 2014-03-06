@@ -33,6 +33,7 @@
 #include <tpie/fractional_progress.h>
 #include <tpie/memory.h>
 #include <tpie/tpie_assert.h>
+#include <tpie/file_stream.h>
 
 namespace tpie {
 namespace ami {

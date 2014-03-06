@@ -21,6 +21,7 @@
 #define __TPIE_PIPELINING_FACTORY_HELPERS_H__
 
 #include <tpie/pipelining/factory_base.h>
+#include <tpie/pipelining/node.h>
 #ifdef TPIE_VARIADIC_FACTORIES
 #include <tuple>
 #endif // TPIE_VARIADIC_FACTORIES

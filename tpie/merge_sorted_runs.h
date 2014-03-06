@@ -35,6 +35,8 @@
 
 #include <tpie/progress_indicator_base.h>
 
+#include <tpie/file_stream.h>
+
 
 namespace tpie {
 

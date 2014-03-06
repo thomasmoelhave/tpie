@@ -26,6 +26,8 @@
 #include <boost/shared_ptr.hpp>
 #include <tpie/pipelining/maintain_order_type.h>
 #include <tpie/pipelining/parallel/options.h>
+#include <tpie/pipelining/parallel/worker_state.h>
+#include <tpie/pipelining/parallel/aligned_array.h>
 
 namespace tpie {
 

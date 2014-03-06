@@ -20,6 +20,7 @@
 #define __TPIE_CONCEPTS_H__
 
 #include <boost/concept_check.hpp>
+#include <tpie/util.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \file concepts.h

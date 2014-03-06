@@ -20,7 +20,9 @@
 #define __TPIE_PACKED_ARRAY_H__
 
 #include <tpie/config.h>
+#include <tpie/util.h>
 #include <boost/static_assert.hpp>
+#include <iterator>
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file packed_array.h

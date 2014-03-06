@@ -21,8 +21,10 @@
 #define __TPIE_PIPELINING_PAIR_FACTORY_H__
 
 #include <tpie/types.h>
+#include <tpie/tpie_log.h>
 #include <tpie/pipelining/priority_type.h>
 #include <tpie/pipelining/factory_base.h>
+#include <boost/scoped_array.hpp>
 
 namespace tpie {
 

@@ -20,6 +20,8 @@
 #ifndef __TPIE_PIPELINING_PARALLEL_OPTIONS_H__
 #define __TPIE_PIPELINING_PARALLEL_OPTIONS_H__
 
+#include <tpie/types.h>
+
 namespace tpie {
 
 namespace pipelining {

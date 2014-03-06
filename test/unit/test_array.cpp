@@ -24,6 +24,7 @@
 #include <tpie/bit_array.h>
 #include <tpie/array.h>
 #include <tpie/concepts.h>
+#include <tpie/util.h>
 using namespace tpie;
 
 // Method coverage of tpie::array

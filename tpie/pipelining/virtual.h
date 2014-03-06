@@ -24,6 +24,10 @@
 #ifndef __TPIE_PIPELINING_VIRTUAL_H__
 #define __TPIE_PIPELINING_VIRTUAL_H__
 
+#include <tpie/pipelining/node.h>
+#include <tpie/pipelining/pipe_base.h>
+#include <tpie/pipelining/pipeline.h>
+
 namespace tpie {
 
 namespace pipelining {

@@ -24,6 +24,11 @@
 #ifndef __TPIE_PIPELINING_FACTORY_BASE_H__
 #define __TPIE_PIPELINING_FACTORY_BASE_H__
 
+// XXX remove when init_segment is removed
+#include <tpie/backtrace.h>
+
+#include <tpie/pipelining/node.h>
+
 namespace tpie {
 
 namespace pipelining {
@@ -111,6 +116,15 @@ public:
 		for (size_t i = 0; i < m_hooks.size(); ++i) {
 			other.m_hooks.push_back(m_hooks[i]);
 		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Deprecated alias of init_node.
+	///////////////////////////////////////////////////////////////////////////
+	inline void init_segment(node & r) const {
+		log_fatal() << "init_segment has been renamed to init_node" << std::endl;
+		backtrace(log_fatal());
+		init_node(r);
 	}
 
 	///////////////////////////////////////////////////////////////////////////

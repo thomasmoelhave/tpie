@@ -20,6 +20,11 @@
 #ifndef __TPIE_PIPELINING_PARALLEL_PIPES_H__
 #define __TPIE_PIPELINING_PARALLEL_PIPES_H__
 
+#include <tpie/job.h>
+#include <tpie/pipelining/pipe_base.h>
+#include <tpie/pipelining/parallel/factory.h>
+#include <tpie/pipelining/maintain_order_type.h>
+
 namespace tpie {
 
 namespace pipelining {
