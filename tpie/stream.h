@@ -32,11 +32,12 @@ class stream {
 public:
 	typedef T item_type;
 
-	stream()
+	stream(int compressionFlags=compression_none)
 		: m_status(STREAM_STATUS_INVALID)
 	{
 		try {
-			m_stream.open(m_temp);
+			m_stream.open(m_temp, access_read_write,
+						  0, access_sequential, compressionFlags);
 		} catch (const stream_exception & e) {
 			log_fatal() << "Open failed: " << e.what() << std::endl;
 			return;
@@ -45,12 +46,14 @@ public:
 	}
 
 	stream(const std::string & fileName,
-			stream_type st = READ_WRITE_STREAM)
+			stream_type st=READ_WRITE_STREAM,
+			int compressionFlags=compression_none)
 		: m_temp(fileName, true)
 		, m_status(STREAM_STATUS_INVALID)
 	{
 		try {
-			m_stream.open(m_temp, st == READ_STREAM ? access_read : access_read_write);
+			m_stream.open(m_temp, st == READ_STREAM ? access_read : access_read_write,
+						  0, access_sequential, compressionFlags);
 			if (st == APPEND_STREAM) m_stream.seek(0, file_stream_base::end);
 		} catch (const stream_exception & e) {
 			log_fatal() << "Open failed: " << e.what() << std::endl;
