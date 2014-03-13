@@ -321,12 +321,6 @@ private:
 	compressed_stream_base * m_stream;
 };
 
-template <typename T> class stack;
-
-namespace ami {
-	template <typename T> class cstream;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Compressed stream.
 ///
