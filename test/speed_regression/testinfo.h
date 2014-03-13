@@ -54,6 +54,8 @@ struct testinfo {
 
 	inline ~testinfo() {
 		m_sysinfo.printinfo("End time", m_sysinfo.localtime());
+		m_sysinfo.printinfo("Read (MB)", get_bytes_read()*1.0/(1024*1024));
+		m_sysinfo.printinfo("Written (MB)", get_bytes_written()*1.0/(1024*1024));
 		tpie::tpie_finish();
 	}
 
