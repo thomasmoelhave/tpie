@@ -31,8 +31,16 @@ namespace tpie {
 /// \c stream::open.
 ///////////////////////////////////////////////////////////////////////////////
 enum compression_flags {
+	/** No written blocks should be compressed.
+	 * If a new stream is opened with compression_none,
+	 * it will support seek(n) and truncate(n) for arbitrary n. */
 	compression_none = 0,
+	/** Compress some blocks
+	 * according to available resources (time, memory). */
 	compression_normal = 1,
+	/** Compress all blocks according to the preferred compression scheme
+	 * which can be set using
+	 * tpie::the_compressor_thread().set_preferred_compression(). */
 	compression_all = 2
 };
 
