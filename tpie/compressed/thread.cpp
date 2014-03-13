@@ -142,6 +142,7 @@ private:
 	}
 
 	void process_read_request(read_request & rr) {
+		stat_timer t(3); // Time reading
 		const bool useCompression = rr.file_accessor().get_compressed();
 		const bool backward = rr.get_read_direction() == read_direction::backward;
 		tp_assert(!(backward && !useCompression), "backward && !useCompression");
@@ -217,6 +218,7 @@ private:
 	}
 
 	void process_write_request(write_request & wr) {
+		stat_timer t(4); // Time writing
 		size_t inputLength = wr.buffer()->size();
 		if (!wr.file_accessor().get_compressed()) {
 			// Uncompressed case
