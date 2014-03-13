@@ -9,6 +9,10 @@ set (HEADERS
 		blocks/block.h
 		blocks/block_collection.h
 		blocks/freespace_collection.h
+		btree/base.h
+		btree/node.h
+		btree/internal_store.h
+		btree/tree.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
