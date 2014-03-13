@@ -24,6 +24,7 @@
 #include <tpie/exception.h>
 #include <tpie/tpie_log.h>
 #include <tpie/compressed/scheme.h>
+#include <tpie/stats.h>
 
 #ifdef TPIE_USE_SNAPPY
 
@@ -37,6 +38,7 @@ virtual size_t max_compressed_length(size_t srcSize) const override {
 }
 
 virtual void compress(char * dest, const char * src, size_t srcSize, size_t * destSize) const override {
+	tpie::stat_timer t(5); // Time compressing
 	snappy::RawCompress(src, srcSize, dest, destSize);
 }
 
@@ -50,6 +52,7 @@ virtual size_t uncompressed_length(const char * src, size_t srcSize) const overr
 }
 
 virtual void uncompress(char * dest, const char * src, size_t srcSize) const override {
+	tpie::stat_timer t(6); // Time uncompressing
 	snappy::RawUncompress(src, srcSize, dest);
 }
 
