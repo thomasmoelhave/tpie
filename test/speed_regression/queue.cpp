@@ -39,10 +39,10 @@ typedef tpie::uint64_t count_t; // number of items
 typedef tpie::uint64_t elm_t; // type of element we enqueue
 
 void usage() {
-	std::cout << "Parameters: [times] [mb] [memory] [continous_count]" << std::endl;
+	std::cout << "Parameters: [times] [mb] [memory] [continous_count] [compressed]" << std::endl;
 }
 
-void test(size_t mb, size_t times, size_t countinous_count) {
+void test(size_t mb, size_t times, size_t countinous_count, int compressionFlags) {
 	std::vector<const char *> names;
 	names.resize(1);
 	names[0] = "Push/pop";
@@ -53,7 +53,7 @@ void test(size_t mb, size_t times, size_t countinous_count) {
 		test_realtime_t start;
 		test_realtime_t end;
 
-		tpie::queue<elm_t> q;
+		tpie::queue<elm_t> q(access_sequential, compressionFlags);
 		getTestRealtime(start);
 		{
 			for(count_t j = 0; j < count; j += countinous_count) {
@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
 	size_t mb = mb_default;
 	size_t memory = 1024;
 	size_t countinous_count = 1; // the number of push and pop operations to appear after eachother
+	int compressionFlags = compression_none;
 
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {
@@ -110,8 +111,12 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 	}
+	if (argc > 5) {
+		compressionFlags = compression_normal;
+	}
 
 	testinfo t("Queue speed test", memory, mb, times);
-	::test(mb, times, countinous_count);
+	sysinfo().printinfo("Compression", (compressionFlags == compression_normal) ? "Enabled" : "Disabled");
+	::test(mb, times, countinous_count, compressionFlags);
 	return EXIT_SUCCESS;
 }
