@@ -63,8 +63,8 @@ public:
 		, m_centerQueue(blockFactor*get_block_size()/sizeof(T))
 		, m_currentQueue(true)
 	{
-		m_queueA.open();
-		m_queueB.open();
+		m_queueA.open(0, access_sequential, compression_normal);
+		m_queueB.open(0, access_sequential, compression_normal);
 	}
 
 	////////////////////////////////////////////////////////////////////
