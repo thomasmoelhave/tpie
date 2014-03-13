@@ -278,6 +278,8 @@ public:
 	}
 
 	void wait_for_request_done(compressor_thread_lock & l) {
+		// Time waiting
+		stat_timer t(2);
 		m_requestDone.wait(l.get_lock());
 	}
 
