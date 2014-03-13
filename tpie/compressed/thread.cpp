@@ -234,9 +234,19 @@ private:
 			return;
 		}
 		// Compressed case
+		const bool adaptiveCompression =
+			wr.file_accessor().get_compression_flags() != compression_all;
 		block_header blockHeader;
 		block_header & blockTrailer = blockHeader;
-		const compression_scheme & compressionScheme = get_compression_scheme(m_preferredCompression);
+		compression_scheme::type schemeType = m_preferredCompression;
+		if (adaptiveCompression && !m_idle) {
+			schemeType = compression_scheme::none;
+		}
+		if (schemeType == compression_scheme::snappy)
+			increment_user(7, 1);
+		if (schemeType == compression_scheme::none)
+			increment_user(8, 1);
+		const compression_scheme & compressionScheme = get_compression_scheme(schemeType);
 		const memory_size_type maxBlockSize = compressionScheme.max_compressed_length(inputLength);
 		if (maxBlockSize > blockHeader.max_block_size())
 			throw exception("process_write_request: MaxCompressedLength > max_block_size");
@@ -247,7 +257,7 @@ private:
 								   inputLength,
 								   &blockSize);
 		blockHeader.set_block_size(blockSize);
-		blockHeader.set_compression_scheme(m_preferredCompression);
+		blockHeader.set_compression_scheme(schemeType);
 		memcpy(scratch.get(), &blockHeader, sizeof(blockHeader));
 		memcpy(scratch.get() + sizeof(blockHeader) + blockSize, &blockTrailer, sizeof(blockTrailer));
 		const memory_size_type writeSize = sizeof(blockHeader) + blockSize + sizeof(blockTrailer);
