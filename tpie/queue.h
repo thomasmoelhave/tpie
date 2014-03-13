@@ -55,16 +55,16 @@ public:
 	////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for Temporary Queue
 	////////////////////////////////////////////////////////////////////
-	queue(stream_size_type /*elements*/=std::numeric_limits<stream_size_type>::max(),
-		  double blockFactor=1.0)
+	queue(cache_hint cacheHint=access_sequential,
+			int compressionFlags=compression_normal)
 		: m_size(0)
-		, m_queueA(blockFactor)
-		, m_queueB(blockFactor)
-		, m_centerQueue(blockFactor*get_block_size()/sizeof(T))
+		, m_queueA(1.0)
+		, m_queueB(1.0)
+		, m_centerQueue(get_block_size()/sizeof(T))
 		, m_currentQueue(true)
 	{
-		m_queueA.open(0, access_sequential, compression_normal);
-		m_queueB.open(0, access_sequential, compression_normal);
+		m_queueA.open(0, cacheHint, compressionFlags);
+		m_queueB.open(0, cacheHint, compressionFlags);
 	}
 
 	////////////////////////////////////////////////////////////////////
