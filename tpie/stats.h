@@ -24,6 +24,7 @@
 #ifndef _TPIE_STATS_H
 #define _TPIE_STATS_H
 #include <tpie/types.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace tpie {
 
@@ -59,6 +60,54 @@ namespace tpie {
 	/// been written to disk.
 	///////////////////////////////////////////////////////////////////////////
 	void increment_bytes_written(stream_size_type delta);
+
+	stream_size_type get_user(size_t i);
+	void increment_user(size_t i, stream_size_type delta);
+
+class ptime {
+public:
+	ptime()
+		: m_ptime(boost::posix_time::not_a_date_time)
+	{
+	}
+
+	static ptime now() {
+		return ptime(boost::posix_time::microsec_clock::universal_time());
+	}
+
+	static double seconds(const ptime & t1, const ptime & t2) {
+		if (t1.m_ptime.is_special() || t2.m_ptime.is_special()) {
+			return 0.0;
+		}
+		return (t2.m_ptime - t1.m_ptime).total_microseconds() / 1000000.0;
+	}
+
+private:
+	boost::posix_time::ptime m_ptime;
+
+	ptime(boost::posix_time::ptime ptime)
+		: m_ptime(ptime)
+	{
+	}
+};
+
+class stat_timer {
+public:
+	stat_timer(size_t i)
+		: i(i)
+		, t1(ptime::now())
+	{
+	}
+
+	~stat_timer() {
+		ptime t2 = ptime::now();
+		increment_user(i, ptime::seconds(t1, t2)*1000000);
+	}
+
+private:
+	size_t i;
+	ptime t1;
+};
 
 }  //  tpie namespace
 #endif //_TPIE_STATS_H

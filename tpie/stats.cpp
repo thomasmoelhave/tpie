@@ -27,6 +27,7 @@ namespace {
 	tpie::atomic_stream_size_type temp_file_usage;
 	tpie::atomic_stream_size_type bytes_read;
 	tpie::atomic_stream_size_type bytes_written;
+	tpie::atomic_stream_size_type user[20];
 } // unnamed namespace
 
 namespace tpie {
@@ -60,6 +61,14 @@ namespace tpie {
 	
 	void increment_bytes_written(stream_size_type delta) {
 		bytes_written.add(delta);
+	}
+
+	stream_size_type get_user(size_t i) {
+		return (i < sizeof(user)) ? user[i].fetch() : 0;
+	}
+
+	void increment_user(size_t i, stream_size_type delta) {
+		if (i < sizeof(user)) user[i].add(delta);
 	}
 }  //  tpie namespace
 
