@@ -110,7 +110,11 @@ public:
 	void run() {
 		while (true) {
 			compressor_thread_lock::lock_t lock(mutex());
-			while (!m_done && m_requests.empty()) m_newRequest.wait(lock);
+			m_idle = false;
+			while (!m_done && m_requests.empty()) {
+				m_idle = true;
+				m_newRequest.wait(lock);
+			}
 			if (m_done && m_requests.empty()) break;
 			{
 				compressor_request r = m_requests.front();
@@ -296,6 +300,9 @@ private:
 	boost::condition_variable m_requestDone;
 	bool m_done;
 	compression_scheme::type m_preferredCompression;
+
+	// Whether the thread was idle prior to handling the current request.
+	bool m_idle;
 };
 
 } // namespace tpie
