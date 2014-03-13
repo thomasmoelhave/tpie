@@ -206,7 +206,7 @@ public:
 
 	void set_last_block_read_offset(stream_size_type n) { m_lastBlockReadOffset = n; }
 	stream_size_type get_last_block_read_offset() { return m_lastBlockReadOffset; }
-	void set_compressed(bool b) { m_useCompression = b; }
+
 	bool get_compressed() { return m_useCompression; }
 };
 
