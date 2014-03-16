@@ -55,6 +55,10 @@ struct identity_key {
 template <typename S>
 class btree_node;
 
+
+template <typename S>
+class btree_iterator;
+
 /**
  * \brief Augmented btree
  * 

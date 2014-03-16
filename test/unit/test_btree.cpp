@@ -52,7 +52,6 @@ bool compare(tree_t & t, set_t & s) {
 	return compare(node, iter, s.end()) && iter == s.end();
 }
 
-
 bool basic_test() {
 	typedef btree_internal_store<int> store;
     
@@ -81,12 +80,58 @@ bool basic_test() {
 		if (!tree.size() == tree2.size()) return false;
 	}
 
-	
 	return true;
 }
 
+bool iterator_test() {
+	typedef btree_internal_store<int> store;
+    
+	btree<store> tree;
+	set<int> tree2;
+	
+	std::vector<int> x;
+    for (int i=0; i < 1234; ++i) {
+        x.push_back(i);
+	}
+	std::random_shuffle(x.begin(), x.end());
+	
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.insert(x[i]);
+		tree2.insert(x[i]);
+		if (!tree.size() == tree2.size()) return false;
+	}
+
+	btree<store>::iterator b1 = tree.begin();
+	set<int>::iterator b2 = tree2.begin();
+	btree<store>::iterator e1 = tree.end();
+	set<int>::iterator e2 = tree2.end();
+	btree<store>::iterator i1 = b1;
+	set<int>::iterator i2 = b2;
+	
+	while (true) {
+		if ((i1 == e1) != (i2 == e2)) return false;
+		if (i2 == e2) break;
+		if (*i1 != *i2) return false;
+		++i1;
+		++i2;
+	}
+	
+	while (true) {
+		--i1;
+		--i2;
+		if (*i1 != *i2) return false;
+		if ( (i1 == b1) != (i2 == b2)) return false;
+		if ( (i1 == b1) ) break;
+	}
+
+	return true;
+}
+
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(basic_test, "basic");
+		.test(basic_test, "basic")
+		.test(iterator_test, "iterator");
 }
+
 

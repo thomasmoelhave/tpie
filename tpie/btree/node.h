@@ -22,6 +22,7 @@
 
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
+#include <boost/iterator/iterator_facade.hpp>
 #include <vector>
 
 namespace tpie {
@@ -188,6 +189,134 @@ private:
 	template <typename X, typename Y, typename A>
 	friend class btree;
 };
+
+template <typename S>
+class btree_iterator: public boost::iterator_facade<
+	btree_iterator<S>,
+	typename S::value_type,
+	boost::bidirectional_traversal_tag> {
+private:
+	typedef typename S::internal_type internal_type;
+	typedef typename S::leaf_type leaf_type;
+	typedef typename S::value_type value_type;
+	typedef typename S::key_type key_type;
+
+	S * m_store;
+	std::vector<internal_type> m_path;
+	size_t m_index;
+	leaf_type m_leaf;
+
+	template <typename, typename, typename>
+	friend class btree;
+
+	btree_iterator(S * store): m_store(store) {}
+
+
+	void goto_begin() {
+		m_path.clear();
+		if (m_store->height() == 1) {
+			m_leaf = m_store->get_root_leaf();
+			m_index = 0;
+			return;
+		}
+		internal_type n = m_store->get_root_internal();
+		for (size_t i=2;; ++i) {
+			m_path.push_back(n);
+			if (i == m_store->height()) {
+				m_leaf = m_store->get_child_leaf(n, 0);
+				m_index = 0;
+				return;
+			}
+			n = m_store->get_child_internal(n, 0);
+		}		
+	}
+
+	void goto_end() {
+		m_path.clear();
+		if (m_store->height() == 1) {
+			m_leaf = m_store->get_root_leaf();
+			m_index = m_store->count(m_leaf);
+			return;
+		}
+		internal_type n = m_store->get_root_internal();
+		for (size_t i=2;; ++i) {
+			m_path.push_back(n);
+			if (i == m_store->height()) {
+				m_leaf = m_store->get_child_leaf(n, m_store->count(n)-1);
+				m_index = m_store->count(m_leaf);
+				return;
+			}
+			n = m_store->get_child_internal(n, m_store->count(n)-1);
+		}		
+	}
+
+
+public:
+	btree_iterator(): m_index(0), m_leaf() {}
+
+	value_type & dereference() const { 
+		return m_store->get(m_leaf, m_index);
+	}
+
+	bool equal(const btree_iterator & o) const {
+		return m_index == o.m_index && m_leaf == o.m_leaf;
+	}
+
+	void decrement() {
+		if (m_index > 0) {
+			--m_index;
+			return;
+		}
+		
+		size_t i=m_store->index(m_leaf, m_path.back());
+		size_t x=0;
+		while (i == 0) {
+			internal_type n = m_path.back();
+			m_path.pop_back();
+			i = m_store->index(n, m_path.back());
+			++x;
+		}
+		--i;
+
+		while (x != 0) {
+			m_path.push_back(m_store->get_child_internal(m_path.back(), i));
+			i = m_store->count(m_path.back())-1;							 
+			--x;
+		}
+		
+		m_leaf = m_store->get_child_leaf(m_path.back(), i);
+		m_index = m_store->count(m_leaf)-1;
+	}
+
+	void increment() {
+		m_index++;
+		if (m_index < m_store->count(m_leaf)) return;
+		if (m_path.empty()) return; //We are at the end
+
+		size_t i=m_store->index(m_leaf, m_path.back());
+		size_t x=0;
+		while (i +1 == m_store->count(m_path.back())) {
+			internal_type n = m_path.back();
+			m_path.pop_back();
+			if (m_path.empty()) {
+				goto_end();
+				return;
+			}
+			i = m_store->index(n, m_path.back());
+			++x;
+		}
+		++i;
+		while (x != 0) {
+			m_path.push_back(m_store->get_child_internal(m_path.back(), i));
+			i = 0;
+			--x;
+		}
+		m_leaf = m_store->get_child_leaf(m_path.back(), i);
+		m_index = 0;
+	}
+
+};
+
 
 } //namespace tpie
 #endif //_TPIE_BTREE_NODE_H_

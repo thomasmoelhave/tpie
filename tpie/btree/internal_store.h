@@ -229,10 +229,13 @@ private:
 	size_t m_height;
 	size_t m_size;
 
-	template <typename SS>
+	template <typename>
 	friend class btree_node;
 
-	template <typename X, typename Y, typename Z>
+	template <typename>
+	friend class btree_iterator;
+
+	template <typename, typename, typename>
 	friend class btree;
 };
 

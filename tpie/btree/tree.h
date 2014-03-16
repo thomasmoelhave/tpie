@@ -60,13 +60,20 @@ public:
 	 */
 	typedef A augmenter_type;
 
+
 	/**
 	 * Type of the size
 	 */
 	typedef typename S::size_type size_type;
+
+	/**
+	 * Iterator type
+	 */
+	typedef btree_iterator<S> iterator;
 private:
 	typedef typename S::leaf_type leaf_type;
 	typedef typename S::internal_type internal_type;
+
 	
 	size_t count_child(internal_type node, size_t i, leaf_type) {
 		return m_store.count_child_leaf(node, i);
@@ -225,7 +232,19 @@ private:
 		augment(c1, p);
 		return z_ >= m_store.min_size();
 	}
+
 public:
+	iterator begin() {
+		iterator i(&m_store);
+		i.goto_begin();
+		return i;
+	}
+
+	iterator end() {
+		iterator i(&m_store);
+		i.goto_end();
+		return i;
+	}
 
 	/**
 	 * \brief Insert given value into the btree
@@ -312,6 +331,10 @@ public:
 		augment(n2, i);
 		path.push_back(i);
 		augment_path(path);
+	}
+
+	node_type find(key_type v) {
+
 	}
 	
 	/**
