@@ -1145,6 +1145,10 @@ public:
 		dest.push(i);
 		step();
 	}
+
+	void flush() {
+		log_debug() << "In multiplicative_inverter_type::flush" << std::endl;
+	}
 };
 
 inline pipe_middle<factory_1<multiplicative_inverter_type, size_t> >
