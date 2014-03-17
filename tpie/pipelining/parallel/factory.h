@@ -36,11 +36,11 @@ class factory : public factory_base {
 public:
 	template <typename dest_t>
 	struct constructed {
-		typedef typename dest_t::item_type T2;
+		typedef typename push_type<dest_t>::type T2;
 
 		typedef after<T2> after_t;
 		typedef typename fact_t::template constructed<after_t>::type processor_t;
-		typedef typename processor_t::item_type T1;
+		typedef typename push_type<processor_t>::type T1;
 
 		typedef producer<T1, T2> type;
 	};

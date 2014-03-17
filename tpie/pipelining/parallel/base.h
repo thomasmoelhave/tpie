@@ -116,7 +116,7 @@ private:
 
 	typedef after<Output> after_t;
 	typedef typename fact_t::template constructed<after_t>::type worker_t;
-	typedef typename worker_t::item_type T1;
+	typedef typename push_type<worker_t>::type T1;
 	typedef Output T2;
 	typedef before_impl<worker_t> before_t;
 	static const size_t alignment = p_t::alignment;
@@ -674,8 +674,8 @@ private:
 /// \brief Concrete before class.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename dest_t>
-class before_impl : public before<typename dest_t::item_type> {
-	typedef typename dest_t::item_type item_type;
+class before_impl : public before<typename push_type<dest_t>::type> {
+	typedef typename push_type<dest_t>::type item_type;
 
 	dest_t dest;
 
@@ -711,13 +711,13 @@ public:
 /// \brief Concrete consumer implementation.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Input, typename Output, typename dest_t>
-class consumer_impl : public consumer<typename dest_t::item_type> {
+class consumer_impl : public consumer<typename push_type<dest_t>::type> {
 	typedef state<Input, Output> state_t;
 	typedef typename state_t::ptr stateptr;
 	dest_t dest;
 	stateptr st;
 public:
-	typedef typename dest_t::item_type item_type;
+	typedef typename push_type<dest_t>::type item_type;
 
 	consumer_impl(const dest_t & dest, stateptr st)
 		: dest(dest)
