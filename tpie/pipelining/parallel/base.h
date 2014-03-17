@@ -26,6 +26,7 @@
 #include <boost/shared_ptr.hpp>
 #include <tpie/pipelining/maintain_order_type.h>
 #include <tpie/pipelining/parallel/options.h>
+#include <tpie/pipelining/parallel/flush.h>
 
 namespace tpie {
 
@@ -133,6 +134,10 @@ public:
 						state<T1, T2> & st)
 		: numJobs(st.opts.numJobs)
 	{
+		// If maintainOrder is true but worker_t does not define flush(),
+		// throw an exception.
+		flush_help<worker_t>::check_flush(st.opts.maintainOrder);
+
 		typename p_t::progress_indicator_hook hook(this);
 		fact.hook_initialization(&hook);
 		fact.set_destination_kind_push();
@@ -701,6 +706,9 @@ public:
 		for (size_t i = 0; i < items.size(); ++i) {
 			dest.push(items[i]);
 		}
+
+		// If maintainOrder is true, call dest.flush().
+		flush_help<dest_t>::maybe_flush(dest, this->st.opts.maintainOrder);
 
 		// virtual invocation
 		this->st.output(this->parId).flush_buffer();
