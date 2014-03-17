@@ -57,6 +57,7 @@ set (HEADERS
 		pipelining/parallel/aligned_array.h
 		pipelining/parallel/base.h
 		pipelining/parallel/factory.h
+		pipelining/parallel/flush.h
 		pipelining/parallel/options.h
 		pipelining/parallel/pipes.h
 		pipelining/parallel/worker_state.h
