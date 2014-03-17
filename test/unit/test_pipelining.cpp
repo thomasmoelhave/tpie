@@ -319,10 +319,10 @@ bool passive_reverse_test(size_t n) {
 }
 
 template <typename dest_t>
-struct sequence_generator : public node {
+struct sequence_generator_type : public node {
 	typedef size_t item_type;
 
-	inline sequence_generator(const dest_t & dest, size_t elements, bool reverse = true)
+	sequence_generator_type(const dest_t & dest, size_t elements, bool reverse)
 		: dest(dest)
 		, elements(elements)
 		, reverse(reverse)
@@ -354,16 +354,19 @@ private:
 	bool reverse;
 };
 
-struct sequence_verifier : public node {
+typedef pipe_begin<factory_2<sequence_generator_type, size_t, bool> >
+	sequence_generator;
+
+struct sequence_verifier_type : public node {
 	typedef size_t item_type;
 
-	inline sequence_verifier(size_t elements, bool & result)
+	sequence_verifier_type(size_t elements, bool * result)
 		: elements(elements)
 		, expect(1)
 		, result(result)
 		, bad(false)
 	{
-		result = false;
+		*result = false;
 	}
 
 	virtual void propagate() override {
@@ -371,7 +374,7 @@ struct sequence_verifier : public node {
 			log_error() << "Sorter did not forward number of items" << std::endl;
 			bad = true;
 		}
-		result = false;
+		*result = false;
 	}
 
 	inline void push(size_t element) {
@@ -379,7 +382,7 @@ struct sequence_verifier : public node {
 			(bad ? log_debug() : log_error()) << "Got " << element << ", expected " << expect << std::endl;
 			bad = true;
 		}
-		result = false;
+		*result = false;
 		++expect;
 	}
 
@@ -390,21 +393,24 @@ struct sequence_verifier : public node {
 			log_error() << "Sorter did not send as many items as promised" << std::endl;
 			bad = true;
 		}
-		result = !bad;
+		*result = !bad;
 	}
 
 private:
 	size_t elements;
 	size_t expect;
-	bool & result;
+	bool * result;
 	bool bad;
 };
 
+typedef pipe_end<termfactory_2<sequence_verifier_type, size_t, bool *> >
+	sequence_verifier;
+
 bool sort_test(size_t elements) {
 	bool result = false;
-	pipeline p = make_pipe_begin_1<sequence_generator>(elements)
+	pipeline p = sequence_generator(elements, true)
 		| sort().name("Test")
-		| make_pipe_end_2<sequence_verifier, size_t, bool &>(elements, result);
+		| sequence_verifier(elements, &result);
 	p.plot(log_info());
 	p();
 	return result;
@@ -1148,10 +1154,10 @@ multiplicative_inverter(size_t p) {
 
 bool parallel_test(size_t modulo) {
 	bool result = false;
-	pipeline p = make_pipe_begin_1<sequence_generator>(modulo-1)
+	pipeline p = sequence_generator(modulo-1, true)
 		| parallel(multiplicative_inverter(modulo))
 		| sort()
-		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
+		| sequence_verifier(modulo-1, &result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);
 	p(modulo-1, pi);
@@ -1160,9 +1166,9 @@ bool parallel_test(size_t modulo) {
 
 bool parallel_ordered_test(size_t modulo) {
 	bool result = false;
-	pipeline p = make_pipe_begin_2<sequence_generator>(modulo-1, false)
+	pipeline p = sequence_generator(modulo-1, false)
 		| parallel(multiplicative_inverter(modulo) | multiplicative_inverter(modulo), maintain_order)
-		| make_pipe_end_2<sequence_verifier, size_t, bool &>(modulo-1, result);
+		| sequence_verifier(modulo-1, &result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);
 	p(modulo-1, pi);
