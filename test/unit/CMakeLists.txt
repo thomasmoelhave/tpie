@@ -121,6 +121,7 @@ add_unittest(pipelining
 	push_iterator
 	parallel
 	parallel_ordered
+	parallel_ordered_2
 	parallel_multiple
 	parallel_own_buffer
 	parallel_push_in_end

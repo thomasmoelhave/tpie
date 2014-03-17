@@ -1180,6 +1180,71 @@ bool parallel_ordered_test(size_t modulo) {
 }
 
 template <typename dest_t>
+class fold_intervals_type : public node {
+public:
+	fold_intervals_type(dest_t dest) : i(0), j(0), dest(dest) {}
+
+	void push(size_t n) {
+		if (n == j) {
+			++j;
+		} else {
+			flush();
+			i = n;
+			j = n+1;
+		}
+	}
+
+	void flush() {
+		if (i != j)
+			dest.push(std::make_pair(i, j));
+		i = j;
+	}
+
+	virtual void end() override {
+		flush();
+	}
+
+private:
+	size_t i;
+	size_t j;
+	dest_t dest;
+};
+
+typedef pipe_middle<factory_0<fold_intervals_type> > fold_intervals;
+
+template <typename dest_t>
+class unfold_intervals_type : public node {
+public:
+	unfold_intervals_type(dest_t dest)
+		: dest(dest)
+	{
+	}
+
+	void push(const std::pair<size_t, size_t> x) {
+		for (size_t i = x.first; i < x.second; ++i) {
+			dest.push(i);
+		}
+	}
+
+private:
+	dest_t dest;
+};
+
+typedef pipe_middle<factory_0<unfold_intervals_type> > unfold_intervals;
+
+bool parallel_ordered_2_test(size_t n) {
+	bool result = true;
+	pipeline p
+		= sequence_generator(n, false)
+		| parallel(fold_intervals(), maintain_order)
+		| unfold_intervals()
+		| sequence_verifier(n, &result);
+	p.plot(log_info());
+	p();
+	return result;
+}
+
+template <typename dest_t>
 class Monotonic : public node {
 	dest_t dest;
 	test_t sum;
@@ -1689,6 +1754,8 @@ int main(int argc, char ** argv) {
 	.test(push_iterator_test, "push_iterator")
 	.test(parallel_test, "parallel", "modulo", static_cast<size_t>(20011))
 	.test(parallel_ordered_test, "parallel_ordered", "modulo", static_cast<size_t>(20011))
+	.test(parallel_ordered_2_test, "parallel_ordered_2",
+		  "n", static_cast<size_t>(1000000))
 	.test(parallel_step_test, "parallel_step")
 	.test(parallel_multiple_test, "parallel_multiple")
 	.test(parallel_own_buffer_test, "parallel_own_buffer")
