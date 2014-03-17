@@ -26,6 +26,12 @@ namespace pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Runs a pipeline in multiple threads.
+///
+/// If maintain_order is specified, the pipeline to parallelize must implement
+/// flush() in at least the first node in the pipeline.
+/// This is to ensure that any buffering done in the pipeline will not cause
+/// elements to be reordered in the output.
+///
 /// \param maintainOrder  Whether to make sure that items are processed and
 /// output in the order they are input.
 /// \param numJobs  The number of threads to utilize for parallel execution.
