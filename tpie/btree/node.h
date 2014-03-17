@@ -166,6 +166,17 @@ public:
 		else
 			return m_store->count(m_path.back());
 	}
+
+	/**
+	 * \brief Return the index of this node in its parent
+	 *
+	 * Requires has_parent()
+	 */
+	size_t index() const {
+		if (m_is_leaf)
+			return m_store->index(m_leaf, m_path.back());
+		return m_store->index(m_path.back(), m_path[m_path.size()-2]);
+	}
 	
 	btree_node(): m_store(NULL) {}
 private:
@@ -181,13 +192,20 @@ private:
 		m_path.push_back(root);
 	}
 
+	btree_node(S * store, std::vector<internal_type> path, leaf_type leaf)
+		: m_store(store), m_path(path), m_leaf(leaf), m_is_leaf(true) {
+	}
+
 	S * m_store;
 	std::vector<internal_type> m_path;
 	leaf_type m_leaf;
 	bool m_is_leaf;
 
-	template <typename X, typename Y, typename A>
+	template <typename, typename, typename>
 	friend class btree;
+
+	template <typename>
+	friend class btree_iterator;
 };
 
 template <typename S>
@@ -261,7 +279,13 @@ public:
 	bool equal(const btree_iterator & o) const {
 		return m_index == o.m_index && m_leaf == o.m_leaf;
 	}
+	
+	size_t index() const {return m_index;}
 
+	btree_node<S> leaf() const {
+		return btree_node<S>(m_store, m_path, m_leaf);
+	}
+	
 	void decrement() {
 		if (m_index > 0) {
 			--m_index;
