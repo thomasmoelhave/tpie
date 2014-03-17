@@ -40,7 +40,6 @@ add_unittest(array
 	)
 add_unittest(atomic basic parallel)
 add_unittest(block_collection basic erase overwrite cached_basic cached_erase cached_overwrite)
-add_unittest(btree basic)
 add_unittest(compressed_stream
 	basic seek seek_2 reopen_1 reopen_2 read_seek
 	truncate truncate_2 position_0 position_1 position_2 position_3
@@ -55,6 +54,7 @@ add_unittest(compressed_stream
 	odd_block_size
 	write_peek
 )
+add_unittest(btree basic iterator key_and_compare augment)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic empty_size sized large)

@@ -23,6 +23,7 @@
 #include <tpie/btree/tree.h>
 #include <algorithm>
 #include <set>
+#include <map>
 using namespace tpie;
 using namespace std;
 
@@ -127,11 +128,178 @@ bool iterator_test() {
 	return true;
 }
 
+template <typename T>
+class uncomparable {
+public:
+	T value;
+private:
+	bool operator <(const T & other) const;
+	bool operator <=(const T & other) const;
+	bool operator >(const T & other) const;
+	bool operator >=(const T & other) const;
+	bool operator ==(const T & other) const;
+	bool operator !=(const T & other) const;
+};
+
+template <typename comp_t>
+struct comparator {
+	typedef typename comp_t::first_argument_type value_type;
+	typedef uncomparable<value_type> first_argument_type;
+	typedef uncomparable<value_type> second_argument_type;
+	typedef bool result_type;
+
+	comparator(comp_t c): c(c) {}
+
+	bool operator()(const first_argument_type & a, const first_argument_type & b) const {
+		return c(a.value, b.value);
+	}
+	
+	comp_t c;
+};
+
+struct item {
+	uncomparable<int> key;
+	int value;
+};
+
+struct key_extract {
+	typedef uncomparable<int> value_type;
+	value_type operator()(const item & i) const {return i.key;}
+};
+
+bool key_and_comparator_test() {
+	typedef btree_internal_store<item, empty_augment, key_extract> store;
+	std::greater<int> c1;
+	comparator<std::greater<int> > comp(c1);
+	btree<store, comparator<std::greater<int> > > tree(store(), comp);
+	std::map<uncomparable<int>, int, comparator<std::greater<int> > > tree2(comp);
+	
+	std::vector<item> x;
+    for (int i=0; i < 1234; ++i) {
+		item it;
+		it.key.value = i;
+        x.push_back(it);
+	}
+	std::random_shuffle(x.begin(), x.end());
+    for (size_t i=0; i < x.size(); ++i)
+		x[i].value = i;
+	std::random_shuffle(x.begin(), x.end());
+
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.insert(x[i]);
+		tree2[x[i].key] = x[i].value;
+	}
+
+	btree<store>::iterator e1 = tree.end();
+	btree<store>::iterator i1 = tree.begin();
+	map<uncomparable<int>, int>::iterator i2 = tree2.begin();
+	while (i1 != e1) {
+		if (i1->key.value != i2->first.value ||
+			i1->value != i2->second) return false;
+		++i1;
+		++i2;
+	}
+	
+	std::random_shuffle(x.begin(), x.end());
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.remove(x[i].key);
+	}
+	return tree.empty();
+}
+
+struct augmenter {
+	template <typename N>
+	size_t operator()(const N & node) {
+		//std::cout << "AUGMENT" << std::endl;
+		if (node.leaf())
+			return node.count();
+		size_t sum=0;
+		for (size_t i=0; i < node.count(); ++i)
+			sum += node.augment(i);
+		return sum;
+	}
+};
+
+template <typename S>
+size_t rank(const btree_iterator<S> & i) {
+	size_t sum = 0;
+	size_t idx=i.index();
+	btree_node<S> n=i.leaf();
+	while (true) {
+		if (n.leaf()) sum += idx;
+		else {
+			for (size_t i=0; i < idx; ++i) 
+				sum += n.augment(i);
+		}
+		if (!n.has_parent()) break;
+		idx = n.index();
+		n.parent();
+	} 
+	return sum;
+}
+
+template <typename S>
+void print(btree_node<S> & n) {
+	if (n.leaf()) {
+		std::cout << "[";
+		for (size_t i=0; i < n.count(); ++i) {
+			if (i != 0) std::cout << ", ";
+			std::cout << n.value(i);
+		}
+		std::cout << "]";
+		return;
+	}
+	std::cout << "(";
+	for (size_t i=0; i < n.count(); ++i) {
+		if (i != 0) std::cout << ", ";
+		std::cout << n.augment(i) << " | ";
+		n.child(i);
+		print(n);
+		n.parent();
+	}
+	std::cout << ")";
+}
+
+bool augment_test() {
+	typedef btree_internal_store<int, size_t> store;
+	std::less<int> c;
+	augmenter a;
+	btree<store, std::less<int>, augmenter> tree(store(), c, a);
+	std::vector<int> x;
+    for (int i=0; i < 12345; ++i) x.push_back(i);
+	std::random_shuffle(x.begin(), x.end());
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.insert(x[i]);
+		btree_node<store> n=tree.root();
+	}
+	
+	btree<store>::iterator i1 = tree.begin();
+	for (size_t i=0; i < x.size(); ++i) {
+		if (rank(i1) != i) return false;
+		++i1;
+	}
+
+	size_t e=x.size()/2;
+	std::random_shuffle(x.begin(), x.end());
+	for (size_t i=e; i < x.size(); ++i)
+		tree.remove(x[i]);
+	x.resize(e);
+
+	i1 = tree.begin();
+	for (size_t i=0; i < x.size(); ++i) {
+		if (rank(i1) != i) return false;
+		++i1;
+	}
+
+	return true;
+}
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic")
-		.test(iterator_test, "iterator");
+		.test(iterator_test, "iterator")
+		.test(key_and_comparator_test, "key_and_compare")
+		.test(augment_test, "augment");
 }
 
 
