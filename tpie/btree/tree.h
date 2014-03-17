@@ -270,6 +270,7 @@ public:
 		//If there is room in the leaf
 		if (m_store.count(l) != m_store.max_size()) {
 			insert_part(l, v);
+			if (!path.empty()) augment(l, path.back());
 			augment_path(path);
 			return;
 		}
@@ -453,7 +454,10 @@ public:
 	/**
 	 * Construct a btree with the given storrage
 	 */
-	btree(S store=S()): m_store(store) {}
+	btree(S store=S(), C comp=C(), A augmenter=A()): 
+		m_store(store), 
+		m_comp(comp), 
+		m_augmenter(augmenter) {}
 private:
 	S m_store;
 	C m_comp;
