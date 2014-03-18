@@ -229,6 +229,12 @@ private:
 
 	btree_iterator(S * store): m_store(store) {}
 
+	void goto_item(const std::vector<internal_type> & p, leaf_type l, size_t i) {
+		m_path = p;
+		m_leaf = l;
+		m_index = i;
+	}
+
 
 	void goto_begin() {
 		m_path.clear();

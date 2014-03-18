@@ -334,25 +334,39 @@ public:
 		augment_path(path);
 	}
 
-	node_type find(key_type v) {
-
-	}
-	
 	/**
-	 * \brief remove item with given key
+	 * Return an iterator to the first item with the given key
 	 */
-	void remove(key_type v) {
+	iterator find(key_type v) {
+		iterator itr;
 		std::vector<internal_type> path;
 		leaf_type l = find_leaf(path, v);
 
 		size_t i=0;
 		size_t z = m_store.count(l);
 		while (true) {
-			if (i == z) return; //FALSE
+			if (i == z) {
+				itr.goto_end();
+				return itr;
+			}
 			if (!m_comp(m_store.min_key(l, i), v) &&
 				!m_comp(v, m_store.min_key(l, i))) break;
 			++i;
 		}
+		itr.goto_item(path, l, i);
+		return itr;
+	}
+	
+	/**
+	 * \brief remove item at iterator
+	 */
+	void erase(const iterator & itr) {
+		std::vector<internal_type> path=itr.m_path;
+		leaf_type l = itr.m_leaf;
+
+		size_t z = m_store.count(l);
+		size_t i = itr.m_index;
+
 		m_store.set_size(m_store.size()-1);
 		--z;
 		for (; i != z; ++i)
@@ -429,6 +443,13 @@ public:
 				return;
 			}
 		}
+	}
+		
+	/**
+	 * \brief remove item with given key
+	 */
+	void remove(key_type v) {
+		erase(find(v));	
 	}
 
 	/**
