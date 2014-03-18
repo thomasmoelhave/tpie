@@ -207,35 +207,57 @@ bool key_and_comparator_test() {
 	return tree.empty();
 }
 
-struct augmenter {
+template <typename T1, typename T2>
+std::pair<T1, T2> add(std::pair<T1, T2> a, std::pair<T1, T2> b) {
+	return std::pair<T1, T2>(a.first + b.first, a.second + b.second);
+}
+
+typedef std::pair<size_t, size_t> ss_augment;
+
+ostream & operator<<(ostream & o, const ss_augment & a) {
+	return o << "{" << a.first << ", " << a.second << "}";
+}
+
+struct ss_augmenter {
 	template <typename N>
-	size_t operator()(const N & node) {
-		//std::cout << "AUGMENT" << std::endl;
-		if (node.leaf())
-			return node.count();
-		size_t sum=0;
-		for (size_t i=0; i < node.count(); ++i)
-			sum += node.augment(i);
-		return sum;
+	ss_augment operator()(const N & node) {
+		ss_augment ans(0,0);
+		if (node.leaf()) {
+			for (size_t i=0; i < node.count(); ++i) {
+				ans.first++;
+				ans.second += node.value(i);
+			}
+		} else {
+			for (size_t i=0; i < node.count(); ++i)
+				ans = add(ans, node.augment(i));
+		}
+		return ans;
 	}
 };
 
+
 template <typename S>
-size_t rank(const btree_iterator<S> & i) {
-	size_t sum = 0;
+ss_augment rank_sum(const btree_iterator<S> & i) {
+	ss_augment ans(0,0);
 	size_t idx=i.index();
 	btree_node<S> n=i.leaf();
 	while (true) {
-		if (n.leaf()) sum += idx;
+		if (n.leaf()) {
+			for (size_t i=0; i < idx; ++i) {
+				ans.first++;
+				ans.second += n.value(i);
+			}
+		}
 		else {
-			for (size_t i=0; i < idx; ++i) 
-				sum += n.augment(i);
+			for (size_t i=0; i < idx; ++i) {
+				ans = add(ans, n.augment(i));
+			}
 		}
 		if (!n.has_parent()) break;
 		idx = n.index();
 		n.parent();
-	} 
-	return sum;
+	}
+	return ans;
 }
 
 template <typename S>
@@ -261,10 +283,10 @@ void print(btree_node<S> & n) {
 }
 
 bool augment_test() {
-	typedef btree_internal_store<int, size_t> store;
+	typedef btree_internal_store<int, ss_augment> store;
 	std::less<int> c;
-	augmenter a;
-	btree<store, std::less<int>, augmenter> tree(store(), c, a);
+	ss_augmenter a;
+	btree<store, std::less<int>, ss_augmenter> tree(store(), c, a);
 	std::vector<int> x;
     for (int i=0; i < 12345; ++i) x.push_back(i);
 	std::random_shuffle(x.begin(), x.end());
@@ -272,10 +294,13 @@ bool augment_test() {
 		tree.insert(x[i]);
 		btree_node<store> n=tree.root();
 	}
-	
+
+	std::sort(x.begin(), x.end());
 	btree<store>::iterator i1 = tree.begin();
+	size_t sum=0;
 	for (size_t i=0; i < x.size(); ++i) {
-		if (rank(i1) != i) return false;
+		if (rank_sum(i1) != ss_augment(i, sum)) return false;
+		sum += x[i];
 		++i1;
 	}
 
@@ -284,10 +309,13 @@ bool augment_test() {
 	for (size_t i=e; i < x.size(); ++i)
 		tree.remove(x[i]);
 	x.resize(e);
+	std::sort(x.begin(), x.end());
 
 	i1 = tree.begin();
+	sum=0;
 	for (size_t i=0; i < x.size(); ++i) {
-		if (rank(i1) != i) return false;
+		if (rank_sum(i1) != ss_augment(i, sum)) return false;
+		sum += x[i];
 		++i1;
 	}
 
