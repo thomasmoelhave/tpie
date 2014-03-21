@@ -44,8 +44,6 @@ struct sort_parameters {
 	memory_size_type memoryPhase2;
 	/** Memory available during output phase. */
 	memory_size_type memoryPhase3;
-	/** Minimum size of serialized items. */
-	memory_size_type minimumItemSize;
 	/** Directory in which temporary files are stored. */
 	std::string tempDir;
 
@@ -54,18 +52,125 @@ struct sort_parameters {
 			<< "Phase 1 memory:              " << memoryPhase1 << '\n'
 			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
 			<< "Phase 3 memory:              " << memoryPhase3 << '\n'
-			<< "Minimum item size:           " << minimumItemSize << '\n'
 			<< "Temporary directory:         " << tempDir << '\n';
 	}
 };
 
+class memcpy_reader {
+public:
+	memcpy_reader(const char * src)
+		: m_src(src)
+	{
+	}
+
+	void read(void * dst, size_t n) {
+		memcpy(dst, m_src, n);
+		m_src += n;
+	}
+
+private:
+	const char * m_src;
+};
+
+class memcpy_writer {
+public:
+	memcpy_writer(char * dst, char * end)
+		: m_dst(dst)
+		, m_end(end)
+	{
+	}
+
+	void write(const void * src, size_t n) {
+		if (m_dst + n <= m_end)
+			memcpy(m_dst, src, n);
+		m_dst += n;
+	}
+
+	char * dst() {
+		return m_dst;
+	}
+
+	bool overflow() {
+		return m_dst > m_end;
+	}
+
+private:
+	char * m_dst;
+	char * m_end;
+};
+
+} // namespace serialization_bits
+
+template <typename pred_t>
+class serialized_compare {
+public:
+	typedef pred_t inner_pred_type;
+
+	typedef bool result_type;
+	typedef const void * first_argument_type;
+	typedef const void * second_argument_type;
+
+	typedef typename pred_t::first_argument_type first_item_type;
+	typedef typename pred_t::second_argument_type second_item_type;
+
+	serialized_compare(pred_t pred=pred_t())
+		: m_pred(pred)
+	{
+	}
+
+	bool operator()(const char * lhs, const char * rhs) const {
+		first_item_type lhsItem;
+		second_item_type rhsItem;
+
+		using tpie::unserialize;
+		serialization_bits::memcpy_reader lhsReader(lhs);
+		serialization_bits::memcpy_reader rhsReader(rhs);
+		unserialize(lhsReader, lhsItem);
+		unserialize(rhsReader, rhsItem);
+
+		return m_pred(lhsItem, rhsItem);
+	}
+
+private:
+	pred_t m_pred;
+};
+
+namespace serialization_bits {
+
+template <typename pred_t>
+class base_offset_compare {
+public:
+	base_offset_compare(const char * base, size_t limit, pred_t pred)
+		: m_base(base)
+		, m_limit(limit)
+		, m_pred(pred)
+	{
+	}
+
+	bool operator()(const size_t & lhs, const size_t & rhs) const {
+		if (lhs > m_limit || rhs > m_limit)
+			throw tpie::exception("Out of bounds!");
+		return m_pred(m_base + lhs, m_base + rhs);
+	}
+
+private:
+	const char * m_base;
+	size_t m_limit;
+	pred_t m_pred;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Internal serialization sorter.
+///
+/// \tparam pred_t  less than-predicate accepting pointers to serialized items.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 class internal_sort {
-	array<T> m_buffer;
-	memory_size_type m_items;
-	memory_size_type m_serializedSize;
+	array<size_t> m_buffer;
+	size_t * m_pointers;
+	size_t * m_pointersEnd;
+	char * m_nextItem;
 	memory_size_type m_memAvail;
-
 	memory_size_type m_largestItem;
 
 	pred_t m_pred;
@@ -73,21 +178,22 @@ class internal_sort {
 	bool m_full;
 
 public:
-	internal_sort(pred_t pred = pred_t())
-		: m_items(0)
-		, m_serializedSize(0)
-		, m_largestItem(sizeof(T))
+	internal_sort(pred_t pred)
+		: m_largestItem(0)
 		, m_pred(pred)
 		, m_full(false)
 	{
 	}
 
 	void begin(memory_size_type memAvail) {
-		m_buffer.resize(memAvail / sizeof(T) / 2);
-		m_items = m_serializedSize = 0;
-		m_largestItem = sizeof(T);
-		m_full = false;
 		m_memAvail = memAvail;
+
+		m_buffer.resize(memAvail / sizeof(size_t));
+		size_t n = m_buffer.size();
+		m_pointers = m_pointersEnd = static_cast<size_t *>(m_buffer.get()) + n;
+		m_nextItem = reinterpret_cast<char *>(m_buffer.get());
+
+		m_full = false;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -99,32 +205,22 @@ public:
 	bool push(const T & item) {
 		if (m_full) return false;
 
-		if (m_items == m_buffer.size()) {
+		char * firstItem = reinterpret_cast<char *>(m_buffer.get());
+		*--m_pointers = m_nextItem - firstItem;
+		serialization_bits::memcpy_writer wr(m_nextItem,
+				reinterpret_cast<char *>(m_pointers));
+		using tpie::serialize;
+		serialize(wr, item);
+		if (wr.overflow()) {
 			m_full = true;
+			++m_pointers;
 			return false;
 		}
 
-		memory_size_type serSize = serialized_size(item);
+		memory_size_type serializedSize = wr.dst() - m_nextItem;
+		m_largestItem = std::max(serializedSize, m_largestItem);
 
-		if (serSize > sizeof(T)) {
-			// amount of memory this item needs for its extra stuff (stuff not in the buffer).
-			memory_size_type serializedExtra = serSize - sizeof(T);
-
-			// amount of memory not used for the buffer and not used for extra stuff already.
-			memory_size_type memRemainingExtra = m_memAvail - memory_usage();
-
-			if (serializedExtra > memRemainingExtra) {
-				m_full = true;
-				return false;
-			}
-
-			if (serSize > m_largestItem)
-				m_largestItem = serSize;
-		}
-
-		m_serializedSize += serSize;
-
-		m_buffer[m_items++] = item;
+		m_nextItem = wr.dst();
 
 		return true;
 	}
@@ -139,9 +235,11 @@ public:
 	/// This is exactly the size the current run will use when serialized to
 	/// disk.
 	///////////////////////////////////////////////////////////////////////////
+	/*
 	memory_size_type current_serialized_size() {
 		return m_serializedSize;
 	}
+	*/
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Compute current memory usage.
@@ -154,29 +252,70 @@ public:
 	/// calculations.
 	///////////////////////////////////////////////////////////////////////////
 	memory_size_type memory_usage() {
-		return m_buffer.size() * sizeof(T)
-			+ (m_serializedSize - m_items * sizeof(T));
+		return m_buffer.size() * sizeof(size_t);
+	}
+
+	memory_size_type current_buffer_usage() {
+		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
+		return (m_nextItem - firstItem) * sizeof(char)
+			+ (m_pointersEnd - m_pointers) * sizeof(size_t);
 	}
 
 	bool can_shrink_buffer() {
-		return current_serialized_size() <= get_memory_manager().available();
+		return current_buffer_usage() <= get_memory_manager().available();
 	}
 
 	void shrink_buffer() {
-		array<T> newBuffer(array_view<const T>(begin(), end()));
+		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
+		size_t itemBytes = m_nextItem - firstItem;
+		size_t itemElts = (itemBytes + sizeof(size_t) - 1) / sizeof(size_t);
+		size_t pointers = m_pointersEnd - m_pointers;
+		array<size_t> newBuffer(itemElts + pointers);
+		std::copy(m_buffer.get(), m_buffer.get() + itemElts, newBuffer.get());
+		std::copy(m_pointers, m_pointersEnd, newBuffer.get() + itemElts);
+
+		m_pointersEnd = newBuffer.get() + newBuffer.size();
+		m_pointers = m_pointersEnd - pointers;
+		char * newFirstItem = reinterpret_cast<char *>(newBuffer.get());
+		m_nextItem = newFirstItem + itemBytes;
+
 		m_buffer.swap(newBuffer);
 	}
 
 	void sort() {
-		parallel_sort(m_buffer.get(), m_buffer.get() + m_items, m_pred);
+		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
+		size_t limit = m_nextItem - firstItem;
+		for (size_t * x = m_pointers; x != m_pointersEnd; ++x) {
+			if (*x > limit) throw tpie::exception("Out of bounds!");
+		}
+		base_offset_compare<pred_t> pred(firstItem, m_nextItem - firstItem, m_pred);
+		// TODO predicate might be very expensive (2*unserialize per compare),
+		// so we should use merge sort instead of parallel_sort
+		// since it does minimal no. of comparisons even in the worst case
+		parallel_sort(m_pointers, m_pointersEnd, pred);
 	}
 
+	/*
 	const T * begin() const {
 		return m_buffer.get();
 	}
 
 	const T * end() const {
 		return m_buffer.get() + m_items;
+	}
+	*/
+
+	T pull() {
+		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
+		T item;
+		memcpy_reader src(firstItem + *m_pointers++);
+		using tpie::unserialize;
+		unserialize(src, item);
+		return item;
+	}
+
+	bool can_pull() const {
+		return m_pointers != m_pointersEnd;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -192,7 +331,14 @@ public:
 	/// buffer size.
 	///////////////////////////////////////////////////////////////////////////
 	void reset() {
-		m_items = m_serializedSize = 0;
+		if (m_buffer.size() == 0) {
+			m_pointers = m_pointersEnd = NULL;
+			m_nextItem = NULL;
+		} else {
+			size_t n = m_buffer.size();
+			m_pointers = m_pointersEnd = static_cast<size_t *>(m_buffer.get()) + n;
+			m_nextItem = reinterpret_cast<char *>(m_buffer.get());
+		}
 		m_full = false;
 	}
 };
@@ -400,6 +546,11 @@ private:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Serialization merger.
+///
+/// \tparam pred_t  less than-predicate accepting unserialized items.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 class merger {
 	class mergepred_t {
@@ -472,7 +623,7 @@ private:
 
 } // namespace serialization_bits
 
-template <typename T, typename pred_t = std::less<T> >
+template <typename T, typename internal_pred_t, typename serialized_pred_t>
 class serialization_sorter {
 public:
 	typedef boost::shared_ptr<serialization_sorter> ptr;
@@ -481,31 +632,29 @@ private:
 	enum sorter_state { state_initial, state_1, state_2, state_3 };
 
 	sorter_state m_state;
-	serialization_bits::internal_sort<T, pred_t> m_sorter;
+	serialization_bits::internal_sort<T, serialized_pred_t> m_sorter;
 	serialization_bits::sort_parameters m_params;
 	bool m_parametersSet;
 	serialization_bits::file_handler<T> m_files;
-	serialization_bits::merger<T, pred_t> m_merger;
+	serialization_bits::merger<T, internal_pred_t> m_merger;
 
 	stream_size_type m_items;
 	bool m_reportInternal;
-	const T * m_nextInternalItem;
 
 public:
-	serialization_sorter(memory_size_type minimumItemSize = sizeof(T), pred_t pred = pred_t())
+	serialization_sorter(internal_pred_t p1=internal_pred_t(),
+			serialized_pred_t p2=serialized_pred_t())
 		: m_state(state_initial)
-		, m_sorter(pred)
+		, m_sorter(p2)
 		, m_parametersSet(false)
 		, m_files()
-		, m_merger(m_files, pred)
+		, m_merger(m_files, p1)
 		, m_items(0)
 		, m_reportInternal(false)
-		, m_nextInternalItem(0)
 	{
 		m_params.memoryPhase1 = 0;
 		m_params.memoryPhase2 = 0;
 		m_params.memoryPhase3 = 0;
-		m_params.minimumItemSize = minimumItemSize;
 	}
 
 private:
@@ -606,7 +755,7 @@ private:
 		memory_size_type fanoutMemory = memForMerge - serialization_writer::memory_usage();
 
 		// This is a lower bound on the memory used per fanout.
-		memory_size_type perFanout = m_params.minimumItemSize + serialization_reader::memory_usage();
+		memory_size_type perFanout = sizeof(T) + serialization_reader::memory_usage();
 
 		// Floored division to compute the largest possible fanout.
 		memory_size_type fanout = fanoutMemory / perFanout;
@@ -670,7 +819,6 @@ public:
 
 		if (m_items == 0) {
 			m_reportInternal = true;
-			m_nextInternalItem = 0;
 			m_sorter.free();
 			log_debug() << "Got no items. Internal reporting mode." << std::endl;
 		} else if (m_files.next_level_runs() == 0
@@ -679,18 +827,16 @@ public:
 
 			m_sorter.sort();
 			m_reportInternal = true;
-			m_nextInternalItem = m_sorter.begin();
-			log_debug() << "Got " << m_sorter.current_serialized_size()
+			log_debug() << "Got " << m_sorter.current_buffer_usage()
 				<< " bytes of items. Internal reporting mode." << std::endl;
 		} else if (m_files.next_level_runs() == 0
-				   && m_sorter.current_serialized_size() <= internalThreshold
+				   && m_sorter.current_buffer_usage() <= internalThreshold
 				   && m_sorter.can_shrink_buffer()) {
 
 			m_sorter.sort();
 			m_sorter.shrink_buffer();
 			m_reportInternal = true;
-			m_nextInternalItem = m_sorter.begin();
-			log_debug() << "Got " << m_sorter.current_serialized_size()
+			log_debug() << "Got " << m_sorter.current_buffer_usage()
 				<< " bytes of items. Internal reporting mode after shrinking buffer." << std::endl;
 
 		} else {
@@ -757,7 +903,7 @@ public:
 			throw exception("Not enough memory for merging.");
 
 		// Perform almost the same computation as in calculate_parameters.
-		// Only change the item size to largestItem rather than minimumItemSize.
+		// Only change the item size to largestItem rather than sizeof(T).
 		memory_size_type fanoutMemory = m_params.memoryPhase2 - serialization_writer::memory_usage();
 		memory_size_type perFanout = largestItem + serialization_reader::memory_usage();
 		memory_size_type fanout = fanoutMemory / perFanout;
@@ -809,11 +955,17 @@ public:
 private:
 	void end_run() {
 		m_sorter.sort();
-		if (m_sorter.begin() == m_sorter.end()) return;
+		if (!m_sorter.can_pull()) return;
 		m_files.open_new_writer();
-		for (const T * item = m_sorter.begin(); item != m_sorter.end(); ++item) {
-			m_files.write(*item);
-		}
+
+		// TODO Maybe we could get rid of this unserialize+serialize.
+		// Either just keep the serialized size of each item somehow,
+		// or compute serialized size by unserializing into a counter and
+		// memcpying the serialized item.
+		// On the other hand, we just did log(n) expensive comparisons
+		// with each item in sort(), so what the heck...
+		while (m_sorter.can_pull())
+			m_files.write(m_sorter.pull());
 		m_files.close_writer();
 		m_sorter.reset();
 	}
@@ -853,11 +1005,8 @@ public:
 			throw exception("pull: !can_pull");
 
 		if (m_reportInternal) {
-			T item = *m_nextInternalItem++;
-			if (m_nextInternalItem == m_sorter.end()) {
-				m_sorter.free();
-				m_nextInternalItem = 0;
-			}
+			T item = m_sorter.pull();
+			if (!m_sorter.can_pull()) m_sorter.free();
 			return item;
 		}
 
@@ -879,7 +1028,7 @@ public:
 	}
 
 	bool can_pull() {
-		if (m_reportInternal) return m_nextInternalItem != 0;
+		if (m_reportInternal) return m_sorter.can_pull();
 		if (!m_files.readers_open()) return m_files.next_level_runs() > 0;
 		return !m_merger.empty();
 	}

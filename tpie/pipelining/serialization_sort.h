@@ -32,12 +32,13 @@ namespace pipelining {
 
 namespace serialization_bits {
 
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename serialized_pred_t>
 class sorter_traits {
 public:
 	typedef T item_type;
 	typedef pred_t pred_type;
-	typedef serialization_sorter<item_type, pred_type> sorter_t;
+	typedef serialized_pred_t serialized_pred_type;
+	typedef serialization_sorter<item_type, pred_type, serialized_pred_type> sorter_t;
 	typedef boost::shared_ptr<sorter_t> sorterptr;
 };
 
@@ -50,6 +51,7 @@ class sort_input_t;
 template <typename Traits>
 class sort_output_base : public node {
 	typedef typename Traits::pred_type pred_type;
+	typedef typename Traits::serialized_pred_type serialized_pred_type;
 public:
 	/** Type of items sorted. */
 	typedef typename Traits::item_type item_type;
@@ -67,8 +69,8 @@ public:
 	}
 
 protected:
-	sort_output_base(pred_type pred)
-		: m_sorter(new sorter_t(sizeof(item_type), pred))
+	sort_output_base(pred_type p1, serialized_pred_type p2)
+		: m_sorter(new sorter_t(p1, p2))
 	{
 	}
 
@@ -83,11 +85,12 @@ class sort_pull_output_t : public sort_output_base<Traits> {
 public:
 	typedef typename Traits::item_type item_type;
 	typedef typename Traits::pred_type pred_type;
+	typedef typename Traits::serialized_pred_type serialized_pred_type;
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	sort_pull_output_t(pred_type pred)
-		: sort_output_base<Traits>(pred)
+	sort_pull_output_t(pred_type p1, serialized_pred_type p2)
+		: sort_output_base<Traits>(p1, p2)
 	{
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
@@ -132,14 +135,15 @@ protected:
 template <typename Traits, typename dest_t>
 class sort_output_t : public sort_output_base<Traits> {
 	typedef typename Traits::pred_type pred_type;
+	typedef typename Traits::serialized_pred_type serialized_pred_type;
 public:
 	typedef typename Traits::item_type item_type;
 	typedef sort_output_base<Traits> p_t;
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	sort_output_t(const dest_t & dest, pred_type pred)
-		: p_t(pred)
+	sort_output_t(const dest_t & dest, pred_type p1, serialized_pred_type p2)
+		: p_t(p1, p2)
 		, dest(dest)
 	{
 		this->add_push_destination(dest);
@@ -319,7 +323,8 @@ public:
 		typedef typename push_type<dest_t>::type item_type;
 	public:
 		typedef typename child_t::template predicate<item_type>::type pred_type;
-		typedef sorter_traits<item_type, pred_type> Traits;
+		typedef typename child_t::template predicate<item_type>::serialized_type serialized_pred_type;
+		typedef sorter_traits<item_type, pred_type, serialized_pred_type> Traits;
 		typedef sort_input_t<Traits> type;
 	};
 
@@ -328,7 +333,9 @@ public:
 		typedef typename push_type<dest_t>::type item_type;
 		typedef typename constructed<dest_t>::Traits Traits;
 
-		sort_output_t<Traits, dest_t> output(dest, self().template get_pred<item_type>());
+		sort_output_t<Traits, dest_t> output(dest,
+				self().template get_pred<item_type>(),
+				self().template get_serialized_pred<item_type>());
 		this->init_sub_node(output);
 		sort_calc_t<Traits> calc(output);
 		this->init_sub_node(calc);
@@ -348,11 +355,17 @@ public:
 	class predicate {
 	public:
 		typedef std::less<item_type> type;
+		typedef serialized_compare<type> serialized_type;
 	};
 
 	template <typename T>
 	std::less<T> get_pred() const {
 		return std::less<T>();
+	}
+
+	template <typename T>
+	serialized_compare<std::less<T> > get_serialized_pred() const {
+		return serialized_compare<std::less<T> >();
 	}
 };
 
@@ -366,6 +379,7 @@ public:
 	class predicate {
 	public:
 		typedef pred_t type;
+		typedef serialized_compare<type> serialized_type;
 	};
 
 	sort_factory(const pred_t & p)
@@ -378,8 +392,47 @@ public:
 		return pred;
 	}
 
+	template <typename T>
+	serialized_compare<pred_t> get_serialized_pred() const {
+		return serialized_compare<pred_t>(pred);
+	}
+
 private:
 	pred_t pred;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort factory using the given predicate as comparator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename pred_t, typename serialized_pred_t>
+class sort_factory_2 : public sort_factory_base<sort_factory_2<pred_t, serialized_pred_t> > {
+public:
+	template <typename Dummy>
+	class predicate {
+	public:
+		typedef pred_t type;
+		typedef serialized_pred_t serialized_type;
+	};
+
+	sort_factory_2(const pred_t & p1, const serialized_pred_t & p2)
+		: p1(p1)
+		, p2(p2)
+	{
+	}
+
+	template <typename T>
+	pred_t get_pred() const {
+		return p1;
+	}
+
+	template <typename T>
+	serialized_pred_t get_serialized_pred() const {
+		return p2;
+	}
+
+private:
+	pred_t p1;
+	serialized_pred_t p2;
 };
 
 } // namespace serialization_bits
@@ -401,6 +454,16 @@ pipe_middle<serialization_bits::sort_factory<pred_t> >
 serialization_sort(const pred_t & p) {
 	typedef serialization_bits::sort_factory<pred_t> fact;
 	return pipe_middle<fact>(fact(p)).name("Sort");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining sorter using the given predicate.
+///////////////////////////////////////////////////////////////////////////////
+template <typename pred_t, typename serialized_pred_t>
+pipe_middle<serialization_bits::sort_factory_2<pred_t, serialized_pred_t> >
+serialization_sort(const pred_t & p1, const serialized_pred_t & p2) {
+	typedef serialization_bits::sort_factory_2<pred_t, serialized_pred_t> fact;
+	return pipe_middle<fact>(fact(p1, p2)).name("Sort");
 }
 
 template <typename T, typename pred_t=std::less<T> >
@@ -471,7 +534,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t>
 class serialization_passive_sorter {
-	typedef serialization_bits::sorter_traits<T, pred_t> Traits;
+	typedef serialization_bits::sorter_traits<T, pred_t, serialized_compare<pred_t> > Traits;
 public:
 	/** Type of items sorted. */
 	typedef T item_type;

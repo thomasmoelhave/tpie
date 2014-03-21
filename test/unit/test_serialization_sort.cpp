@@ -30,7 +30,9 @@ using namespace tpie;
 class use_serialization_sorter {
 public:
 	typedef std::vector<int> test_t;
-	typedef serialization_sorter<test_t, std::less<test_t> > sorter;
+	typedef std::less<test_t> internal_pred_t;
+	typedef serialized_compare<internal_pred_t> serialized_pred_t;
+	typedef serialization_sorter<test_t, internal_pred_t, serialized_pred_t> sorter;
 
 	static void merge_runs(sorter & s) {
 		s.merge_runs();
