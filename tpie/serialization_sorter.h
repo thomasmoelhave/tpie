@@ -167,8 +167,9 @@ private:
 template <typename T, typename pred_t>
 class internal_sort {
 	array<size_t> m_buffer;
-	size_t * m_pointers;
-	size_t * m_pointersEnd;
+	size_t * m_pointersA;
+	size_t * m_pointersB;
+	size_t * m_pointersC;
 	char * m_nextItem;
 	memory_size_type m_memAvail;
 	memory_size_type m_largestItem;
@@ -190,7 +191,7 @@ public:
 
 		m_buffer.resize(memAvail / sizeof(size_t));
 		size_t n = m_buffer.size();
-		m_pointers = m_pointersEnd = static_cast<size_t *>(m_buffer.get()) + n;
+		m_pointersA = m_pointersB = m_pointersC = static_cast<size_t *>(m_buffer.get()) + n;
 		m_nextItem = reinterpret_cast<char *>(m_buffer.get());
 
 		m_full = false;
@@ -206,14 +207,16 @@ public:
 		if (m_full) return false;
 
 		char * firstItem = reinterpret_cast<char *>(m_buffer.get());
-		*--m_pointers = m_nextItem - firstItem;
+		*--m_pointersB = m_nextItem - firstItem;
+		m_pointersA -= 2;
 		serialization_bits::memcpy_writer wr(m_nextItem,
-				reinterpret_cast<char *>(m_pointers));
+				reinterpret_cast<char *>(m_pointersA));
 		using tpie::serialize;
 		serialize(wr, item);
 		if (wr.overflow()) {
 			m_full = true;
-			++m_pointers;
+			++m_pointersB;
+			m_pointersA += 2;
 			return false;
 		}
 
@@ -258,7 +261,7 @@ public:
 	memory_size_type current_buffer_usage() {
 		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
 		return (m_nextItem - firstItem) * sizeof(char)
-			+ (m_pointersEnd - m_pointers) * sizeof(size_t);
+			+ (m_pointersC - m_pointersB) * sizeof(size_t);
 	}
 
 	bool can_shrink_buffer() {
@@ -269,13 +272,13 @@ public:
 		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
 		size_t itemBytes = m_nextItem - firstItem;
 		size_t itemElts = (itemBytes + sizeof(size_t) - 1) / sizeof(size_t);
-		size_t pointers = m_pointersEnd - m_pointers;
+		size_t pointers = m_pointersC - m_pointersB;
 		array<size_t> newBuffer(itemElts + pointers);
 		std::copy(m_buffer.get(), m_buffer.get() + itemElts, newBuffer.get());
-		std::copy(m_pointers, m_pointersEnd, newBuffer.get() + itemElts);
+		std::copy(m_pointersB, m_pointersC, newBuffer.get() + itemElts);
 
-		m_pointersEnd = newBuffer.get() + newBuffer.size();
-		m_pointers = m_pointersEnd - pointers;
+		m_pointersC = newBuffer.get() + newBuffer.size();
+		m_pointersA = m_pointersB = m_pointersC - pointers;
 		char * newFirstItem = reinterpret_cast<char *>(newBuffer.get());
 		m_nextItem = newFirstItem + itemBytes;
 
@@ -284,15 +287,11 @@ public:
 
 	void sort() {
 		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
-		size_t limit = m_nextItem - firstItem;
-		for (size_t * x = m_pointers; x != m_pointersEnd; ++x) {
-			if (*x > limit) throw tpie::exception("Out of bounds!");
-		}
 		base_offset_compare<pred_t> pred(firstItem, m_nextItem - firstItem, m_pred);
 		// TODO predicate might be very expensive (2*unserialize per compare),
 		// so we should use merge sort instead of parallel_sort
 		// since it does minimal no. of comparisons even in the worst case
-		parallel_sort(m_pointers, m_pointersEnd, pred);
+		parallel_sort(m_pointersB, m_pointersC, pred);
 	}
 
 	/*
@@ -308,14 +307,14 @@ public:
 	T pull() {
 		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
 		T item;
-		memcpy_reader src(firstItem + *m_pointers++);
+		memcpy_reader src(firstItem + *m_pointersB++);
 		using tpie::unserialize;
 		unserialize(src, item);
 		return item;
 	}
 
 	bool can_pull() const {
-		return m_pointers != m_pointersEnd;
+		return m_pointersB != m_pointersC;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -332,11 +331,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void reset() {
 		if (m_buffer.size() == 0) {
-			m_pointers = m_pointersEnd = NULL;
+			m_pointersA = m_pointersB = m_pointersC = NULL;
 			m_nextItem = NULL;
 		} else {
 			size_t n = m_buffer.size();
-			m_pointers = m_pointersEnd = static_cast<size_t *>(m_buffer.get()) + n;
+			m_pointersA = m_pointersB = m_pointersC =
+				static_cast<size_t *>(m_buffer.get()) + n;
 			m_nextItem = reinterpret_cast<char *>(m_buffer.get());
 		}
 		m_full = false;
