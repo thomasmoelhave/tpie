@@ -25,7 +25,6 @@
 #include <sstream>
 #include <tpie/sysinfo.h>
 
-
 namespace tpie {
 
 teststream_buf::teststream_buf() {
@@ -64,17 +63,28 @@ int teststream_buf::sync() {
 	return 0;
 }
 
-teststream::teststream(): std::ostream(&m_buff), failed(0), total(0) {};
+teststream::teststream(bool do_time): std::ostream(&m_buff), failed(0), total(0), do_time(do_time) {
+	if (do_time) 
+		time = boost::posix_time::microsec_clock::local_time();
+};
 bool teststream::success() {return failed ==0;}
 
 void result_manip(teststream & s, bool success) {
 	s.m_buff.stateAlign();
-	if (success) s << "[ ok ]" << std::endl;
+	if (success) s << "[ ok ]";
 	else {
-		s << "[fail]" << std::endl;
+		s << "[fail]";
 		s.failed++;
 	}
 	s.total++;
+	if (s.do_time) {
+		boost::posix_time::ptime ntime = boost::posix_time::microsec_clock::local_time();
+		s << " " << (ntime - s.time).total_milliseconds() << " ms";
+		s.time = ntime;
+	}
+	s << std::endl;
+	
+
 }
 
 testmanip<bool> result(bool success) {return testmanip<bool>(result_manip, success);}
@@ -106,6 +116,7 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit)
 	bad=false;
 	usage=false;
 	version=false;
+	do_time=false;
 	log_level log_threshold = LOG_INFORMATIONAL; // default for non-'all' tests
 	log_level error_log_threshold = LOG_FATAL;
 	for (int i=1; i < argc; ++i) {
@@ -152,6 +163,10 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit)
 			error_log_threshold = parse_log_level(nextarg);
 			++i;
 			continue;
+		}
+
+		if (arg == "-t" || arg == "--time") {
+			do_time=true;
 		}
 
 		if (arg == "-V" || arg == "--version") {
@@ -204,12 +219,12 @@ void tests::start_test(const std::string & name) {
 		(*setups[i])();
 }
 
-void tests::end_test(bool result) {
+void tests::end_test(bool result, size_t time) {
 	if (result)
 		log.set_status(" ok ");
 	else
 		log.set_status("fail");
-
+	if (do_time) log.write_time(time);
 	if (!result) {
 		std::string bufferedlog = log.buffer.str();
 		std::cerr << bufferedlog << std::flush;
@@ -240,6 +255,7 @@ void tests::show_usage(std::ostream & o) {
 	o << "  -e, --log-level-on-error LEVEL     Output log when a test fails" << std::endl;
 	o << "  -v, --verbose                      Alias of --log-level info" << std::endl;
 	o << "  -d, --debug                        Alias of --log-level debug" << std::endl;
+	o << "  -t, --time                        Time tests" << std::endl;
 	o << "  -V, --version                      Show version information" << std::endl;
 	o << "      --memory MB                    Set memory limit (default: "
 	  << memory_limit << " MB)\n\n";
@@ -279,10 +295,13 @@ namespace bits {
 		, result(false)
 	{
 		t->start_test(name);
+		if (t->do_time)
+			m_time = boost::posix_time::microsec_clock::local_time();
 	}
 
 	test_runner::~test_runner() {
-		t->end_test(result);
+		t->end_test(result, 
+					t->do_time?(boost::posix_time::microsec_clock::local_time() - m_time).total_milliseconds(): 0);
 	}
 
 	void test_runner::set_result(bool result) {

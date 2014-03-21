@@ -27,6 +27,7 @@
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace tpie {
 
@@ -47,8 +48,10 @@ private:
 	teststream_buf m_buff;
 	size_t failed;
 	size_t total;
+	boost::posix_time::ptime time;
+	bool do_time;
 public:
-	teststream();
+	teststream(bool do_time);
 	bool success();
 	friend void result_manip(teststream & s, bool success);
 };
@@ -100,7 +103,7 @@ namespace bits {
 	class test_runner {
 		tests * t;
 		bool result;
-
+		boost::posix_time::ptime m_time;
 	public:
 		test_runner(tests * t, const std::string & name);
 
@@ -235,11 +238,15 @@ private:
 			if (maxNameSize > m_name.size()) os << std::string(maxNameSize-m_name.size(), '.');
 			os << ' ';
 
-			os << '[' << status << ']' << std::flush;
+			os << '[' << status << ']' <<  std::flush;
 			m_onNameLine = true;
 			m_onBOL = false;
 		}
 
+		void write_time(size_t n) {
+			os << " " << n << " ms" << std::flush;
+		}
+			
 		void log(log_level level, const char * buf, size_t n) {
 			if (!n) return;
 			if (level <= bufferThreshold) buffer << std::string(buf, n);
@@ -272,7 +279,7 @@ private:
 	
 
 	void start_test(const std::string & name);
-	void end_test(bool result);
+	void end_test(bool result, size_t time);
 
 	template <typename T>
 	T get_arg(const std::string & name, T def) const;
@@ -280,7 +287,7 @@ private:
 	template <typename T>
 	std::string arg_str(const std::string & name, T def) const;
 
-	bool bad, usage, version;
+	bool bad, usage, version, do_time;
 	size_t tests_runned;
 	std::string exe_name;
 	std::string test_name;
@@ -485,7 +492,7 @@ tests & tests::multi_test(T fct, const std::string & name) {
 	if (testAll || name == test_name) {
 		bits::test_runner t(this, name);
 		try {
-			teststream ts;
+			teststream ts(do_time);
 			fct(ts);
 			t.set_result(ts.success());
 		} catch (...) {
@@ -501,7 +508,7 @@ tests & tests::multi_test(T fct, const std::string & name, const std::string & p
 	if (testAll || name == test_name) {
 		bits::test_runner t(this, name);
 		try {
-			teststream ts;
+			teststream ts(do_time);
 			fct(ts, get_arg(p1_name, p1_default));
 			t.set_result(ts.success());
 		} catch (...) {
@@ -522,7 +529,7 @@ tests & tests::multi_test(T fct, const std::string & name,
 	if (testAll || name == test_name) {
 		bits::test_runner t(this, name);
 		try {
-			teststream ts;
+			teststream ts(do_time);
 			fct(ts,
 				get_arg(p1_name, p1_default),
 				get_arg(p2_name, p2_default));
@@ -547,7 +554,7 @@ tests & tests::multi_test(T fct, const std::string & name,
 	if (testAll || name == test_name) {
 		bits::test_runner t(this, name);
 		try {
-			teststream ts;
+			teststream ts(do_time);
 			fct(ts,
 				get_arg(p1_name, p1_default),
 				get_arg(p2_name, p2_default),
@@ -575,7 +582,7 @@ tests & tests::multi_test(T fct, const std::string & name,
 	if (testAll || name == test_name) {
 		bits::test_runner t(this, name);
 		try {
-			teststream ts;
+			teststream ts(do_time);
 			fct(ts,
 				get_arg(p1_name, p1_default),
 				get_arg(p2_name, p2_default),
