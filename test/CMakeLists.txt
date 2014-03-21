@@ -57,3 +57,7 @@ target_link_libraries(test_job_overhead tpie)
 add_executable(queue queue.cpp)
 set_target_properties(queue PROPERTIES FOLDER tpie/test)
 target_link_libraries(queue tpie)
+
+add_executable(serialization_sort serialization_sort.cpp)
+set_target_properties(serialization_sort PROPERTIES FOLDER tpie/test)
+target_link_libraries(serialization_sort tpie)
