@@ -48,12 +48,10 @@ size_t memory_manager::available() const throw() {
 
 } // namespace tpie
 
-namespace {
-	void print_memory_complaint(std::ostream & os, size_t bytes, size_t usage, size_t limit) {
-		os << "Memory limit exceeded by " << (usage - limit)
-		   << " bytes, while trying to allocate " << bytes << " bytes."
-		   << " Limit is " << limit << ", but " << usage << " would be used.";
-	}
+void tpie_print_memory_complaint(std::ostream & os, size_t bytes, size_t usage, size_t limit) {
+	os << "Memory limit exceeded by " << (usage - limit)
+	   << " bytes, while trying to allocate " << bytes << " bytes."
+	   << " Limit is " << limit << ", but " << usage << " would be used.";
 }
 
 namespace tpie {
@@ -67,7 +65,7 @@ void memory_manager::register_allocation(size_t bytes) {
 		size_t usage = m_used.add_and_fetch(bytes);
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
-			print_memory_complaint(ss, bytes, usage, m_limit);
+			tpie_print_memory_complaint(ss, bytes, usage, m_limit);
 			throw out_of_memory_error(ss.str().c_str());
 		}
 		break; }
@@ -79,7 +77,7 @@ void memory_manager::register_allocation(size_t bytes) {
 			if (m_maxExceeded >= m_nextWarning) {
 				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
 				std::ostream & os = (m_enforce == ENFORCE_DEBUG) ? log_debug() : log_warning();
-				print_memory_complaint(os, bytes, usage, m_limit);
+				tpie_print_memory_complaint(os, bytes, usage, m_limit);
 				os << std::endl;
 			}
 		}
