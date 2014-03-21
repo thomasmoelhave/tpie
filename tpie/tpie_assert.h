@@ -30,6 +30,7 @@
 #include <tpie/portability.h>
 #include <iostream>
 #include <tpie/tpie_log.h>
+#include <cassert>
 
 namespace tpie {
     
