@@ -52,6 +52,23 @@ public:
 	}
 };
 
+class serialized_item_cmp_y {
+public:
+	typedef item_ptr first_argument_type;
+	typedef item_ptr second_argument_type;
+	typedef bool result_type;
+
+	bool operator()(const char * lhs, const char * rhs) const {
+		const char * plhs_py = lhs + sizeof(char) + sizeof(double);
+		const char * prhs_py = rhs + sizeof(char) + sizeof(double);
+		double lhs_py = *reinterpret_cast<const double *>(plhs_py);
+		double rhs_py = *reinterpret_cast<const double *>(prhs_py);
+		//memcpy(&lhs_py, plhs_py, sizeof(double));
+		//memcpy(&rhs_py, prhs_py, sizeof(double));
+		return lhs_py < rhs_py;
+	}
+};
+
 template <typename dest_t>
 class item_generator_type : public tp::node {
 public:
@@ -103,7 +120,7 @@ int main(int argc, char ** argv) {
 		{
 			tp::pipeline p
 				= application::item_generator(n)
-				| tp::serialization_sort(application::item_cmp_y())
+				| tp::serialization_sort(application::item_cmp_y(), application::serialized_item_cmp_y())
 				| application::item_consumer();
 			p.plot(std::cout);
 			p();
