@@ -23,6 +23,7 @@
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
 #include <tpie/btree/node.h>
+
 #include <cstddef>
 #include <vector>
 
@@ -123,7 +124,7 @@ private:
 
 	template <typename N>
 	N split(N left) {
-		assert(m_store.count(left) == m_store.max_size());
+		tp_assert(m_store.count(left) == m_store.max_size(), "Node not full");
 		size_t left_size = m_store.max_size()/2;
 		size_t right_size = m_store.max_size()-left_size;
 		N right = m_store.create(left);
@@ -147,7 +148,7 @@ private:
 
 	template <typename CT, typename NT>
 	NT split_and_insert(CT c, NT p) {
-		assert(m_store.count(p) == m_store.max_size());
+		tp_assert(m_store.count(p) == m_store.max_size(), "None not full");
 		NT p2=split(p);
 		if (m_comp(m_store.min_key(c), m_store.min_key(p2)))
 			insert_part(p, c);

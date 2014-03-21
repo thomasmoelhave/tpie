@@ -22,6 +22,7 @@
 
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
+#include <tpie/tpie_assert.h>
 #include <cstddef>
 
 namespace tpie {
@@ -190,14 +191,14 @@ private:
 	size_t index(leaf_type child, internal_type node) {
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
-		assert(false);
+		tp_assert(false, "Leaf not found");
 		__builtin_unreachable();
 	}
 
 	size_t index(internal_type child, internal_type node) {
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
-		assert(false);
+		tp_assert(false, "Node nout found");
 		__builtin_unreachable();
 	}
 

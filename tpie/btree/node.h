@@ -21,6 +21,7 @@
 #define _TPIE_BTREE_NODE_H_
 
 #include <tpie/portability.h>
+#include <tpie/tpie_assert.h>
 #include <tpie/btree/base.h>
 #include <boost/iterator/iterator_facade.hpp>
 #include <vector>
@@ -80,8 +81,8 @@ public:
 	 * Requires !leaf() and i < count()
 	 */
 	void child(size_t i) {
-		assert(!m_is_leaf);
-		assert(i < count());
+		tp_assert(!m_is_leaf, "Is leaf");
+		tp_assert(i < count(), "Invalid i");
 		if (m_path.size() + 1 == m_store->height()) {
 			m_is_leaf = true;
 			m_leaf = m_store->get_child_leaf(m_path.back(), i);
@@ -143,7 +144,7 @@ public:
 	 * Requires leaf()
 	 */
 	const value_type & value(size_t i) const {
-		assert(m_is_leaf);
+		tp_assert(m_is_leaf, "Not leaf");
 		return m_store->get(m_leaf, i);
 	}
 	
@@ -153,7 +154,7 @@ public:
 	 * Requires leaf()
 	 */
 	value_type & value(size_t i) {
-		assert(m_is_leaf);
+		tp_assert(m_is_leaf, "Not leaf");
 		return m_store->get(m_leaf, i);
 	}
 	

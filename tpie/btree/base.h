@@ -20,7 +20,7 @@
 #ifndef _TPIE_BTREE_BASE_H_
 #define _TPIE_BTREE_BASE_H_
 #include <tpie/portability.h>
-
+#include <functional>
 namespace tpie {
 
 /**
