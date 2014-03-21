@@ -288,10 +288,52 @@ public:
 	void sort() {
 		const char * firstItem = reinterpret_cast<char *>(m_buffer.get());
 		base_offset_compare<pred_t> pred(firstItem, m_nextItem - firstItem, m_pred);
-		// TODO predicate might be very expensive (2*unserialize per compare),
-		// so we should use merge sort instead of parallel_sort
-		// since it does minimal no. of comparisons even in the worst case
-		parallel_sort(m_pointersB, m_pointersC, pred);
+
+		// We assume that the serialized item comparator is expensive.
+		// std::sort is fast in practice for small items with cheap comparisons,
+		// but does not do the minimal number of comparisons in the worst case.
+		// Merge sort is simple to implement, and one can prove that it is within
+		// a small constant (say 1.5) times the minimal number of comparisons
+		// in the worst case.
+
+		// Merge sort the range [m_pointersB, m_pointersC)
+		// using [m_pointersA, m_pointersB) as buffer.
+
+		size_t items = m_pointersC - m_pointersB;
+		size_t chunkSize = 1;
+
+		for (size_t * i = m_pointersB+1; i < m_pointersC; i += 2) {
+			if (pred(i[0], i[-1])) std::swap(i[0], i[-1]);
+		}
+		++chunkSize;
+
+		while (chunkSize < items) {
+			size_t * i = m_pointersB;
+			size_t * j = m_pointersA;
+			while (i < m_pointersC) {
+				size_t * b = std::min(i + chunkSize, m_pointersC);
+				size_t * c = std::min(b + chunkSize, m_pointersC);
+				j = std::merge(i, b, b, c, j, pred);
+				i = c;
+			}
+			chunkSize += chunkSize;
+			i = m_pointersA;
+			j = m_pointersB;
+			while (i < m_pointersB) {
+				size_t * b = std::min(i + chunkSize, m_pointersB);
+				size_t * c = std::min(b + chunkSize, m_pointersB);
+				j = std::merge(i, b, b, c, j, pred);
+				i = c;
+			}
+			chunkSize += chunkSize;
+		}
+		/*
+		for (size_t * i = m_pointersB + 1; i != m_pointersC; ++i) {
+			if (pred(i[0], i[-1])) {
+				throw tpie::exception("Not sorted!");
+			}
+		}
+		*/
 	}
 
 	/*
