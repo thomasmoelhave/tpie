@@ -665,7 +665,9 @@ private:
 
 } // namespace serialization_bits
 
-template <typename T, typename internal_pred_t, typename serialized_pred_t>
+template <typename T,
+		 typename internal_pred_t=std::less<T>,
+		 typename serialized_pred_t=serialized_compare<internal_pred_t> >
 class serialization_sorter {
 public:
 	typedef boost::shared_ptr<serialization_sorter> ptr;
