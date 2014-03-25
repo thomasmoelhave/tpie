@@ -82,6 +82,9 @@ function handleevent(ev, html) {
             var desc = 'commented on <a href="'+url+'">issue '+issue_number+'</a>';
             html.push(handleanyevent(ev, desc));
             break;
+        default:
+            console.log("Skipping event type ["+ev['type']+"]");
+            break;
     }
 }
 
