@@ -74,6 +74,14 @@ function handleevent(ev, html) {
             };
             html.push(handleanyevent(ev, verbs[ev['type']]+' '+pl['ref_type']+' '+name));
             break;
+        case "IssueCommentEvent":
+            var pl = ev['payload'];
+            var issuedata = pl['issue'];
+            var url = issuedata['html_url'];
+            var issue_number = issuedata['number'];
+            var desc = 'commented on <a href="'+url+'">issue '+issue_number+'</a>';
+            html.push(handleanyevent(ev, desc));
+            break;
     }
 }
 
