@@ -251,9 +251,8 @@ private:
 	tpie::serialization_sorter<item, std::less<item> > sorter;
 
 public:
-	serialization_sorter(parameters params)
-		: sorter(params.memory)
-	{
+	serialization_sorter(parameters params) {
+		sorter.set_available_memory(params.memory);
 	}
 
 	void begin(tpie::stream_size_type /*items*/) {
