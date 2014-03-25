@@ -451,7 +451,9 @@ serialization_sort(const pred_t & p1, const serialized_pred_t & p2) {
 	return pipe_middle<fact>(fact(p1, p2)).name("Sort");
 }
 
-template <typename T, typename pred_t=std::less<T> >
+template <typename T,
+		 typename internal_pred_t=std::less<T>,
+		 typename serialized_pred_t=serialized_compare<internal_pred_t> >
 class serialization_passive_sorter;
 
 namespace serialization_bits {
@@ -514,12 +516,14 @@ private:
 /// Get the input pipe with \c input() and the output pullpipe with \c output().
 /// input() must not be called after output().
 /// \tparam T The type of item to sort
-/// \tparam pred_t The predicate (e.g. std::less<T>) indicating the predicate
-/// on which to order an item before another.
+/// \tparam internal_pred_t The predicate (e.g. std::less<T>) indicating the
+/// predicate on which to order an item before another.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
+template <typename T,
+		 typename internal_pred_t/*=std::less<T>*/,
+		 typename serialized_pred_t/*=serialized_compare<internal_pred_t>*/>
 class serialization_passive_sorter {
-	typedef serialization_bits::sorter_traits<T, pred_t, serialized_compare<pred_t> > Traits;
+	typedef serialization_bits::sorter_traits<T, internal_pred_t, serialized_pred_t> Traits;
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
@@ -530,10 +534,11 @@ public:
 	/** Type of pipe sorter output. */
 	typedef serialization_bits::sort_pull_output_t<Traits> output_t;
 
-	serialization_passive_sorter(pred_t pred = pred_t())
-		: m_sorter(new sorter_t())
-		, pred(pred)
-		, m_output(pred)
+	serialization_passive_sorter(
+			internal_pred_t p1=internal_pred_t(),
+			serialized_pred_t p2=serialized_pred_t())
+		: m_sorter(new sorter_t(p1, p2))
+		, m_output(typename Traits::parameters(p1, p2))
 	{
 	}
 
@@ -553,7 +558,6 @@ public:
 
 private:
 	sorterptr m_sorter;
-	pred_t pred;
 	output_t m_output;
 	serialization_passive_sorter(const serialization_passive_sorter &);
 	serialization_passive_sorter & operator=(const serialization_passive_sorter &);
