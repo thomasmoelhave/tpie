@@ -65,9 +65,14 @@ function handleevent(ev, html) {
             }
             break;
         case "CreateEvent":
+        case "DeleteEvent":
             var name = pl['ref'];
             if (pl['ref_type'] == 'branch') name = branchlink(name);
-            html.push(handleanyevent(ev, 'created '+pl['ref_type']+' '+name));
+            var verbs = {
+                'CreateEvent': 'created',
+                'DeleteEvent': 'deleted'
+            };
+            html.push(handleanyevent(ev, verbs[ev['type']]+' '+pl['ref_type']+' '+name));
             break;
     }
 }
