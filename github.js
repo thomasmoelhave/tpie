@@ -28,6 +28,7 @@ function author_equal(a, b) {
 // If all authors in the array of commits are equal, return the author.
 // Otherwise, return null.
 function same_author(commits) {
+    if (commits.length == 0) return null;
     for (var i = 1, l = commits.length; i < l; ++i) {
         if (!author_equal(commits[i-1]['author'], commits[i]['author'])) return null;
     }
