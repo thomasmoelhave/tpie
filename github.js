@@ -9,7 +9,7 @@ function tpieevents(input) {
 }
 
 function parse_events(input) {
-    var data = input.data;
+    var data = input['data'];
     var htmlitems = [];
     for (var i = 0, l = data.length; i < l; ++i) {
         handleevent(data[i], htmlitems);
@@ -22,38 +22,41 @@ function parse_events(input) {
 
 // Check if two authors are equal.
 function author_equal(a, b) {
-    return a.name == b.name && a.email == b.email;
+    return a['name'] == b['name'] && a['email'] == b['email'];
 }
 
 // If all authors in the array of commits are equal, return the author.
 // Otherwise, return null.
 function same_author(commits) {
     for (var i = 1, l = commits.length; i < l; ++i) {
-        if (!author_equal(commits[i-1].author, commits[i].author)) return null;
+        if (!author_equal(commits[i-1]['author'], commits[i]['author'])) return null;
     }
-    return commits[0].author;
+    return commits[0]['author'];
 }
 
 // If all authors in a push are the same, use the author's Git realname.
 // Otherwise, use the GitHub user name.
 function abbreviate_push(ev) {
-    var author = same_author(ev.payload.commits);
+    var pl = ev['payload'];
+    var author = same_author(pl['commits']);
     if (author == null)
-        return handleanyevent(ev, 'pushed to '+printref(ev.payload.ref));
-    ev.actor.realname = author.name;
-    return handleanyevent(ev, 'committed to '+printref(ev.payload.ref));
+        return handleanyevent(ev, 'pushed to '+printref(pl['ref']));
+    ev['actor']['realname'] = author['name'];
+    return handleanyevent(ev, 'committed to '+printref(pl['ref']));
 }
 
 function handleevent(ev, html) {
-    switch (ev.type) {
+    var pl = ev['payload'];
+    switch (ev['type']) {
         case "PushEvent":
             html.push(abbreviate_push(ev));
-            for (var i = 0, l = ev.payload.commits.length; i < l; ++i) {
+            var commits = pl['commits'];
+            for (var i = 0, l = commits.length; i < l; ++i) {
                 if (i > 2 && l > 4) {
                     html.push("and "+(l-i)+" more commits");
                     break;
                 }
-                var commit = ev.payload.commits[i];
+                var commit = commits[i];
                 html.push(['<li class="commit"><a href="https://github.com/thomasmoelhave/tpie/commit/',commit.sha,'">',
                           commit.sha.substring(0,7),'<\/a> ',
                           commit.message.substring(0,70).replace(/&/g,'&amp;').replace(/</g,'&lt;'),
@@ -61,9 +64,9 @@ function handleevent(ev, html) {
             }
             break;
         case "CreateEvent":
-            var name = ev.payload.ref;
-            if (ev.payload.ref_type == 'branch') name = branchlink(name);
-            html.push(handleanyevent(ev, 'created '+ev.payload.ref_type+' '+name));
+            var name = pl['ref'];
+            if (pl['ref_type'] == 'branch') name = branchlink(name);
+            html.push(handleanyevent(ev, 'created '+pl['ref_type']+' '+name));
             break;
     }
 }
@@ -107,10 +110,11 @@ function printref(refname) {
 }
 
 function handleanyevent(ev, desc) {
+    var actor = ev['actor'];
     return [
-        '<li><a href="https://github.com/',ev.actor.login,'">',(ev.actor.realname || ev.actor.login),'</a> ',
+        '<li><a href="https://github.com/',actor['login'],'">',(actor['realname'] || actor['login']),'</a> ',
         desc,
-        ' <span class="date">',printdate(ev.created_at),'</span></li>',
+        ' <span class="date">',printdate(ev['created_at']),'</span></li>',
     ''].join('');
 }
 
@@ -123,7 +127,7 @@ function remote_load() {
 
 function store_remote_events(input) {
     if (!localStorage) return false;
-    var data = {input: input, cachetime: new Date().getTime()};
+    var data = {'input': input, 'cachetime': new Date().getTime()};
     localStorage.setItem('tpieevents', JSON.stringify(data));
 }
 
@@ -133,9 +137,9 @@ function fetch_cached_remote_events() {
     if (!str) return false;
     var data = JSON.parse(str);
     if (!data) return false;
-    if (!data.input || !data.cachetime) return false;
-    parse_events(data.input);
-    var age = new Date().getTime() - data.cachetime;
+    if (!data['input'] || !data['cachetime']) return false;
+    parse_events(data['input']);
+    var age = new Date().getTime() - data['cachetime'];
     console.log("Age "+age);
     if (age < 0 || age > 30000) return false;
     return true;
