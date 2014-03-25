@@ -32,14 +32,23 @@ namespace pipelining {
 
 namespace serialization_bits {
 
-template <typename T, typename pred_t, typename serialized_pred_t>
+template <typename T, typename internal_pred_t, typename serialized_pred_t>
 class sorter_traits {
 public:
 	typedef T item_type;
-	typedef pred_t pred_type;
+	typedef internal_pred_t internal_pred_type;
 	typedef serialized_pred_t serialized_pred_type;
-	typedef serialization_sorter<item_type, pred_type, serialized_pred_type> sorter_t;
+	typedef serialization_sorter<item_type, internal_pred_t, serialized_pred_t> sorter_t;
 	typedef boost::shared_ptr<sorter_t> sorterptr;
+
+	struct parameters {
+		internal_pred_t p1;
+		serialized_pred_t p2;
+
+		parameters() {}
+		parameters(internal_pred_t p1, serialized_pred_t p2)
+			: p1(p1), p2(p2) {}
+	};
 };
 
 template <typename Traits>
@@ -50,8 +59,6 @@ class sort_input_t;
 
 template <typename Traits>
 class sort_output_base : public node {
-	typedef typename Traits::pred_type pred_type;
-	typedef typename Traits::serialized_pred_type serialized_pred_type;
 public:
 	/** Type of items sorted. */
 	typedef typename Traits::item_type item_type;
@@ -69,8 +76,8 @@ public:
 	}
 
 protected:
-	sort_output_base(pred_type p1, serialized_pred_type p2)
-		: m_sorter(new sorter_t(p1, p2))
+	sort_output_base(typename Traits::parameters p)
+		: m_sorter(new sorter_t(p.p1, p.p2))
 	{
 	}
 
@@ -84,13 +91,11 @@ template <typename Traits>
 class sort_pull_output_t : public sort_output_base<Traits> {
 public:
 	typedef typename Traits::item_type item_type;
-	typedef typename Traits::pred_type pred_type;
-	typedef typename Traits::serialized_pred_type serialized_pred_type;
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	sort_pull_output_t(pred_type p1, serialized_pred_type p2)
-		: sort_output_base<Traits>(p1, p2)
+	sort_pull_output_t(typename Traits::parameters p)
+		: sort_output_base<Traits>(p)
 	{
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
@@ -134,16 +139,14 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Traits, typename dest_t>
 class sort_output_t : public sort_output_base<Traits> {
-	typedef typename Traits::pred_type pred_type;
-	typedef typename Traits::serialized_pred_type serialized_pred_type;
 public:
 	typedef typename Traits::item_type item_type;
 	typedef sort_output_base<Traits> p_t;
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	sort_output_t(const dest_t & dest, pred_type p1, serialized_pred_type p2)
-		: p_t(p1, p2)
+	sort_output_t(const dest_t & dest, typename Traits::parameters p)
+		: p_t(p)
 		, dest(dest)
 	{
 		this->add_push_destination(dest);
@@ -176,8 +179,6 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipe sorter middle node.
-/// \tparam T        The type of items sorted
-/// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Traits>
 class sort_calc_t : public node {
@@ -258,12 +259,9 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipe sorter input node.
-/// \tparam T        The type of items sorted
-/// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Traits>
 class sort_input_t : public node {
-	typedef typename Traits::pred_type pred_type;
 public:
 	typedef typename Traits::item_type item_type;
 	typedef typename Traits::sorter_t sorter_t;
@@ -322,9 +320,7 @@ public:
 		/** Type of items sorted. */
 		typedef typename push_type<dest_t>::type item_type;
 	public:
-		typedef typename child_t::template predicate<item_type>::type pred_type;
-		typedef typename child_t::template predicate<item_type>::serialized_type serialized_pred_type;
-		typedef sorter_traits<item_type, pred_type, serialized_pred_type> Traits;
+		typedef typename child_t::template traits<item_type>::type Traits;
 		typedef sort_input_t<Traits> type;
 	};
 
@@ -334,8 +330,7 @@ public:
 		typedef typename constructed<dest_t>::Traits Traits;
 
 		sort_output_t<Traits, dest_t> output(dest,
-				self().template get_pred<item_type>(),
-				self().template get_serialized_pred<item_type>());
+				self().template get_parameters<item_type>());
 		this->init_sub_node(output);
 		sort_calc_t<Traits> calc(output);
 		this->init_sub_node(calc);
@@ -352,20 +347,17 @@ public:
 class default_pred_sort_factory : public sort_factory_base<default_pred_sort_factory> {
 public:
 	template <typename item_type>
-	class predicate {
+	class traits {
 	public:
-		typedef std::less<item_type> type;
-		typedef serialized_compare<type> serialized_type;
+		typedef std::less<item_type> internal_pred_type;
+		typedef serialized_compare<internal_pred_type> serialized_pred_type;
+		typedef sorter_traits<item_type, internal_pred_type, serialized_pred_type> type;
 	};
 
 	template <typename T>
-	std::less<T> get_pred() const {
-		return std::less<T>();
-	}
-
-	template <typename T>
-	serialized_compare<std::less<T> > get_serialized_pred() const {
-		return serialized_compare<std::less<T> >();
+	typename traits<T>::type::parameters get_parameters() const {
+		return typename traits<T>::type::parameters(
+				std::less<T>(), serialized_compare<std::less<T> >());
 	}
 };
 
@@ -375,11 +367,12 @@ public:
 template <typename pred_t>
 class sort_factory : public sort_factory_base<sort_factory<pred_t> > {
 public:
-	template <typename Dummy>
-	class predicate {
+	template <typename T>
+	class traits {
 	public:
-		typedef pred_t type;
-		typedef serialized_compare<type> serialized_type;
+		typedef pred_t internal_pred_type;
+		typedef serialized_compare<internal_pred_type> serialized_pred_type;
+		typedef sorter_traits<T, internal_pred_type, serialized_pred_type> type;
 	};
 
 	sort_factory(const pred_t & p)
@@ -388,13 +381,9 @@ public:
 	}
 
 	template <typename T>
-	pred_t get_pred() const {
-		return pred;
-	}
-
-	template <typename T>
-	serialized_compare<pred_t> get_serialized_pred() const {
-		return serialized_compare<pred_t>(pred);
+	typename traits<T>::type::parameters get_parameters() const {
+		return typename traits<T>::type::parameters(
+				pred, serialized_compare<pred_t>(pred));
 	}
 
 private:
@@ -407,11 +396,12 @@ private:
 template <typename pred_t, typename serialized_pred_t>
 class sort_factory_2 : public sort_factory_base<sort_factory_2<pred_t, serialized_pred_t> > {
 public:
-	template <typename Dummy>
-	class predicate {
+	template <typename T>
+	class traits {
 	public:
-		typedef pred_t type;
-		typedef serialized_pred_t serialized_type;
+		typedef pred_t internal_pred_type;
+		typedef serialized_pred_t serialized_pred_type;
+		typedef sorter_traits<T, internal_pred_type, serialized_pred_type> type;
 	};
 
 	sort_factory_2(const pred_t & p1, const serialized_pred_t & p2)
@@ -421,13 +411,8 @@ public:
 	}
 
 	template <typename T>
-	pred_t get_pred() const {
-		return p1;
-	}
-
-	template <typename T>
-	serialized_pred_t get_serialized_pred() const {
-		return p2;
+	typename traits<T>::type::parameters get_parameters() const {
+		return typename traits<T>::type::parameters(p1, p2);
 	}
 
 private:
