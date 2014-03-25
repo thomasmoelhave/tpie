@@ -301,18 +301,8 @@ public:
 	/// throws a not_initiator_segment exception.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void go() {
-		progress_indicator_null pi;
-		go(pi);
-		// if go didn't throw, it was overridden - but it shouldn't be
-		log_warning() << "node subclass " << typeid(*this).name() << " uses old go() interface" << std::endl;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Deprecated go()-implementation signature. The progress indicator
-	/// argument does nothing. Instead, use step() and set_steps().
-	///////////////////////////////////////////////////////////////////////////
-	virtual void go(progress_indicator_base &) {
-		log_warning() << "node subclass " << typeid(*this).name() << " is not an initiator node" << std::endl;
+		log_warning() << "node subclass " << typeid(*this).name()
+			<< " is not an initiator node" << std::endl;
 		throw not_initiator_node();
 	}
 
@@ -554,20 +544,6 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	void add_pull_source(const node & dest) {
 		add_pull_source(dest.token);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \deprecated \brief Legacy alias of add_pull_source.
-	///////////////////////////////////////////////////////////////////////////
-	void add_pull_destination(const node_token & dest) {
-		add_pull_source(dest);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \deprecated \brief Legacy alias of add_pull_source.
-	///////////////////////////////////////////////////////////////////////////
-	void add_pull_destination(const node & dest) {
-		add_pull_source(dest);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
