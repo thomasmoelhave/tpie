@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <iostream>
 #include <winerror.h>
+#include <sstream>
 
 namespace tpie {
 namespace file_accessor {
