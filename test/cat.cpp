@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <iostream>
+#include <fstream>
 #include <tpie/file_stream.h>
 #include "unit/common.h"
 #include <cstdlib>
@@ -58,10 +59,8 @@ static void throw_errno() {
 
 static tpie::stream_header_t get_stream_header(const std::string & path) {
 	tpie::stream_header_t res;
-	int fd = ::open(path.c_str(), O_RDONLY);
-	if (fd == -1) throw_errno();
-	if (::read(fd, &res, sizeof(res)) != sizeof(res)) throw_errno();
-	::close(fd);
+	std::ifstream is(path);
+	is.read(reinterpret_cast<char *>(&res), sizeof(res));
 	return res;
 }
 
