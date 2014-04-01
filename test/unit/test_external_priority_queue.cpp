@@ -20,7 +20,7 @@
 #include <tpie/priority_queue.h>
 #include <vector>
 #include "priority_queue.h"
-#include "../test_portability.h"
+#include <boost/random.hpp>
 
 using namespace tpie;
 using namespace std;
@@ -38,18 +38,18 @@ bool basic_test() {
 }
 
 bool medium_instance() {
-	TPIE_OS_OFFSET iterations = 10000;
+	size_t iterations = 10000;
     get_memory_manager().set_limit(32*1024*1024);
 	progress_indicator_arrow progress("Running test",iterations-1100, tpie::log_info());
-    for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
+    for(size_t it = 1100; it < iterations; it++)  {
 		progress.step();
 		ami::priority_queue<int, std::greater<int> > pq(0.75);
 		std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
-		TPIE_OS_OFFSET elements = 71;
-		TPIE_OS_SRANDOM(static_cast<unsigned int>(it));
-		for(TPIE_OS_OFFSET i=0;i<elements;i++) {
-			int src_int = TPIE_OS_RANDOM()%220;
+		size_t elements = 71;
+		boost::mt19937 rng;
+		for(size_t i = 0; i < elements; i++) {
+			int src_int = rng() % 220;
 			pq.push(src_int);
 			pq2.push(src_int);
 		}
@@ -59,8 +59,8 @@ bool medium_instance() {
 		pq2.pop();
 		pq.pop();
 		pq2.pop();
-		TPIE_OS_OFFSET pop = 61; 
-		for(TPIE_OS_OFFSET i=0;i<pop;i++) {
+		size_t pop = 61;
+		for(size_t i = 0; i < pop; i++) {
 			if(!pq.empty()) {
 				if(pq.top() != pq2.top()) {
 					tpie::log_error() << "Pop " << i << " got: " << pq.top() << " expected " << pq2.top() << std::endl;
@@ -70,8 +70,8 @@ bool medium_instance() {
 				pq2.pop();
 			}
 		}
-		for(TPIE_OS_OFFSET i=0;i<elements;i++) {
-			int src_int = TPIE_OS_RANDOM()%220;
+		for(size_t i = 0; i < elements; i++) {
+			int src_int = rng() % 220;
 			pq.push(src_int);
 			pq2.push(src_int);
 		}
@@ -105,9 +105,9 @@ bool large_instance(){
 	std::priority_queue<boost::uint64_t, vector<boost::uint64_t>, std::less<boost::uint64_t> > pq2;
 
 	double cycle = crash_test ? 20000000000.0 : 50000000.0;
-	const TPIE_OS_OFFSET iterations=500000000;
+	const size_t iterations = 500000000;
 	progress_indicator_arrow progress("Running test",iterations, tpie::log_info());
-	for (TPIE_OS_OFFSET j=0; j<iterations; j++) {
+	for (size_t j = 0; j < iterations; j++) {
 		progress.step();
 		double i = static_cast<double>(j);
 		double th = (cos(i*2.0*PI/cycle)+1.0)*(RAND_MAX/2);
