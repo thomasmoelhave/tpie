@@ -25,6 +25,7 @@
 #include <tpie/file.h>
 #include <tpie/tempname.h>
 #include <tpie/tpie.h>
+#include <iostream>
 
 struct em_queue {
 	typedef int T;
