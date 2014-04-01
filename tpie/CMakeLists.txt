@@ -156,7 +156,8 @@ set (SOURCES
 	)
 
 if (WIN32)
-set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
+set (HEADERS ${HEADERS} file_accessor/win32.h)
+set (SOURCES ${SOURCES} file_accessor/win32.cpp)
 else(WIN32)
 set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
