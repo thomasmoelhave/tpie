@@ -19,7 +19,19 @@
 
 // http://stackoverflow.com/a/4318642
 
+#include <tpie/sysinfo.h>
+#include <boost/asio/ip/host_name.hpp>
+
 namespace tpie {
+
+/*static*/ std::string sysinfo::calc_hostname() {
+	try {
+		return boost::asio::ip::host_name();
+	} catch (boost::system::system_error & e) {
+		log_debug() << "boost::system::system_error thrown while getting hostname. e.what() == " << e.what() << std::endl;
+		return "Exception";
+	}
+}
 
 #define GIT_COMMIT "@GIT_COMMIT@"
 #define GIT_REFSPEC "@GIT_REFSPEC@"

@@ -26,7 +26,6 @@
 
 #include <iostream>
 #include <iomanip>
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/file.h> // for block size
 #include <tpie/tpie_log.h>
@@ -157,14 +156,7 @@ private:
 		return p.str();
 	}
 
-	static inline std::string calc_hostname() {
-		try {
-			return boost::asio::ip::host_name();
-		} catch (boost::system::system_error & e) {
-			log_debug() << "boost::system::system_error thrown while getting hostname. e.what() == " << e.what() << std::endl;
-			return "Exception";
-		}
-	}
+	static std::string calc_hostname();
 
 	static inline std::string calc_blocksize() {
 		std::stringstream ss;
