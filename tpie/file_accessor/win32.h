@@ -57,6 +57,10 @@ public:
 	bool is_open() const;
 
 	void set_cache_hint(cache_hint cacheHint) { m_cacheHint = cacheHint; }
+
+private:
+	void * create_file(const std::string & fileName, int desiredAccess,
+					   int creationDisposition);
 };
 
 }

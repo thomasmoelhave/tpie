@@ -19,10 +19,7 @@
 
 #include <tpie/file_accessor/win32.h>
 #include <tpie/exception.h>
-
-//#include <io.h>
 #include <windows.h>
-//#include <winerror.h>
 
 namespace {
 
@@ -65,7 +62,8 @@ win32::win32()
 
 void win32::read_i(void * data, memory_size_type size) {
 	DWORD bytesRead = 0;
-	if (!ReadFile((HANDLE) m_fd, data, (DWORD) size, &bytesRead, 0)
+	OVERLAPPED * const overlapped = 0;
+	if (!ReadFile((HANDLE) m_fd, data, (DWORD) size, &bytesRead, overlapped)
 			|| bytesRead != size)
 		throw_getlasterror();
 	increment_bytes_read(size);
@@ -73,38 +71,51 @@ void win32::read_i(void * data, memory_size_type size) {
 
 void win32::write_i(const void * data, memory_size_type size) {
 	DWORD bytesWritten = 0;
-	if (!WriteFile((HANDLE) m_fd, data, (DWORD) size, &bytesWritten, 0)
+	OVERLAPPED * const overlapped = 0;
+	if (!WriteFile((HANDLE) m_fd, data, (DWORD) size, &bytesWritten, overlapped)
 			|| bytesWritten != size)
 		throw_getlasterror();
 	increment_bytes_written(size);
 }
 
 void win32::seek_i(stream_size_type size) {
-	LARGE_INTEGER i;
-	i.QuadPart = size;
+	LARGE_INTEGER distanceToMove;
+	distanceToMove.QuadPart = size;
 	const HANDLE fd = (HANDLE) m_fd;
-	if (!SetFilePointerEx(fd, i, NULL, 0)) throw_getlasterror();
+	LARGE_INTEGER * const newFilePointer = NULL;
+	int moveMethod = 0; // FILE_BEGIN
+	if (!SetFilePointerEx(fd, distanceToMove, newFilePointer, moveMethod))
+		throw_getlasterror();
 }
 
-static const DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
+void * win32::create_file(const std::string & fileName, int desiredAccess,
+						  int creationDisposition)
+{
+	const int shareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+	const int securityAttributes = 0;
+	const int flagsAndAttributes = get_creation_flag(m_cacheHint);
+	void * const templateFile = 0;
+
+	return ::CreateFile(fileName.c_str(), desiredAccess,
+						shareMode, securityAttributes,
+						creationDisposition, flagsAndAttributes,
+						templateFile);
+}
 
 void win32::open_wo(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_WRITE,
-			shared_flags, 0, CREATE_ALWAYS, get_creation_flag(m_cacheHint), 0);
+	m_fd = create_file(path, GENERIC_WRITE, CREATE_ALWAYS);
 	if ((HANDLE) m_fd == INVALID_HANDLE_VALUE)
 		throw_getlasterror();
 }
 
 void win32::open_ro(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_READ,
-			shared_flags, 0, OPEN_EXISTING, get_creation_flag(m_cacheHint), 0);
+	m_fd = create_file(path, GENERIC_READ, OPEN_EXISTING);
 	if ((HANDLE) m_fd == INVALID_HANDLE_VALUE)
 		throw_getlasterror();
 }
 
 bool win32::try_open_rw(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE,
-			shared_flags, 0, OPEN_EXISTING, get_creation_flag(m_cacheHint), 0);
+	m_fd = create_file(path.c_str(), GENERIC_READ | GENERIC_WRITE, OPEN_EXISTING);
 	if ((HANDLE) m_fd == INVALID_HANDLE_VALUE) {
 		if (GetLastError() != ERROR_FILE_NOT_FOUND)
 			throw_getlasterror();
@@ -114,8 +125,7 @@ bool win32::try_open_rw(const std::string & path) {
 }
 
 void win32::open_rw_new(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE,
-			shared_flags, 0, CREATE_NEW, get_creation_flag(m_cacheHint), 0);
+	m_fd = create_file(path.c_str(), GENERIC_READ | GENERIC_WRITE, CREATE_NEW);
 	if ((HANDLE) m_fd == INVALID_HANDLE_VALUE)
 		throw_getlasterror();
 }
@@ -125,16 +135,17 @@ bool win32::is_open() const {
 }
 
 void win32::close_i() {
-	if ((HANDLE) m_fd != INVALID_HANDLE_VALUE)
-		CloseHandle((HANDLE) m_fd);
+	if (is_open()) CloseHandle((HANDLE) m_fd);
 
 	m_fd = INVALID_HANDLE_VALUE;
 }
 
 void win32::truncate_i(stream_size_type size) {
-	LARGE_INTEGER i;
-	i.QuadPart = size;
-	SetFilePointerEx((HANDLE) m_fd, i, NULL, 0);
+	LARGE_INTEGER distanceToMove;
+	distanceToMove.QuadPart = size;
+	LARGE_INTEGER * const newFilePointer = NULL;
+	int moveMethod = 0; // FILE_BEGIN
+	SetFilePointerEx((HANDLE) m_fd, distanceToMove, newFilePointer, moveMethod);
 	if (!SetEndOfFile((HANDLE) m_fd)) throw_getlasterror();
 }
 
