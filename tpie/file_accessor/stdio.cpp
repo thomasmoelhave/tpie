@@ -16,14 +16,18 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
 #include <tpie/config.h>
-//#include <tpie/stream/stdio_bte.h>
-//#include <tpie/stream/header.h>
-#include <string.h>
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
 #include <tpie/file_accessor/stdio.h>
+#include <tpie/stats.h>
+#include <cstring> // strerror
 #include <cstdio>
+
+#ifdef TPIE_HAS_POSIX_FADVISE
+#include <fcntl.h> // posix_fadvise
+#endif // TPIE_HAS_POSIX_FADVISE
 
 namespace tpie {
 namespace file_accessor {
