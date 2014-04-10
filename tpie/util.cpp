@@ -32,16 +32,19 @@
 namespace tpie {
 
 void atomic_rename(const std::string & src, const std::string & dst) {
-	//Note according to posix rename is atomic..
-	//On windows it is probably not
-#ifndef _WIN32
+	// On Windows, we could use ReplaceFile here.
+	// The MSDN article "Alternatives to using Transactional NTFS"
+	// states that ReplaceFile should be used for
+	// "atomically updating 'document-like' data", but the ReplaceFile docs
+	// do not specify anywhere that atomicity is guaranteed.
+	// From using DrStrace, it seems that POSIX rename is implemented
+	// using NtSetInformationFile with a FILE_RENAME_INFORMATION structure,
+	// which should be as good as ReplaceFile with regards to atomicity.
+	// Furthermore, ReplaceFile does a lot of bookkeeping to maintain all sorts
+	// of filesystem metadata which we do not need to maintain,
+	// so we just use POSIX rename on both Linux and Windows.
 	if (rename(src.c_str(), dst.c_str()) != 0)
 		throw std::runtime_error("Atomic rename failed");
-#else
-	//TODO use MoveFileTransacted on vista or newer
-	if (!MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-		throw std::runtime_error("Atomic rename failed");
-#endif
 }
 
 #ifdef _WIN32
