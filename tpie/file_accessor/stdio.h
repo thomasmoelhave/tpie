@@ -39,31 +39,29 @@ private:
 	cache_hint m_cacheHint;
 
 public:
-	inline stdio();
+	stdio();
 	~stdio() {close_i();}
 
-	inline void open_ro(const std::string & path);
-	inline void open_wo(const std::string & path);
-	inline bool try_open_rw(const std::string & path);
-	inline void open_rw_new(const std::string & path);
+	void open_ro(const std::string & path);
+	void open_wo(const std::string & path);
+	bool try_open_rw(const std::string & path);
+	void open_rw_new(const std::string & path);
 
-	inline void read_i(void * data, memory_size_type size);
-	inline void write_i(const void * data, memory_size_type size);
-	inline void seek_i(stream_size_type size);
-	inline void close_i();
-	inline void truncate_i(stream_size_type size);
-	inline bool is_open() const;
+	void read_i(void * data, memory_size_type size);
+	void write_i(const void * data, memory_size_type size);
+	void seek_i(stream_size_type size);
+	void close_i();
+	void truncate_i(stream_size_type size);
+	bool is_open() const;
 
 	void set_cache_hint(cache_hint cacheHint) { m_cacheHint = cacheHint; }
 
 private:
-	inline void give_advice();
-	inline void throw_errno(int e);
+	void give_advice();
+	void throw_errno(int e);
 };
 
 }
 }
-
-#include <tpie/file_accessor/stdio.inl>
 
 #endif // TPIE_FILE_ACCESSOR_STDIO_H

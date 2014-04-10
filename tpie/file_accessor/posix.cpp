@@ -42,7 +42,7 @@ posix::posix()
 {
 }
 
-inline void posix::give_advice() {
+void posix::give_advice() {
 #ifdef TPIE_HAS_POSIX_FADVISE
 	int advice;
 	switch (m_cacheHint) {
@@ -63,7 +63,7 @@ inline void posix::give_advice() {
 #endif // TPIE_HAS_POSIX_FADVISE
 }
 
-inline void posix::read_i(void * data, memory_size_type size) {
+void posix::read_i(void * data, memory_size_type size) {
 	memory_offset_type bytesRead = ::read(m_fd, data, size);
 	if (bytesRead == -1)
 		throw_errno();
@@ -72,12 +72,12 @@ inline void posix::read_i(void * data, memory_size_type size) {
 	increment_bytes_read(size);
 }
 
-inline void posix::write_i(const void * data, memory_size_type size) {
+void posix::write_i(const void * data, memory_size_type size) {
 	if (::write(m_fd, data, size) != (memory_offset_type)size) throw_errno();
 	increment_bytes_written(size);
 }
 
-inline void posix::seek_i(stream_size_type size) {
+void posix::seek_i(stream_size_type size) {
 	if (::lseek(m_fd, size, SEEK_SET) == -1) throw_errno();
 }
 
