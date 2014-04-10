@@ -36,7 +36,8 @@ namespace file_accessor {
 
 class stdio {
 private:
-	FILE * m_fd;
+	/* m_fd is actually a FILE pointer */
+	void * m_fd;
 	cache_hint m_cacheHint;
 
 public:
@@ -60,6 +61,7 @@ public:
 private:
 	void give_advice();
 	void throw_errno(int e);
+	void throw_ferror();
 };
 
 }

@@ -55,7 +55,7 @@ void stdio::give_advice() {
 			advice = POSIX_FADV_NORMAL;
 			break;
 	}
-	::posix_fadvise(fileno(m_fd), 0, 0, advice);
+	::posix_fadvise(fileno((FILE *) m_fd), 0, 0, advice);
 #endif // TPIE_HAS_POSIX_FADVISE
 }
 
@@ -64,21 +64,25 @@ void stdio::throw_errno(int e) {
 	else throw io_exception(strerror(e));
 }
 
+void stdio::throw_ferror() {
+	throw_errno(ferror((FILE *) m_fd));
+}
+
 void stdio::read_i(void * data, memory_size_type size) {
-	if (::fread(data, 1, size, m_fd) != size) throw_errno(ferror(m_fd));
+	if (::fread(data, 1, size, (FILE *) m_fd) != size) throw_ferror();
 	increment_bytes_read(size);
 }
 
 void stdio::write_i(const void * data, memory_size_type size) {
-	if (::fwrite(data, 1, size, m_fd) != size) throw_errno(ferror(m_fd));
+	if (::fwrite(data, 1, size, (FILE *) m_fd) != size) throw_ferror();
 	increment_bytes_written(size);
 }
 
 void stdio::seek_i(stream_size_type offset) {
 #ifdef _WIN32
-	if (::_fseeki64(m_fd, offset, SEEK_SET) != 0) throw_errno(ferror(m_fd));
+	if (::_fseeki64((FILE *) m_fd, offset, SEEK_SET) != 0) throw_ferror();
 #else
-	if (::fseeko(m_fd, offset, SEEK_SET) != 0) throw_errno(ferror(m_fd));
+	if (::fseeko((FILE *) m_fd, offset, SEEK_SET) != 0) throw_ferror();
 #endif
 }
 
@@ -86,7 +90,7 @@ void stdio::open_wo(const std::string & path) {
 	close_i();
 	m_fd = ::fopen(path.c_str(), "wb");
 	if (m_fd == NULL) throw_errno(errno);
-	setvbuf(m_fd, NULL, _IONBF, 0);
+	setvbuf((FILE *) m_fd, NULL, _IONBF, 0);
 	give_advice();
 }
 
@@ -94,7 +98,7 @@ void stdio::open_ro(const std::string & path) {
 	close_i();
 	m_fd = ::fopen(path.c_str(), "rb");
 	if (m_fd == NULL) throw_errno(errno);
-	setvbuf(m_fd, NULL, _IONBF, 0);
+	setvbuf((FILE *) m_fd, NULL, _IONBF, 0);
 	give_advice();
 }
 
@@ -105,7 +109,7 @@ bool stdio::try_open_rw(const std::string & path) {
 		if (errno == ENOENT) return false;
 		else throw_errno(errno);
 	}
-	setvbuf(m_fd, NULL, _IONBF, 0);
+	setvbuf((FILE *) m_fd, NULL, _IONBF, 0);
 	give_advice();
 	return true;
 }
@@ -114,7 +118,7 @@ void stdio::open_rw_new(const std::string & path) {
 	close_i();
 	m_fd = ::fopen(path.c_str(), "w+b");
 	if (m_fd == NULL) throw_errno(errno);
-	setvbuf(m_fd, NULL, _IONBF, 0);
+	setvbuf((FILE *) m_fd, NULL, _IONBF, 0);
 	give_advice();
 }
 
@@ -124,7 +128,7 @@ bool stdio::is_open() const {
 
 void stdio::close_i() {
 	if (m_fd == NULL) return;
-	::fclose(m_fd);
+	::fclose((FILE *) m_fd);
 	m_fd = NULL;
 }
 
