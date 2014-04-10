@@ -3,23 +3,8 @@
 
 #include <boost/version.hpp>
 
-#cmakedefine TPIE_HAVE_UNISTD_H
-#cmakedefine TPIE_HAVE_SYS_UNISTD_H
-
 #cmakedefine TPIE_DEPRECATED_WARNINGS
 #cmakedefine TPIE_PARALLEL_SORT
-
-#if defined (TPIE_HAVE_UNISTD_H)
-#include <unistd.h>
-#elif defined(TPIE_HAVE_SYS_UNISTD_H)
-#include <sys/unistd.h>
-#endif
-
-// On Solaris, _SC_PAGE_SIZE is called _SC_PAGE_SIZE.  Here's a quick
-// fix.
-#if !defined(_SC_PAGE_SIZE) && defined(_SC_PAGESIZE)
-#define _SC_PAGE_SIZE _SC_PAGESIZE
-#endif
 
 #cmakedefine TPL_LOGGING 1
 
