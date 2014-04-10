@@ -65,4 +65,8 @@
 #endif
 #endif
 
+#if !defined(__MACH__) && !defined(WIN32)
+#define TPIE_HAS_POSIX_FADVISE
+#endif
+
 #endif // _CONFIG_H 
