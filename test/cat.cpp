@@ -59,7 +59,7 @@ static void throw_errno() {
 
 static tpie::stream_header_t get_stream_header(const std::string & path) {
 	tpie::stream_header_t res;
-	std::ifstream is(path);
+	std::ifstream is(path.c_str());
 	is.read(reinterpret_cast<char *>(&res), sizeof(res));
 	return res;
 }
