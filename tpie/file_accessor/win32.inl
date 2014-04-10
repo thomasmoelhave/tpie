@@ -30,10 +30,27 @@
 #include <iostream>
 #include <winerror.h>
 
+namespace {
+
+void throw_getlasterror() {
+	char buffer[1024];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, buffer, 1023, 0);
+	switch (GetLastError()) {
+		case ERROR_HANDLE_DISK_FULL:
+		case ERROR_DISK_FULL:
+		case ERROR_DISK_TOO_FRAGMENTED:
+		case ERROR_DISK_QUOTA_EXCEEDED:
+		case ERROR_VOLMGR_DISK_NOT_ENOUGH_SPACE:
+			throw tpie::out_of_space_exception(buffer);
+		default:
+			throw tpie::io_exception(buffer);
+	}
+}
+
+} // unnamed namespace
+
 namespace tpie {
 namespace file_accessor {
-
-using tpie::throw_getlasterror;
 
 win32::win32()
 	: m_fd(INVALID_HANDLE_VALUE)

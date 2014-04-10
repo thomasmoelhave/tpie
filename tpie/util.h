@@ -179,10 +179,6 @@ inline void free_structure_memory(T & v) {
 	std::swap(v, t);
 }
 
-#ifdef _WIN32
-void throw_getlasterror();
-#endif
-
 } //namespace tpie
 
 #endif //__TPIE_UTIL_H__
