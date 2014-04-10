@@ -24,7 +24,8 @@
 #ifndef TPIE_FILE_ACCESSOR_STDIO_H
 #define TPIE_FILE_ACCESSOR_STDIO_H
 
-#include <tpie/file_accessor/stream_accessor.h>
+#include <tpie/cache_hint.h>
+#include <string>
 
 namespace tpie {
 namespace file_accessor {
