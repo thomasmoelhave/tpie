@@ -42,10 +42,6 @@ posix::posix()
 {
 }
 
-inline void posix::set_cache_hint(cache_hint cacheHint) {
-	m_cacheHint = cacheHint;
-}
-
 inline void posix::give_advice() {
 #ifdef TPIE_HAS_POSIX_FADVISE
 	int advice;

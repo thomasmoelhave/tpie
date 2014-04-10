@@ -59,7 +59,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	static inline void throw_errno();
 
-	inline void set_cache_hint(cache_hint cacheHint);
+	void set_cache_hint(cache_hint cacheHint) { m_cacheHint = cacheHint; }
 
 private:
 	inline void give_advice();
