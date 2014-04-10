@@ -21,10 +21,10 @@
 /// \file file_accessor/stdio.h  stdio.h-style file accessor
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _TPIE_FILE_ACCESSOR_STDIO_H
-#define _TPIE_FILE_ACCESSOR_STDIO_H
+#ifndef TPIE_FILE_ACCESSOR_STDIO_H
+#define TPIE_FILE_ACCESSOR_STDIO_H
 
-#include <tpie/file_accessor/file_accessor_crtp.h>
+#include <tpie/file_accessor/stream_accessor.h>
 
 namespace tpie {
 namespace file_accessor {
@@ -33,27 +33,32 @@ namespace file_accessor {
 /// \brief stdio.h-style file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
-class stdio: public file_accessor_crtp<stdio> {
+class stdio {
 private:
 	FILE * m_fd;
-	bool m_write;
+	cache_hint m_cacheHint;
 
-	friend class file_accessor_crtp<stdio>;
-	
+public:
+	inline stdio();
+	~stdio() {close_i();}
+
+	inline void open_ro(const std::string & path);
+	inline void open_wo(const std::string & path);
+	inline bool try_open_rw(const std::string & path);
+	inline void open_rw_new(const std::string & path);
+
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type size);
-public:
-	inline stdio();
-	inline void open(const std::string & path,
-					 bool read,
-					 bool write,
-					 memory_size_type itemSize,
-					 memory_size_type blockSize,
-					 memory_size_type userDataSize);
-	inline void close();
-	inline void truncate(stream_size_type size);
-	inline ~stdio() {close();}
+	inline void close_i();
+	inline void truncate_i(stream_size_type size);
+	inline bool is_open() const;
+
+	void set_cache_hint(cache_hint cacheHint) { m_cacheHint = cacheHint; }
+
+private:
+	inline void give_advice();
+	inline void throw_errno(int e);
 };
 
 }
@@ -61,4 +66,4 @@ public:
 
 #include <tpie/file_accessor/stdio.inl>
 
-#endif //_TPIE_FILE_ACCESSOR_STDIO_H
+#endif // TPIE_FILE_ACCESSOR_STDIO_H

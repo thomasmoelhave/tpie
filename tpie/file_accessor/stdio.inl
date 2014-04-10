@@ -25,107 +25,107 @@
 #include <tpie/file_accessor/stdio.h>
 #include <cstdio>
 
-#ifndef WIN32
-#include <sys/types.h>
-#include <unistd.h>
-#endif
-
 namespace tpie {
 namespace file_accessor {
 
+stdio::stdio()
+	: m_fd(0)
+	, m_cacheHint(access_normal)
+{
+}
+
+void stdio::give_advice() {
+#ifdef TPIE_HAS_POSIX_FADVISE
+	int advice;
+	switch (m_cacheHint) {
+		case access_normal:
+			advice = POSIX_FADV_NORMAL;
+			break;
+		case access_sequential:
+			advice = POSIX_FADV_SEQUENTIAL;
+			break;
+		case access_random:
+			advice = POSIX_FADV_RANDOM;
+			break;
+		default:
+			advice = POSIX_FADV_NORMAL;
+			break;
+	}
+	::posix_fadvise(fileno(m_fd), 0, 0, advice);
+#endif // TPIE_HAS_POSIX_FADVISE
+}
+
+void stdio::throw_errno(int e) {
+	if (e == ENOSPC) throw out_of_space_exception(strerror(e));
+	else throw io_exception(strerror(e));
+}
+
+void stdio::read_i(void * data, memory_size_type size) {
+	if (::fread(data, 1, size, m_fd) != size) throw_errno(ferror(m_fd));
+	increment_bytes_read(size);
+}
+
+void stdio::write_i(const void * data, memory_size_type size) {
+	if (::fwrite(data, 1, size, m_fd) != size) throw_errno(ferror(m_fd));
+	increment_bytes_written(size);
+}
+
+void stdio::seek_i(stream_size_type offset) {
 #ifdef _WIN32
-#define fseeko _fseeki64
-#endif
-
-stdio::stdio():
-	m_fd(0) {
-	invalidateLocation();
-}
-
-inline void stdio::read_i(void * data, memory_size_type size) {
-	if (::fread(data, 1, size, m_fd) != size) throw_errno();
-}
-
-inline void stdio::write_i(const void * data, memory_size_type size) {
-	if (::fwrite(data, 1, size, m_fd) != size) throw_errno();
-}
-
-inline void stdio::seek_i(stream_size_type offset) {
-	if (::fseeko(m_fd, offset, SEEK_SET) != 0) throw_errno();
-}
-	
-void stdio::open(const std::string & path,
-				 bool read,
-				 bool write,
-				 memory_size_type itemSize,
-				 memory_size_type blockSize,
-				 memory_size_type userDataSize) {
-	close();
-	invalidateLocation();
-	m_write = write;
-	m_path = path;
-	m_itemSize=itemSize;
-	m_blockSize=blockSize;
-	m_blockItems=blockSize/itemSize;
-	m_userDataSize=userDataSize;
-	if (!write && !read)
-		throw invalid_argument_exception("Either read or write must be specified");
-	if (write && !read) {
-		m_fd = ::fopen(path.c_str(), "wb");
-		if (m_fd == 0) throw_errno();
-		m_size = 0;
-		write_header(false);
-		char * buf = new char[userDataSize];
-		write_user_data(buf);
-		delete[] buf;
-	} else if (!write && read) {
-		m_fd = ::fopen(path.c_str(), "rb");
-		if (m_fd == 0) throw_errno();
-		read_header();
-	} else {
-		m_fd = ::fopen(path.c_str(), "r+b");
-		if (m_fd == 0) {
-			if (errno != ENOENT) throw_errno();
-			m_fd = ::fopen(path.c_str(), "w+b");
-			if (m_fd == 0) throw_errno();
-			m_size=0;
-			write_header(false);
-			char * buf = new char[userDataSize];
-			write_user_data(buf);
-			delete[] buf;
-		} else {
-			read_header();
-			write_header(false);
-		}
-	}
-	increment_open_file_count();
-	setvbuf(m_fd, NULL, _IONBF, 0);
-}
-
-void stdio::close() {
-	if (m_fd && m_write) write_header(true);
-	if (m_fd != 0) {
-		::fclose(m_fd);
-		decrement_open_file_count();
-	}
-	m_fd=0;
-}
-
-void stdio::truncate(stream_size_type size) {
-#ifndef WIN32
-	if (::truncate(m_path.c_str(), sizeof(stream_header_t) + m_userDataSize + size*m_itemSize) == -1) throw_errno();
+	if (::_fseeki64(m_fd, offset, SEEK_SET) != 0) throw_errno(ferror(m_fd));
 #else
-	//Since there is no reliable way of trunacing a file, we will just fake it
-	if (size > m_size) {
-		char * buff = new char[m_blockSize];
-		while (size > m_size) {
-			write_block(buff, m_size/m_blockItems, std::min(m_blockItems, static_cast<memory_size_type>(size-m_size)));
-		}
-		delete [] buff;
-	}
+	if (::fseeko(m_fd, offset, SEEK_SET) != 0) throw_errno(ferror(m_fd));
 #endif
-	invalidateLocation();
-	m_size = size;
+}
+
+void stdio::open_wo(const std::string & path) {
+	close_i();
+	m_fd = ::fopen(path.c_str(), "wb");
+	if (m_fd == NULL) throw_errno(errno);
+	setvbuf(m_fd, NULL, _IONBF, 0);
+	give_advice();
+}
+
+void stdio::open_ro(const std::string & path) {
+	close_i();
+	m_fd = ::fopen(path.c_str(), "rb");
+	if (m_fd == NULL) throw_errno(errno);
+	setvbuf(m_fd, NULL, _IONBF, 0);
+	give_advice();
+}
+
+bool stdio::try_open_rw(const std::string & path) {
+	close_i();
+	m_fd = ::fopen(path.c_str(), "r+b");
+	if (m_fd == NULL) {
+		if (errno == ENOENT) return false;
+		else throw_errno(errno);
+	}
+	setvbuf(m_fd, NULL, _IONBF, 0);
+	give_advice();
+	return true;
+}
+
+void stdio::open_rw_new(const std::string & path) {
+	close_i();
+	m_fd = ::fopen(path.c_str(), "w+b");
+	if (m_fd == NULL) throw_errno(errno);
+	setvbuf(m_fd, NULL, _IONBF, 0);
+	give_advice();
+}
+
+bool stdio::is_open() const {
+	return m_fd != NULL;
+}
+
+void stdio::close_i() {
+	if (m_fd == NULL) return;
+	::fclose(m_fd);
+	m_fd = NULL;
+}
+
+void stdio::truncate_i(stream_size_type /*size*/) {
+	throw tpie::io_exception("Truncate not supported by stdio file_accessor");
 }
 
 }
