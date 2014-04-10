@@ -24,7 +24,9 @@
 #ifndef _TPIE_FILE_ACCESSOR_POSIX_H
 #define _TPIE_FILE_ACCESSOR_POSIX_H
 
-#include <tpie/file_accessor/stream_accessor.h>
+#include <tpie/cache_hint.h>
+#include <string>
+
 namespace tpie {
 namespace file_accessor {
 
