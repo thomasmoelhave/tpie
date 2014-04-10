@@ -36,6 +36,7 @@ set (HEADERS
 		merge_sorted_runs.h
 		memory.h
 		memory.inl
+		paths.h
 		persist.h
 		pipelining/buffer.h
 		pipelining/exception.h
@@ -134,6 +135,7 @@ set (SOURCES
 	job.cpp
 	logstream.cpp
 	memory.cpp
+	paths.cpp
 	pipelining/node_name.cpp
 	pipelining/pipeline.cpp
 	pipelining/runtime.cpp

@@ -28,14 +28,7 @@
 #include <tpie/tpie_log.h>
 #include <tpie/tempname.h>
 #include <tpie/util.h>
-#ifdef WIN32
-#include <windows.h>
-#undef NO_ERROR
-#include <Shlobj.h>
-#else
-#include <sys/types.h>
-#include <pwd.h>
-#endif
+#include <tpie/paths.h>
 
 using namespace std;
 using namespace tpie;
@@ -91,28 +84,21 @@ public:
 	db_type db;
 	std::string dir_name;
 	std::string file_name;
-	
+
 	time_estimator_database() {
+		dir_name = get_time_estimation_database_path();
 #ifdef WIN32
-		//dir_name 
-		TCHAR p[MAX_PATH];
-		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, p))) {
-			dir_name=p;
-			file_name = "\\"; //path separator
-		}
+		file_name = "\\"; // path separator
 #else
-		const char * p = getenv("HOME");
-		if (p != 0) dir_name=p;
-		if (dir_name == "") dir_name = getpwuid(getuid())->pw_dir;
 		file_name = "/."; //make hidden, include path separator
-#endif	
+#endif
 
 		file_name += "tpie_time_estimation_db";
 #ifndef TPIE_NDEBUG
 		file_name += "_debug";
 #endif
 	}
-	
+
 	void load() {
 		ifstream f;
 		std::string full_name = dir_name+file_name;

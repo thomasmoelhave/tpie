@@ -30,12 +30,7 @@
 #include <stdexcept>
 #include <boost/utility.hpp>
 #include <boost/smart_ptr.hpp>
-// The name of the environment variable pointing to a tmp directory.
-#define TMPDIR_ENV "TMPDIR"
-
-// The name of the environment variable to consult for default device
-// descriptions.
-#define AMI_SINGLE_DEVICE_ENV "AMI_SINGLE_DEVICE"
+#include <tpie/paths.h>
 
 namespace tpie {
 

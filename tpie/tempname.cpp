@@ -32,11 +32,7 @@
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/err.h>
-
-#ifdef _WIN32
-#include <Windows.h>
-#undef NO_ERROR
-#endif
+#include <tpie/paths.h>
 
 using namespace tpie;
 
@@ -49,22 +45,6 @@ std::string default_base_name;
 std::string default_extension;
 std::string tpie_mktemp();
 
-}
-
-std::string tempname::get_system_path() {
-#ifdef WIN32
-	//set temporary path
-	CHAR temp_path[MAX_PATH];
-		
-	if (GetTempPath(MAX_PATH,temp_path) != 0) {
-		return std::string(temp_path);
-	} else {
-		TP_LOG_WARNING_ID("Could not get default system path, using current working dir.\n");
-		return ".";
-	}
-#else
-	return "/var/tmp";
-#endif
 }
 
 namespace {
@@ -111,14 +91,10 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 std::string tempname::get_actual_path() {
 	//information about the search order is in the header
 	std::string dir;
-	if(!default_path.empty()) 
-		dir = default_path; //user specified path
-	else if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL)  //TPIE env variable
-		dir = getenv(AMI_SINGLE_DEVICE_ENV);
-	else if(getenv(TMPDIR_ENV) != NULL)  
-		dir = getenv(TMPDIR_ENV); //OS env variable (from portability.h)
-	else  
-		dir = get_system_path(); //OS path
+	if(!default_path.empty())
+		dir = default_path; // application specified path
+	else
+		dir = get_temp_path(); // OS/environment path
 
 	return dir;
 }
