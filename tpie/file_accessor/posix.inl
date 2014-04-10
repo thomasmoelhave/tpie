@@ -47,7 +47,7 @@ inline void posix::set_cache_hint(cache_hint cacheHint) {
 }
 
 inline void posix::give_advice() {
-#ifndef __MACH__
+#ifdef TPIE_HAS_POSIX_FADVISE
 	int advice;
 	switch (m_cacheHint) {
 		case access_normal:
@@ -64,7 +64,7 @@ inline void posix::give_advice() {
 			break;
 	}
 	::posix_fadvise(m_fd, 0, 0, advice);
-#endif // __MACH__
+#endif // TPIE_HAS_POSIX_FADVISE
 }
 
 inline void posix::read_i(void * data, memory_size_type size) {
