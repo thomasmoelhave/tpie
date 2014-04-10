@@ -163,6 +163,9 @@ set (HEADERS ${HEADERS} file_accessor/posix.h)
 set (SOURCES ${SOURCES} file_accessor/posix.cpp)
 endif(WIN32)
 
+set (HEADERS ${HEADERS} file_accessor/stdio.h)
+set (SOURCES ${SOURCES} file_accessor/stdio.cpp)
+
 add_library(tpie ${HEADERS} ${SOURCES})
 target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
