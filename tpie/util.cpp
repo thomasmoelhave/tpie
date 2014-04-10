@@ -25,9 +25,6 @@
 #include <tpie/util.h>
 #include <stdexcept>
 #include <cstdio>
-#ifdef WIN32
-#include <windows.h>
-#endif
 
 namespace tpie {
 
