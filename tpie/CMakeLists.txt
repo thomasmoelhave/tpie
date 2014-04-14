@@ -32,7 +32,6 @@ set (HEADERS
 		job.h
 		loglevel.h
 		logstream.h
-		merge.h
 		mergeheap.h
 		merge_sorted_runs.h
 		memory.h
