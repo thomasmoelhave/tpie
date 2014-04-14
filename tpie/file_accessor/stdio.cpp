@@ -24,6 +24,7 @@
 #include <tpie/stats.h>
 #include <cstring> // strerror
 #include <cstdio>
+#include <cerrno>
 
 #ifdef TPIE_HAS_POSIX_FADVISE
 #include <fcntl.h> // posix_fadvise
