@@ -19,7 +19,22 @@ endmacro(add_fulltest)
 
 add_unittest(allocator deque list)
 add_unittest(ami_stream basic truncate)
-add_unittest(array basic iterators auto_ptr memory bit_basic bit_iterators bit_memory  copyempty arrayarray frontback swap allocator copy from_view)
+add_unittest(array
+	basic
+	iterators
+	auto_ptr
+	memory
+	bit_basic
+	bit_iterators
+	bit_memory
+	copyempty
+	arrayarray
+	frontback
+	swap
+	allocator
+	copy
+	from_view
+	)
 add_unittest(atomic basic parallel)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
@@ -35,15 +50,84 @@ add_unittest(internal_stack basic memory)
 add_unittest(internal_vector basic memory)
 add_unittest(job repeat)
 add_unittest(memory basic)
-add_unittest(merge_sort empty_input internal_report internal_report_after_resize one_run_external_report external_report small_final_fanout evacuate_before_merge evacuate_before_report sort_upper_bound temp_file_usage)
+add_unittest(merge_sort
+	empty_input
+	internal_report
+	internal_report_after_resize
+	one_run_external_report
+	external_report
+	small_final_fanout
+	evacuate_before_merge
+	evacuate_before_report
+	sort_upper_bound
+	temp_file_usage
+	)
 add_unittest(packed_array basic1 basic2 basic4)
 add_unittest(parallel_sort basic1 basic2 general equal_elements bad_case)
 add_unittest(serialization unsafe safe serialization2 stream stream_dtor stream_reopen)
-add_unittest(serialization_sort empty_input internal_report internal_report_after_resize one_run_external_report external_report small_final_fanout evacuate_before_merge evacuate_before_report)
+add_unittest(serialization_sort
+	empty_input
+	internal_report
+	internal_report_after_resize
+	one_run_external_report
+	external_report
+	small_final_fanout
+	evacuate_before_merge
+	evacuate_before_report
+	)
 add_unittest(stats simple)
-add_unittest(stream basic array odd reopen truncate extend backwards array_file odd_file truncate_file extend_file backwards_file user_data user_data_file peek_skip_1 peek_skip_2)
+add_unittest(stream
+	basic
+	array
+	odd
+	reopen
+	truncate
+	extend
+	backwards
+	array_file
+	odd_file
+	truncate_file
+	extend_file
+	backwards_file
+	user_data
+	user_data_file
+	peek_skip_1
+	peek_skip_2
+	)
 add_unittest(stream_exception basic)
-add_unittest(pipelining vector filestream fspull fsaltpush merge reverse internal_reverse passive_reverse internal_passive_reverse sort sorttrivial operators uniq memory fork merger_memory fetch_forward virtual virtual_cref_item_type prepare end_time pull_iterator push_iterator parallel parallel_ordered parallel_multiple parallel_own_buffer parallel_push_in_end node_map join copy_ctor)
+add_unittest(pipelining
+	vector
+	filestream
+	fspull
+	fsaltpush
+	merge
+	reverse
+	internal_reverse
+	passive_reverse
+	internal_passive_reverse
+	sort
+	sorttrivial
+	operators
+	uniq
+	memory
+	fork
+	merger_memory
+	fetch_forward
+	virtual
+	virtual_cref_item_type
+	prepare
+	end_time
+	pull_iterator
+	push_iterator
+	parallel
+	parallel_ordered
+	parallel_multiple
+	parallel_own_buffer
+	parallel_push_in_end
+	node_map
+	join
+	copy_ctor
+	)
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic auto_ptr)
