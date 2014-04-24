@@ -34,7 +34,7 @@ bool file_count_test() {
 	{
 		file_stream<int> src(1.0);
 		src.open(tmp);
-		blockSize = file<int>::block_size(1.0);
+		blockSize = get_block_size();
 		itemSize = sizeof(int);
 	}
 	array<tpie::default_file_accessor> fs(avail+1);
