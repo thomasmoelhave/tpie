@@ -142,7 +142,6 @@ set (SOURCES
 	compressed/stream_base.cpp
 	compressed/thread.cpp
 	cpu_timer.cpp
-	file_base.cpp
 	file_count.cpp
 	file_stream_base.cpp
 	execution_time_predictor.cpp
