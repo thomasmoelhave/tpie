@@ -51,8 +51,13 @@ get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
 ## Snappy
 option(TPIE_USE_SNAPPY "Use Snappy, a fast compressor/decompressor" ON)
 if(TPIE_USE_SNAPPY)
-	find_package(Snappy REQUIRED)
-	include_directories(${Snappy_INCLUDE_DIR})
+	find_package(Snappy)
+	if(${Snappy_FOUND})
+		set(TPIE_HAS_SNAPPY ON)
+		include_directories(${Snappy_INCLUDE_DIR})
+	else(${Snappy_FOUND})
+		set(TPIE_HAS_SNAPPY OFF)
+	endif(${Snappy_FOUND})
 endif(TPIE_USE_SNAPPY)
 
 #### Installation paths

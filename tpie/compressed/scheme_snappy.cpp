@@ -18,15 +18,15 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/config.h>
-#ifdef TPIE_USE_SNAPPY
+#ifdef TPIE_HAS_SNAPPY
 #include <snappy.h>
-#endif // TPIE_USE_SNAPPY
+#endif // TPIE_HAS_SNAPPY
 #include <tpie/exception.h>
 #include <tpie/tpie_log.h>
 #include <tpie/compressed/scheme.h>
 #include <tpie/stats.h>
 
-#ifdef TPIE_USE_SNAPPY
+#ifdef TPIE_HAS_SNAPPY
 
 namespace {
 
@@ -70,7 +70,7 @@ const compression_scheme & get_compression_scheme_snappy() {
 
 } // namespace tpie
 
-#else // TPIE_USE_SNAPPY
+#else // TPIE_HAS_SNAPPY
 
 namespace {
 	bool warned = false;
@@ -89,4 +89,4 @@ const compression_scheme & get_compression_scheme_snappy() {
 
 } // namespace tpie
 
-#endif // TPIE_USE_SNAPPY
+#endif // TPIE_HAS_SNAPPY

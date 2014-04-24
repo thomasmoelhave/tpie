@@ -180,9 +180,9 @@ add_library(tpie ${HEADERS} ${SOURCES})
 target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
-if(TPIE_USE_SNAPPY)
+if(TPIE_HAS_SNAPPY)
 	target_link_libraries(tpie ${Snappy_LIBRARY})
-endif(TPIE_USE_SNAPPY)
+endif(TPIE_HAS_SNAPPY)
 
 install(TARGETS tpie
 	LIBRARY DESTINATION lib

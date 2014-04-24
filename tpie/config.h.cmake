@@ -74,7 +74,7 @@
 	#define BOOST_FILESYSTEM_VERSION 2
 #endif
 
-#cmakedefine TPIE_USE_SNAPPY
+#cmakedefine TPIE_HAS_SNAPPY
 
 #ifdef _WIN32
 #ifndef NOMINMAX

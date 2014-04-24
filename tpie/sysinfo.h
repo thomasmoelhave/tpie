@@ -194,7 +194,7 @@ inline std::ostream & operator<<(std::ostream & s, const sysinfo & info) {
 #endif
 		<< '\n'
 		<< "Snappy:         "
-#ifdef TPIE_USE_SNAPPY
+#ifdef TPIE_HAS_SNAPPY
 		<< "Enabled"
 #else
 		<< "Disabled"
