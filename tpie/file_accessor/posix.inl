@@ -80,8 +80,15 @@ inline void posix::read_i(void * data, memory_size_type size) {
 }
 
 inline void posix::write_i(const void * data, memory_size_type size) {
-	if (::write(m_fd, data, size) != (memory_offset_type)size) throw_errno();
-	increment_bytes_written(size);
+	do {
+		ssize_t res = ::write(m_fd, data, size);
+		if(res == -1) {
+			throw_errno();
+		}
+		data = static_cast<const char*>(data) + res;
+		size -= res;
+		increment_bytes_written(res);
+	} while(size != 0);
 }
 
 inline void posix::seek_i(stream_size_type size) {
