@@ -135,7 +135,7 @@ void compressed_stream_base::open(const std::string & path,
 								  access_type accessType /*= access_read_write*/,
 								  memory_size_type userDataSize /*= 0*/,
 								  cache_hint cacheHint/*=access_sequential*/,
-								  int compressionFlags/*=compression_normal*/)
+								  compression_flags compressionFlags/*=compression_normal*/)
 {
 	close();
 	open_inner(path, accessType, userDataSize, cacheHint, compressionFlags);
@@ -143,7 +143,7 @@ void compressed_stream_base::open(const std::string & path,
 
 void compressed_stream_base::open(memory_size_type userDataSize /*= 0*/,
 								  cache_hint cacheHint/*=access_sequential*/,
-								  int compressionFlags/*=compression_normal*/)
+								  compression_flags compressionFlags/*=compression_normal*/)
 {
 	close();
 	m_ownedTempFile.reset(tpie_new<temp_file>());
@@ -156,7 +156,7 @@ void compressed_stream_base::open(temp_file & file,
 								  access_type accessType /*= access_read_write*/,
 								  memory_size_type userDataSize /*= 0*/,
 								  cache_hint cacheHint/*=access_sequential*/,
-								  int compressionFlags/*=compression_normal*/)
+								  compression_flags compressionFlags/*=compression_normal*/)
 {
 	close();
 	m_tempFile = &file;

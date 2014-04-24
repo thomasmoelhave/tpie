@@ -42,7 +42,7 @@ void usage() {
 	std::cout << "Parameters: [times] [mb] [memory] [continous_count] [compressed]" << std::endl;
 }
 
-void test(size_t mb, size_t times, size_t countinous_count, int compressionFlags) {
+void test(size_t mb, size_t times, size_t countinous_count, compression_flags compressionFlags) {
 	std::vector<const char *> names;
 	names.resize(1);
 	names[0] = "Push/pop";
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 	size_t mb = mb_default;
 	size_t memory = 1024;
 	size_t countinous_count = 1; // the number of push and pop operations to appear after eachother
-	int compressionFlags = compression_none;
+	compression_flags compressionFlags = compression_none;
 
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {

@@ -56,7 +56,7 @@ public:
 	/// \brief Constructor for Temporary Queue
 	////////////////////////////////////////////////////////////////////
 	queue(cache_hint cacheHint=access_sequential,
-			int compressionFlags=compression_normal)
+		  compression_flags compressionFlags=compression_normal)
 		: m_size(0)
 		, m_queueA(1.0)
 		, m_queueB(1.0)

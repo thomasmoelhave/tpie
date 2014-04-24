@@ -32,7 +32,7 @@ class stream {
 public:
 	typedef T item_type;
 
-	stream(int compressionFlags=compression_none)
+	stream(compression_flags compressionFlags=compression_none)
 		: m_status(STREAM_STATUS_INVALID)
 	{
 		try {
@@ -47,7 +47,7 @@ public:
 
 	stream(const std::string & fileName,
 			stream_type st=READ_WRITE_STREAM,
-			int compressionFlags=compression_none)
+			compression_flags compressionFlags=compression_none)
 		: m_temp(fileName, true)
 		, m_status(STREAM_STATUS_INVALID)
 	{
