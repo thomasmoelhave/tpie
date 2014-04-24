@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <limits>
+#include <tpie/compressed/scheme.h>
 
 namespace tpie {
 namespace file_accessor {
@@ -116,7 +117,7 @@ void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 											memory_size_type blockSize,
 											memory_size_type maxUserDataSize,
 											cache_hint cacheHint,
-											bool preferCompression) {
+											int compressionFlags) {
 	close();
 	m_write = write;
 	m_path = path;
@@ -127,7 +128,8 @@ void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 	m_maxUserDataSize=maxUserDataSize;
 	m_size=0;
 	m_fileAccessor.set_cache_hint(cacheHint);
-	m_useCompression = preferCompression;
+	m_compressionFlags = compressionFlags;
+	m_useCompression = compressionFlags != compression_scheme::none;
 	m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");

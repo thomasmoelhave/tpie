@@ -110,7 +110,11 @@ public:
 	void run() {
 		while (true) {
 			compressor_thread_lock::lock_t lock(mutex());
-			while (!m_done && m_requests.empty()) m_newRequest.wait(lock);
+			m_idle = false;
+			while (!m_done && m_requests.empty()) {
+				m_idle = true;
+				m_newRequest.wait(lock);
+			}
 			if (m_done && m_requests.empty()) break;
 			{
 				compressor_request r = m_requests.front();
@@ -142,6 +146,7 @@ private:
 	}
 
 	void process_read_request(read_request & rr) {
+		stat_timer t(3); // Time reading
 		const bool useCompression = rr.file_accessor().get_compressed();
 		const bool backward = rr.get_read_direction() == read_direction::backward;
 		tp_assert(!(backward && !useCompression), "backward && !useCompression");
@@ -217,6 +222,7 @@ private:
 	}
 
 	void process_write_request(write_request & wr) {
+		stat_timer t(4); // Time writing
 		size_t inputLength = wr.buffer()->size();
 		if (!wr.file_accessor().get_compressed()) {
 			// Uncompressed case
@@ -228,9 +234,19 @@ private:
 			return;
 		}
 		// Compressed case
+		const bool adaptiveCompression =
+			wr.file_accessor().get_compression_flags() != compression_all;
 		block_header blockHeader;
 		block_header & blockTrailer = blockHeader;
-		const compression_scheme & compressionScheme = get_compression_scheme(m_preferredCompression);
+		compression_scheme::type schemeType = m_preferredCompression;
+		if (adaptiveCompression && !m_idle) {
+			schemeType = compression_scheme::none;
+		}
+		if (schemeType == compression_scheme::snappy)
+			increment_user(7, 1);
+		if (schemeType == compression_scheme::none)
+			increment_user(8, 1);
+		const compression_scheme & compressionScheme = get_compression_scheme(schemeType);
 		const memory_size_type maxBlockSize = compressionScheme.max_compressed_length(inputLength);
 		if (maxBlockSize > blockHeader.max_block_size())
 			throw exception("process_write_request: MaxCompressedLength > max_block_size");
@@ -241,7 +257,7 @@ private:
 								   inputLength,
 								   &blockSize);
 		blockHeader.set_block_size(blockSize);
-		blockHeader.set_compression_scheme(m_preferredCompression);
+		blockHeader.set_compression_scheme(schemeType);
 		memcpy(scratch.get(), &blockHeader, sizeof(blockHeader));
 		memcpy(scratch.get() + sizeof(blockHeader) + blockSize, &blockTrailer, sizeof(blockTrailer));
 		const memory_size_type writeSize = sizeof(blockHeader) + blockSize + sizeof(blockTrailer);
@@ -278,6 +294,8 @@ public:
 	}
 
 	void wait_for_request_done(compressor_thread_lock & l) {
+		// Time waiting
+		stat_timer t(2);
 		m_requestDone.wait(l.get_lock());
 	}
 
@@ -292,6 +310,9 @@ private:
 	boost::condition_variable m_requestDone;
 	bool m_done;
 	compression_scheme::type m_preferredCompression;
+
+	// Whether the thread was idle prior to handling the current request.
+	bool m_idle;
 };
 
 } // namespace tpie

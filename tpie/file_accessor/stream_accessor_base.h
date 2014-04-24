@@ -65,6 +65,9 @@ private:
 	stream_size_type m_lastBlockReadOffset;
 
 	/** Whether compression is used. */
+	int m_compressionFlags;
+
+	/** Whether compression is used. */
 	bool m_useCompression;
 
 	/** Path of the file currently opened. */
@@ -124,7 +127,7 @@ public:
 					 memory_size_type blockSize,
 					 memory_size_type maxUserDataSize,
 					 cache_hint cacheHint,
-					 bool preferCompression);
+					 int compressionFlags);
 
 	inline void close();
 
@@ -208,6 +211,8 @@ public:
 	stream_size_type get_last_block_read_offset() { return m_lastBlockReadOffset; }
 
 	bool get_compressed() { return m_useCompression; }
+
+	int get_compression_flags() { return m_compressionFlags; }
 };
 
 }

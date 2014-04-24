@@ -73,10 +73,9 @@ void compressed_stream_base::open_inner(const std::string & path,
 {
 	m_canRead = accessType == access_read || accessType == access_read_write;
 	m_canWrite = accessType == access_write || accessType == access_read_write;
-	const bool preferCompression = compressionFlags == compression_normal;
 	m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize,
 							  m_blockSize, userDataSize, cacheHint,
-							  preferCompression);
+							  compressionFlags);
 	m_size = m_byteStreamAccessor.size();
 	m_open = true;
 	m_streamBlocks = (m_size + m_blockItems - 1) / m_blockItems;

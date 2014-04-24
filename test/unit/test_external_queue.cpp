@@ -127,7 +127,7 @@ bool large_test() {
 	boost::mt19937 rng(42);
 	boost::uniform_01<boost::mt19937, double> doublegenerator(rng);
 
-	queue<uint64_t> q1(0.001);
+	queue<uint64_t> q1;
 	std::queue<uint64_t> q2;
 
 	for(uint64_t i = 0; i < 1024*1024*10; ++i) {

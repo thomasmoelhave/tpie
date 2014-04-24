@@ -66,8 +66,18 @@ public:
 	typedef boost::unique_lock<compressor_thread::mutex_t> lock_t;
 
 	compressor_thread_lock(compressor_thread & c)
-		: m_lock(c.mutex())
+		: t1(ptime::now())
+		, m_lock(c.mutex())
+		, t2(ptime::now())
 	{
+	}
+
+	~compressor_thread_lock() {
+		ptime t3 = ptime::now();
+		// Time blocked
+		increment_user(0, ptime::seconds(t1, t2)*1000000);
+		// Time held
+		increment_user(1, ptime::seconds(t2, t3)*1000000);
 	}
 
 	lock_t & get_lock() {
@@ -75,7 +85,9 @@ public:
 	}
 
 private:
+	ptime t1;
 	lock_t m_lock;
+	ptime t2;
 };
 
 } // namespace tpie

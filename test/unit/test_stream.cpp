@@ -620,7 +620,7 @@ static bool user_data_test() {
 }; // template stream_tester
 
 movable_file_stream openstream(tpie::temp_file & file) {
-	tpie::file_stream<uint64_t> fs;
+	tpie::uncompressed_stream<uint64_t> fs;
 	fs.open(file.path());
 	return fs;
 }

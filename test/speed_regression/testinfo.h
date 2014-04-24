@@ -54,6 +54,22 @@ struct testinfo {
 
 	inline ~testinfo() {
 		m_sysinfo.printinfo("End time", m_sysinfo.localtime());
+		m_sysinfo.printinfo("Read (MB)", get_bytes_read()*1.0/(1024*1024));
+		m_sysinfo.printinfo("Written (MB)", get_bytes_written()*1.0/(1024*1024));
+		const char * labels[] = {
+			"Blocked",
+			"Held",
+			"Waiting",
+			"Reading",
+			"Writing",
+			"Compressing",
+			"Uncompressing",
+			"Snappy-blocks",
+			"None-blocks",
+			NULL};
+		for (size_t i = 0; labels[i]; ++i) {
+			m_sysinfo.printinfo(labels[i], get_user(i));
+		}
 		tpie::tpie_finish();
 	}
 
