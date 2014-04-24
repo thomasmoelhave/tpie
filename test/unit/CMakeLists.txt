@@ -92,13 +92,7 @@ add_unittest(stream
 	truncate
 	extend
 	backwards
-	array_file
-	odd_file
-	truncate_file
-	extend_file
-	backwards_file
 	user_data
-	user_data_file
 	peek_skip_1
 	peek_skip_2
 	)
