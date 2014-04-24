@@ -38,6 +38,63 @@
 
 namespace tpie {
 
+struct open {
+	enum type {
+		/** Open a file for reading. */
+		read = 1 << 0,
+		/** Open a file for writing only.
+		 * Content is truncated if read is not specified. */
+		write = 1 << 1,
+		/** Neither sequential access nor random access is intended.
+		 * Corresponds to POSIX_FADV_NORMAL. */
+		access_normal = 1 << 2,
+		/** Sequential access is intended. Default for file_stream.
+		 * Corresponds to POSIX_FADV_SEQUENTIAL and FILE_FLAG_SEQUENTIAL_SCAN
+		 * (Win32). */
+		access_sequential = 1 << 3,
+		/** Random access is intended.
+		 * Corresponds to POSIX_FADV_RANDOM and FILE_FLAG_RANDOM_ACCESS (Win32). */
+		access_random = 1 << 4,
+		/** No written blocks should be compressed.
+		 * If a new stream is opened with compression_none,
+		 * it will support seek(n) and truncate(n) for arbitrary n. */
+		compression_none = 1 << 5,
+		/** Compress some blocks
+		 * according to available resources (time, memory). */
+		compression_normal = 1 << 6,
+		/** Compress all blocks according to the preferred compression scheme
+		 * which can be set using
+		 * tpie::the_compressor_thread().set_preferred_compression(). */
+		compression_all = 1 << 7,
+
+		defaults = read | write | access_sequential | compression_none
+	};
+
+	static type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
+		return (type) ((
+
+			(accessType == access_read) ? read :
+			(accessType == access_write) ? write :
+			(accessType == access_read_write) ? (read | write) :
+			(read | write)) | (
+
+			(cacheHint == tpie::access_normal) ? access_normal :
+			(cacheHint == tpie::access_sequential) ? access_sequential :
+			(cacheHint == tpie::access_random) ? access_random :
+			access_normal) | (
+
+			(compressionFlags == tpie::compression_none) ? compression_none :
+			(compressionFlags == tpie::compression_normal) ? compression_normal :
+			(compressionFlags == tpie::compression_all) ? compression_all :
+			compression_none));
+	}
+};
+
+inline open::type operator|(open::type a, open::type b) { return (open::type) ((int) a | (int) b); }
+inline open::type operator&(open::type a, open::type b) { return (open::type) ((int) a & (int) b); }
+inline open::type operator^(open::type a, open::type b) { return (open::type) ((int) a ^ (int) b); }
+inline open::type operator~(open::type a) { return (open::type) (int) ~a; }
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Base class containing the implementation details that are
 /// independent of the item type.
@@ -67,10 +124,8 @@ protected:
 	virtual void post_open() = 0;
 
 	void open_inner(const std::string & path,
-					access_type accessType,
-					memory_size_type userDataSize,
-					cache_hint cacheHint,
-					int compressionFlags);
+					open::type openFlags,
+					memory_size_type userDataSize);
 
 	compressor_thread & compressor() { return the_compressor_thread(); }
 
@@ -124,35 +179,40 @@ public:
 	/// are used instead.
 	///////////////////////////////////////////////////////////////////////////
 	void open(const std::string & path,
-			  access_type accessType = access_read_write,
+			  access_type accessType,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  compression_flags compressionFlags=compression_none);
+			  compression_flags compressionFlags=compression_none)
+	{
+		open(path, open::translate(accessType, cacheHint, compressionFlags), userDataSize);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open an anonymous temporary file for reading and writing.
 	///////////////////////////////////////////////////////////////////////////
-	void open(memory_size_type userDataSize = 0,
+	void open(memory_size_type userDataSize,
 			  cache_hint cacheHint=access_sequential,
-			  compression_flags compressionFlags=compression_none);
+			  compression_flags compressionFlags=compression_none) {
+		open(open::translate(access_read_write, cacheHint, compressionFlags), userDataSize);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open a specific temporary file.
 	///////////////////////////////////////////////////////////////////////////
 	void open(temp_file & file,
-			  access_type accessType = access_read_write,
+			  access_type accessType,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  compression_flags compressionFlags=compression_none);
+			  compression_flags compressionFlags=compression_none) {
+		open(file, open::translate(accessType, cacheHint, compressionFlags), userDataSize);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  open()-overload accepting a file name and compression flags.
 	///////////////////////////////////////////////////////////////////////////
 	void open(const std::string & path, compression_flags compressionFlags) {
-		const access_type accessType = access_read_write;
 		const memory_size_type userDataSize = 0;
-		const cache_hint cacheHint = access_sequential;
-		open(path, accessType, userDataSize, cacheHint, compressionFlags);
+		open(path, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -160,19 +220,22 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void open(compression_flags compressionFlags) {
 		const memory_size_type userDataSize = 0;
-		const cache_hint cacheHint = access_sequential;
-		open(userDataSize, cacheHint, compressionFlags);
+		open(open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  open()-overload accepting a temp file and compression flags.
 	///////////////////////////////////////////////////////////////////////////
 	void open(temp_file & file, compression_flags compressionFlags) {
-		const access_type accessType = access_read_write;
 		const memory_size_type userDataSize = 0;
-		const cache_hint cacheHint = access_sequential;
-		open(file, accessType, userDataSize, cacheHint, compressionFlags);
+		open(file, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 	}
+
+	void open(const std::string & path, open::type openFlags=open::defaults, memory_size_type userDataSize=0);
+
+	void open(open::type openFlags=open::defaults, memory_size_type userDataSize=0);
+
+	void open(temp_file & file, open::type openFlags=open::defaults, memory_size_type userDataSize=0);
 
 	void close();
 
