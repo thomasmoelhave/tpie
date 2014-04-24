@@ -127,7 +127,7 @@ static bool array_test() {
 		tpie::temp_file tmp;
 		Stream<uint64_t> fs;
 		fs.open(tmp.path());
-		tpie::memory_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
+		tpie::memory_size_type items = tpie::get_block_size()/sizeof(uint64_t) + 10;
 		std::vector<uint64_t> data(items, 1);
 		fs.stream().write(data.begin(), data.end());
 		fs.stream().seek(0);
