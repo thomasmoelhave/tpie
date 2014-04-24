@@ -145,14 +145,14 @@ public:
     ////////////////////////////////////////////////////////////////////
 	inline static memory_size_type memory_usage(float blockFactor=1.0) {
 		return sizeof(stack<T>)
-			+ compressed_stream<T>::memory_usage(blockFactor)
+			+ file_stream<T>::memory_usage(blockFactor)
 			+ array<T>::memory_usage(buffer_size(blockFactor));
 	}
 
 protected:
 
 	/** The stream used to store the items. */
-	compressed_stream<T> m_stream;
+	file_stream<T> m_stream;
 
 private:
 	array<T> m_buffer;
@@ -166,7 +166,7 @@ private:
 	}
 
 	static memory_size_type buffer_size(double blockFactor) {
-		return compressed_stream<T>::block_size(blockFactor)/sizeof(T);
+		return file_stream<T>::block_size(blockFactor)/sizeof(T);
 	}
 
 };

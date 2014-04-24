@@ -127,14 +127,14 @@ public:
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  int compressionFlags=compression_normal);
+			  int compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open an anonymous temporary file for reading and writing.
 	///////////////////////////////////////////////////////////////////////////
 	void open(memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  int compressionFlags=compression_normal);
+			  int compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open a specific temporary file.
@@ -143,7 +143,7 @@ public:
 			  access_type accessType = access_read_write,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  int compressionFlags=compression_normal);
+			  int compressionFlags=compression_none);
 
 	void close();
 
@@ -335,18 +335,18 @@ private:
 /// precondition (for instance by passing an invalid parameter).
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class compressed_stream : public compressed_stream_base {
+class file_stream : public compressed_stream_base {
 	using compressed_stream_base::seek_state;
 
+public:
 	static const file_stream_base::offset_type beginning = file_stream_base::beginning;
 	static const file_stream_base::offset_type end = file_stream_base::end;
 	static const file_stream_base::offset_type current = file_stream_base::current;
 
-public:
 	typedef T item_type;
 	typedef file_stream_base::offset_type offset_type;
 
-	compressed_stream(double blockFactor=1.0)
+	file_stream(double blockFactor=1.0)
 		: compressed_stream_base(sizeof(T), blockFactor)
 		, m_bufferBegin(0)
 		, m_bufferEnd(0)
@@ -354,18 +354,18 @@ public:
 	{
 	}
 
-	~compressed_stream() {
+	~file_stream() {
 		try {
 			close();
 		} catch (std::exception & e) {
-			log_error() << "Someone threw an error in compressed_stream::~compressed_stream: " << e.what() << std::endl;
+			log_error() << "Someone threw an error in file_stream::~file_stream: " << e.what() << std::endl;
 			throw;
 		}
 	}
 
 	static memory_size_type memory_usage(double blockFactor=1.0) {
 		// m_buffer is included in m_buffers memory usage
-		return sizeof(compressed_stream)
+		return sizeof(file_stream)
 			+ sizeof(temp_file) // m_ownedTempFile
 			+ stream_buffers::memory_usage(block_size(blockFactor)) // m_buffers
 			;

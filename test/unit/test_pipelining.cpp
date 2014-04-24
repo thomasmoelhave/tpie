@@ -562,7 +562,7 @@ buffer_node() {
 struct merger_memory : public memory_test {
 	typedef int test_t;
 	size_t n;
-	array<compressed_stream<test_t> > inputs;
+	array<file_stream<test_t> > inputs;
 	merger<test_t, std::less<test_t> > m;
 
 	inline merger_memory(size_t n)

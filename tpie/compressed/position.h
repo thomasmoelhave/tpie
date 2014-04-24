@@ -45,7 +45,7 @@ class stream_position {
 private:
 	friend class compressed_stream_base;
 	template <typename T>
-	friend class compressed_stream;
+	friend class file_stream;
 
 	uint64_t m_readOffset;
 	uint64_t m_offset;

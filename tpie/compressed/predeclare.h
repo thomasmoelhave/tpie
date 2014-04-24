@@ -43,7 +43,7 @@ class compressor_request;
 
 // stream.h
 class compressed_stream_base;
-template <typename T> class compressed_stream;
+template <typename T> class file_stream;
 
 // position.h
 class stream_position;
