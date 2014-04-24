@@ -1,7 +1,7 @@
 macro(add_unittest NAME)
   add_executable(ut-${NAME} test_${NAME}.cpp common.h priority_queue.h test_timer.h)
   set_target_properties(ut-${NAME} PROPERTIES FOLDER tpie/unittest)
-  target_link_libraries(ut-${NAME} tpie ${Boost_LIBRARIES})
+  target_link_libraries(ut-${NAME} tpie ${Boost_LIBRARIES} ${Snappy_LIBRARY})
   set(MTESTS ${ARGV})
   list(REMOVE_AT MTESTS 0)
   foreach(TEST ${MTESTS})
@@ -36,6 +36,9 @@ add_unittest(array
 	from_view
 	)
 add_unittest(atomic basic parallel)
+add_unittest(compressed_stream basic seek seek_2 reopen_1 reopen_2 read_seek truncate truncate_2 position_0 position_1 position_2 position_3 position_4 position_5 position_6 position_7 position_seek uncompressed uncompressed_new
+basic_u seek_u seek_2_u reopen_1_u reopen_2_u read_seek_u truncate_u truncate_2_u position_0_u position_1_u position_2_u position_3_u position_4_u position_5_u position_6_u position_7_u position_seek_u uncompressed_u uncompressed_new_u
+odd_block_size)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic empty_size sized large)
@@ -79,7 +82,9 @@ add_unittest(stats simple)
 add_unittest(stream
 	basic
 	array
+	array_compressed
 	odd
+	odd_compressed
 	reopen
 	truncate
 	extend
@@ -133,6 +138,7 @@ add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic auto_ptr)
 add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
 add_unittest(node_name gcc msvc)
+add_unittest(snappy basic)
 
 add_fulltest(ami_stream stress)
 add_fulltest(disjoint_set large large_cycle very_large medium ovelflow)

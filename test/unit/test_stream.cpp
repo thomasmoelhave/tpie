@@ -35,6 +35,7 @@
 
 #include <tpie/array.h>
 #include <tpie/file_stream.h>
+#include <tpie/compressed/stream.h>
 #include <tpie/util.h>
 
 using tpie::uint64_t;
@@ -46,14 +47,14 @@ static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
 struct movable_file_stream {
-	tpie::auto_ptr<tpie::file_stream<uint64_t> > fs;
-	movable_file_stream() {fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());}
-	movable_file_stream(tpie::file_stream<uint64_t> & with) {
-		fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());
+	tpie::auto_ptr<tpie::uncompressed_stream<uint64_t> > fs;
+	movable_file_stream() {fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());}
+	movable_file_stream(tpie::uncompressed_stream<uint64_t> & with) {
+		fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());
 		fs->swap(with);
 	}
 	movable_file_stream(const movable_file_stream & other) {
-		fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());
+		fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());
 		fs->swap(*other.fs);
 	}
 	movable_file_stream & operator=(const movable_file_stream & other) {
@@ -86,10 +87,38 @@ struct file_colon_colon_stream {
 	inline void close_stream() {
 		m_stream.reset();
 	}
+
+	void open(std::string fileName) { file().open(fileName); }
+	void open(tpie::temp_file & tf) { file().open(tf); }
+	void open(tpie::temp_file & tf, tpie::access_type a) { file().open(tf, a); }
+	void open(tpie::temp_file & tf, tpie::access_type a, tpie::memory_size_type uds) { file().open(tf, a, uds); }
 };
 
 template <typename T>
 struct file_stream {
+	tpie::uncompressed_stream<T> m_fs;
+	typedef tpie::uncompressed_stream<T> stream_type;
+
+	tpie::uncompressed_stream<T> & file() {
+		return m_fs;
+	}
+
+	tpie::uncompressed_stream<T> & stream() {
+		return m_fs;
+	}
+
+	inline void close_stream() {
+		m_fs.seek(0);
+	}
+
+	void open(std::string fileName) { file().open(fileName); }
+	void open(tpie::temp_file & tf) { file().open(tf); }
+	void open(tpie::temp_file & tf, tpie::access_type a) { file().open(tf, a); }
+	void open(tpie::temp_file & tf, tpie::access_type a, tpie::memory_size_type uds) { file().open(tf, a, uds); }
+};
+
+template <typename T>
+struct compressed_stream {
 	tpie::file_stream<T> m_fs;
 	typedef tpie::file_stream<T> stream_type;
 
@@ -104,6 +133,19 @@ struct file_stream {
 	inline void close_stream() {
 		m_fs.seek(0);
 	}
+
+	void open(std::string fileName) {
+		file().open(fileName, tpie::access_read_write, 0, tpie::access_sequential, tpie::compression_none);
+	}
+	void open(tpie::temp_file & tf) {
+		file().open(tf, tpie::access_read_write, 0, tpie::access_sequential, tpie::compression_none);
+	}
+	void open(tpie::temp_file & tf, tpie::access_type a) {
+		file().open(tf, a, 0, tpie::access_sequential, tpie::compression_none);
+	}
+	void open(tpie::temp_file & tf, tpie::access_type a, tpie::memory_size_type uds) {
+		file().open(tf, a, uds, tpie::access_sequential, tpie::compression_none);
+	}
 };
 
 template <template <typename U> class Stream>
@@ -113,7 +155,7 @@ static bool array_test() {
 	try {
 		tpie::temp_file tmp;
 		Stream<uint64_t> fs;
-		fs.file().open(tmp.path());
+		fs.open(tmp.path());
 		tpie::memory_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
 		std::vector<uint64_t> data(items, 1);
 		fs.stream().write(data.begin(), data.end());
@@ -130,10 +172,11 @@ static bool array_test() {
 }
 
 static bool truncate_test() {
+	tpie::stream_size_type initialTempFileUsage = tpie::get_temp_file_usage();
 	typedef int test_t;
 	tpie::temp_file tempFile;
 	Stream<test_t> fs;
-	fs.file().open(tempFile);
+	fs.open(tempFile);
 	for (size_t i = 0; i < 10000000; ++i)
 		fs.stream().write(42);
 	bool res = true;
@@ -145,8 +188,12 @@ static bool truncate_test() {
 	}
 	fs.close_stream();
 	tpie::stream_size_type tempFileUsage = tpie::get_temp_file_usage();
+	if (tempFileUsage == initialTempFileUsage) {
+		tpie::log_error() << "Temp file usage did not increase" << std::endl;
+		res = false;
+	}
 	fs.file().truncate(42);
-	if (tempFileUsage <= tpie::get_temp_file_usage()) {
+	if (tempFileUsage != initialTempFileUsage && tempFileUsage <= tpie::get_temp_file_usage()) {
 		tpie::log_error() << "Temp file usage did not decrease from " << tempFileUsage << std::endl;
 		res = false;
 	}
@@ -178,7 +225,7 @@ static bool extend_test() {
 	typedef int test_t;
 	tpie::temp_file tmp;
 	Stream<test_t> fs;
-	fs.file().open(tmp.path());
+	fs.open(tmp.path());
 	tpie::stream_size_type ante = 0;
 	tpie::stream_size_type pred = 1;
 	tpie::stream_size_type n = 1;
@@ -214,7 +261,7 @@ static bool odd_block_test() {
 	tpie::temp_file tmp;
 	{
 		Stream<test_t> fs;
-		fs.file().open(tmp.path());
+		fs.open(tmp.path());
 		test_t item = initial_item;
 		for (size_t i = 0; i < items; ++i) {
 			fs.stream().write(item);
@@ -224,7 +271,7 @@ static bool odd_block_test() {
 
 	{
 		Stream<test_t> fs;
-		fs.file().open(tmp.path());
+		fs.open(tmp.path());
 
 		test_t item = initial_item;
 		for (size_t i = 0; i < items; ++i) {
@@ -244,7 +291,7 @@ static bool backwards_test() {
 	tpie::temp_file tmp;
 	Stream<int> fs;
 
-	fs.file().open(tmp);
+	fs.open(tmp);
 	TEST_ENSURE(!fs.stream().can_read_back(), "can_read_back() after open()")
 
 	fs.stream().write(1);
@@ -314,7 +361,7 @@ struct stress_tester {
 
 	bool go() {
 		tpie::temp_file tmp;
-		fs.file().open(tmp.path());
+		fs.open(tmp.path());
 		boost::uniform_int<> todo(0, actionCount - 1);
 		const size_t stepEvery = 256;
 		tpie::progress_indicator_arrow pi("Test", actions/stepEvery);
@@ -488,7 +535,7 @@ static bool user_data_test() {
 	const int init[] = {2,4,6};
 	{
 		Fs fs;
-		fs.file().open(tmp, tpie::access_write, 8*sizeof(int));
+		fs.open(tmp, tpie::access_write, 8*sizeof(int));
 		if (fs.file().user_data_size() != 0) {
 			tpie::log_error() << "Wrong user data size after opening for creation" << std::endl;
 			return false;
@@ -511,7 +558,7 @@ static bool user_data_test() {
 	}
 	{
 		Fs fs;
-		fs.file().open(tmp, tpie::access_write, 8*sizeof(int));
+		fs.open(tmp, tpie::access_write, 8*sizeof(int));
 		if (fs.file().user_data_size() != 0) {
 			tpie::log_error() << "Wrong user data size after opening for writing" << std::endl;
 			return false;
@@ -528,7 +575,7 @@ static bool user_data_test() {
 	}
 	{
 		Fs fs;
-		fs.file().open(tmp, tpie::access_read);
+		fs.open(tmp, tpie::access_read);
 		if (fs.file().user_data_size() != 3*sizeof(int)) {
 			tpie::log_error() << "Wrong user data size after opening for reading" << std::endl;
 			return false;
@@ -558,7 +605,7 @@ static bool user_data_test() {
 		Fs fs;
 		bool except = false;
 		try {
-			fs.file().open(tmp, tpie::access_read_write, 10*sizeof(int));
+			fs.open(tmp, tpie::access_read_write, 10*sizeof(int));
 		} catch (tpie::invalid_file_exception &) {
 			except = true;
 		}
@@ -584,7 +631,7 @@ bool swap_test() {
 	{
 		movable_file_stream fs = openstream(tmp);
 
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.swap(*fs.fs);
 		for(size_t i=0; i < ITEMS; ++i) s.write(ITEM(i));
 	}
@@ -592,9 +639,9 @@ bool swap_test() {
 	// Sequential verify
 	{
 		movable_file_stream fs = openstream(tmp);
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.swap(*fs.fs);
-		tpie::file_stream<uint64_t> t;
+		tpie::uncompressed_stream<uint64_t> t;
 		for(size_t i=0; i < ITEMS; ++i) {
 			uint64_t x = (i % 2) ? t.read() : s.read();
 			if (x != ITEM(i)) {
@@ -609,7 +656,7 @@ bool swap_test() {
 
 	// Write an ARRAYSIZE array ARRAYS times sequentially to the temporary file
 	{
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.open(tmp.path());
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYSIZE; ++i) {
@@ -620,7 +667,7 @@ bool swap_test() {
 
 	// Sequentially verify the arrays
 	{
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.open(tmp.path());
 		uint64_t x[ARRAYSIZE];
 		for(size_t i=0; i < ARRAYS; ++i) {
@@ -642,7 +689,7 @@ bool swap_test() {
 
 	// Random read/write of items
 	{
-		tpie::file_stream<uint64_t> s;
+		tpie::uncompressed_stream<uint64_t> s;
 		s.open(tmp.path());
 		tpie::array<uint64_t> data(ITEMS);
 		for (size_t i=0; i < ITEMS; ++i) {
@@ -747,18 +794,27 @@ int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(stream_tester<file_stream>::array_test, "array")
 		.test(stream_tester<file_colon_colon_stream>::array_test, "array_file")
+		.test(stream_tester<compressed_stream>::array_test, "array_compressed")
 		.test(swap_test, "basic")
 		.test(stream_tester<file_stream>::odd_block_test, "odd")
 		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
+		.test(stream_tester<compressed_stream>::odd_block_test, "odd_compressed")
 		.test(stream_tester<file_stream>::truncate_test, "truncate")
 		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
+		.test(stream_tester<compressed_stream>::truncate_test, "truncate_compressed")
 		.test(reopen, "reopen")
 		.test(stream_tester<file_stream>::extend_test, "extend")
 		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend_file")
+		.test(stream_tester<compressed_stream>::extend_test, "extend_compressed")
 		.test(stream_tester<file_stream>::backwards_test, "backwards")
 		.test(stream_tester<file_colon_colon_stream>::backwards_test, "backwards_file")
+		.test(stream_tester<compressed_stream>::backwards_test, "backwards_compressed")
+		.test(stream_tester<file_stream>::user_data_test, "user_data")
+		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file")
+		.test(stream_tester<compressed_stream>::user_data_test, "user_data_compressed")
 		.test(stream_tester<file_stream>::stress_test, "stress", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
+		.test(stream_tester<compressed_stream>::stress_test, "stress_compressed", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
 		.test(stream_tester<file_stream>::user_data_test, "user_data")
 		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file")
 		.test(peek_skip_test_1, "peek_skip_1")

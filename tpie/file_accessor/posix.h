@@ -24,7 +24,7 @@
 #ifndef _TPIE_FILE_ACCESSOR_POSIX_H
 #define _TPIE_FILE_ACCESSOR_POSIX_H
 
-#include <tpie/file_accessor/stream_accessor.h>
+#include <tpie/file_accessor/stream_accessor_base.h>
 namespace tpie {
 namespace file_accessor {
 
@@ -49,6 +49,7 @@ public:
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
+	inline stream_size_type file_size_i();
 	inline void close_i();
 	inline void truncate_i(stream_size_type bytes);
 	inline bool is_open() const;

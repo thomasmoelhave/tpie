@@ -37,10 +37,10 @@ bool file_count_test() {
 		blockSize = file<int>::block_size(1.0);
 		itemSize = sizeof(int);
 	}
-	array<tpie::file_accessor::file_accessor> fs(avail+1);
+	array<tpie::default_file_accessor> fs(avail+1);
 	for (memory_size_type i = 0; i < avail; ++i) {
 		try {
-			fs[i].open(tmp.path(), true, false, itemSize, blockSize, userDataSize, access_sequential);
+			fs[i].open(tmp.path(), true, false, itemSize, blockSize, userDataSize, access_sequential, false);
 		} catch (tpie::exception & e) {
 			tpie::log_error() << "After opening " << i << " files, got an unexcepted exception of type " << typeid(e).name() << std::endl;
 			return false;
@@ -48,7 +48,7 @@ bool file_count_test() {
 	}
 	tpie::log_error() << "Opened available_files() == " << avail << " files" << std::endl;
 	try {
-		fs[avail].open(tmp.path(), true, false, itemSize, blockSize, userDataSize, access_sequential);
+		fs[avail].open(tmp.path(), true, false, itemSize, blockSize, userDataSize, access_sequential, false);
 	} catch (tpie::io_exception & e) {
 		tpie::log_error() << "Opening another file yields an exception of type\n" << typeid(e).name() << " (" << e.what() << ")\nwhich is allowed per available_files()" << std::endl;
 		return true;

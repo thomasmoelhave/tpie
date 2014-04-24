@@ -31,7 +31,7 @@
 namespace tpie {
 namespace file_accessor {
 typedef win32 raw_file_accessor;
-typedef stream_accessor<win32> file_accessor;
+typedef stream_accessor_base<win32> file_accessor;
 }
 }
 
@@ -41,7 +41,7 @@ typedef stream_accessor<win32> file_accessor;
 namespace tpie {
 namespace file_accessor {
 typedef posix raw_file_accessor;
-typedef stream_accessor<posix> file_accessor;
+typedef stream_accessor_base<posix> file_accessor;
 }
 }
 
@@ -49,7 +49,7 @@ typedef stream_accessor<posix> file_accessor;
 
 namespace tpie {
 typedef file_accessor::raw_file_accessor default_raw_file_accessor;
-typedef file_accessor::file_accessor default_file_accessor;
+typedef file_accessor::stream_accessor<default_raw_file_accessor> default_file_accessor;
 } // namespace tpie
 
 #endif //__tpie_file_accessor_file_accossor_h__

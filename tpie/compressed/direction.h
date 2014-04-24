@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, 2010, The TPIE development team
+// Copyright 2013, The TPIE development team
 //
 // This file is part of TPIE.
 //
@@ -17,55 +17,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+#ifndef TPIE_COMPRESSED_DIRECTION_H
+#define TPIE_COMPRESSED_DIRECTION_H
+
 ///////////////////////////////////////////////////////////////////////////////
-/// \file win32.h  Win32 file accessor.
+/// \file compressed/direction.h  Read/write direction enumeration.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _TPIE_FILE_ACCESSOR_WIN32_H
-#define _TPIE_FILE_ACCESSOR_WIN32_H
-
-#include <tpie/config.h>
-
-#include <io.h>
-#include <windows.h>
-#undef NO_ERROR
-
-#include <tpie/file_accessor/stream_accessor_base.h>
 namespace tpie {
-namespace file_accessor {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Win32 file accessor.
+/// \brief  Class enum designating a read/write direction.
 ///////////////////////////////////////////////////////////////////////////////
-
-class win32 {
-private:
-	HANDLE m_fd;
-	DWORD m_creationFlag;
-
-public:
-	inline win32();
-	inline ~win32() {close_i();}
-
-	inline void open_wo(const std::string & path);
-	inline void open_ro(const std::string & path);
-	inline bool try_open_rw(const std::string & path);
-	inline void open_rw_new(const std::string & path);
-
-	inline void read_i(void * data, memory_size_type size);
-	inline void write_i(const void * data, memory_size_type size);
-	inline void seek_i(stream_size_type offset);
-	inline stream_size_type file_size_i();
-	inline void close_i();
-	inline void truncate_i(stream_size_type bytes);
-	inline bool is_open() const;
-
-	inline void set_cache_hint(cache_hint cacheHint);
+struct read_direction {
+	enum type {
+		forward,
+		backward
+	};
 };
 
-}
-}
+} // namespace tpie
 
-#include <tpie/file_accessor/win32.inl>
-
-#endif //_TPIE_FILE_ACCESSOR_WIN32_H
+#endif // TPIE_COMPRESSED_DIRECTION_H

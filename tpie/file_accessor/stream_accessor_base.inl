@@ -20,7 +20,7 @@
 #include <string.h>
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
-#include <tpie/file_accessor/stream_accessor.h>
+#include <tpie/file_accessor/stream_accessor_base.h>
 #include <tpie/stats.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,7 +32,7 @@ namespace tpie {
 namespace file_accessor {
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::read_header() {
+void stream_accessor_base<file_accessor_t>::read_header() {
 	stream_header_t header;
 	m_fileAccessor.seek_i(0);
 	m_fileAccessor.read_i(&header, sizeof(header));
@@ -40,42 +40,20 @@ void stream_accessor<file_accessor_t>::read_header() {
 	m_size = header.size;
 	m_userDataSize = (size_t)header.userDataSize;
 	m_maxUserDataSize = (size_t)header.maxUserDataSize;
+	m_lastBlockReadOffset = header.lastBlockReadOffset;
+	m_useCompression = header.get_compressed();
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::write_header(bool clean) {
+void stream_accessor_base<file_accessor_t>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
 	m_fileAccessor.seek_i(0);
 	m_fileAccessor.write_i(&header, sizeof(header));
 }
- 
-template <typename file_accessor_t>
-memory_size_type stream_accessor<file_accessor_t>::read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount) {
-	stream_size_type loc = header_size() + blockNumber*m_blockSize;
-	m_fileAccessor.seek_i(loc);
-	stream_size_type offset = blockNumber*m_blockItems;
-	if (offset + itemCount > m_size) itemCount = static_cast<memory_size_type>(m_size - offset);
-	memory_size_type z=itemCount*m_itemSize;
-	m_fileAccessor.read_i(data, z);
-	return itemCount;
-}
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount) {
-	stream_size_type loc = header_size() + blockNumber*m_blockSize;
-	// Here, we may seek beyond the file size.
-	// However, lseek(2) specifies that the file will be padded with zeroes in this case,
-	// and on Windows, the file is padded with arbitrary garbage (which is ok).
-	m_fileAccessor.seek_i(loc);
-	stream_size_type offset = blockNumber*m_blockItems;
-	memory_size_type z=itemCount*m_itemSize;
-	m_fileAccessor.write_i(data, z);
-	if (offset+itemCount > m_size) m_size=offset+itemCount;
-}
-
-template <typename file_accessor_t>
-memory_size_type stream_accessor<file_accessor_t>::read_user_data(void * data, memory_size_type count) {
+memory_size_type stream_accessor_base<file_accessor_t>::read_user_data(void * data, memory_size_type count) {
 	if (count > m_userDataSize) count = m_userDataSize;
 	if (count) {
 		m_fileAccessor.seek_i(sizeof(stream_header_t));
@@ -85,7 +63,7 @@ memory_size_type stream_accessor<file_accessor_t>::read_user_data(void * data, m
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::write_user_data(const void * data, memory_size_type count) {
+void stream_accessor_base<file_accessor_t>::write_user_data(const void * data, memory_size_type count) {
 	if (count > m_maxUserDataSize)
 		throw stream_exception("Tried to write more user data than stream allows");
 	if (count) {
@@ -96,7 +74,7 @@ void stream_accessor<file_accessor_t>::write_user_data(const void * data, memory
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::validate_header(const stream_header_t & header) {
+void stream_accessor_base<file_accessor_t>::validate_header(const stream_header_t & header) {
 	if (header.magic != stream_header_t::magicConst)
 		throw invalid_file_exception("Invalid file, header magic wrong");
 
@@ -112,30 +90,33 @@ void stream_accessor<file_accessor_t>::validate_header(const stream_header_t & h
 	if (header.userDataSize > header.maxUserDataSize)
 		throw invalid_file_exception("Invalid file, user data size is greater than max user data size");
 
-	if (header.cleanClose != 1 )
+	if (header.get_clean_close() == false)
 		throw invalid_file_exception("Invalid file, the file was not closed properly");
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::fill_header(stream_header_t & header, bool clean) {
+void stream_accessor_base<file_accessor_t>::fill_header(stream_header_t & header, bool clean) {
 	header.magic = stream_header_t::magicConst;
 	header.version = stream_header_t::versionConst;
 	header.itemSize = m_itemSize;
 	header.blockSize = m_blockSize;
-	header.cleanClose = clean?1:0;
+	header.set_clean_close(clean);
 	header.userDataSize = m_userDataSize;
 	header.maxUserDataSize = m_maxUserDataSize;
 	header.size = m_size;
+	header.lastBlockReadOffset = m_lastBlockReadOffset;
+	header.set_compressed(m_useCompression);
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::open(const std::string & path,
+void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 											bool read,
 											bool write,
 											memory_size_type itemSize,
 											memory_size_type blockSize,
 											memory_size_type maxUserDataSize,
-											cache_hint cacheHint) {
+											cache_hint cacheHint,
+											bool preferCompression) {
 	close();
 	m_write = write;
 	m_path = path;
@@ -146,6 +127,8 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	m_maxUserDataSize=maxUserDataSize;
 	m_size=0;
 	m_fileAccessor.set_cache_hint(cacheHint);
+	m_useCompression = preferCompression;
+	m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
@@ -174,7 +157,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::close() {
+void stream_accessor_base<file_accessor_t>::close() {
 	if (!m_open)
 		return;
 	if (m_write)
@@ -185,7 +168,9 @@ void stream_accessor<file_accessor_t>::close() {
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::truncate(stream_size_type items) {
+void stream_accessor_base<file_accessor_t>::truncate(stream_size_type items) {
+	if (m_useCompression && items != 0)
+		throw exception("stream_accessor_base cannot truncate compressed stream");
 	stream_size_type blocks = items/m_blockItems;
 	stream_size_type blockIndex = items%m_blockItems;
 	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex*m_itemSize;

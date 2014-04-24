@@ -100,15 +100,15 @@ bool vector_multiply_test() {
 	return check_test_vectors();
 }
 
-bool file_stream_test() {
+bool file_stream_test(stream_size_type items) {
 	tpie::temp_file input_file;
 	tpie::temp_file output_file;
 	{
 		file_stream<test_t> in;
 		in.open(input_file.path());
-		in.write(1);
-		in.write(2);
-		in.write(3);
+		for (stream_size_type i = 0; i < items; ++i) {
+			in.write(i);
+		}
 	}
 	{
 		file_stream<test_t> in;
@@ -123,9 +123,9 @@ bool file_stream_test() {
 	{
 		file_stream<test_t> out;
 		out.open(output_file.path());
-		if (6 != out.read()) return false;
-		if (12 != out.read()) return false;
-		if (18 != out.read()) return false;
+		for (stream_size_type i = 0; i < items; ++i) {
+			if (i*6 != out.read()) return false;
+		}
 	}
 	return true;
 }
@@ -1660,7 +1660,7 @@ int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
 	.test(vector_multiply_test, "vector")
-	.test(file_stream_test, "filestream")
+	.test(file_stream_test, "filestream", "n", static_cast<stream_size_type>(3))
 	.test(file_stream_pull_test, "fspull")
 	.test(file_stream_alt_push_test, "fsaltpush")
 	.test(merge_test, "merge")

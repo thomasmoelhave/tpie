@@ -44,7 +44,12 @@ win32::win32()
 
 inline void win32::read_i(void * data, memory_size_type size) {
 	DWORD bytesRead = 0;
-	if (!ReadFile(m_fd, data, (DWORD)size, &bytesRead, 0) || bytesRead != size) throw_getlasterror();
+	if (!ReadFile(m_fd, data, (DWORD)size, &bytesRead, 0)) throw_getlasterror();
+	if (bytesRead != size) {
+		std::stringstream ss;
+		ss << "Wrong number of bytes read: Expected " << size << " but got " << bytesRead;
+		throw io_exception(ss.str());
+	}
 	increment_bytes_read(size);
 }
 
@@ -58,6 +63,13 @@ inline void win32::seek_i(stream_size_type size) {
 	LARGE_INTEGER i;
 	i.QuadPart = size;
 	if (!SetFilePointerEx(m_fd, i, NULL, 0)) throw_getlasterror();
+}
+
+inline stream_size_type win32::file_size_i() {
+	LARGE_INTEGER i;
+	if (!GetFileSizeEx(m_fd, &i)) throw_getlasterror();
+	// i.QuadPart is a signed long long
+	return static_cast<stream_size_type>(i.QuadPart);
 }
 
 static const DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;

@@ -28,6 +28,7 @@
 #include <tpie/portability.h>
 #include <tpie/deprecated.h>
 #include <tpie/stream.h>
+#include <tpie/compressed/stream.h>
 #include <tpie/tpie_assert.h>
 
 namespace tpie {
@@ -42,12 +43,13 @@ public:
     ////////////////////////////////////////////////////////////////////
     /// \brief Initialize anonymous stack.
     ////////////////////////////////////////////////////////////////////
-	inline stack(double blockFactor = 1.0)
-		: m_file_stream(blockFactor)
+	stack(double blockFactor=1.0)
+		: m_stream(blockFactor)
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(static_cast<memory_size_type>(0), access_normal);
+		m_stream.open(static_cast<memory_size_type>(0), access_normal,
+					  compression_normal);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -56,14 +58,15 @@ public:
     /// \param  path    The path to a file used for storing the items.
     /// \param  block_factor  The block factor to use
     ////////////////////////////////////////////////////////////////////
-	inline stack(const std::string& path, double block_factor = 1.0)
-		: m_file_stream(block_factor)
-		, m_buffer(buffer_size(block_factor))
+	stack(const std::string & path, double blockFactor=1.0)
+		: m_stream(blockFactor)
+		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(path, access_read_write, static_cast<memory_size_type>(0), access_normal);
-		
-		m_file_stream.seek(0, file_stream_base::end);
+		m_stream.open(path, access_read_write,
+					  static_cast<memory_size_type>(0), access_normal,
+					  compression_normal);
+		m_stream.seek(0, file_stream_base::end);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -72,15 +75,15 @@ public:
     /// \param  tempFile  The temporary file containing the stack
     /// \param  block_factor  The block factor to use
     ////////////////////////////////////////////////////////////////////
-	inline stack(temp_file & tempFile, double block_factor = 1.0)
-		: m_file_stream(block_factor)
-		, m_buffer(buffer_size(block_factor))
+	stack(temp_file & tempFile, double blockFactor=1.0)
+		: m_stream(blockFactor)
+		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(tempFile, access_read_write, 
-						   static_cast<memory_size_type>(0), access_normal);
-		
-		m_file_stream.seek(0, file_stream_base::end);
+		m_stream.open(tempFile, access_read_write,
+					  static_cast<memory_size_type>(0), access_normal,
+					  compression_normal);
+		m_stream.seek(0, file_stream_base::end);
 	}
 
 
@@ -90,7 +93,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 	~stack() {
 		empty_buffer();
-		m_file_stream.truncate(this->size());
+		m_stream.truncate(m_stream.get_position());
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -109,7 +112,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 	inline const T & pop() throw(stream_exception) {
 		if (m_bufferItems) return m_buffer[--m_bufferItems];
-		const T & item = m_file_stream.read_back();
+		const T & item = m_stream.read_back();
 		return item;
 	}
 
@@ -118,16 +121,16 @@ public:
     ////////////////////////////////////////////////////////////////////
 	inline const T & top() throw(stream_exception) {
 		if (m_bufferItems) return m_buffer[m_bufferItems-1];
-		m_buffer[0] = m_file_stream.read_back();
-		m_file_stream.read();
+		m_buffer[0] = m_stream.read_back();
+		m_stream.read();
 		return m_buffer[0];
 	}
 
     ////////////////////////////////////////////////////////////////////
     /// \brief Returns the number of items currently on the stack.
     ////////////////////////////////////////////////////////////////////
-    inline stream_size_type size() const {
-		return m_file_stream.offset()+m_bufferItems;
+    stream_size_type size() const {
+		return m_stream.offset()+m_bufferItems;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -148,8 +151,8 @@ public:
 
 protected:
 
-	/** The file_stream used to store the items. */
-	file_stream<T> m_file_stream;
+	/** The stream used to store the items. */
+	file_stream<T> m_stream;
 
 private:
 	array<T> m_buffer;
@@ -157,12 +160,13 @@ private:
 
 	inline void empty_buffer() {
 		if (m_bufferItems == 0) return;
-		m_file_stream.write(m_buffer.begin(), m_buffer.begin()+m_bufferItems);
+		m_stream.truncate(m_stream.get_position());
+		m_stream.write(m_buffer.begin(), m_buffer.begin()+m_bufferItems);
 		m_bufferItems = 0;
 	}
 
-	inline static memory_size_type buffer_size(double blockFactor) {
-		return file<T>::block_size(blockFactor)/sizeof(T);
+	static memory_size_type buffer_size(double blockFactor) {
+		return file_stream<T>::block_size(blockFactor)/sizeof(T);
 	}
 
 };

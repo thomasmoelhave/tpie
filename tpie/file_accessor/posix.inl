@@ -71,8 +71,11 @@ inline void posix::read_i(void * data, memory_size_type size) {
 	memory_offset_type bytesRead = ::read(m_fd, data, size);
 	if (bytesRead == -1)
 		throw_errno();
-	if (bytesRead != static_cast<memory_offset_type>(size))
-		throw io_exception("Wrong number of bytes read");
+	if (bytesRead != static_cast<memory_offset_type>(size)) {
+		std::stringstream ss;
+		ss << "Wrong number of bytes read: Expected " << size << " but got " << bytesRead;
+		throw io_exception(ss.str());
+	}
 	increment_bytes_read(size);
 }
 
@@ -83,6 +86,13 @@ inline void posix::write_i(const void * data, memory_size_type size) {
 
 inline void posix::seek_i(stream_size_type size) {
 	if (::lseek(m_fd, size, SEEK_SET) == -1) throw_errno();
+}
+
+inline stream_size_type posix::file_size_i() {
+	struct stat buf;
+	if (::fstat(m_fd, &buf) == -1) throw_errno();
+	// st_size is a off_t
+	return static_cast<stream_size_type>(buf.st_size);
 }
 
 void posix::open_wo(const std::string & path) {

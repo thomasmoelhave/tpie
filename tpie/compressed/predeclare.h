@@ -17,45 +17,37 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef TPIE_ATOMIC_H
-#define TPIE_ATOMIC_H
-
-#include <tpie/types.h>
+#ifndef TPIE_COMPRESSED_PREDECLARE_H
+#define TPIE_COMPRESSED_PREDECLARE_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file  atomic.h  Atomic integer operations.
+/// \file compressed/predeclare.h  Useful compressed stream predeclarations.
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
 
-class atomic_int {
-	// volatile is necessary on Win32, but it might not be on Linux.
-	volatile size_t i;
-public:
-	atomic_int();
-	size_t add_and_fetch(size_t inc);
-	size_t sub_and_fetch(size_t inc);
-	size_t fetch_and_add(size_t inc);
-	size_t fetch_and_sub(size_t inc);
-	size_t fetch() const;
-	void add(size_t inc);
-	void sub(size_t inc);
-};
+// thread.h
+class compressor_thread;
+class compressor_thread_lock;
 
-class atomic_stream_size_type {
-	volatile stream_size_type i;
+// thread.cpp
+void init_compressor();
+void finish_compressor();
+compressor_thread & the_compressor_thread();
 
-public:
-	atomic_stream_size_type();
-	stream_size_type add_and_fetch(stream_size_type inc);
-	stream_size_type sub_and_fetch(stream_size_type inc);
-	stream_size_type fetch_and_add(stream_size_type inc);
-	stream_size_type fetch_and_sub(stream_size_type inc);
-	stream_size_type fetch() const;
-	void add(stream_size_type inc);
-	void sub(stream_size_type inc);
-};
+// buffer.h
+class compressor_buffer;
+
+// request.h
+class compressor_request;
+
+// stream.h
+class compressed_stream_base;
+template <typename T> class file_stream;
+
+// position.h
+class stream_position;
 
 } // namespace tpie
 
-#endif // TPIE_ATOMIC_H
+#endif // TPIE_COMPRESSED_PREDECLARE_H
