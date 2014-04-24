@@ -145,6 +145,35 @@ public:
 			  cache_hint cacheHint=access_sequential,
 			  compression_flags compressionFlags=compression_none);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  open()-overload accepting a file name and compression flags.
+	///////////////////////////////////////////////////////////////////////////
+	void open(const std::string & path, compression_flags compressionFlags) {
+		const access_type accessType = access_read_write;
+		const memory_size_type userDataSize = 0;
+		const cache_hint cacheHint = access_sequential;
+		open(path, accessType, userDataSize, cacheHint, compressionFlags);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  open()-overload accepting just compression flags.
+	///////////////////////////////////////////////////////////////////////////
+	void open(compression_flags compressionFlags) {
+		const memory_size_type userDataSize = 0;
+		const cache_hint cacheHint = access_sequential;
+		open(userDataSize, cacheHint, compressionFlags);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  open()-overload accepting a temp file and compression flags.
+	///////////////////////////////////////////////////////////////////////////
+	void open(temp_file & file, compression_flags compressionFlags) {
+		const access_type accessType = access_read_write;
+		const memory_size_type userDataSize = 0;
+		const cache_hint cacheHint = access_sequential;
+		open(file, accessType, userDataSize, cacheHint, compressionFlags);
+	}
+
 	void close();
 
 protected:
