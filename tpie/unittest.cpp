@@ -24,6 +24,7 @@
 #include <tpie/tpie_log.h>
 #include <sstream>
 #include <tpie/sysinfo.h>
+#include <tpie/exception.h>
 
 namespace tpie {
 
