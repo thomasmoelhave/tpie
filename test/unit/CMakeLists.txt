@@ -51,7 +51,7 @@ add_unittest(compressed_stream
 	position_3_u position_4_u position_5_u position_6_u position_7_u
 	position_seek_u uncompressed_u uncompressed_new_u
 
-	odd_block_size
+	odd_block_size read_only write_only
 	write_peek
 )
 add_unittest(btree internal_augment internal_basic internal_build internal_bound internal_iterator internal_key_and_compare external_augment external_basic external_bound external_build external_iterator external_key_and_compare)
