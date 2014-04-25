@@ -40,43 +40,44 @@ namespace tpie {
 
 struct open {
 	enum type {
-		/** Open a file for reading. */
-		read = 1 << 0,
+		read_write = 00000000,
+		/** Open a file for reading only. */
+		read_only =  00000001,
 		/** Open a file for writing only.
-		 * Content is truncated if read is not specified. */
-		write = 1 << 1,
-		/** Neither sequential access nor random access is intended.
-		 * Corresponds to POSIX_FADV_NORMAL. */
-		access_normal = 1 << 2,
+		 * Content is truncated. */
+		write_only = 00000002,
 		/** Sequential access is intended. Default for file_stream.
 		 * Corresponds to POSIX_FADV_SEQUENTIAL and FILE_FLAG_SEQUENTIAL_SCAN
 		 * (Win32). */
-		access_sequential = 1 << 3,
+		access_sequential = 00000000,
+		/** Neither sequential access nor random access is intended.
+		 * Corresponds to POSIX_FADV_NORMAL. */
+		access_normal = 00000004,
 		/** Random access is intended.
 		 * Corresponds to POSIX_FADV_RANDOM and FILE_FLAG_RANDOM_ACCESS (Win32). */
-		access_random = 1 << 4,
+		access_random = 00000010,
 		/** No written blocks should be compressed.
 		 * If a new stream is opened with compression_none,
 		 * it will support seek(n) and truncate(n) for arbitrary n. */
-		compression_none = 1 << 5,
+		compression_none = 00000000,
 		/** Compress some blocks
 		 * according to available resources (time, memory). */
-		compression_normal = 1 << 6,
+		compression_normal = 00000020,
 		/** Compress all blocks according to the preferred compression scheme
 		 * which can be set using
 		 * tpie::the_compressor_thread().set_preferred_compression(). */
-		compression_all = 1 << 7,
+		compression_all = 00000040,
 
-		defaults = read | write | access_sequential | compression_none
+		defaults = read_write | access_sequential | compression_none
 	};
 
 	static type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
 		return (type) ((
 
-			(accessType == access_read) ? read :
-			(accessType == access_write) ? write :
-			(accessType == access_read_write) ? (read | write) :
-			(read | write)) | (
+			(accessType == access_read) ? read_only :
+			(accessType == access_write) ? write_only :
+			(accessType == access_read_write) ? read_write :
+			read_write) | (
 
 			(cacheHint == tpie::access_normal) ? access_normal :
 			(cacheHint == tpie::access_sequential) ? access_sequential :

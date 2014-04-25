@@ -69,18 +69,20 @@ void compressed_stream_base::open_inner(const std::string & path,
 										open::type openFlags,
 										memory_size_type userDataSize)
 {
-	m_canRead = (bool) (openFlags | open::read);
-	m_canWrite = (bool) (openFlags | open::write);
+	// Parse openFlags
+	const bool readOnly = openFlags & open::read_only;
+	const bool writeOnly = openFlags & open::write_only;
+	m_canRead = !writeOnly;
+	m_canWrite = !readOnly;
 	const cache_hint cacheHint =
-		(openFlags | open::access_normal) ? access_normal :
-		(openFlags | open::access_sequential) ? access_sequential :
-		(openFlags | open::access_random) ? access_random :
-		access_normal;
+		(openFlags & open::access_normal) ? access_normal :
+		(openFlags & open::access_random) ? access_random :
+		access_sequential;
 	const compression_flags compressionFlags =
-		(openFlags | open::compression_none) ? compression_none :
-		(openFlags | open::compression_normal) ? compression_normal :
-		(openFlags | open::compression_all) ? compression_all :
+		(openFlags & open::compression_normal) ? compression_normal :
+		(openFlags & open::compression_all) ? compression_all :
 		compression_none;
+
 	m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize,
 							  m_blockSize, userDataSize, cacheHint,
 							  compressionFlags);
