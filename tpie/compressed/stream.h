@@ -62,6 +62,15 @@ struct open {
 		defaults = 0
 	};
 
+	friend inline open::type operator|(open::type a, open::type b)
+	{ return (open::type) ((int) a | (int) b); }
+	friend inline open::type operator&(open::type a, open::type b)
+	{ return (open::type) ((int) a & (int) b); }
+	friend inline open::type operator^(open::type a, open::type b)
+	{ return (open::type) ((int) a ^ (int) b); }
+	friend inline open::type operator~(open::type a)
+	{ return (open::type) (int) ~a; }
+
 	static type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
 		return (type) ((
 
@@ -79,10 +88,6 @@ struct open {
 	}
 };
 
-inline open::type operator|(open::type a, open::type b) { return (open::type) ((int) a | (int) b); }
-inline open::type operator&(open::type a, open::type b) { return (open::type) ((int) a & (int) b); }
-inline open::type operator^(open::type a, open::type b) { return (open::type) ((int) a ^ (int) b); }
-inline open::type operator~(open::type a) { return (open::type) (int) ~a; }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Base class containing the implementation details that are
