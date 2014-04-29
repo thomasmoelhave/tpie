@@ -170,7 +170,7 @@ public:
 	const std::string & path() const;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Open a stream.
+	/// \brief  Deprecated interface for opening a named stream.
 	///
 	/// If compressionFlags is compression_none and the file does not already
 	/// exist, no compression will be used when writing.
@@ -189,7 +189,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Open an anonymous temporary file for reading and writing.
+	/// \brief  Deprecated interface for opening an unnamed temporary stream.
 	///////////////////////////////////////////////////////////////////////////
 	void open(memory_size_type userDataSize,
 			  cache_hint cacheHint=access_sequential,
@@ -198,7 +198,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Open a specific temporary file.
+	/// \brief  Deprecated interface for opening a temporary stream.
 	///////////////////////////////////////////////////////////////////////////
 	void open(temp_file & file,
 			  access_type accessType,
@@ -209,7 +209,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  open()-overload accepting a file name and compression flags.
+	/// \brief  Deprecated interface for opening a named stream.
 	///////////////////////////////////////////////////////////////////////////
 	void open(const std::string & path, compression_flags compressionFlags) {
 		const memory_size_type userDataSize = 0;
@@ -217,7 +217,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  open()-overload accepting just compression flags.
+	/// \brief  Deprecated interface for opening an unnamed temporary stream.
 	///////////////////////////////////////////////////////////////////////////
 	void open(compression_flags compressionFlags) {
 		const memory_size_type userDataSize = 0;
@@ -225,7 +225,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  open()-overload accepting a temp file and compression flags.
+	/// \brief  Deprecated interface for opening a temporary stream.
 	///////////////////////////////////////////////////////////////////////////
 	void open(temp_file & file, compression_flags compressionFlags) {
 		const memory_size_type userDataSize = 0;
