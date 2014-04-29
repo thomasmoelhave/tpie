@@ -40,26 +40,17 @@ namespace tpie {
 
 struct open {
 	enum type {
-		read_write = 00000000,
 		/** Open a file for reading only. */
 		read_only =  00000001,
 		/** Open a file for writing only.
 		 * Content is truncated. */
 		write_only = 00000002,
-		/** Sequential access is intended. Default for file_stream.
-		 * Corresponds to POSIX_FADV_SEQUENTIAL and FILE_FLAG_SEQUENTIAL_SCAN
-		 * (Win32). */
-		access_sequential = 00000000,
 		/** Neither sequential access nor random access is intended.
 		 * Corresponds to POSIX_FADV_NORMAL. */
 		access_normal = 00000004,
 		/** Random access is intended.
 		 * Corresponds to POSIX_FADV_RANDOM and FILE_FLAG_RANDOM_ACCESS (Win32). */
 		access_random = 00000010,
-		/** No written blocks should be compressed.
-		 * If a new stream is opened with compression_none,
-		 * it will support seek(n) and truncate(n) for arbitrary n. */
-		compression_none = 00000000,
 		/** Compress some blocks
 		 * according to available resources (time, memory). */
 		compression_normal = 00000020,
@@ -68,7 +59,7 @@ struct open {
 		 * tpie::the_compressor_thread().set_preferred_compression(). */
 		compression_all = 00000040,
 
-		defaults = read_write | access_sequential | compression_none
+		defaults = 0
 	};
 
 	static type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
@@ -76,18 +67,15 @@ struct open {
 
 			(accessType == access_read) ? read_only :
 			(accessType == access_write) ? write_only :
-			(accessType == access_read_write) ? read_write :
-			read_write) | (
+			defaults) | (
 
 			(cacheHint == tpie::access_normal) ? access_normal :
-			(cacheHint == tpie::access_sequential) ? access_sequential :
 			(cacheHint == tpie::access_random) ? access_random :
-			access_normal) | (
+			defaults) | (
 
-			(compressionFlags == tpie::compression_none) ? compression_none :
 			(compressionFlags == tpie::compression_normal) ? compression_normal :
 			(compressionFlags == tpie::compression_all) ? compression_all :
-			compression_none));
+			defaults));
 	}
 };
 
