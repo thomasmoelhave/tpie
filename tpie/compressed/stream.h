@@ -232,10 +232,63 @@ public:
 		open(file, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Open and possibly create a stream.
+	///
+	/// The stream is created if it does not exist and opened for reading
+	/// and writing, but this can be changed with open::read_only or
+	/// open::write_only; see below.
+	///
+	/// The flags supplied to openFlags should be a combination of the
+	/// following from \c open::type, OR'ed together:
+	///
+	/// open::read_only
+	///     Open for reading only, and fail if the stream does not exist.
+	///
+	/// open::write_only
+	///     Open for writing only, and truncate the stream if it exists.
+	///
+	/// open::access_normal
+	///     By default, POSIX_FADV_SEQUENTIAL is passed to the open syscall
+	///     to indicate that the OS should optimize for sequential access;
+	///     this flag disables that flag.
+	///
+	/// open::access_random
+	///	    Pass POSIX_FADV_RANDOM to the open syscall to make the OS optimize
+	///	    for random access.
+	///
+	/// open::compression_normal
+	///     Create the stream in compression mode if it does not already exist,
+	///     and compress written blocks according to available resources (for
+	///     instance CPU time and memory).
+	///
+	/// open::compression_all
+	///     Create the stream in compression mode if it does not already exist,
+	///     and compress all written blocks using the preferred compression
+	///     scheme, which can be set using
+	///     tpie::the_compressor_thread().set_preferred_compression().
+	///
+	/// \param path  The path to the file to open
+	/// \param openFlags  A bit-wise combination of the flags; see above.
+	/// \param userDataSize  Required user data capacity in stream header.
+	///////////////////////////////////////////////////////////////////////////
 	void open(const std::string & path, open::type openFlags=open::defaults, memory_size_type userDataSize=0);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Open and create an unnamed temporary stream.
+	///
+	/// \param openFlags  A bit-wise combination of the flags; see above.
+	/// \param userDataSize  Required user data capacity in stream header.
+	///////////////////////////////////////////////////////////////////////////
 	void open(open::type openFlags=open::defaults, memory_size_type userDataSize=0);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Open and possibly create a temporary stream.
+	///
+	/// \param file  The temporary file to open
+	/// \param openFlags  A bit-wise combination of the flags; see above.
+	/// \param userDataSize  Required user data capacity in stream header.
+	///////////////////////////////////////////////////////////////////////////
 	void open(temp_file & file, open::type openFlags=open::defaults, memory_size_type userDataSize=0);
 
 	void close();
