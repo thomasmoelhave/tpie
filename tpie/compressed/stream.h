@@ -86,6 +86,34 @@ struct open {
 			(compressionFlags == tpie::compression_all) ? compression_all :
 			defaults));
 	}
+
+	static cache_hint translate_cache(open::type openFlags) {
+		const open::type cacheFlags =
+			openFlags & (open::access_normal | open::access_random);
+
+		if (cacheFlags == open::access_normal)
+			return tpie::access_normal;
+		else if (cacheFlags == open::access_random)
+			return tpie::access_random;
+		else if (!cacheFlags)
+			return tpie::access_sequential;
+		else
+			throw tpie::stream_exception("Invalid cache flags supplied");
+	}
+
+	static compression_flags translate_compression(open::type openFlags) {
+		const open::type compressionFlags =
+			openFlags & (open::compression_normal | open::compression_all);
+
+		if (compressionFlags == open::compression_normal)
+			return tpie::compression_normal;
+		else if (compressionFlags == open::compression_all)
+			return tpie::compression_all;
+		else if (!compressionFlags)
+			return tpie::compression_none;
+		else
+			throw tpie::stream_exception("Invalid compression flags supplied");
+	}
 };
 
 
