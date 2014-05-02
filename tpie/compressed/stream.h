@@ -383,7 +383,9 @@ public:
 	{
 	}
 
-	~file_stream() {
+	// This destructor would not need to be virtual if we could use
+	// final (non-subclassable) classes, but that is a C++11 feature.
+	virtual ~file_stream() {
 		try {
 			close();
 		} catch (std::exception & e) {
