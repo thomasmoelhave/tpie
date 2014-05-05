@@ -418,20 +418,30 @@ Each row in the following matrix has a method called by the framework on the
 left, and a checkmark in the row for each method an implementation may call.
 
 <table>
-<tr><th>Framework<br>calls  </th><th>set_name</th><th>add_*_destination<br>add_dependency</th><th>set_memory_fraction<br>set_minimum_memory</th><th>forward</th><th>can_fetch</th><th>fetch</th><th>push</th><th>can_pull</th><th>pull</th></tr>
-<tr><td>constructor         </td><td>X       </td><td>X                                  </td><td>X                                        </td><td>       </td><td>         </td><td>     </td><td>    </td><td>        </td><td>    </td></tr>
-<tr><td>prepare             </td><td>        </td><td>                                   </td><td>X                                        </td><td>X      </td><td>X        </td><td>X    </td><td>    </td><td>        </td><td>    </td></tr>
-<tr><td>set_available_memory</td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>    </td><td>        </td><td>    </td></tr>
-<tr><td>begin               </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>    </td><td>X       </td><td>X   </td></tr>
-<tr><td>push                </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>X   </td><td>X       </td><td>X   </td></tr>
-<tr><td>can_pull            </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>    </td><td>X       </td><td>    </td></tr>
-<tr><td>pull                </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>X   </td><td>X       </td><td>X   </td></tr>
-<tr><td>end                 </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>X   </td><td>X       </td><td>X   </td></tr>
+<tr><th>Framework<br>calls  </th><th>set_name</th><th>add_push_destination
+                                                  <br>add_pull_source
+                                                  <br>add_dependency</th><th>set_memory_fraction
+                                                                         <br>set_minimum_memory
+                                                                         <br>set_maximum_memory</th><th>forward
+                                                                                                    <br>can_fetch
+                                                                                                    <br>fetch</th><th>push
+                                                                                                                  <br>can_pull
+                                                                                                                  <br>pull</th></tr>
+<tr><td>constructor         </td><td>X       </td><td>X             </td><td>X                 </td><td>     </td><td>    </td></tr>
+<tr><td>prepare             </td><td>        </td><td>              </td><td>X                 </td><td>X    </td><td>    </td></tr>
+<tr><td>set_available_memory</td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
+<tr><td>evacuate            </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
+<tr><td>propagate           </td><td>        </td><td>              </td><td>                  </td><td>X    </td><td>    </td></tr>
+<tr><td>begin               </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
+<tr><td>push/can_pull/pull  </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
+<tr><td>end                 </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
 </table>
 
 Note that the push, can_pull and pull contracts are those obeyed by the
 pipelining node implementations in the library; the core framework itself does
 not enforce these requirements.
+
+<img src="pipelining_sequence.png" />
 
 \section sec_initiators Initiator nodes
 
