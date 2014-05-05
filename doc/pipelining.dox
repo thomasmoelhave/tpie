@@ -94,6 +94,23 @@ public:
 };
 \endcode
 
+\section sec_pipe_memory Memory assignment
+
+Each node has three properties that control how much memory is assigned to it:
+its minimum memory, its maximum memory and its memory priority. The framework
+guarantees that the amount of memory assigned to the node is between the
+minimum and the maximum of the node, and in the absence of memory limits,
+memory is distributed proportional to the memory priority.
+
+<img src="pipelining_memory.png" />
+
+The memory assignment is implemented by a binary search for the parameter c
+such that the sum of assigned memory is equal to the available memory.
+
+If there is not enough available memory in total to satisfy all minimum memory
+requirements, a warning is printed to the log and memory overusage can be
+expected.
+
 \section sec_pipelining_factory Factories
 
 Since the C++ language does not infer template arguments to constructor calls,
@@ -342,13 +359,15 @@ url.empty().
 
 \section sec_noninitiator Order of operations
 
-0. The following virtual methods may be overridden in the implementation:
+The following virtual methods may be overridden in the implementation:
 
    - \c prepare
    - \c begin
    - \c end
    - \c evacuate (in which case \c can_evacuate should be overridden to return true)
    - \c set_available_memory
+
+.
 
 1. The \c node is constructed, and \c prepare() is called. The
    constructor should call any of the following node protected methods
@@ -401,20 +420,30 @@ Each row in the following matrix has a method called by the framework on the
 left, and a checkmark in the row for each method an implementation may call.
 
 <table>
-<tr><th>Framework<br>calls  </th><th>set_name</th><th>add_*_destination<br>add_dependency</th><th>set_memory_fraction<br>set_minimum_memory</th><th>forward</th><th>can_fetch</th><th>fetch</th><th>push</th><th>can_pull</th><th>pull</th></tr>
-<tr><td>constructor         </td><td>X       </td><td>X                                  </td><td>X                                        </td><td>       </td><td>         </td><td>     </td><td>    </td><td>        </td><td>    </td></tr>
-<tr><td>prepare             </td><td>        </td><td>                                   </td><td>X                                        </td><td>X      </td><td>X        </td><td>X    </td><td>    </td><td>        </td><td>    </td></tr>
-<tr><td>set_available_memory</td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>    </td><td>        </td><td>    </td></tr>
-<tr><td>begin               </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>    </td><td>X       </td><td>X   </td></tr>
-<tr><td>push                </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>X   </td><td>X       </td><td>X   </td></tr>
-<tr><td>can_pull            </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>    </td><td>X       </td><td>    </td></tr>
-<tr><td>pull                </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>X   </td><td>X       </td><td>X   </td></tr>
-<tr><td>end                 </td><td>        </td><td>                                   </td><td>                                         </td><td>       </td><td>         </td><td>     </td><td>X   </td><td>X       </td><td>X   </td></tr>
+<tr><th>Framework<br>calls  </th><th>set_name</th><th>add_push_destination
+                                                  <br>add_pull_source
+                                                  <br>add_dependency</th><th>set_memory_fraction
+                                                                         <br>set_minimum_memory
+                                                                         <br>set_maximum_memory</th><th>forward
+                                                                                                    <br>can_fetch
+                                                                                                    <br>fetch</th><th>push
+                                                                                                                  <br>can_pull
+                                                                                                                  <br>pull</th></tr>
+<tr><td>constructor         </td><td>X       </td><td>X             </td><td>X                 </td><td>     </td><td>    </td></tr>
+<tr><td>prepare             </td><td>        </td><td>              </td><td>X                 </td><td>X    </td><td>    </td></tr>
+<tr><td>set_available_memory</td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
+<tr><td>evacuate            </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
+<tr><td>propagate           </td><td>        </td><td>              </td><td>                  </td><td>X    </td><td>    </td></tr>
+<tr><td>begin               </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
+<tr><td>push/can_pull/pull  </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
+<tr><td>end                 </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
 </table>
 
 Note that the push, can_pull and pull contracts are those obeyed by the
 pipelining node implementations in the library; the core framework itself does
 not enforce these requirements.
+
+<img src="pipelining_sequence.png" />
 
 \section sec_initiators Initiator nodes
 
@@ -434,29 +463,6 @@ Common faults in node implementations include
 - Non-public inheritance of the \c node base class. This usually leads to an
   error that <tt>tpie::pipelining::bits::node_map::ptr
   tpie::pipelining::node::get_node_map() const</tt> is inaccessible.
-
-\section sec_pipe_memory Memory assignment
-
-Each node has three properties that control how much memory is assigned to it:
-its minimum memory, its maximum memory and its memory fraction.
-The framework guarantees that the amount of memory assigned to the node is
-between the minimum and the maximum of the node.
-
-If there is not enough available memory in total to satisfy all minimum memory
-requirements, a warning is printed to the log and memory overusage can be
-expected.
-
-The principle behind the memory fraction is this.
-In the absence of minimum and maximum memory requirements,
-memory assigned to two nodes is distributed proportionally to their memory
-fractions, so a node with fraction 2.0 is assigned twice the memory
-of a node with fraction 1.0.
-Given minimum and maximum memory requirements, the framework first tries
-to distribute memory proportionally to all memory fractions. If this does
-not violate min/max constraints, this memory assignment is used.
-Otherwise, the framework performs a binary search to find a memory
-assignment that honors min/max constraints first and proportionality
-in memory fractions second.
 
 \section sec_parallel Parallel execution
 
