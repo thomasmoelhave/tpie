@@ -359,13 +359,15 @@ url.empty().
 
 \section sec_noninitiator Order of operations
 
-0. The following virtual methods may be overridden in the implementation:
+The following virtual methods may be overridden in the implementation:
 
    - \c prepare
    - \c begin
    - \c end
    - \c evacuate (in which case \c can_evacuate should be overridden to return true)
    - \c set_available_memory
+
+.
 
 1. The \c node is constructed, and \c prepare() is called. The
    constructor should call any of the following node protected methods
