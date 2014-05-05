@@ -94,6 +94,23 @@ public:
 };
 \endcode
 
+\section sec_pipe_memory Memory assignment
+
+Each node has three properties that control how much memory is assigned to it:
+its minimum memory, its maximum memory and its memory priority. The framework
+guarantees that the amount of memory assigned to the node is between the
+minimum and the maximum of the node, and in the absence of memory limits,
+memory is distributed proportional to the memory priority.
+
+<img src="pipelining_memory.png" />
+
+The memory assignment is implemented by a binary search for the parameter c
+such that the sum of assigned memory is equal to the available memory.
+
+If there is not enough available memory in total to satisfy all minimum memory
+requirements, a warning is printed to the log and memory overusage can be
+expected.
+
 \section sec_pipelining_factory Factories
 
 Since the C++ language does not infer template arguments to constructor calls,
@@ -434,29 +451,6 @@ Common faults in node implementations include
 - Non-public inheritance of the \c node base class. This usually leads to an
   error that <tt>tpie::pipelining::bits::node_map::ptr
   tpie::pipelining::node::get_node_map() const</tt> is inaccessible.
-
-\section sec_pipe_memory Memory assignment
-
-Each node has three properties that control how much memory is assigned to it:
-its minimum memory, its maximum memory and its memory fraction.
-The framework guarantees that the amount of memory assigned to the node is
-between the minimum and the maximum of the node.
-
-If there is not enough available memory in total to satisfy all minimum memory
-requirements, a warning is printed to the log and memory overusage can be
-expected.
-
-The principle behind the memory fraction is this.
-In the absence of minimum and maximum memory requirements,
-memory assigned to two nodes is distributed proportionally to their memory
-fractions, so a node with fraction 2.0 is assigned twice the memory
-of a node with fraction 1.0.
-Given minimum and maximum memory requirements, the framework first tries
-to distribute memory proportionally to all memory fractions. If this does
-not violate min/max constraints, this memory assignment is used.
-Otherwise, the framework performs a binary search to find a memory
-assignment that honors min/max constraints first and proportionality
-in memory fractions second.
 
 \section sec_parallel Parallel execution
 
