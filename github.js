@@ -162,13 +162,13 @@ function fetch_cached_remote_events() {
     return true;
 }
 
-$(function () {
+window.addEventListener('load', function () {
     if (!fetch_cached_remote_events()) {
         console.log("cache miss");
         remote_load();
     } else {
         console.log("cache hit");
     }
-});
+}, false);
 
 // vim:set sw=4 sts=4 et:
