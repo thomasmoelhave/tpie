@@ -34,64 +34,148 @@ maintainability, high testability and low verbosity.
 
 \section sec_node Nodes
 
-The unit of currency in pipelining is the node implementations.
-Each pipelining node performs either a general-purpose or specialized operation
-that is used in streaming algorithms.
-An implementation must derive from tpie::pipelining::node and
-implement either \c push() or the \c pull() / \c can_pull() pair. In the first
-case, the node is called a <em>push node</em>, and in the second
-case, it is called a <em>pull node</em>. The exception to this rule is the
-<em>initiator</em> node which instead overrides the virtual \c go() method.
-Furthermore, any implementation may request memory using the
-\c set_minimum_memory() and \c set_memory_fraction() methods in either its
-constructor or in an overridden virtual \c prepare() method; it may override
-\c begin() and \c end() to do initialization and finalization related to its
-computation.
+In TPIE pipelining, a <em>node</em> is any object that implements
+\c tpie::pipelining::node.
+A node processes items of a stream in some fashion,
+typically by implementing a \c push() method which processes an item
+and pushes to a <em>destination</em> node.
 
-- A node SHOULD aggregate the node(s) it pushes to or pulls from,
-  and thus a node is usually templated on its destination type.
+The node can implement a \c begin() and/or an \c end() method
+to perform some initialization or finalization.
+The framework guarantees that \c begin() and \c end() are called in an order
+such that the destination of the node is ready to accept items via \c push()
+when \c begin() and \c end() are called.
 
-- A node SHOULD be copyable such that any other copyable node
-  may aggregate it.
+<img src="pipelining_sequence.png" />
 
-- A push/pull node MUST declare a public typedef \c item_type, the type of
-  item accepted by \c push or returned by \c pull. This is used by built-in type
-  generic nodes such as the sorter or the reverser.
+In some applications it might be easier to express the operation
+in terms of pulling items from a source and returning a processed item.
+This is the style used by STL iterators, and it is the style preferred
+by STXXL, another framework which implements pipelining.
 
-- At runtime, it MUST declare the node(s) it pushes to or pulls from by
-  calling the methods \c node::add_push_destination and
-  \c node::add_pull_source.
+In this case, a TPIE pipelining node should implement the two methods
+\c pull() and \c can_pull().
+Again, the framework ensures that it is permitted to call
+\c pull() and \c can_pull() in \c begin() and \c end().
 
-- At runtime, it SHOULD declare a name by calling the method
-  \c node::set_name.
+<img src="pipelining_sequence_pull.png" />
 
-Thus, a \c node implementation of a push node may look as follows:
+Since the framework computes the topological order of the nodes
+of the actor graph (that is, using the actor edges as in the above two figures)
+and the framework requires that the actor graph is acyclic,
+the nodes may call \c push(), \c pull() and \c can_pull() in both \c begin()
+and \c end() even when push and pull nodes are mixed together.
+
+In code, a pipelining node implementation may look like the following.
 
 \code
+namespace tp = tpie::pipelining;
+
 template <typename dest_t>
-class hello_world_type : public tpie::pipelining::node {
-	dest_t dest;
+class hello_world_type : public tp::node {
 public:
-	typedef tpie::memory_size_type item_type;
-
 	hello_world_type(dest_t dest)
-		: dest(dest)
-	{
-		add_push_destination(dest); // dest refers to the parameter
-		                            // dest and not the member
-		                            // this->dest, but in this case
-		                            // the framework does not care
-		set_name("My first pipelining node");
-	}
+		: dest(dest) {}
 
-	void push(const item_type & item) {
+	void push(const size_t & item) {
 		if ((item % 2) == 0) {
 			dest.push(item/2);
 		} else {
 			dest.push(3*item+1);
 		}
 	}
+
+private:
+	dest_t dest;
 };
+
+typedef tp::pipe_begin<tp::factory_0<hello_world_type> > hello_world;
+\endcode
+
+A node implementation may supply the following extra information to the framework
+which is otherwise inferred in the ordinary case.
+
+If the node needs to allocate a buffer in \c begin() which is deallocated in \c end(),
+it can specify the size of this buffer in bytes using a call to \c set_minimum_memory()
+in the constructor or in \c prepare().
+If the node can benefit from a larger buffer, it should set a positive memory priority
+for itself using a call to \c set_memory_fraction().
+If there is a limit to the amount of memory it can use,
+it should declare this limit using \c set_maximum_memory().
+By default, the minimum memory is zero bytes, and the memory priority is zero,
+meaning the node is assigned its minimum memory.
+The default maximum memory is infinity.
+
+If the node has multiple pull sources and/or push destinations,
+these must be specified using \c add_push_destination and \c add_pull_source
+in the constructor.
+
+In \c propagate(), \c begin() and \c end(), the node may access the amount of memory
+assigned to it using \c get_available_memory().
+
+For debugging, each node object has a \em name, which defaults to a pretty
+version of the name provided by \c typeid(*this).name().
+The name can be set by a call to \c set_name() in the constructor.
+
+If the node has multiple overloads of the \c push() method,
+it must declare a primary \c item_type as a public member typedef.
+Otherwise, the framework uses metaprogramming to discover the type accepted
+by \c push().
+
+Here, we restate the above implementation with all the defaults spelled out:
+
+\code
+namespace tp = tpie::pipelining;
+
+template <typename dest_t>
+class hello_world_type : public tp::node {
+public:
+	typedef size_t item_type;
+
+	hello_world_type(dest_t dest)
+		: dest(dest)
+	{
+		// The default name is the class name, capitalized,
+		// with underscores replaced by spaces,
+		// removing a trailing "_type" or "_t".
+		set_name("Hello world");
+
+		// If we have just one push destination or pull source,
+		// this is inferred by the framework if we do not specify any.
+		add_push_destination(dest);
+	}
+
+	virtual void prepare() override {
+		set_minimum_memory((tpie::memory_size_type) 0);
+		//set_maximum_memory((tpie::memory_size_type) infinity);
+		set_memory_fraction((double) 0.0);
+	}
+
+	virtual void propagate() override {
+		// optionally access get_available_memory
+	}
+
+	virtual void begin() override {
+		// allocate buffer of size get_available_memory
+	}
+
+	void push(const size_t & item) {
+		if ((item % 2) == 0) {
+			dest.push(item/2);
+		} else {
+			dest.push(3*item+1);
+		}
+	}
+
+	virtual void end() override {
+		// deallocate buffer
+	}
+
+private:
+	dest_t dest;
+};
+
+typedef tp::pipe_begin<tp::factory_0<hello_world_type> > hello_world;
 \endcode
 
 \section sec_pipe_memory Memory assignment
@@ -110,6 +194,237 @@ such that the sum of assigned memory is equal to the available memory.
 If there is not enough available memory in total to satisfy all minimum memory
 requirements, a warning is printed to the log and memory overusage can be
 expected.
+
+\section sec_pipe_oob Out-of-band data
+
+Sometimes it is useful to pass \em metadata between nodes
+before \c begin() is called.
+For this purpose, the TPIE pipelining framework lets nodes call
+\c can_fetch(), \c fetch() and \c forward()
+in the methods \c prepare() and \c propagate().
+
+Each piece of metadata is identified by a string, and \c can_fetch should be
+called before \c fetch to ensure that the metadata has actually been forwarded.
+
+The method \c fetch takes a required template parameter which is the type of
+data to fetch. Internally, metadata is stored using \c boost::any,
+and the method \c fetch_any fetches metadata just like \c fetch, except it
+returns the \c boost::any object directly without using \c boost::any_cast.
+
+Using \c forward, a node may forward metadata to its successors in the item flow graph.
+That is, metadata is sent from item sources to item sinks; this is the actor
+order in push pipelines, and the reverse actor order in pull pipelines.
+
+The metadata with the identifier \c items should be of type \c tpie::stream_size_type
+and should contain an upper bound on the number of items pushed to the destination.
+This is used among others by the sorter in the pipelining library
+to adjust the sizes of internal buffers.
+
+\section sec_parallel Parallel execution
+
+The pipelining framework provides transparent parallel execution of pipelines.
+For CPU intensive computations in which the function of one item does not
+depend on the previous item such as point projection, one simply wraps the part
+of the pipeline to be parallelized in a call to \c parallel() as such:
+
+\code
+tp::maintain_order_type maintainOrder = tp::arbitrary_order; // or tp::maintain_order
+size_t numJobs = 4;
+size_t bufSize = 1024;
+
+tp::pipeline p =
+input_points()
+| parallel(projection(mat), maintainOrder, numJobs, bufSize)
+| output_points();
+\endcode
+
+The three extra parameters, \c maintainOrder (def. arbitrary_order), \c numJobs
+(def. tpie::default_worker_count) and \c bufSize (def. 64), are optional.
+If \c maintainOrder is set to maintain_order, the
+framework will make sure that the output is produced in the same order as the
+input, which may incur a performance penalty in some cases when the execution
+time varies per item.
+\c numJobs declares the number of worker threads to utilize. It defaults to the
+same number of worker threads as used by e.g. parallel internal sorting.
+\c bufSize is the number of items that are sent to a thread at a time. There is
+an overhead associated to each buffer sent (a couple virtual calls and a thread
+switch), so you should not set this too low. On the other hand, a larger buffer
+increases the memory overhead.
+
+\section sec_phases Pipeline phases
+
+Consider the following implementation of a reverser:
+
+\code
+template <typename dest_t>
+class reverser_type : public tpie::pipelining::node {
+	tpie::stack<point3d> points;
+	dest_t dest;
+public:
+	typedef point3d item_type;
+
+	reverser_type(const dest_t & dest)
+		: dest(dest)
+	{
+		add_push_destination(dest);
+		set_name("Reverser",
+		         tpie::pipelining::PRIORITY_SIGNIFICANT);
+	}
+
+	void push(point3d p) {
+		points.push(p);
+	}
+
+	void end() {
+		// Pushing items in end() is bad!
+		while (!points.empty()) {
+			dest.push(points.pop());
+		}
+	}
+};
+\endcode
+
+This implementation seems innocuous at first, but it is in fact very wasteful.
+Note that the reverser needs to know the entire stream before it can push
+anything to its destination. This means that when all items have been pushed to
+it, we could as well deallocate all the item buffers that earlier nodes
+may have used while processing. As well, we could have waited until the stack
+was ready to push before initializing later nodes in the pipeline.
+
+This is what pipelining phases are for. Phases are collections of nodes
+that do not have to operate synchronously. Nodes may establish an
+ordering of pipelining phases by adding dependencies to nodes in other
+phases.
+
+Common buffering operations that give rise to new phases are sorting and
+reversing, and these are already implemented in the pipelining framework.
+
+For an idea of how to properly implement a buffering node such as a
+reverser using \c node::add_dependency, see
+\c tpie/pipelining/reverser.h.
+
+\section sec_pipe_progress Progress indication
+
+To support automatic progress indication from pipelining,
+at least one node in each phase should supply progress information
+to the framework.
+
+This is done by calling \c set_steps in the node constructor or in
+\c propagate and calling \c step whenever one unit of work has been done.
+
+Progress indication is implemented in the output node of each
+buffering node in the pipelining library
+as well as the input nodes in the pipelining library,
+so if an application uses e.g. sorting in pipelining,
+it will most likely get most of the progress indication for free.
+
+If not, it is usually input nodes that read from disk or some other source
+that know the input size, so input nodes are usually where progress indication
+is implemented.
+
+\section sec_pipe_evac Evacuation
+
+Nodes at phase boundaries that may keep a buffer allocated between phases,
+such as a sorter that may keep some sorted data in memory after sorting
+but before reporting the sorted data,
+should be able to \em evacuate, that is, to store their buffer in external memory
+in order to release held resources.
+
+This is needed for applications in which the phase graph is not just a simple chain;
+this happens for instance in applications that sort the same data
+with two different comparators.
+
+Evacuation is implemented by overriding \c can_evacuate to return true,
+and overriding \c evacuate to actually perform the necessary evacuation.
+
+\section sec_chunks Virtual chunks
+
+So far, all pipelining code we have seen has been heavily templated, and in
+practice, debugging and compiler errors will not be easy on the eyes.
+Also, with the current setup we have seen, it is not easy (if at all possible)
+to distribute node implementations across compiled objects.
+
+However, the pipelining framework supports <em>virtual chunks</em> which
+operate on the same level as, but are orthogonal to, pipeline phases as
+discussed in the previous section.
+
+Whereas phases are computed at runtime and define the runtime order in which
+the node implementations have begin, go and end called, virtual chunks
+exist at compile time and are fused together at runtime.
+
+Let us look at an example of how to use virtual chunks. The following is an
+example of an HTML handler with optional parsing and weeding. If weeding is
+requested (noText or noDynamic is set to true), the input HTML is parsed.
+Otherwise, it is fed directly to the output without parsing.
+The items passed around are html_tokens (representing a context-free HTML
+token; text, start node, end node, attribute, etc.) and tag_paths (representing
+a context-sensitive HTML leaf node; a token as well as the path from the root
+to the token).
+
+\code
+virtual_chunk_begin<html_token> input_pipe;
+
+virtual_chunk<html_token, tag_path> parse_pipe;
+virtual_chunk<tag_path, tag_path> remove_text;
+virtual_chunk<tag_path, tag_path> remove_dynamic;
+
+virtual_chunk_end<tag_path> reassembling_output;
+virtual_chunk_end<html_token> simple_output;
+
+if (!url.empty()) {
+	input_pipe = curl_input(url) // pipe_begin
+	| curl_body_extract()        // pipe_middle
+	| html_scanner();            // pipe_middle
+	// result is boxed into a virtual chunk
+
+} else {
+	input_pipe = default_tag_generator();
+	// pipe_begin boxed into virtual chunk
+}
+
+pipeline p;
+
+if (noText || noDynamic) {
+	parse_pipe = html_parser();
+
+	if (noText)
+		remove_text = html_text_weeder();
+
+	if (noDynamic)
+		remove_dynamic = html_javascript_weeder()
+		| html_css_weeder();
+
+	reassembling_output = html_reassembler();
+
+	p = input_pipe         // virtual_chunk_begin
+	| parse_pipe           // virtual_chunk_middle
+	| remove_text          // optional virtual_chunk_middle
+	| remove_dynamic       // optional virtual_chunk_middle
+	| reassembling_output; // virtual_chunk_end
+} else {
+	simple_output = tag_printer();
+
+	p = input_pipe         // virtual_chunk_begin
+	| simple_output;       // virtual_chunk_end
+}
+
+p(); // invoking the pipeline as without chunks
+\endcode
+
+Usually, supporting virtual chunks requires no additional work on the
+node end, as long as the node is templated to accept any
+node as destination.
+
+In addition to constructing virtual chunks inline from pipe_bases, virtual
+chunks may be returned from a function in an implementation object out into a
+using object. This way, the using object does not have to define the node
+implementations - all it has to know is the type of object passed
+between the virtual chunks.
+
+If the above options were implemented using compile-time switching on template
+parameters, the emitted code size would be eight times as large, corresponding
+to the eight different combinations of choices for noText, noDynamic and
+url.empty().
 
 \section sec_pipelining_factory Factories
 
@@ -216,205 +531,7 @@ together a \c pipe_begin and a \c pipe_middle yields a new \c pipe_begin, and
 piping together a \c pipe_begin and a \c pipe_end yields a pipeline object
 (actually a \c pipeline_impl object).
 
-\section sec_phases Pipeline phases
-
-Consider the following implementation of a reverser:
-
-\code
-template <typename dest_t>
-class reverser_type : public tpie::pipelining::node {
-	tpie::stack<point3d> points;
-	dest_t dest;
-public:
-	typedef point3d item_type;
-
-	reverser_type(const dest_t & dest)
-		: dest(dest)
-	{
-		add_push_destination(dest);
-		set_name("Reverser",
-		         tpie::pipelining::PRIORITY_SIGNIFICANT);
-	}
-
-	void push(point3d p) {
-		points.push(p);
-	}
-
-	void end() {
-		// Pushing items in end() is bad!
-		while (!points.empty()) {
-			dest.push(points.pop());
-		}
-	}
-};
-\endcode
-
-This implementation seems innocuous at first, but it is in fact very wasteful.
-Note that the reverser needs to know the entire stream before it can push
-anything to its destination. This means that when all items have been pushed to
-it, we could as well deallocate all the item buffers that earlier nodes
-may have used while processing. As well, we could have waited until the stack
-was ready to push before initializing later nodes in the pipeline.
-
-This is what pipelining phases are for. Phases are collections of nodes
-that do not have to operate synchronously. Nodes may establish an
-ordering of pipelining phases by adding dependencies to nodes in other
-phases.
-
-Common buffering operations that give rise to new phases are sorting and
-reversing, and these are already implemented in the pipelining framework.
-
-For an idea of how to properly implement a buffering node such as a
-reverser using \c node::add_dependency, see
-\c tpie/pipelining/reverser.h.
-
-\section sec_chunks Virtual chunks
-
-So far, all pipelining code we have seen has been heavily templated, and in
-practice, debugging and compiler errors will not be easy on the eyes.
-Also, with the current setup we have seen, it is not easy (if at all possible)
-to distribute node implementations across compiled objects.
-
-However, the pipelining framework supports <em>virtual chunks</em> which
-operate on the same level as, but are orthogonal to, pipeline phases as
-discussed in the previous section.
-
-Whereas phases are computed at runtime and define the runtime order in which
-the node implementations have begin, go and end called, virtual chunks
-exist at compile time and are fused together at runtime.
-
-Let us look at an example of how to use virtual chunks. The following is an
-example of an HTML handler with optional parsing and weeding. If weeding is
-requested (noText or noDynamic is set to true), the input HTML is parsed.
-Otherwise, it is fed directly to the output without parsing.
-The items passed around are html_tokens (representing a context-free HTML
-token; text, start node, end node, attribute, etc.) and tag_paths (representing
-a context-sensitive HTML leaf node; a token as well as the path from the root
-to the token).
-
-\code
-virtual_chunk_begin<html_token> input_pipe;
-
-virtual_chunk<html_token, tag_path> parse_pipe;
-virtual_chunk<tag_path, tag_path> remove_text;
-virtual_chunk<tag_path, tag_path> remove_dynamic;
-
-virtual_chunk_end<tag_path> reassembling_output;
-virtual_chunk_end<html_token> simple_output;
-
-if (!url.empty()) {
-	input_pipe = curl_input(url) // pipe_begin
-	| curl_body_extract()        // pipe_middle
-	| html_scanner();            // pipe_middle
-	// result is boxed into a virtual chunk
-
-} else {
-	input_pipe = default_tag_generator();
-	// pipe_begin boxed into virtual chunk
-}
-
-pipeline p;
-
-if (noText || noDynamic) {
-	parse_pipe = html_parser();
-
-	if (noText)
-		remove_text = html_text_weeder();
-
-	if (noDynamic)
-		remove_dynamic = html_javascript_weeder()
-		| html_css_weeder();
-
-	reassembling_output = html_reassembler();
-
-	p = input_pipe         // virtual_chunk_begin
-	| parse_pipe           // virtual_chunk_middle
-	| remove_text          // optional virtual_chunk_middle
-	| remove_dynamic       // optional virtual_chunk_middle
-	| reassembling_output; // virtual_chunk_end
-} else {
-	simple_output = tag_printer();
-
-	p = input_pipe         // virtual_chunk_begin
-	| simple_output;       // virtual_chunk_end
-}
-
-p(); // invoking the pipeline as without chunks
-\endcode
-
-Usually, supporting virtual chunks requires no additional work on the
-node end, as long as the node is templated to accept any
-node as destination.
-
-In addition to constructing virtual chunks inline from pipe_bases, virtual
-chunks may be returned from a function in an implementation object out into a
-using object. This way, the using object does not have to define the node
-implementations - all it has to know is the type of object passed
-between the virtual chunks.
-
-If the above options were implemented using compile-time switching on template
-parameters, the emitted code size would be eight times as large, corresponding
-to the eight different combinations of choices for noText, noDynamic and
-url.empty().
-
-\section sec_noninitiator Order of operations
-
-The following virtual methods may be overridden in the implementation:
-
-   - \c prepare
-   - \c begin
-   - \c end
-   - \c evacuate (in which case \c can_evacuate should be overridden to return true)
-   - \c set_available_memory
-
-.
-
-1. The \c node is constructed, and \c prepare() is called. The
-   constructor should call any of the following node protected methods
-   as appropriate:
-
-   - \c set_name
-   - \c add_push_destination
-   - \c add_pull_source
-   - \c add_dependency
-
-   Furthermore, the constructor and/or \c prepare() may call the following:
-   - \c set_memory_fraction
-   - \c set_minimum_memory
-   - \c fetch
-   - \c forward
-
-2. Virtual method \c set_available_memory is called. If overridden, the overriding
-   implementation must call \c node::set_available_memory with the same
-   argument.
-
-3. \c begin() is called on all nodes in the current phase in topological
-   order of the item flow graph, beginning with the initiator node.
-   At this point, the implementation may <tt>fetch<>()</tt> auxiliary data from its
-   predecessors and \c forward() auxiliary data to its successors.
-   The default implementation of \c begin() is empty, so it is not necessary to
-   perform a super call.
-   If the node does not push as many items as are pushed into it, it should
-   check using \c can_fetch() whether <tt>"items"</tt> has been forwarded.
-   <tt>"items"</tt> is a stream_size_type, and the node should forward
-   the expected number of items being pushed to the destination.
-   If the implementation wants to report progress information, it should call
-   \c set_steps() in begin.
-
-4. Either \c push() or \c pull() is called any number of times.
-
-5. \c end() is called on all nodes in the current phase in topological
-   order of the actor graph, such that it is permitted to call \c push
-   and \c pull in \c end().
-   The default implementation of \c end() does nothing, so there is no
-   reason to perform a super call.
-
-6. If \c can_evacuate() is overridden to return true, and evacuation is
-   necessary, \c evacuate() is called, in which case the node should
-   deallocate all internal buffers shared between this node and a depending
-   node.
-
-\subsection sec_method_matrix Method matrix
+\section sec_method_matrix Method matrix
 
 Each row in the following matrix has a method called by the framework on the
 left, and a checkmark in the row for each method an implementation may call.
@@ -443,8 +560,6 @@ Note that the push, can_pull and pull contracts are those obeyed by the
 pipelining node implementations in the library; the core framework itself does
 not enforce these requirements.
 
-<img src="pipelining_sequence.png" />
-
 \section sec_initiators Initiator nodes
 
 You will rarely need to implement initiators. For an initiator, instead of
@@ -463,36 +578,6 @@ Common faults in node implementations include
 - Non-public inheritance of the \c node base class. This usually leads to an
   error that <tt>tpie::pipelining::bits::node_map::ptr
   tpie::pipelining::node::get_node_map() const</tt> is inaccessible.
-
-\section sec_parallel Parallel execution
-
-The pipelining framework provides transparent parallel execution of pipelines.
-For CPU intensive computations in which the function of one item does not
-depend on the previous item such as point projection, one simply wraps the part of the pipeline to be parallelized in a call to \c parallel() as such:
-
-\code
-maintain_order_type maintainOrder = arbitrary_order; // or maintain_order
-size_t numJobs = 4;
-size_t bufSize = 1024;
-
-pipeline p =
-input_points()
-| parallel(projection(mat), maintainOrder, numJobs, bufSize)
-| output_points();
-\endcode
-
-The three extra parameters, \c maintainOrder (def. arbitrary_order), \c numJobs
-(def. tpie::default_worker_count) and \c bufSize (def. 64), are optional.
-If \c maintainOrder is set to maintain_order, the
-framework will make sure that the output is produced in the same order as the
-input, which may incur a performance penalty in some cases when the execution
-time varies per item.
-\c numJobs declares the number of worker threads to utilize. It defaults to the
-same number of worker threads as used by e.g. parallel internal sorting.
-\c bufSize is the number of items that are sent to a thread at a time. There is
-an overhead associated to each buffer sent (a couple virtual calls and a thread
-switch), so you should not set this too low. On the other hand, a larger buffer
-increases the memory overhead.
 
 \section sec_library Pipelining library
 
