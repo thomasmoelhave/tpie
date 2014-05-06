@@ -563,8 +563,12 @@ void runtime::prepare_all(const std::vector<graph<node *> > & itemFlow) {
 }
 
 void runtime::evacuate_all(const std::vector<node *> & phase) {
-	for (size_t i = 0; i < phase.size(); ++i)
-		if (phase[i]->can_evacuate()) phase[i]->evacuate(), std::cout << "\nEvacuated node " << phase[i]->get_id() << std::endl;
+	for (size_t i = 0; i < phase.size(); ++i) {
+		if (phase[i]->can_evacuate()) {
+			phase[i]->evacuate();
+			tpie::log_debug() << "Evacuated node " << phase[i]->get_id() << std::endl;
+		}
+	}
 }
 
 void runtime::propagate_all(const graph<node *> & itemFlow) {
