@@ -68,7 +68,7 @@ Mailing lists
 
 TPIE development is driven in part by two public mailing lists.
 
-* [tpie-devel](http://mailman.nfit.au.dk/mailman/listinfo/madalgo.au.dk-tpie-devel)
+* [tpie-devel](https://maillist.au.dk/mailman/listinfo/tpie-devel.madalgo)
   for development discussions and announcements
-* [tpie-commits](http://mailman.nfit.au.dk/mailman/listinfo/madalgo.au.dk-tpie-commits)
+* [tpie-commits](https://maillist.au.dk/mailman/listinfo/tpie-commits.madalgo)
   for notifications when commits are pushed to GitHub
