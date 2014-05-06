@@ -567,18 +567,6 @@ You will rarely need to implement initiators. For an initiator, instead of
 go() should forward() a piece of stream_size_type data named "items" indicating
 the expected number of items being pushed.
 
-\section sec_troubleshooting Implementation troubleshooting
-
-Common faults in node implementations include
-
-- Missing \c add_push_destination/add_pull_source/add_dependency. If
-  \c pipeline::plot does not yield a graph containing all the nodes you expect,
-  this is probably the problem.
-
-- Non-public inheritance of the \c node base class. This usually leads to an
-  error that <tt>tpie::pipelining::bits::node_map::ptr
-  tpie::pipelining::node::get_node_map() const</tt> is inaccessible.
-
 \section sec_library Pipelining library
 
 The pipelining framework comes with a library of node implementations.
