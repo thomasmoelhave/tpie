@@ -296,12 +296,91 @@ that do not have to operate synchronously. Nodes may establish an
 ordering of pipelining phases by adding dependencies to nodes in other
 phases.
 
+A buffering node is split into an in-going and out-going node and a dependency
+is added between the two. This makes the buffering node act as a phase-boundary.
+Consider the following example of a node that reverses the input:
+\code
+class reverser_input_type: public tpie::pipelining::node {
+public:
+	typedef int item_type;
+
+	reverser_input_type(const tpie::pipelining::node_token & token, tpie::stack<int> * stack)
+		: node(token)
+		, stack(stack)
+	{
+		set_name("Reverse items");
+	}
+
+	void push(item_type t) {
+		stack->push(t);
+	}
+
+private:
+	tpie::stack<int> * stack;
+};
+
+template <typename dest_type>
+class reverser_output_type: public tpie::pipelining::node {
+public:
+	typedef int item_type;
+
+	reverser_output_type(const dest_type & dest, const tpie::pipelining::node_token & input_token, tpie::stack<int> * stack)
+		: dest(dest)
+		, stack(stack)
+	{
+		add_dependency(input_token);
+		add_push_destination(dest);
+		set_name("Items reversed");
+	}
+
+	virtual void go() override {
+		while(!stack->empty()) {
+			dest.push(stack->pop());
+		}
+	}
+
+	void end() {
+		delete stack;
+	}
+private:
+	dest_type dest;
+	tpie::stack<int> * stack;
+};
+
+template <typename dest_type>
+class reverser_type: public tpie::pipelining::node {
+public:
+	typedef int item_type;
+	typedef reverser_input_type input_type;
+	typedef reverser_output_type<dest_type> output_type;
+
+	reverser_type(const dest_type & dest)
+		: input_token()
+		, stack(new tpie::stack<int>())
+		, input(input_token, stack)
+		, output(dest, input_token, stack)
+	{
+		add_push_destination(input);
+		set_name("Reverser");
+	}
+
+	void push(item_type item) {
+		input.push(item);
+	}
+
+	tpie::pipelining::node_token input_token;
+	tpie::stack<int> * stack;
+	input_type input;
+	output_type output;
+};
+\endcode
+
 Common buffering operations that give rise to new phases are sorting and
 reversing, and these are already implemented in the pipelining framework.
 
-For an idea of how to properly implement a buffering node such as a
+For an idea of how to fully implement a generic buffering node such as a
 reverser using \c node::add_dependency, see
-\c tpie/pipelining/reverser.h.
+\c tpie/pipelining/reverse.h.
 
 \section sec_pipe_progress Progress indication
 
