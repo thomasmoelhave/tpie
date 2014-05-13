@@ -301,7 +301,7 @@ reversing, and these are already implemented in the pipelining framework.
 
 For an idea of how to properly implement a buffering node such as a
 reverser using \c node::add_dependency, see
-\c tpie/pipelining/reverser.h.
+\c tpie/pipelining/reverse.h.
 
 \section sec_pipe_progress Progress indication
 
