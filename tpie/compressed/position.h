@@ -94,6 +94,10 @@ public:
 	bool operator<(const stream_position & other) const {
 		return m_offset < other.m_offset;
 	}
+
+	inline friend std::ostream& operator<<(std::ostream& s, const stream_position& p) {
+	return s << "(" << p.read_offset() << "," << p.offset() << ")";
+	}
 };
 
 } // namespace tpie
