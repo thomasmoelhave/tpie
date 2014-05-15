@@ -57,7 +57,7 @@ field_names = [line.split()[1].rstrip(';') for line in """
         """.strip().splitlines()]
 
 # Everything is a uint64_t, so use Q for all fields
-stream_header = struct.Struct('=' + 'Q' * len(field_names))
+stream_header = struct.Struct('=' + 'q' * len(field_names))
 
 def read(file_name, output_file):
     """Read the TPIE stream in `file_name` (str),
