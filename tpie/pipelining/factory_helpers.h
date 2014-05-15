@@ -224,7 +224,9 @@ using termfactory_6 = termfactory<R, T1, T2, T3, T4, T5, T6>;
 
 #else
 
+#ifndef DOXYGEN
 #include <tpie/pipelining/factory_helpers.inl>
+#endif
 
 #endif
 
