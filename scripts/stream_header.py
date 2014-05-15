@@ -88,8 +88,9 @@ def write(file_name, input_file):
 def main(mode, file_name):
     if mode == 'read':
         read(file_name, sys.stdout)
-        sys.stderr.write("Dumped header data. Edit it and \n"
-                "use the 'write' command to overwrite the stream header.\n")
+        sys.stderr.write(
+                "Dumped header data. Edit it and use the 'write' command "
+                "to overwrite the stream header.\n")
     elif mode == 'write':
         write(file_name, sys.stdin)
     elif mode == 'edit':
