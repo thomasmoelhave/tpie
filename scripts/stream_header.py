@@ -103,7 +103,7 @@ def main(mode, file_name):
                     'defaulting to %r\n' % editor)
             sys.stderr.flush()
 
-        with tempfile.NamedTemporaryFile(suffix=".json") as tf:
+        with tempfile.NamedTemporaryFile(mode='w+', suffix=".json") as tf:
             read(file_name, tf)
             tf.seek(0)
             orig = tf.read()
