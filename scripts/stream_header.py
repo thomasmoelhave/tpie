@@ -65,7 +65,7 @@ def read(file_name, output_file):
     with open(file_name, 'rb') as stream:
         values = stream_header.unpack_from(stream.read(stream_header.size))
     header_data = dict(zip(field_names, values))
-    json.dump(header_data, output_file, indent=2)
+    json.dump(header_data, output_file, indent=0, sort_keys=True, separators=(',', ': '))
     output_file.write('\n')
     output_file.flush()
 
