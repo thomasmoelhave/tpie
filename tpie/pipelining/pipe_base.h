@@ -157,7 +157,7 @@ public:
 	/// compiler) or a bunch of overloads to support a variable number of
 	/// constructor parameters.
 	///
-	/// \tparm Args the variadic number of types of constructor parameters.
+	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
@@ -202,7 +202,7 @@ public:
 	/// compiler) or a bunch of overloads to support a variable number of
 	/// constructor parameters.
 	///
-	/// \tparm Args the variadic number of types of constructor parameters.
+	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
@@ -260,7 +260,7 @@ public:
 	/// compiler) or a bunch of overloads to support a variable number of
 	/// constructor parameters.
 	///
-	/// \tparm Args the variadic number of types of constructor parameters.
+	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
@@ -311,7 +311,7 @@ public:
 	/// compiler) or a bunch of overloads to support a variable number of
 	/// constructor parameters.
 	///
-	/// \tparm Args the variadic number of types of constructor parameters.
+	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
@@ -348,7 +348,7 @@ public:
 	/// compiler) or a bunch of overloads to support a variable number of
 	/// constructor parameters.
 	///
-	/// \tparm Args the variadic number of types of constructor parameters.
+	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
@@ -401,7 +401,7 @@ public:
 	/// compiler) or a bunch of overloads to support a variable number of
 	/// constructor parameters.
 	///
-	/// \tparm Args the variadic number of types of constructor parameters.
+	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
