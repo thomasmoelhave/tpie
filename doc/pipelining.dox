@@ -327,15 +327,13 @@ Consider the following example of a node that reverses the input:
 \code
 class reverser_input_type: public tpie::pipelining::node {
 public:
-	typedef int item_type;
-
 	reverser_input_type(const tpie::pipelining::node_token & token, tpie::stack<int> * stack)
 		: node(token)
 		, stack(stack)
 	{
 	}
 
-	void push(item_type t) {
+	void push(int t) {
 		stack->push(t);
 	}
 
@@ -346,8 +344,6 @@ private:
 template <typename dest_type>
 class reverser_output_type: public tpie::pipelining::node {
 public:
-	typedef int item_type;
-
 	reverser_output_type(const dest_type & dest, const tpie::pipelining::node_token & input_token, tpie::stack<int> * stack)
 		: dest(dest)
 		, stack(stack)
@@ -373,7 +369,6 @@ private:
 template <typename dest_type>
 class reverser_type: public tpie::pipelining::node {
 public:
-	typedef int item_type;
 	typedef reverser_input_type input_type;
 	typedef reverser_output_type<dest_type> output_type;
 
@@ -386,7 +381,7 @@ public:
 		add_push_destination(input);
 	}
 
-	void push(item_type item) {
+	void push(int item) {
 		input.push(item);
 	}
 
