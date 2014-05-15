@@ -124,6 +124,7 @@ def main(mode, file_name):
 
 if __name__ == '__main__':
     try:
-        main(*sys.argv[1:])
-    except TypeError:
+        mode, file_name = sys.argv[1:]
+    except ValueError:
         raise SystemExit(usage)
+    main(*sys.argv[1:])
