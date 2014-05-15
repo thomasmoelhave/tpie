@@ -95,6 +95,31 @@ typedef tp::pipe_begin<tp::factory_0<hello_world_type> > hello_world;
 A node implementation may supply the following extra information to the framework
 which is otherwise inferred in the ordinary case.
 
+<table>
+<tr>
+<th colspan="6" align="center">\ref tpie::pipelining::node_parameters</th>
+</tr>
+<tr>
+<td colspan="3" align="center">Memory</td>
+<td colspan="2" align="center">Name</td>
+<td colspan="1" align="center">Progress</td>
+</tr>
+<tr>
+<td align="left">Minimum
+\c memory_size_type</td>
+<td align="left">Maximum
+\c memory_size_type</td>
+<td align="left">Priority
+\c double</td>
+<td align="left">Name
+\c std::string</td>
+<td align="left">Priority
+\c int</td>
+<td align="left">Total steps
+\c stream_size_type</td>
+</tr>
+</table>
+
 If the node needs to allocate a buffer in \c begin() which is deallocated in \c end(),
 it can specify the size of this buffer in bytes using a call to \c set_minimum_memory()
 in the constructor or in \c prepare().
