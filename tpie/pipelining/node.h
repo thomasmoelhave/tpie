@@ -51,6 +51,27 @@ public:
 
 } // namespace bits
 
+struct node_parameters {
+	node_parameters()
+		: minimumMemory(0)
+		, maximumMemory(std::numeric_limits<memory_size_type>::max())
+		, memoryFraction(0.0)
+		, name()
+		, namePriority(PRIORITY_NO_NAME)
+		, stepsTotal(0)
+	{
+	}
+
+	memory_size_type minimumMemory;
+	memory_size_type maximumMemory;
+	double memoryFraction;
+
+	std::string name;
+	priority_type namePriority;
+
+	stream_size_type stepsTotal;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all nodes. A node should inherit from the node class,
 /// have a single template parameter dest_t if it is not a terminus node,
@@ -92,7 +113,7 @@ public:
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_minimum_memory() const {
-		return m_minimumMemory;
+		return m_parameters.minimumMemory;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -100,7 +121,7 @@ public:
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_maximum_memory() const {
-		return m_maximumMemory;
+		return m_parameters.maximumMemory;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -115,14 +136,14 @@ public:
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_memory_fraction(double f) {
-		m_memoryFraction = f;
+		m_parameters.memoryFraction = f;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the memory priority of this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline double get_memory_fraction() const {
-		return m_memoryFraction;
+		return m_parameters.memoryFraction;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -226,7 +247,7 @@ public:
 	/// pipeline debugging and phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline priority_type get_name_priority() {
-		return m_namePriority;
+		return m_parameters.namePriority;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -234,10 +255,10 @@ public:
 	/// phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline const std::string & get_name() {
-		if (m_name.empty()) {
-			m_name = bits::extract_pipe_name(typeid(*this).name());
+		if (m_parameters.name.empty()) {
+			m_parameters.name = bits::extract_pipe_name(typeid(*this).name());
 		}
-		return m_name;
+		return m_parameters.name;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -245,15 +266,15 @@ public:
 	/// phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_name(const std::string & name, priority_type priority = PRIORITY_USER) {
-		m_name = name;
-		m_namePriority = priority;
+		m_parameters.name = name;
+		m_parameters.namePriority = priority;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally when a pair_factory has a name set.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_breadcrumb(const std::string & breadcrumb) {
-		m_name = m_name.empty() ? breadcrumb : (breadcrumb + " | " + m_name);
+		m_parameters.name = m_parameters.name.empty() ? breadcrumb : (breadcrumb + " | " + m_parameters.name);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -261,7 +282,7 @@ public:
 	/// the node expects to call step() at most.
 	///////////////////////////////////////////////////////////////////////////
 	inline stream_size_type get_steps() {
-		return m_stepsTotal;
+		return m_parameters.stepsTotal;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -313,12 +334,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	inline node()
 		: token(this)
-		, m_minimumMemory(0)
-		, m_maximumMemory(std::numeric_limits<memory_size_type>::max())
 		, m_availableMemory(0)
-		, m_memoryFraction(0.0)
-		, m_namePriority(PRIORITY_NO_NAME)
-		, m_stepsTotal(0)
 		, m_stepsLeft(0)
 		, m_pi(0)
 		, m_state(STATE_FRESH)
@@ -332,13 +348,8 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	inline node(const node & other)
 		: token(other.token, this)
-		, m_minimumMemory(other.m_minimumMemory)
-		, m_maximumMemory(other.m_maximumMemory)
+		, m_parameters(other.m_parameters)
 		, m_availableMemory(other.m_availableMemory)
-		, m_memoryFraction(other.m_memoryFraction)
-		, m_name(other.m_name)
-		, m_namePriority(other.m_namePriority)
-		, m_stepsTotal(other.m_stepsTotal)
 		, m_stepsLeft(other.m_stepsLeft)
 		, m_pi(other.m_pi)
 		, m_state(other.m_state)
@@ -356,13 +367,8 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	node(node && other)
 		: token(std::move(other.token), this)
-		, m_minimumMemory(std::move(other.m_minimumMemory))
-		, m_maximumMemory(std::move(other.m_maximumMemory))
+		, m_parameters(std::move(other.m_parameters))
 		, m_availableMemory(std::move(other.m_availableMemory))
-		, m_memoryFraction(std::move(other.m_memoryFraction))
-		, m_name(std::move(other.m_name))
-		, m_namePriority(std::move(other.m_namePriority))
-		, m_stepsTotal(std::move(other.m_stepsTotal))
 		, m_stepsLeft(std::move(other.m_stepsLeft))
 		, m_pi(std::move(other.m_pi))
 		, m_state(std::move(other.m_state))
@@ -379,12 +385,8 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	inline node(const node_token & token)
 		: token(token, this, true)
-		, m_minimumMemory(0)
-		, m_maximumMemory(std::numeric_limits<memory_size_type>::max())
+		, m_parameters()
 		, m_availableMemory(0)
-		, m_memoryFraction(0.0)
-		, m_namePriority(PRIORITY_NO_NAME)
-		, m_stepsTotal(0)
 		, m_stepsLeft(0)
 		, m_pi(0)
 		, m_state(STATE_FRESH)
@@ -457,7 +459,7 @@ protected:
 		if (get_state() != STATE_FRESH && get_state() != STATE_IN_PREPARE) {
 			throw call_order_exception("set_minimum_memory");
 		}
-		m_minimumMemory = minimumMemory;
+		m_parameters.minimumMemory = minimumMemory;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -470,7 +472,7 @@ protected:
 		if (get_state() != STATE_FRESH && get_state() != STATE_IN_PREPARE) {
 			throw call_order_exception("set_maximum_memory");
 		}
-		m_maximumMemory = maximumMemory;
+		m_parameters.maximumMemory = maximumMemory;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -621,7 +623,7 @@ public:
 				log_error() << "set_steps in unknown state " << get_state() << std::endl;
 				throw call_order_exception("set_steps");
 		}
-		m_stepsTotal = m_stepsLeft = steps;
+		m_parameters.stepsTotal = m_stepsLeft = steps;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -631,10 +633,10 @@ public:
 	void step(stream_size_type steps = 1) {
 		assert(get_state() == STATE_IN_END || get_state() == STATE_AFTER_BEGIN || get_state() == STATE_IN_END);
 		if (m_stepsLeft < steps) {
-			if (m_stepsTotal != std::numeric_limits<stream_size_type>::max()) {
-				log_warning() << typeid(*this).name() << " ==== Too many steps " << m_stepsTotal << std::endl;
+			if (m_parameters.stepsTotal != std::numeric_limits<stream_size_type>::max()) {
+				log_warning() << typeid(*this).name() << " ==== Too many steps " << m_parameters.stepsTotal << std::endl;
 				m_stepsLeft = 0;
-				m_stepsTotal = std::numeric_limits<stream_size_type>::max();
+				m_parameters.stepsTotal = std::numeric_limits<stream_size_type>::max();
 			}
 		} else {
 			m_stepsLeft -= steps;
@@ -681,18 +683,12 @@ public:
 private:
 	node_token token;
 
-	memory_size_type m_minimumMemory;
-	memory_size_type m_maximumMemory;
+	node_parameters m_parameters;
 	memory_size_type m_availableMemory;
-	double m_memoryFraction;
-
-	std::string m_name;
-	priority_type m_namePriority;
 
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 
-	stream_size_type m_stepsTotal;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
@@ -707,8 +703,8 @@ namespace bits {
 void proxy_progress_indicator::refresh() {
 	double proxyMax = static_cast<double>(get_range());
 	double proxyCur = static_cast<double>(get_current());
-	double parentMax = static_cast<double>(m_node.m_stepsTotal);
-	double parentCur = static_cast<double>(m_node.m_stepsTotal-m_node.m_stepsLeft);
+	double parentMax = static_cast<double>(m_node.m_parameters.stepsTotal);
+	double parentCur = static_cast<double>(m_node.m_parameters.stepsTotal-m_node.m_stepsLeft);
 	double missing = parentMax*proxyCur/proxyMax - parentCur;
 	if (missing < 1.0) return;
 	stream_size_type times = static_cast<stream_size_type>(1.0+missing);
