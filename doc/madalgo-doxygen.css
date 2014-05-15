@@ -1545,6 +1545,8 @@ body {
 	background-color: #DDEEFF;
 }
 
+th a.el { color: white; }
+
 /* Ew, tables! Let's fix that with a bit of CSS. */
 .memname * { display: inline !important; }
 .memname { white-space: normal; }
