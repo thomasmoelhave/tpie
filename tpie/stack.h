@@ -56,7 +56,7 @@ public:
     /// \brief Initialize named, nontemporary stack.
     ///
     /// \param  path    The path to a file used for storing the items.
-    /// \param  block_factor  The block factor to use
+    /// \param  blockFactor  The block factor to use
     ////////////////////////////////////////////////////////////////////
 	stack(const std::string & path, double blockFactor=1.0)
 		: m_stream(blockFactor)
@@ -73,7 +73,7 @@ public:
     /// \brief Initialize temporary stack.
     ///
     /// \param  tempFile  The temporary file containing the stack
-    /// \param  block_factor  The block factor to use
+    /// \param  blockFactor  The block factor to use
     ////////////////////////////////////////////////////////////////////
 	stack(temp_file & tempFile, double blockFactor=1.0)
 		: m_stream(blockFactor)

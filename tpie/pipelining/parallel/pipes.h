@@ -56,9 +56,6 @@ parallel(const pipe_middle<fact_t> & fact, maintain_order_type maintainOrder, si
 /// reported by tpie::default_worker_count.
 /// \param maintainOrder  Whether to make sure that items are processed and
 /// output in the order they are input.
-/// \param numJobs  The number of threads to utilize for parallel execution.
-/// \param bufSize  The number of items to store in the buffer sent between
-/// threads.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 pipe_middle<parallel_bits::factory<fact_t> >
