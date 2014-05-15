@@ -57,7 +57,7 @@ field_names = [line.split()[1].rstrip(';') for line in """
         """.strip().splitlines()]
 
 # Everything is a uint64_t, so use Q for all fields
-stream_header = struct.Struct('=' + 'Q' * len(field_names))
+stream_header = struct.Struct('=' + 'q' * len(field_names))
 
 def read(file_name, output_file):
     """Read the TPIE stream in `file_name` (str),
@@ -65,7 +65,7 @@ def read(file_name, output_file):
     with open(file_name, 'rb') as stream:
         values = stream_header.unpack_from(stream.read(stream_header.size))
     header_data = dict(zip(field_names, values))
-    json.dump(header_data, output_file, indent=2)
+    json.dump(header_data, output_file, indent=0, sort_keys=True, separators=(',', ': '))
     output_file.write('\n')
     output_file.flush()
 
@@ -88,8 +88,9 @@ def write(file_name, input_file):
 def main(mode, file_name):
     if mode == 'read':
         read(file_name, sys.stdout)
-        sys.stderr.write("Dumped header data. Edit it and \n"
-                "use the 'write' command to overwrite the stream header.\n")
+        sys.stderr.write(
+                "Dumped header data. Edit it and use the 'write' command "
+                "to overwrite the stream header.\n")
     elif mode == 'write':
         write(file_name, sys.stdin)
     elif mode == 'edit':
@@ -102,7 +103,7 @@ def main(mode, file_name):
                     'defaulting to %r\n' % editor)
             sys.stderr.flush()
 
-        with tempfile.NamedTemporaryFile(suffix=".json") as tf:
+        with tempfile.NamedTemporaryFile(mode='w+', suffix=".json") as tf:
             read(file_name, tf)
             tf.seek(0)
             orig = tf.read()
@@ -123,6 +124,7 @@ def main(mode, file_name):
 
 if __name__ == '__main__':
     try:
-        main(*sys.argv[1:])
-    except TypeError:
+        mode, file_name = sys.argv[1:]
+    except ValueError:
         raise SystemExit(usage)
+    main(*sys.argv[1:])
