@@ -166,10 +166,18 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used by pipe_base classes to set a default actor edge
+	/// for ordinary push/pull nodes.
+	///////////////////////////////////////////////////////////////////////////
 	void add_default_edge(node & r, const node & dest) const {
 		add_default_edge(r, dest.get_token());
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used by pipe_base classes to set a default actor edge
+	/// for ordinary push/pull nodes.
+	///////////////////////////////////////////////////////////////////////////
 	void add_default_edge(node & r, const node_token & dest) const {
 		if (r.get_node_map()->find_authority()->out_degree(r.get_id()) > 0) return;
 		switch (m_destinationKind) {
@@ -207,14 +215,16 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief
+	/// \brief  Used by pipe_base classes to indicate that the default
+	/// actor edge is a push edge.
 	///////////////////////////////////////////////////////////////////////////
 	void set_destination_kind_push() {
 		m_destinationKind = destination_kind::push;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief
+	/// \brief  Used by pipe_base classes to indicate that the default
+	/// actor edge is a pull edge.
 	///////////////////////////////////////////////////////////////////////////
 	void set_destination_kind_pull() {
 		m_destinationKind = destination_kind::pull;
