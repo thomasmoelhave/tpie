@@ -13,10 +13,6 @@ if(NOT WIN32)
 	add_definitions("-Wall -Wextra")
 endif(NOT WIN32)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	add_definitions("-Wno-c++11-extensions")
-endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-
 if(WIN32)
 	add_definitions("-DWIN32_LEAN_AND_MEAN")
 endif(WIN32)
