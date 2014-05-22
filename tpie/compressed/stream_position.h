@@ -69,10 +69,12 @@ private:
 		return m_readOffset;
 	}
 
+public:
 	stream_size_type offset() const {
 		return m_offset;
 	}
 
+private:
 	void advance_items(memory_size_type offset) {
 		m_offset += offset;
 	}
