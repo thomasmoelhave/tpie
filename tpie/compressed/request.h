@@ -449,8 +449,11 @@ private:
 
 	compressor_request_kind::type m_kind;
 
-	// XXX this should be aligned!
-	char m_payload[sizeof(read_request) < sizeof(write_request) ? sizeof(write_request) : sizeof(read_request)];
+	enum {
+		payload_bytes = sizeof(read_request) < sizeof(write_request) ? sizeof(write_request) : sizeof(read_request),
+		payload_items = (payload_bytes + sizeof(size_t) - 1) / sizeof(size_t)
+	};
+	size_t m_payload[payload_items];
 };
 
 } // namespace tpie
