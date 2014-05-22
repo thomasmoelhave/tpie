@@ -1497,9 +1497,7 @@ bool virtual_cref_item_type_test() {
 	return t1 + t2 + t3 + t4 + t5 > 0;
 }
 
-class nocopy_tag;
-
-static const nocopy_tag & nocopy = *static_cast<const nocopy_tag *>(0);
+enum nocopy_tag { nocopy };
 
 class node_map_tester : public node {
 	friend class node_map_tester_factory;
@@ -1518,7 +1516,7 @@ public:
 			dest.reset(new node_map_tester(*copy.dest));
 	}
 
-	node_map_tester(node_map_tester & copy, const nocopy_tag &)
+	node_map_tester(node_map_tester & copy, nocopy_tag)
 		: dest(new node_map_tester(copy))
 	{
 		set_name("Node map tester non-leaf");
