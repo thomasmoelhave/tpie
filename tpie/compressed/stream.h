@@ -742,6 +742,11 @@ public:
 		}
 		*/
 
+		if (pos == stream_position::end()) {
+			seek(0, end);
+			return;
+		}
+
 		if (!use_compression() && pos.read_offset() != 0)
 			throw stream_exception("set_position: Invalid position, read_offset != 0");
 
