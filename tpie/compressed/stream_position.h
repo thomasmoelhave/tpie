@@ -94,7 +94,9 @@ public:
 	}
 
 	bool operator<(const stream_position & other) const {
-		return m_offset < other.m_offset;
+		return (m_offset != other.m_offset)
+			? (m_offset < other.m_offset)
+			: (m_readOffset < other.m_readOffset);
 	}
 
 	friend std::ostream & operator<<(std::ostream & s, const stream_position & p) {
