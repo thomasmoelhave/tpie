@@ -45,7 +45,7 @@ public:
 		: node(token)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
-		set_minimum_memory(this->m_stack->memory_usage());
+		set_minimum_memory(stack<item_type>::memory_usage());
 	}
 
 	virtual void propagate() override {
@@ -181,7 +181,7 @@ public:
 	reverser_pull_output_t(const node_token & input_token) {
 		add_dependency(input_token);
 		set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
-		set_minimum_memory(this->m_stack->memory_usage());
+		set_minimum_memory(stack<item_type>::memory_usage());
 	}
 
 	virtual void propagate() override {
