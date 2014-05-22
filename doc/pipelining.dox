@@ -689,7 +689,7 @@ For the active reverser, simply use \c reverser().
 
 \subsection ssec_sorter Sorter
 
-Like the buffer and the reverser, there is an active sorter, \c pipesort(), and
+Like the buffer and the reverser, there is an active sorter, \c sort(), and
 a passive sorter with \c passive_sorter::input() and
 \c passive_sorter::output().
 Both accept an optional less-than-predicate that defaults to \c std::less.
