@@ -181,7 +181,8 @@ public:
 
 	template <typename T>
 	T fetch(std::string key) {
-		return boost::any_cast<T>(fetch_any(key));
+		boost::any a = fetch_any(key);
+		return *boost::any_cast<T>(&a);
 	}
 
 	void forward_any(std::string key, const boost::any & value) {
