@@ -28,6 +28,8 @@ file_base_crtp<child_t>::file_base_crtp(
 	file_accessor::file_accessor * fileAccessor) {
 	m_size = 0;
 	m_itemSize = itemSize;
+	m_canRead = false;
+	m_canWrite = false;
 	m_open = false;
 	if (fileAccessor == 0)
 		fileAccessor = new default_file_accessor();

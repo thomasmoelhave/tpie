@@ -33,6 +33,7 @@ file_stream_base::file_stream_base(memory_size_type itemSize,
 	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 	m_index = std::numeric_limits<memory_size_type>::max();
 	m_block.data = 0;
+	m_block.dirty = false;
 }
 
 void file_stream_base::get_block(stream_size_type block) {
