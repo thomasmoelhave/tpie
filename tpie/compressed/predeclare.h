@@ -45,7 +45,7 @@ class compressor_request;
 class compressed_stream_base;
 template <typename T> class file_stream;
 
-// position.h
+// stream_position.h
 class stream_position;
 
 } // namespace tpie

@@ -17,11 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef TPIE_COMPRESSED_POSITION_H
-#define TPIE_COMPRESSED_POSITION_H
+#ifndef TPIE_COMPRESSED_STREAM_POSITION_H
+#define TPIE_COMPRESSED_STREAM_POSITION_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file compressed/position.h  Stream position indicator.
+/// \file compressed/stream_position.h  Stream position indicator.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/compressed/predeclare.h>
@@ -102,4 +102,4 @@ public:
 
 } // namespace tpie
 
-#endif // TPIE_COMPRESSED_POSITION_H
+#endif // TPIE_COMPRESSED_STREAM_POSITION_H

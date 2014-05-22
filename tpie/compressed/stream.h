@@ -33,7 +33,7 @@
 #include <tpie/compressed/thread.h>
 #include <tpie/compressed/buffer.h>
 #include <tpie/compressed/request.h>
-#include <tpie/compressed/position.h>
+#include <tpie/compressed/stream_position.h>
 #include <tpie/compressed/direction.h>
 
 namespace tpie {
