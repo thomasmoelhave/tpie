@@ -51,6 +51,16 @@ private:
 	uint64_t m_offset;
 
 public:
+	static stream_position beginning() {
+		return stream_position(0, 0);
+	}
+
+	static stream_position end() {
+		return stream_position(
+			std::numeric_limits<uint64_t>::max() - 1,
+			std::numeric_limits<uint64_t>::max() - 1);
+	}
+
 	stream_position()
 		: m_readOffset(std::numeric_limits<uint64_t>::max())
 		, m_offset(std::numeric_limits<uint64_t>::max())
