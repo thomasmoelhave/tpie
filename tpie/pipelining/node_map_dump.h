@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_SEGMENT_MAP_DUMP_H__
-#define __TPIE_PIPELINING_SEGMENT_MAP_DUMP_H__
+#ifndef __TPIE_PIPELINING_NODE_MAP_DUMP_H__
+#define __TPIE_PIPELINING_NODE_MAP_DUMP_H__
 
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/node.h>
@@ -49,4 +49,4 @@ inline void node_map::dump(std::ostream & os) const {
 
 } // namespace tpie
 
-#endif // __TPIE_PIPELINING_SEGMENT_MAP_DUMP_H__
+#endif // __TPIE_PIPELINING_NODE_MAP_DUMP_H__

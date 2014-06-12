@@ -29,13 +29,13 @@ namespace {
 
 	class name {
 	public:
-		inline name(S::ptr segmap, S::id_t id) : segmap(segmap), id(id) {}
-		S::ptr segmap;
+		inline name(S::ptr nodeMap, S::id_t id) : nodeMap(nodeMap), id(id) {}
+		S::ptr nodeMap;
 		S::id_t id;
 	};
 
 	inline std::ostream & operator<<(std::ostream & out, const name & n) {
-		S::val_t p = n.segmap->get(n.id);
+		S::val_t p = n.nodeMap->get(n.id);
 		std::string name = p->get_name();
 		if (name.size())
 			return out << name << " (" << n.id << ')';
@@ -55,8 +55,8 @@ typedef boost::unordered_map<const node *, size_t> nodes_t;
 void pipeline_base::plot_impl(std::ostream & out, bool full) {
 	typedef tpie::pipelining::bits::node_map::id_t id_t;
 
-	node_map::ptr segmap = m_segmap->find_authority();
-	const node_map::relmap_t & relations = segmap->get_relations();
+	node_map::ptr nodeMap = m_segmap->find_authority();
+	const node_map::relmap_t & relations = nodeMap->get_relations();
 	
 	boost::unordered_map<id_t, id_t> repr;
 	if (!full) {
@@ -64,18 +64,18 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 			id_t s = i->first;
 			id_t t = i->second.first;
 			if (i->second.second != pushes) std::swap(s,t);
-			if (segmap->get(s)->get_plot_options() & node::PLOT_SIMPLIFIED_HIDE)
+			if (nodeMap->get(s)->get_plot_options() & node::PLOT_SIMPLIFIED_HIDE)
 				repr[s] = t;
 		}
 	}
 	
 	out << "digraph {\n";
-	for (node_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
+	for (node_map::mapit i = nodeMap->begin(); i != nodeMap->end(); ++i) {
 		if (repr.count(i->first)) continue;
-		if (!full && (segmap->get(i->first)->get_plot_options() & node::PLOT_BUFFERED))
-			out << '"' << name(segmap, i->first) << "\" [shape=box];\n";
+		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_BUFFERED))
+			out << '"' << name(nodeMap, i->first) << "\" [shape=box];\n";
 		else
-			out << '"' << name(segmap, i->first) << "\";\n";
+			out << '"' << name(nodeMap, i->first) << "\";\n";
 	}
 
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
@@ -86,13 +86,13 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 		while (repr.count(t)) t=repr[t];
 		switch (i->second.second) {
 			case pushes:
-				out << '"' << name(segmap, s) << "\" -> \"" << name(segmap, t) << "\";\n";
+				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\";\n";
 				break;
 			case pulls:
-				out << '"' << name(segmap, s) << "\" -> \"" << name(segmap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
+				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
 				break;
 			case depends:
-				out << '"' << name(segmap, s) << "\" -> \"" << name(segmap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
+				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
 				break;
 		}
 	}
@@ -169,9 +169,9 @@ boost::any pipeline_base::fetch_any(std::string key) {
 } // namespace bits
 
 void pipeline::output_memory(std::ostream & o) const {
-	bits::node_map::ptr segmap = p->get_node_map()->find_authority();
-	for (bits::node_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
-		bits::node_map::val_t p = segmap->get(i->first);
+	bits::node_map::ptr nodeMap = p->get_node_map()->find_authority();
+	for (bits::node_map::mapit i = nodeMap->begin(); i != nodeMap->end(); ++i) {
+		bits::node_map::val_t p = nodeMap->get(i->first);
 		o << p->get_name() << ": min=" << p->get_minimum_memory() << "; max=" << p->get_available_memory() << "; prio=" << p->get_memory_fraction() << ";" << std::endl;
 
 	}

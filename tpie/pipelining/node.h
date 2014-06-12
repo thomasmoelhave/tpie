@@ -204,7 +204,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief For initiator nodes, execute this phase by pushing all items
 	/// to be pushed. For non-initiator nodes, the default implementation
-	/// throws a not_initiator_segment exception.
+	/// throws a not_initiator_node exception.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void go() {
 		log_warning() << "node subclass " << typeid(*this).name()

@@ -189,7 +189,7 @@ public:
 	typedef boost::shared_ptr<virt_node> ptr;
 
 private:
-	std::auto_ptr<node> m_pipeSegment;
+	std::auto_ptr<node> m_node;
 	std::auto_ptr<virtual_container> m_container;
 	ptr m_left;
 	ptr m_right;
@@ -200,7 +200,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	static ptr take_own(node * pipe) {
 		virt_node * n = new virt_node();
-		n->m_pipeSegment.reset(pipe);
+		n->m_node.reset(pipe);
 		ptr res(n);
 		return res;
 	}

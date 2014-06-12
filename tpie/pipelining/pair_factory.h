@@ -85,7 +85,7 @@ public:
 
 	void assert_connected() const {
 		if (m_maps[0]->find_authority() != m_maps[1]->find_authority()) {
-			log_error() << "Segment map disconnected - more information in debug log"
+			log_error() << "Node map disconnected - more information in debug log"
 						<< " (" << typeid(child_t).name() << ")" << std::endl;
 			log_debug()
 				<< "Note about node implementations.\n\n"
@@ -97,7 +97,7 @@ public:
 				   "be initialized: prepare(), begin(), end() and other methods will never\n"
 				   "be called, and memory will not be assigned.\n"
 				   "---------------------------------------------------------------------------" << std::endl;
-			throw tpie::exception("Segment map disconnected - did you forget to add_push_destination?");
+			throw tpie::exception("Node map disconnected - did you forget to add_push_destination?");
 		}
 	}
 
