@@ -243,7 +243,7 @@ void fractional_subindicator::done() {
 
 fractional_subindicator::~fractional_subindicator() {
 #ifndef TPIE_NDEBUG
-	if (!m_init_called && m_fraction > 0.00001) {
+	if (!m_init_called && m_fraction > 0.00001 && !std::uncaught_exception()) {
 		std::stringstream s;
 		if (!m_stat.empty()) {
 			s << "A fractional_subindicator for ``" << m_stat << "'' was assigned a non-zero fraction but never initialized." << std::endl;
