@@ -300,6 +300,8 @@ class access {
 	friend class pipelining::virtual_chunk;
 	template <typename>
 	friend class pipelining::virtual_chunk_begin;
+	template <typename>
+	friend class vfork_node;
 
 	template <typename Input>
 	static virtsrc<Input> * get_source(const virtual_chunk_end<Input> &);
@@ -596,7 +598,47 @@ virtrecv<Output> * access::get_destination(const virtual_chunk_begin<Output> & c
 	return chunk.get_destination();
 }
 
+template <typename T>
+class vfork_node {
+public:
+	template <typename dest_t>
+	class type : public node {
+	public:
+		type(dest_t dest, virtual_chunk_end<T> out)
+			: vnode(out.get_node())
+			, dest2(bits::access::get_source(out))
+			, dest(dest)
+		{
+			add_push_destination(dest);
+			add_push_destination(*dest2);
+		}
+
+		void push(T v) {
+			dest.push(v);
+			dest2->push(v);
+		}
+
+	private:
+		// This counted reference ensures dest2 is not deleted prematurely.
+		virt_node::ptr vnode;
+
+		virtsrc<T> * dest2;
+
+		dest_t dest;
+	};
+};
+
 } // namespace bits
+
+template <typename T>
+pipe_middle<tempfactory_1<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
+	return out;
+}
+
+template <typename T>
+virtual_chunk<T, T> vfork(const virtual_chunk_end<T> & out) {
+	return fork_to_virtual(out);
+}
 
 } // namespace pipelining
 
