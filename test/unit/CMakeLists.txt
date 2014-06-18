@@ -123,6 +123,7 @@ add_unittest(pipelining
 	fetch_forward
 	virtual
 	virtual_cref_item_type
+	virtual_fork
 	prepare
 	end_time
 	pull_iterator

@@ -795,6 +795,19 @@ bool virtual_test() {
 	return check_test_vectors();
 }
 
+bool virtual_fork_test() {
+	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
+		| vfork(virtual_chunk_end<test_t>(output_vector(outputvector)))
+		| virtual_chunk_end<test_t>(output_vector(outputvector));
+	p.plot_full(log_info());
+	p();
+	expectvector.resize(inputvector.size() * 2);
+	for (size_t i = 0; i < inputvector.size(); ++i) {
+		expectvector[2*i] = expectvector[2*i+1] = inputvector[i];
+	}
+	return check_test_vectors();
+}
+
 struct prepare_result {
 	prepare_result()
 		: t(0)
@@ -1678,6 +1691,7 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(virtual_test, "virtual")
+	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
 	.test(prepare_test, "prepare")
 	.test(end_time::test, "end_time")
