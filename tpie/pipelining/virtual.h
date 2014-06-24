@@ -274,7 +274,7 @@ public:
 		m_node->set_container(ctr);
 	}
 
-	operator bool() { return m_node.get() != 0; }
+	bool empty() const { return m_node.get() == 0; }
 };
 
 } // namespace bits
@@ -449,12 +449,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename NextOutput>
 	virtual_chunk<Input, NextOutput> operator|(virtual_chunk<Output, NextOutput> dest) {
-		if (!*this) {
+		if (empty()) {
 			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk<Input, NextOutput> *>
 				::go(&dest);
 		}
 		bits::virtsrc<Output> * dst=acc::get_source(dest);
-		if (!dest || !dst) {
+		if (dest.empty() || !dst) {
 			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk<Input, NextOutput> *>
 				::go(this);
 		}
@@ -466,7 +466,7 @@ public:
 	/// \brief Connect this virtual chunk to another chunk.
 	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk_end<Input> operator|(virtual_chunk_end<Output> dest) {
-		if (!*this) {
+		if (empty()) {
 			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk_end<Input> *>
 				::go(&dest);
 		}
@@ -555,8 +555,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename NextOutput>
 	virtual_chunk_begin<NextOutput> operator|(virtual_chunk<Output, NextOutput> dest) {
-		if (!*this) throw virtual_chunk_missing_begin();
-		if (!dest) {
+		if (empty()) throw virtual_chunk_missing_begin();
+		if (dest.empty()) {
 			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk_begin<NextOutput> *>
 				::go(this);
 		}
@@ -568,8 +568,8 @@ public:
 	/// \brief Connect this virtual chunk to another chunk.
 	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk_base operator|(virtual_chunk_end<Output> dest) {
-		if (!*this) throw virtual_chunk_missing_begin();
-		if (!dest) throw virtual_chunk_missing_end();
+		if (empty()) throw virtual_chunk_missing_begin();
+		if (dest.empty()) throw virtual_chunk_missing_end();
 		m_recv->set_destination(acc::get_source(dest));
 		return virtual_chunk_base(this->m_segmap,
 								  bits::virt_node::combine(get_node(), dest.get_node()));
