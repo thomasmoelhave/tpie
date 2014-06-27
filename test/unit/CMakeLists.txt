@@ -67,6 +67,7 @@ add_unittest(merge_sort
 	evacuate_before_report
 	sort_upper_bound
 	temp_file_usage
+	tall_tree
 	)
 add_unittest(packed_array basic1 basic2 basic4)
 add_unittest(parallel_sort basic1 basic2 general equal_elements bad_case)

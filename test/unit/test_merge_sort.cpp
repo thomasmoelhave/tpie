@@ -130,11 +130,32 @@ bool temp_file_usage_test() {
 	return result;
 }
 
+bool tall_tree_test(size_t fanout, size_t height) {
+	{
+		merge_sorter<size_t, false> s;
+		const memory_size_type runLength = get_block_size() / sizeof(size_t);
+		memory_size_type runs = 1;
+		for (size_t i = 0; i < height; ++i) runs *= fanout;
+		runs += 1;
+		s.set_parameters(runLength, fanout);
+		s.begin();
+		for (size_t i = runs * runLength; i--;) {
+			s.push(i);
+		}
+		s.end();
+		dummy_progress_indicator pi;
+		s.calc(pi);
+		while (s.can_pull()) s.pull();
+	}
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	tests t(argc, argv);
 	return
 		sort_tester<use_merge_sort>::add_all(t)
 		.test(sort_upper_bound_test, "sort_upper_bound")
 		.test(temp_file_usage_test, "temp_file_usage")
+		.test(tall_tree_test, "tall_tree", "fanout", static_cast<size_t>(6), "height", static_cast<size_t>(1))
 		;
 }
