@@ -120,13 +120,14 @@ void run_positions::final_level(memory_size_type fanout) {
 		throw exception("final_level: m_open == false");
 
 	m_final = true;
-	if (fanout > m_positions[0].size() - m_positions[0].offset()) {
+	file_stream<stream_position> & s = m_positions[m_levels % 2];
+	if (fanout > s.size() - s.offset()) {
 		log_debug() << "Decrease final level fanout from " << fanout << " to ";
-		fanout = static_cast<memory_size_type>(m_positions[0].size() - m_positions[0].offset());
+		fanout = static_cast<memory_size_type>(s.size() - s.offset());
 		log_debug() << fanout << std::endl;
 	}
 	m_finalPositions.resize(fanout);
-	m_positions[0].read(m_finalPositions.begin(), m_finalPositions.end());
+	s.read(m_finalPositions.begin(), m_finalPositions.end());
 	m_positions[0].close();
 	m_positions[1].close();
 }
