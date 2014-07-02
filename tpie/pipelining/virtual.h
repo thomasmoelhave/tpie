@@ -604,6 +604,8 @@ public:
 	template <typename dest_t>
 	class type : public node {
 	public:
+		typedef T item_type;
+
 		type(dest_t dest, virtual_chunk_end<T> out)
 			: vnode(out.get_node())
 			, dest2(bits::access::get_source(out))
