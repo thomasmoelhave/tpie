@@ -1,7 +1,7 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 //
-// Copyright 2011, The TPIE development team
+// Copyright 2011, 2014, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -24,6 +24,7 @@
 #include "tpie_log.h"
 #include <cstring>
 #include <cstdlib>
+#include "pretty_print.h"
 
 namespace tpie {
 
@@ -49,9 +50,9 @@ size_t memory_manager::available() const throw() {
 } // namespace tpie
 
 void tpie_print_memory_complaint(std::ostream & os, size_t bytes, size_t usage, size_t limit) {
-	os << "Memory limit exceeded by " << (usage - limit)
-	   << " bytes, while trying to allocate " << bytes << " bytes."
-	   << " Limit is " << limit << ", but " << usage << " would be used.";
+	os << "Memory limit exceeded by " << tpie::bits::pretty_print::size_type(usage - limit)
+	   << " (" << (usage-limit) * 100 / limit << "%), while trying to allocate " << tpie::bits::pretty_print::size_type(bytes) << "."
+	   << " Limit is " << tpie::bits::pretty_print::size_type(limit) << ", but " << tpie::bits::pretty_print::size_type(usage) << " would be used.";
 }
 
 namespace tpie {
