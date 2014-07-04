@@ -262,9 +262,9 @@ private:
 		memcpy(scratch.get() + sizeof(blockHeader) + blockSize, &blockTrailer, sizeof(blockTrailer));
 		const memory_size_type writeSize = sizeof(blockHeader) + blockSize + sizeof(blockTrailer);
 		if (!wr.should_append()) {
-			log_debug() << "Truncate to " << wr.write_offset() << std::endl;
+			//log_debug() << "Truncate to " << wr.write_offset() << std::endl;
 			wr.file_accessor().truncate_bytes(wr.write_offset());
-			log_debug() << "File size is now " << wr.file_accessor().file_size() << std::endl;
+			//log_debug() << "File size is now " << wr.file_accessor().file_size() << std::endl;
 		}
 		{
 			compressor_thread_lock::lock_t lock(mutex());
