@@ -55,7 +55,7 @@ typedef boost::unordered_map<const node *, size_t> nodes_t;
 void pipeline_base::plot_impl(std::ostream & out, bool full) {
 	typedef tpie::pipelining::bits::node_map::id_t id_t;
 
-	node_map::ptr nodeMap = m_segmap->find_authority();
+	node_map::ptr nodeMap = m_nodeMap->find_authority();
 	const node_map::relmap_t & relations = nodeMap->get_relations();
 	
 	boost::unordered_map<id_t, id_t> repr;
@@ -100,7 +100,7 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 }
 
 void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type initialMemory) {
-	node_map::ptr map = m_segmap->find_authority();
+	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
 	rt.go(items, pi, initialMemory);
 
@@ -132,7 +132,7 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 }
 
 void pipeline_base::forward_any(std::string key, const boost::any & value) {
-	node_map::ptr map = m_segmap->find_authority();
+	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
 	std::vector<node *> sources;
 	rt.get_item_sources(sources);
@@ -142,7 +142,7 @@ void pipeline_base::forward_any(std::string key, const boost::any & value) {
 }
 
 bool pipeline_base::can_fetch(std::string key) {
-	node_map::ptr map = m_segmap->find_authority();
+	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
 	std::vector<node *> sinks;
 	rt.get_item_sinks(sinks);
@@ -153,7 +153,7 @@ bool pipeline_base::can_fetch(std::string key) {
 }
 
 boost::any pipeline_base::fetch_any(std::string key) {
-	node_map::ptr map = m_segmap->find_authority();
+	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
 	std::vector<node *> sinks;
 	rt.get_item_sinks(sinks);

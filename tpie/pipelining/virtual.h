@@ -253,21 +253,21 @@ struct assert_types_equal_and_return<T, T, Result> {
 /// \brief Base class of virtual chunks. Owns a virt_node.
 ///////////////////////////////////////////////////////////////////////////////
 class virtual_chunk_base : public pipeline_base {
-	// pipeline_base has virtual dtor and shared_ptr to m_segmap
+	// pipeline_base has virtual dtor and shared_ptr to m_nodeMap
 protected:
 	virt_node::ptr m_node;
 public:
 	virtual_chunk_base() {}
 
 	virt_node::ptr get_node() const { return m_node; }
-	virtual_chunk_base(node_map::ptr segmap, virt_node::ptr ptr)
+	virtual_chunk_base(node_map::ptr nodeMap, virt_node::ptr ptr)
 		: m_node(ptr)
 	{
-		this->m_segmap = segmap;
+		this->m_nodeMap = nodeMap;
 	}
 
-	virtual_chunk_base(node_map::ptr segmap) {
-		this->m_segmap = segmap;
+	virtual_chunk_base(node_map::ptr nodeMap) {
+		this->m_nodeMap = nodeMap;
 	}
 
 	void set_container(virtual_container * ctr) {
@@ -367,7 +367,7 @@ public:
 		typedef typename fact_t::constructed_type constructed_type;
 		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct());
 		this->m_node = bits::virt_node::take_own(m_src);
-		this->m_segmap = m_src->get_node_map();
+		this->m_nodeMap = m_src->get_node_map();
 
 		return *this;
 	}
@@ -431,7 +431,7 @@ public:
 		}
 		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
-		this->m_segmap = temp.get_node_map();
+		this->m_nodeMap = temp.get_node_map();
 		fact_t f = pipe.factory;
 		f.set_destination_kind_push();
 #ifndef TPIE_CPP_RVALUE_REFERENCE
@@ -539,7 +539,7 @@ public:
 		}
 		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
-		this->m_segmap = m_recv->get_node_map();
+		this->m_nodeMap = m_recv->get_node_map();
 		fact_t f = pipe.factory;
 		f.set_destination_kind_push();
 #ifndef TPIE_CPP_RVALUE_REFERENCE
@@ -571,7 +571,7 @@ public:
 		if (empty()) throw virtual_chunk_missing_begin();
 		if (dest.empty()) throw virtual_chunk_missing_end();
 		m_recv->set_destination(acc::get_source(dest));
-		return virtual_chunk_base(this->m_segmap,
+		return virtual_chunk_base(this->m_nodeMap,
 								  bits::virt_node::combine(get_node(), dest.get_node()));
 	}
 };

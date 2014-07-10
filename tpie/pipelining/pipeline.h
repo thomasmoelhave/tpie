@@ -82,7 +82,7 @@ public:
 	virtual ~pipeline_base() {}
 
 	node_map::ptr get_node_map() const {
-		return m_segmap;
+		return m_nodeMap;
 	}
 
 	void forward_any(std::string key, const boost::any & value);
@@ -94,7 +94,7 @@ public:
 	void order_before(pipeline_base & other);
 
 protected:
-	node_map::ptr m_segmap;
+	node_map::ptr m_nodeMap;
 	double m_memory;
 private:
 	void plot_impl(std::ostream & out, bool full);
@@ -114,7 +114,7 @@ public:
 		: r(factory.construct())
 	{
 		this->m_memory = factory.memory();
-		this->m_segmap = r.get_node_map();
+		this->m_nodeMap = r.get_node_map();
 	}
 
 	inline operator gen_t() {
