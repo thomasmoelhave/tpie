@@ -688,6 +688,8 @@ public:
 
 	friend class factory_base;
 
+	friend class bits::pipeline_base;
+
 private:
 	node_token token;
 

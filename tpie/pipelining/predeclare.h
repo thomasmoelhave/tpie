@@ -36,6 +36,7 @@ namespace bits {
 	class node_map;
 	class runtime;
 	class memory_runtime;
+	class pipeline_base;
 }
 
 } // namespace pipelining
