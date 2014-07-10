@@ -166,6 +166,27 @@ boost::any pipeline_base::fetch_any(std::string key) {
 	throw invalid_argument_exception(ss.str());
 }
 
+void pipeline_base::order_before(pipeline_base & other) {
+	if (get_node_map()->find_authority()
+		== other.get_node_map()->find_authority()) {
+
+		tpie::log_debug()
+			<< "Ignoring pipeline ordering hint since node maps are already shared"
+			<< std::endl;
+		return;
+	}
+	runtime rt1(get_node_map());
+	runtime rt2(other.get_node_map());
+
+	std::vector<node *> mySinks;
+	std::vector<node *> otherSources;
+
+	rt1.get_item_sinks(mySinks);
+	rt2.get_item_sources(otherSources);
+
+	otherSources[0]->add_dependency(*mySinks[0]);
+}
+
 } // namespace bits
 
 void pipeline::output_memory(std::ostream & o) const {

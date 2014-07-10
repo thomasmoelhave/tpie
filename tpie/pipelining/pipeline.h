@@ -91,6 +91,8 @@ public:
 
 	boost::any fetch_any(std::string key);
 
+	void order_before(pipeline_base & other);
+
 protected:
 	node_map::ptr m_segmap;
 	double m_memory;
@@ -189,6 +191,11 @@ public:
 	template <typename T>
 	void forward(std::string key, T value) {
 		forward_any(key, boost::any(value));
+	}
+
+	pipeline & then(pipeline & other) {
+		p->order_before(*other.p);
+		return other;
 	}
 
 	void output_memory(std::ostream & o) const;
