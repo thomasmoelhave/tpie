@@ -190,7 +190,10 @@ public:
 			memory_size_type memory);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Get all item sources of the pipeline graph.
+	/// \brief  Get all sources of the item flow graph.
+	///
+	/// An item source node has no ingoing edges in the item flow graph
+	/// of its phase, and its phase does not depend on any phases.
 	///
 	/// This is the set of nodes used when forwarding out-of-band data into
 	/// the pipeline.
@@ -198,7 +201,10 @@ public:
 	void get_item_sources(std::vector<node *> & itemSources);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Get all item sinks of the pipeline graph.
+	/// \brief  Get all sinks of the item flow graph.
+	///
+	/// An item sink node has no outgoing edges in the item flow graph
+	/// of its phase, and no phase depends on its phase.
 	///
 	/// This is the set of nodes used when fetching out-of-band data from
 	/// the pipeline.

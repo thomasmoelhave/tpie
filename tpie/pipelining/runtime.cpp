@@ -365,14 +365,19 @@ void runtime::get_item_sources(std::vector<node *> & itemSources) {
 	}
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second == depends) continue;
-
 		id_t from = i->first;
 		id_t to = i->second.first;
+		bits::node_relation rel = i->second.second;
 
-		if (i->second.second == pulls) std::swap(from, to);
-
-		possibleSources.erase(to);
+		switch (rel) {
+			case pushes:
+				possibleSources.erase(to);
+				break;
+			case pulls:
+			case depends:
+				possibleSources.erase(from);
+				break;
+		}
 	}
 	for (std::set<id_t>::iterator i = possibleSources.begin();
 		 i != possibleSources.end(); ++i) {
@@ -388,14 +393,19 @@ void runtime::get_item_sinks(std::vector<node *> & itemSinks) {
 	}
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second == depends) continue;
-
 		id_t from = i->first;
 		id_t to = i->second.first;
+		bits::node_relation rel = i->second.second;
 
-		if (i->second.second == pulls) std::swap(from, to);
-
-		possibleSinks.erase(from);
+		switch (rel) {
+			case pushes:
+				possibleSinks.erase(from);
+				break;
+			case pulls:
+			case depends:
+				possibleSinks.erase(to);
+				break;
+		}
 	}
 	for (std::set<id_t>::iterator i = possibleSinks.begin();
 		 i != possibleSinks.end(); ++i) {
