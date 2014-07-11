@@ -955,6 +955,7 @@ private:
 	/// If anything fails, the stream is closed by a close_on_fail_guard.
 	///////////////////////////////////////////////////////////////////////////
 	void perform_seek(read_direction::type dir=read_direction::forward) {
+		if (!is_open()) throw stream_exception("Stream is not open");
 		// This must be initialized before the compressor lock below,
 		// so that it is destructed after we free the lock.
 		close_on_fail_guard closeOnFail(this);

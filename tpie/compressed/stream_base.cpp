@@ -185,6 +185,10 @@ void compressed_stream_base::close() {
 	m_open = false;
 	m_tempFile = NULL;
 	m_ownedTempFile.reset();
+
+	// If read/write is called on the closed stream,
+	// perform_seek throws an exception.
+	m_seekState = seek_state::beginning;
 }
 
 void compressed_stream_base::finish_requests(compressor_thread_lock & l) {
