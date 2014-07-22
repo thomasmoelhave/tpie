@@ -21,7 +21,7 @@
 #define _TPIE_BTREE_INTERNAL_STORE_H_
 
 #include <tpie/portability.h>
-#include <tpie/btree/base.h>
+#include <tpie/blocks/base.h>
 #include <tpie/tpie_assert.h>
 #include <cstddef>
 

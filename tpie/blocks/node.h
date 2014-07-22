@@ -22,7 +22,7 @@
 
 #include <tpie/portability.h>
 #include <tpie/tpie_assert.h>
-#include <tpie/btree/base.h>
+#include <tpie/blocks/base.h>
 #include <boost/iterator/iterator_facade.hpp>
 #include <vector>
 

@@ -19,8 +19,8 @@
 
 #include "common.h"
 #include <tpie/tpie.h>
-#include <tpie/btree/internal_store.h>
-#include <tpie/btree/tree.h>
+#include <tpie/blocks/internal_store.h>
+#include <tpie/blocks/tree.h>
 #include <algorithm>
 #include <set>
 #include <map>

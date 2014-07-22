@@ -21,8 +21,8 @@
 #define _TPIE_BTREE_TREE_H_
 
 #include <tpie/portability.h>
-#include <tpie/btree/base.h>
-#include <tpie/btree/node.h>
+#include <tpie/blocks/base.h>
+#include <tpie/blocks/node.h>
 
 #include <cstddef>
 #include <vector>
