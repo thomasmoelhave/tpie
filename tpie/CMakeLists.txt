@@ -6,6 +6,7 @@ set (HEADERS
 		access_type.h
 		atomic.h
 		backtrace.h
+		blocks/block.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
