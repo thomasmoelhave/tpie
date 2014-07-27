@@ -26,6 +26,7 @@
 #include <tpie/pipelining/exception.h>
 #include <tpie/dummy_progress.h>
 #include <tpie/array_view.h>
+#include <tpie/parallel_sort.h>
 
 namespace tpie {
 
