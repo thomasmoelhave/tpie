@@ -41,6 +41,13 @@ public:
 	, m_writeable(false)
 	{}
 
+	block_collection(std::string fileName, bool writeable)
+	: m_open(false)
+	, m_writeable(false)
+	{
+		open(fileName, writeable);
+	}
+
 	~block_collection() {
 		close();
 	}
