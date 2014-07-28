@@ -7,6 +7,8 @@ set (HEADERS
 		atomic.h
 		backtrace.h
 		blocks/block.h
+		blocks/block_collection.h
+		blocks/freespace_collection.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
