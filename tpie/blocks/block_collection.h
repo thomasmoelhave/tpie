@@ -64,9 +64,8 @@ public:
 		else
 			m_accessor.open_ro(fileName);
 
-
 		if(m_accessor.file_size_i() == 0) {
-			m_collection.clear();
+			m_collection.initial_configuration();
 		}
 		else {
 			stream_size_type data_size;
@@ -92,13 +91,12 @@ public:
 
 			m_accessor.seek_i(0);
 			m_accessor.write_i(static_cast<void*>(&data_size), sizeof(stream_size_type));
-
 			m_accessor.seek_i(sizeof(stream_size_type) + data_size);
 			m_accessor.write_i(static_cast<void*>(configuration.get()), configuration.size());
+
 			m_accessor.close_i();
 
 			m_open = false;
-			m_collection.clear();
 		}
 	}
 

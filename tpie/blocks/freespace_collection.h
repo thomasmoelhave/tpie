@@ -52,11 +52,7 @@ private:
 public:
 	freespace_collection() {
 		// the initial configuration is an empty block with the maximum possible size
-		stream_size_type size = std::numeric_limits<stream_size_type>::max();
-		stream_size_type pos = 0;
-
-		size_map_t::iterator i = m_blockSizeMap.insert(std::make_pair(size, pos)).first;
-		m_blockPositionMap.insert(std::make_pair(block_handle(pos, size), i));
+		initial_configuration();
 	}
 
 	void free(block_handle handle) {
@@ -144,15 +140,24 @@ public:
 			*i++ = j->first.position;
 			*i++ = j->first.size;
 		}
-
-		tp_assert(i == configuration.end(), "configuration block was not resized correctly");
 	}
 
+		tp_assert(i == configuration.end(), "configuration block was not resized correctly");
+	void initial_configuration() {
+		clear();
+		stream_size_type size = std::numeric_limits<stream_size_type>::max();
+		stream_size_type pos = 0;
+
+		size_map_t::iterator i = m_blockSizeMap.insert(std::make_pair(size, pos)).first;
+		m_blockPositionMap.insert(std::make_pair(block_handle(pos, size), i));
+	}
+
+private:
 	void clear() {
 		m_blockPositionMap.clear();
 		m_blockSizeMap.clear();
 	}
-private:
+
 	position_map_t m_blockPositionMap;
 	size_map_t m_blockSizeMap;
 };
