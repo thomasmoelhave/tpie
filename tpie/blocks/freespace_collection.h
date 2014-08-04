@@ -92,21 +92,28 @@ public:
 			size += alignment - mod;
 
 		// find the best fit empty block and remove it from the two maps
+		tp_assert(m_blockSizeMap.size() > 0, "the block_size_map should contain at least one chunk.");
 		size_map_t::iterator i = m_blockSizeMap.lower_bound(size);
+		tp_assert(i != m_blockSizeMap.end(), "The freespace_collection ran out of space.");
+
 		position_map_t::iterator j = m_blockPositionMap.find(block_handle(i->second, 0)); // the size does not matter in this lookup
 
 		block_handle free_block = j->first;
 
 		m_blockSizeMap.erase(i);
+
 		m_blockPositionMap.erase(j);
 
 		// create the new block_handle and update the block handle for the free block
 		block_handle res(free_block.position, size);
 		free_block.size -= size;
+		free_block.position += size;
 
 		// insert the new free_block into the map and return the new block handle
-		size_map_t::iterator k = m_blockSizeMap.insert(std::make_pair(free_block.size, free_block.position)).first;
-		m_blockPositionMap.insert(std::make_pair(free_block, k));
+		if(free_block.size > 0) {
+			size_map_t::iterator k = m_blockSizeMap.insert(std::make_pair(free_block.size, free_block.position)).first;
+			m_blockPositionMap.insert(std::make_pair(free_block, k));
+		}
 
 		return res;
 	}
