@@ -142,14 +142,13 @@ public:
 	void get_configuration(block & configuration) {
 		configuration.resize(m_blockPositionMap.size() * sizeof(stream_size_type) * 2);
 
-		block::iterator i = configuration.begin();
+		stream_size_type * i = reinterpret_cast<stream_size_type *>(configuration.get());
 		for(position_map_t::iterator j = m_blockPositionMap.begin(), end = m_blockPositionMap.end(); j != end; ++j) {
 			*i++ = j->first.position;
 			*i++ = j->first.size;
 		}
 	}
 
-		tp_assert(i == configuration.end(), "configuration block was not resized correctly");
 	void initial_configuration() {
 		clear();
 		stream_size_type size = std::numeric_limits<stream_size_type>::max();
