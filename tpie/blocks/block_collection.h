@@ -60,7 +60,7 @@ public:
 		close();
 
 		if(writeable)
-			m_accessor.open_wo(fileName);
+			m_accessor.open_rw_new(fileName);
 		else
 			m_accessor.open_ro(fileName);
 
