@@ -24,6 +24,8 @@
 #include <tpie/blocks/block_collection.h>
 #include <tpie/tempname.h>
 #include <vector>
+#include <deque>
+#include <algorithm>
 #include <tpie/file_accessor/file_accessor.h>
 
 using namespace tpie;
@@ -80,8 +82,76 @@ bool basic() {
 	return true;
 }
 
+bool erase() {
+	typedef std::list<std::pair<block_handle, char> > block_list_t;
+	block_list_t blocks;
+
+	temp_file file;
+	block_collection collection(file.path(), true);
+
+	// write 20 twenty blocks of random sizes
+	for(char i = 0; i < 20; ++i) {
+		stream_size_type size = random(i) % max_block_size + 1;
+
+		block_handle handle = collection.get_free_block(size);
+
+		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+
+		block b(handle.size);
+
+		for(block::iterator j = b.begin(); j != b.end(); ++j)
+			*j = i;
+
+		collection.write_block(handle, b);
+		blocks.push_back(std::make_pair(handle, i));
+	}
+
+	// repeat 40 times: free a block then allocate a block
+	for(char i = 20; i < 40; ++i) {
+		// free a block
+		block_list_t::iterator j = blocks.begin();
+		std::advance(j, random(i) % blocks.size());
+		collection.free_block(j->first);
+		blocks.erase(j);
+
+		// allocate a new block
+
+		stream_size_type size = random(i) % max_block_size + 1;
+
+		block_handle handle = collection.get_free_block(size);
+
+		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+
+		block b(handle.size);
+
+		for(block::iterator j = b.begin(); j != b.end(); ++j)
+			*j = i;
+
+		collection.write_block(handle, b);
+		blocks.push_back(std::make_pair(handle, i));
+	}
+
+	// verify the content of the 20 blocks
+	for(block_list_t::iterator i = blocks.begin(); i != blocks.end(); ++i) {
+		block_handle handle = i->first;
+		char content = i->second;
+
+		block b;
+		collection.read_block(handle, b);
+
+		TEST_ENSURE_EQUALITY(handle.size, b.size(), "The block size should be equal to the handle size");
+
+		for(block::iterator j = b.begin(); j != b.end(); ++j)
+			TEST_ENSURE_EQUALITY((int) *j, (int) content, "the content of the returned block is not correct"); // cast to int for human-readable human
+	}
+
+	collection.close();
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(basic, "basic");
-
+		.test(basic, "basic")
+		.test(erase, "erase");
 }
