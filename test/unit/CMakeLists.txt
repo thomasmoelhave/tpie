@@ -39,6 +39,7 @@ add_unittest(array
 	from_view
 	)
 add_unittest(atomic basic parallel)
+add_unittest(block_collection basic)
 add_unittest(compressed_stream
 	basic seek seek_2 reopen_1 reopen_2 read_seek
 	truncate truncate_2 position_0 position_1 position_2 position_3
@@ -153,12 +154,7 @@ add_unittest(pipelining
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic auto_ptr)
-add_unittest(close_file
-	internal
-	serialization_writer_close
-	serialization_writer_dtor
-	serialization_reader_dtor
-)
+add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
 add_unittest(node_name gcc msvc)
 add_unittest(snappy basic)
 
