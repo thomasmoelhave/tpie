@@ -124,10 +124,11 @@ public:
 	}
 
 	void write_block(block_handle handle, const block & b) {
-		tp_assert(m_writeable, "write_block(): the block collection is read only");
+		tp_assert(m_writeable, "write_block(): the block collection is read only.");
+		tp_assert(handle.size >= b.size(), "the given block is not large enough.");
 
 		m_accessor.seek_i(handle.position + sizeof(stream_size_type));
-		m_accessor.write_i(static_cast<const void*>(b.get()), handle.size);
+		m_accessor.write_i(static_cast<const void*>(b.get()), b.size());
 	}
 private:
 	bits::freespace_collection m_collection;
