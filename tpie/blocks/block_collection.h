@@ -110,6 +110,10 @@ public:
 		tp_assert(m_writeable, "free_block(): the block collection is read only");
 
 		m_collection.free(handle);
+
+		if(m_accessor.file_size_i() > m_collection.used_space() + sizeof(stream_size_type)) {
+			m_accessor.truncate_i(m_collection.used_space() + sizeof(stream_size_type));
+		}
 	}
 
 	void read_block(block_handle handle, block & b) {
