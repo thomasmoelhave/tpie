@@ -272,7 +272,7 @@ void memory_runtime::print_memory(double c, std::ostream & os) {
 }
 
 runtime::runtime(node_map::ptr nodeMap)
-	: m_nodeMap(*nodeMap)
+	: m_nodeMap(*nodeMap->find_authority())
 {
 }
 
