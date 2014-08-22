@@ -86,7 +86,7 @@ public:
 
 	virtual void propagate() override {
 		m_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
-		m_queue->open();
+		m_queue->open(static_cast<memory_size_type>(0), access_sequential, compression_normal);
 		forward("queue", m_queue);
 	}
 
