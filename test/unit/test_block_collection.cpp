@@ -150,8 +150,70 @@ bool erase() {
 	return true;
 }
 
+bool overwrite() {
+	typedef std::list<std::pair<block_handle, char> > block_list_t;
+	block_list_t blocks;
+
+	temp_file file;
+	block_collection collection(file.path(), true);
+
+	// write 20 twenty blocks of random sizes
+	for(char i = 0; i < 20; ++i) {
+		stream_size_type size = random(i) % max_block_size + 1;
+
+		block_handle handle = collection.get_free_block(size);
+
+		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+
+		block b(handle.size);
+
+		for(block::iterator j = b.begin(); j != b.end(); ++j)
+			*j = i;
+
+		collection.write_block(handle, b);
+		blocks.push_back(std::make_pair(handle, i));
+	}
+
+	// repeat 20 times: overwrite a random block
+	for(char i = 20; i < 40; ++i) {
+		// select a random block handle from the list
+		block_list_t::iterator j = blocks.begin();
+		std::advance(j, random(i) % blocks.size());
+		block_handle h = j->first;
+
+		// overwrite the contents of the block
+		block b(h.size);
+		for(block::iterator j = b.begin(); j != b.end(); ++j)
+			*j = i;
+		collection.write_block(h, b);
+
+		// update the block list
+		blocks.erase(j);
+		blocks.push_back(std::make_pair(h, i));
+	}
+
+	// verify the content of the 20 blocks
+	for(block_list_t::iterator i = blocks.begin(); i != blocks.end(); ++i) {
+		block_handle handle = i->first;
+		char content = i->second;
+
+		block b;
+		collection.read_block(handle, b);
+
+		TEST_ENSURE_EQUALITY(handle.size, b.size(), "The block size should be equal to the handle size");
+
+		for(block::iterator j = b.begin(); j != b.end(); ++j)
+			TEST_ENSURE_EQUALITY((int) *j, (int) content, "the content of the returned block is not correct"); // cast to int for human-readable human
+	}
+
+	collection.close();
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(basic, "basic")
-		.test(erase, "erase");
+		.test(erase, "erase")
+		.test(overwrite, "overwrite");
 }

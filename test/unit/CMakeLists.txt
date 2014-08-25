@@ -39,7 +39,7 @@ add_unittest(array
 	from_view
 	)
 add_unittest(atomic basic parallel)
-add_unittest(block_collection basic erase)
+add_unittest(block_collection basic erase overwrite)
 add_unittest(compressed_stream
 	basic seek seek_2 reopen_1 reopen_2 read_seek
 	truncate truncate_2 position_0 position_1 position_2 position_3
