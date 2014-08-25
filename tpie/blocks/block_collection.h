@@ -21,8 +21,8 @@
 /// \file block_collection Class to handle blocks of varying size on disk
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _TPIE_BLOCK_COLLECTION_H
-#define _TPIE_BLOCK_COLLECTION_H
+#ifndef _TPIE_BLOCKS_BLOCK_COLLECTION_H
+#define _TPIE_BLOCKS_BLOCK_COLLECTION_H
 
 #include <tpie/tpie.h>
 #include <tpie/tpie_assert.h>
@@ -142,4 +142,4 @@ private:
 
 }  //  tpie namespace
 
-#endif // _TPIE_BLOCK_COLLECTION_H
+#endif // _TPIE_BLOCKS_BLOCK_COLLECTION_H

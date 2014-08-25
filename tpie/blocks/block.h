@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef _TPIE_BLOCK_H
-#define _TPIE_BLOCK_H
+#ifndef _TPIE_BLOCKS_BLOCK_H
+#define _TPIE_BLOCKS_BLOCK_H
 
 #include <tpie/tpie.h>
 #include <tpie/array.h>
@@ -40,4 +40,4 @@ struct block_handle {
 
 } // tpie namespace
 
-#endif // _TPIE_BLOCK_H
+#endif // _TPIE_BLOCKS_BLOCK_H
