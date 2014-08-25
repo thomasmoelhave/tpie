@@ -22,6 +22,7 @@
 #include "common.h"
 #include <tpie/tpie.h>
 #include <tpie/blocks/block_collection.h>
+#include <tpie/blocks/block_collection_cache.h>
 #include <tpie/tempname.h>
 #include <vector>
 #include <deque>
@@ -37,11 +38,9 @@ memory_size_type random(memory_size_type i) {
 	return 179424673 * i + 15485863;
 }
 
-bool basic() {
+template<typename T>
+bool basic(T & collection) {
 	std::vector<block_handle> blocks;
-
-	temp_file file;
-	block_collection collection(file.path(), true);
 
 	// write 20 twenty blocks of random sizes
 	for(char i = 0; i < 20; ++i) {
@@ -60,9 +59,7 @@ bool basic() {
 		blocks.push_back(handle);
 	}
 
-	// close and reopen the collection
-	collection.close();
-	collection.open(file.path(), true);
+	log_debug() << "Finished writing blocks." << std::endl;
 
 	// verify the content of the 20 blocks
 	for(char i = 0; i < 20; ++i) {
@@ -77,17 +74,18 @@ bool basic() {
 			TEST_ENSURE_EQUALITY((int) *j, (int) i, "the content of the returned block is not correct");
 	}
 
+	log_debug() << "Finished reading blocks." << std::endl;
+
 	collection.close();
 
+	log_debug() << "Closed collection." << std::endl;
 	return true;
 }
 
-bool erase() {
+template<typename T>
+bool erase(T & collection) {
 	typedef std::list<std::pair<block_handle, char> > block_list_t;
 	block_list_t blocks;
-
-	temp_file file;
-	block_collection collection(file.path(), true);
 
 	// write 20 twenty blocks of random sizes
 	for(char i = 0; i < 20; ++i) {
@@ -150,12 +148,10 @@ bool erase() {
 	return true;
 }
 
-bool overwrite() {
+template<typename T>
+bool overwrite(T & collection) {
 	typedef std::list<std::pair<block_handle, char> > block_list_t;
 	block_list_t blocks;
-
-	temp_file file;
-	block_collection collection(file.path(), true);
 
 	// write 20 twenty blocks of random sizes
 	for(char i = 0; i < 20; ++i) {
@@ -211,9 +207,48 @@ bool overwrite() {
 	return true;
 }
 
+bool collection_basic() {
+	temp_file file;
+	block_collection collection(file.path(), true);
+	return basic(collection);
+}
+
+bool collection_erase() {
+	temp_file file;
+	block_collection collection(file.path(), true);
+	return erase(collection);
+}
+
+bool collection_overwrite() {
+	temp_file file;
+	block_collection collection(file.path(), true);
+	return overwrite(collection);
+}
+
+bool cache_basic() {
+	temp_file file;
+	block_collection_cache collection(file.path(), true, max_block_size * 5);
+	return basic(collection);
+}
+
+bool cache_erase() {
+	temp_file file;
+	block_collection_cache collection(file.path(), true, max_block_size * 5);
+	return erase(collection);
+}
+
+bool cache_overwrite() {
+	temp_file file;
+	block_collection_cache collection(file.path(), true, max_block_size * 5);
+	return overwrite(collection);
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(basic, "basic")
-		.test(erase, "erase")
-		.test(overwrite, "overwrite");
+		.test(collection_basic, "basic")
+		.test(collection_erase, "erase")
+		.test(collection_overwrite, "overwrite")
+		.test(cache_basic, "cached_basic")
+		.test(cache_erase, "cached_erase")
+		.test(cache_overwrite, "cached_overwrite");
 }
