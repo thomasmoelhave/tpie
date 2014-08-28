@@ -160,7 +160,6 @@ public:
 	public:
 		typedef T item_type;
 		type(const dest_t & dest, file_stream<item_type> & fs): fs(fs), dest(dest) {
-			add_push_destination(dest);
 			set_minimum_memory(fs.memory_usage());
 		}
 
@@ -171,6 +170,32 @@ public:
 	private:
 		file_stream<item_type> & fs;
 		dest_t dest;
+	};
+};
+
+template <typename T>
+class pull_tee_t {
+public:
+	template <typename source_t>
+	class type: public node {
+	public:
+		typedef T item_type;
+		type(const source_t & source, file_stream<item_type> & fs): fs(fs), source(source) {
+			set_minimum_memory(fs.memory_usage());
+		}
+		
+		bool can_pull() {
+			return source.can_pull();
+		}
+		
+		item_type pull() {
+			item_type i = source.pull();
+			fs.write(i);
+			return i;
+		}
+	private:
+		file_stream<item_type> & fs;
+		source_t source;
 	};
 };
 
@@ -199,6 +224,10 @@ inline pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_outp
 template <typename T>
 inline pipe_middle<factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &> >
 tee(T & fs) {return factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &>(fs);}
+
+template <typename T>
+inline pullpipe_middle<factory_1<bits::pull_tee_t<typename push_type<T>::type>::template type, T &> >
+pull_tee(T & fs) {return factory_1<bits::pull_tee_t<typename push_type<T>::type>::template type, T &>(fs);}
 
 } // namespace pipelining
 
