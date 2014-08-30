@@ -720,17 +720,11 @@ public:
 		if (m_state != stParameters)
 			throw exception("Wrong state in set_items: state is not stParameters");
 
-		if (n < p.runLength) {
+		if (n < p.internalReportThreshold) {
+			p.runLength = p.internalReportThreshold;
 			log_debug() << "Decreasing run length from " << p.runLength
-				<< " to " << n << std::endl;
-
-			// Since n < runLength, we may downcast to a smaller type.
-			p.runLength = static_cast<memory_size_type>(n);
-
-			// Mirror the restriction from calculate_parameters.
-			if (p.internalReportThreshold > p.runLength)
-				p.internalReportThreshold = p.runLength;
-
+				<< " to " << p.internalReportThreshold << std::endl;
+			
 			log_debug() << "New merge sort parameters\n";
 			p.dump(log_debug());
 			log_debug() << std::endl;
