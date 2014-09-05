@@ -137,6 +137,7 @@ add_unittest(pipelining
 	node_map
 	join
 	copy_ctor
+	datastructures
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
