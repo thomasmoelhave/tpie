@@ -684,11 +684,78 @@ public:
 	inline void push(const item_type & item);
 #endif
 
+	void register_datastructure_usage(const std::string & name, double priority=1) {
+		datastructuremap_t::iterator i = m_datastructures.find(name);
+
+		if(i != m_datastructures.end())
+			throw tpie::exception("duplicate datastructure registration");
+
+		datastructure_info_t info;
+		info.priority = priority;
+		m_datastructures.insert(std::make_pair(name, info));
+	}
+
+	void set_datastructure_memory_limits(const std::string & name, memory_size_type min, memory_size_type max=std::numeric_limits<memory_size_type>::max()) {
+		datastructuremap_t::iterator i = m_datastructures.find(name);
+
+		if(i == m_datastructures.end())
+			throw tpie::exception("attempted to set memory limits of non-registered datastructure");
+
+		i->second.min = min;
+		i->second.max = max;
+	}
+
+	memory_size_type get_datastructure_memory(const std::string & name) {
+		const bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
+		bits::node_map::datastructuremap_t::const_iterator i = structures.find(name);
+
+		if(i == structures.end())
+			throw tpie::exception("attempted to get memory of non-registered datastructure");
+
+		return i->second.first;
+	}
+
+	template<typename T>
+	void set_datastructure(const std::string & name, T datastructure) {
+		const bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
+		bits::node_map::datastructuremap_t::const_iterator i = structures.find(name);
+
+		if(i == structures.end())
+			throw tpie::exception("attempted to set non-registered datastructure");
+
+		i->second.second = datastructure;
+	}
+
+	template<typename T>
+	T get_datastructure(const std::string & name) {
+		const bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
+		bits::node_map::datastructuremap_t::const_iterator i = structures.find(name);
+
+		if(i == structures.end())
+			throw tpie::exception("attempted to get non-registered datastructure");
+
+		return boost::any_cast<T>(i->second.second);
+	}
+
+	struct datastructure_info_t {
+		datastructure_info_t() : min(0), max(std::numeric_limits<memory_size_type>::max()) {}
+		memory_size_type min;
+		memory_size_type max;
+		double priority;
+	};
+
+	typedef std::map<std::string, datastructure_info_t> datastructuremap_t;
+
+	const datastructuremap_t & get_datastructures() const {
+		return m_datastructures;
+	}
+
 	friend class bits::memory_runtime;
 
 	friend class factory_base;
 
 	friend class bits::pipeline_base;
+
 
 private:
 	node_token token;
@@ -699,6 +766,7 @@ private:
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 
+	datastructuremap_t m_datastructures;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
