@@ -150,6 +150,47 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Helper methods for memory assignment.
+/// The memory assignment algorithm is in runtime::get_memory_factor.
+///////////////////////////////////////////////////////////////////////////////
+class datastructure_runtime {
+public:
+	datastructure_runtime(const std::vector<std::vector<node *> > & phases, node_map & nodeMap);
+
+	memory_size_type sum_minimum_memory(size_t phase) const; // sum the minimum memory for datastructures used in the phase
+	double sum_fraction(size_t i) const; // sum the fractions for datastructures used in phase i
+	memory_size_type sum_assigned_memory(double factor, size_t phase) const; // sum the assigned memory for datastructures used in the phase
+	void minimize_factor(double factor, size_t phase); // the factor for the datastructure in the phase is set to be no higher than the given factor
+	memory_size_type sum_assigned_memory(size_t phase) const; // sum the assigned memory for datastructures used in the phase using the factors given to the minimize_factor method
+	void assign_memory();
+
+	//void print_memory(double c, std::ostream & os);
+private:
+	static memory_size_type clamp(memory_size_type lo, memory_size_type hi, double v);
+
+	struct datastructure_info_t {
+		memory_size_type min;
+		memory_size_type max;
+		double priority;
+		memory_size_type right_most_phase;
+		memory_size_type left_most_phase;
+		double factor;
+
+		datastructure_info_t()
+		: min(0)
+		, max(std::numeric_limits<memory_size_type>::max())
+		, priority(1)
+		, right_most_phase(0)
+		, left_most_phase(std::numeric_limits<memory_size_type>::max())
+		, factor(std::numeric_limits<double>::max())
+		{}
+	};
+
+	std::map<std::string, datastructure_info_t> m_datastructures;
+	node_map & m_nodeMap;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief  Execute the pipeline contained in a node_map.
 ///////////////////////////////////////////////////////////////////////////////
 class runtime {
@@ -313,13 +354,16 @@ public:
 	/// \brief  Internal method used by go().
 	///////////////////////////////////////////////////////////////////////////
 	static void assign_memory(const std::vector<std::vector<node *> > & phases,
-							  memory_size_type memory);
+							  memory_size_type memory, node_map & nodeMap);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by assign_memory().
 	///////////////////////////////////////////////////////////////////////////
-	static double get_memory_factor(const memory_runtime & rt,
-									memory_size_type memory);
+	static double get_memory_factor(memory_size_type memory,
+									memory_size_type phase,
+									const memory_runtime & mrt,
+									const datastructure_runtime & drt,
+									bool datastructures_locked);
 
 };
 
