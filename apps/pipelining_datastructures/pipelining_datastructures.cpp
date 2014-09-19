@@ -140,26 +140,6 @@ private:
 
 typedef pipe_middle<factory_0<sum_differences_type> > sum_differences;
 
-///////////////////////////////////////////////////////////////////////////////
-/// An implementation of a node that writes integers to an ostream
-///////////////////////////////////////////////////////////////////////////////
-class ostream_writer_type : public node {
-	std::ostream & output;
-public:
-	typedef int item_type;
-	ostream_writer_type(std::ostream & output)
-	: output(output)
-	{
-		set_name("File writer");
-	}
-
-	void push(const item_type &item) {
-		output << item << std::endl; // simply write the integer to the ostream
-	}
-};
-
-typedef pipe_end<termfactory_1<ostream_writer_type, std::ostream &> > ostream_writer;
-
 int main() {
 	tpie::tpie_init();
 
@@ -172,7 +152,7 @@ int main() {
 		| set_filler()
 		| sort()
 		| sum_differences()
-		| ostream_writer(std::cout);
+		| printf_ints();
 	p();
 
 	}
