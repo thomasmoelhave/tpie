@@ -717,8 +717,8 @@ public:
 
 	template<typename T>
 	void set_datastructure(const std::string & name, T datastructure) {
-		const bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
-		bits::node_map::datastructuremap_t::const_iterator i = structures.find(name);
+		bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
+		bits::node_map::datastructuremap_t::iterator i = structures.find(name);
 
 		if(i == structures.end())
 			throw tpie::exception("attempted to set non-registered datastructure");
@@ -728,8 +728,8 @@ public:
 
 	template<typename T>
 	T get_datastructure(const std::string & name) {
-		const bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
-		bits::node_map::datastructuremap_t::const_iterator i = structures.find(name);
+		bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
+		bits::node_map::datastructuremap_t::iterator i = structures.find(name);
 
 		if(i == structures.end())
 			throw tpie::exception("attempted to get non-registered datastructure");
