@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2011, 2012, The TPIE development team
+// Copyright 2011, 2012, 2014 The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -39,36 +39,6 @@
 #include <string>
 
 using namespace tpie::pipelining;
-
-///////////////////////////////////////////////////////////////////////////////
-/// An implementation of a node that reads from a std::istream. The istream
-/// is passed to the constructor as reference.
-///////////////////////////////////////////////////////////////////////////////
-template <typename dest_t>
-class istream_reader_type : public node {
-	std::istream &input; // the istream reference from which the node reads.
-	dest_t dest; // the destination node to push to.
-public:
-	istream_reader_type(const dest_t & dest, std::istream & input)
-	: input(input)
-	, dest(dest)
-	{
-		add_push_destination(dest);
-		set_name("ASCII file reader");
-	}
-
-	virtual void go() override {
-		///////////////////////////////////////////////////////////////////////////////
-		/// When the go method is called, this node will read integers from the istream
-		///////////////////////////////////////////////////////////////////////////////
-		int a;
-		while(input >> a) {
-			dest.push(a);
-		}
-	}
-};
-
-typedef pipe_begin<factory_1<istream_reader_type, std::istream &> > istream_reader;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// An implementation of a node that accepts integers and assigns an index to
@@ -159,28 +129,6 @@ public:
 typedef pipe_middle<factory_0<pair_to_int_type> > pair_to_int;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// This node is similar to the istream_reader_type. It writes to the ostream
-/// given as a reference in the constructor
-///////////////////////////////////////////////////////////////////////////////
-class ostream_writer_type : public node {
-	std::ostream & output;
-public:
-	typedef int item_type;
-
-	ostream_writer_type(std::ostream & output)
-	: output(output)
-	{
-		set_name("File writer");
-	}
-
-	void push(const item_type &item) {
-		output << item << std::endl; // simply write the integer to the ostream
-	}
-};
-
-typedef pipe_end<termfactory_1<ostream_writer_type, std::ostream &> > ostream_writer;
-
-///////////////////////////////////////////////////////////////////////////////
 /// A comparator in order to sort std::pair<int, int> by the second component
 ///////////////////////////////////////////////////////////////////////////////
 struct second_item_comparator {
@@ -196,13 +144,13 @@ int main() {
 	{
 	tpie::get_memory_manager().set_limit(50*1024*1024);
 
-	pipeline p = istream_reader(std::cin) // the pipeline begins with the istream_reader_type node.
+	pipeline p = scanf_ints() // Read integers from standard input
 		| pair_item_number_augmenter() // An index is assigned to each node.
 		| sort() // The nodes are then sorted by their first component.
 		| remove_duplicates() // All duplicates are now consecutive items because of the sort node.
 		| sort(second_item_comparator()) // now sort by the second component. The order is now the same as when the items were read from the input.
 		| pair_to_int() // Remove the second component.
-		| ostream_writer(std::cout); // Print the integers.
+		| printf_ints(); // Print the integers.
 	p();
 	}
 
