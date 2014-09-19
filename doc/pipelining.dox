@@ -260,6 +260,8 @@ datastructure is accessible via the \c get_datastructure_memory method. Addition
 a pointer to the datastructure can be set and retrieved by calling \c set_datastructure
 and \c get_datastructure respectively.
 
+If you want to see an example pipelining program using auxiliary datastructures, checkout \c apps/pipelining_datastructures in the repository.
+
 \section sec_parallel Parallel execution
 
 The pipelining framework provides transparent parallel execution of pipelines.
