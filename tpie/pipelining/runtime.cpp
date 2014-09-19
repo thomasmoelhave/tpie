@@ -193,6 +193,7 @@ double memory_runtime::sum_fraction() const {
 	return m_fraction;
 }
 
+
 // Node mutator
 void memory_runtime::set_memory(size_t i, memory_size_type mem) {
 	m_nodes[i]->set_available_memory(mem);
@@ -271,6 +272,103 @@ void memory_runtime::print_memory(double c, std::ostream & os) {
 	os << std::endl;
 }
 
+datastructure_runtime::datastructure_runtime(const std::vector<std::vector<node *> > & phases, node_map & nodeMap)
+	: m_nodeMap(nodeMap)
+{
+	for (size_t phase = 0; phase < phases.size(); ++phase) {
+		for (std::vector<node *>::const_iterator node = phases[phase].begin(); node != phases[phase].end(); ++node) {
+			const node::datastructuremap_t & node_datastructures = (*node)->get_datastructures();
+			for (node::datastructuremap_t::const_iterator datastructure = node_datastructures.begin(); datastructure != node_datastructures.end(); ++datastructure) {
+				const std::string & name = datastructure->first;
+				const node::datastructure_info_t & info = datastructure->second;
+
+				std::map<std::string, datastructure_info_t>::iterator i = m_datastructures.find(name);
+				if (i == m_datastructures.end()) {
+					datastructure_info_t agg_info;
+					agg_info.min = info.min;
+					agg_info.max = info.max;
+					agg_info.priority = info.priority;
+					agg_info.left_most_phase = phase;
+					agg_info.right_most_phase = phase;
+					m_datastructures[name] = agg_info;
+					continue;
+				}
+
+				datastructure_info_t & agg_info = i->second;
+				agg_info.min = std::max(agg_info.min, info.min);
+				agg_info.max = std::min(agg_info.max, info.max);
+				agg_info.priority = std::min(agg_info.priority, info.priority);
+				agg_info.right_most_phase = phase;
+			}
+		}
+	}
+}
+
+memory_size_type datastructure_runtime::sum_minimum_memory(size_t phase) const {
+	memory_size_type r = 0;
+	for(std::map<std::string, datastructure_info_t>::const_iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
+		const datastructure_info_t & agg_info = i->second;
+		if(agg_info.left_most_phase <= phase && phase <= agg_info.right_most_phase)
+			r += agg_info.min;
+	}
+
+	return r;
+}
+
+double datastructure_runtime::sum_fraction(size_t phase) const {
+	double r = 0.0;
+	for(std::map<std::string, datastructure_info_t>::const_iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
+		const datastructure_info_t & agg_info = i->second;
+		if(agg_info.left_most_phase <= phase && phase <= agg_info.right_most_phase)
+			r += agg_info.priority;
+	}
+
+	return r;
+}
+
+memory_size_type datastructure_runtime::sum_assigned_memory(double factor, size_t phase) const {
+	memory_size_type r = 0;
+	for(std::map<std::string, datastructure_info_t>::const_iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
+		const datastructure_info_t & agg_info = i->second;
+		if(agg_info.left_most_phase <= phase && phase <= agg_info.right_most_phase)
+			r += clamp(agg_info.min, agg_info.max, agg_info.priority * factor);
+	}
+
+	return r;
+}
+
+void datastructure_runtime::minimize_factor(double factor, size_t phase) {
+	for(std::map<std::string, datastructure_info_t>::iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
+		datastructure_info_t & agg_info = i->second;
+		if(agg_info.left_most_phase <= phase && phase <= agg_info.right_most_phase)
+			agg_info.factor = std::min(agg_info.factor, factor);
+	}
+}
+
+memory_size_type datastructure_runtime::sum_assigned_memory(size_t phase) const {
+	memory_size_type r = 0;
+	for(std::map<std::string, datastructure_info_t>::const_iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
+		const datastructure_info_t & agg_info = i->second;
+		if(agg_info.left_most_phase <= phase && phase <= agg_info.right_most_phase)
+			r += clamp(agg_info.min, agg_info.max, agg_info.priority * agg_info.factor);
+	}
+
+	return r;
+}
+
+memory_size_type datastructure_runtime::clamp(memory_size_type lo, memory_size_type hi, double v) {
+	if(v < lo) return lo;
+	if(v > hi) return hi;
+	return static_cast<memory_size_type>(v);
+}
+
+void datastructure_runtime::assign_memory() {
+	for(std::map<std::string, datastructure_info_t>::iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
+		memory_size_type mem = clamp(i->second.min, i->second.max, i->second.factor * i->second.priority);
+		m_nodeMap.get_datastructures().insert(std::make_pair(i->first, std::make_pair(mem, boost::any())));
+	}
+}
+
 runtime::runtime(node_map::ptr nodeMap)
 	: m_nodeMap(*nodeMap)
 {
@@ -316,7 +414,7 @@ void runtime::go(stream_size_type items,
 	prepare_all(itemFlow);
 
 	// Gather node memory requirements and assign memory to each phase
-	assign_memory(phases, memory);
+	assign_memory(phases, memory, m_nodeMap);
 
 	// Exception guarantees are the following:
 	//   Progress indicators:
@@ -607,29 +705,41 @@ void runtime::go_initiators(const std::vector<node *> & phase) {
 
 /*static*/
 void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
-							memory_size_type memory) {
-	for (size_t i = 0; i < phases.size(); ++i) {
-		memory_runtime rt(phases[i]);
-		double c = get_memory_factor(rt, memory);
+							memory_size_type memory, node_map & nodeMap) {
+	datastructure_runtime drt(phases, nodeMap); // build the datastructure runtime
+
+	for (size_t phase = 0; phase < phases.size(); ++phase) {
+		memory_runtime mrt(phases[phase]);
+
+		double c = get_memory_factor(memory, phase, mrt, drt, false);
+		drt.minimize_factor(c, phase);
+	}
+
+	for (size_t phase = 0; phase < phases.size(); ++phase) {
+		memory_runtime mrt(phases[phase]);
+
+		double c = get_memory_factor(memory, phase, mrt, drt, true);
 #ifndef TPIE_NDEBUG
-		rt.print_memory(c, log_debug());
+		mrt.print_memory(c, log_debug());
 #endif // TPIE_NDEBUG
-		rt.assign_memory(c);
+		mrt.assign_memory(c);
+		drt.assign_memory();
 	}
 }
 
 /*static*/
-double runtime::get_memory_factor(const memory_runtime & rt,
-								  memory_size_type memory) {
-	if (rt.sum_minimum_memory() > memory) {
+double runtime::get_memory_factor(memory_size_type memory, memory_size_type phase, const memory_runtime & mrt, const datastructure_runtime & drt, bool datastructures_locked) {
+	memory_size_type min = mrt.sum_minimum_memory() + drt.sum_minimum_memory(phase);
+	if (min > memory) {
 		log_warning() << "Not enough memory for pipelining phase ("
-					  << rt.sum_minimum_memory() << " > " << memory << ")"
+					  << min << " > " << memory << ")"
 					  << std::endl;
 		return 0.0;
 	}
 
 	// This case is handled specially to avoid dividing by zero later on.
-	if (rt.sum_fraction() < 1e-9) {
+	double fraction_sum = mrt.sum_fraction() + drt.sum_fraction(phase);
+	if (fraction_sum < 1e-9) {
 		return 0.0;
 	}
 
@@ -638,8 +748,8 @@ double runtime::get_memory_factor(const memory_runtime & rt,
 	// Exponential search
 	memory_size_type oldMemoryAssigned = 0;
 	while (true) {
-		double factor = memory * c_hi / rt.sum_fraction();
-		memory_size_type memoryAssigned = rt.sum_assigned_memory(factor);
+		double factor = memory * c_hi / fraction_sum;
+		memory_size_type memoryAssigned = mrt.sum_assigned_memory(factor) + (datastructures_locked ? drt.sum_assigned_memory(phase) : drt.sum_assigned_memory(factor, phase));
 		if (memoryAssigned < memory && memoryAssigned != oldMemoryAssigned)
 			c_hi *= 2;
 		else
@@ -650,8 +760,8 @@ double runtime::get_memory_factor(const memory_runtime & rt,
 	// Binary search
 	while (c_hi - c_lo > 1e-6) {
 		double c = c_lo + (c_hi-c_lo)/2;
-		double factor = memory * c / rt.sum_fraction();
-		memory_size_type memoryAssigned = rt.sum_assigned_memory(factor);
+		double factor = memory * c / fraction_sum;
+		memory_size_type memoryAssigned = mrt.sum_assigned_memory(factor) + (datastructures_locked ? drt.sum_assigned_memory(phase) : drt.sum_assigned_memory(factor, phase));
 
 		if (memoryAssigned > memory) {
 			c_hi = c;
@@ -660,7 +770,7 @@ double runtime::get_memory_factor(const memory_runtime & rt,
 		}
 	}
 
-	return memory * c_lo / rt.sum_fraction();
+	return memory * c_lo / fraction_sum;
 }
 
 }

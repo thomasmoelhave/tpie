@@ -81,6 +81,7 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
+#include <boost/any.hpp>
 
 namespace tpie {
 
@@ -104,6 +105,8 @@ public:
 
 	typedef std::multimap<id_t, std::pair<id_t, node_relation> > relmap_t;
 	typedef relmap_t::const_iterator relmapit;
+
+	typedef std::map<std::string, std::pair<memory_size_type, boost::any> > datastructuremap_t;
 
 	typedef boost::shared_ptr<node_map> ptr;
 	typedef boost::weak_ptr<node_map> wptr;
@@ -159,6 +162,14 @@ public:
 		return m_relations;
 	}
 
+	const datastructuremap_t & get_datastructures() const {
+		return m_datastructures;
+	}
+
+	datastructuremap_t & get_datastructures() {
+		return m_datastructures;
+	}
+
 	inline size_t in_degree(id_t from, node_relation rel) const {
 		return out_degree(m_relationsInv, from, rel);
 	}
@@ -187,6 +198,7 @@ private:
 	map_t m_tokens;
 	relmap_t m_relations;
 	relmap_t m_relationsInv;
+	datastructuremap_t m_datastructures;
 
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 	size_t out_degree(const relmap_t & map, id_t from) const;

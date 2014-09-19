@@ -245,6 +245,21 @@ and should contain an upper bound on the number of items pushed to the destinati
 This is used among others by the sorter in the pipelining library
 to adjust the sizes of internal buffers.
 
+\section sec_pipe_datastructures Auxiliary datastructures
+
+It is sometimes useful to keep data in datastructures that exist across multiple
+nodes and phases. The pipelining framework provides methods to register such
+datastructures and assign memory limits and priorities to them.
+
+Using \c register_datastructure_usage, a node may register the usage of a
+datastructure. Afterwards, the memory limits of the datastructure is set by
+calling \c set_datastructure_memory_limits.
+
+When the memory assignment has taken place, the amount of memory available to the
+datastructure is accessible via the \c get_datastructure_memory method. Additionaly,
+a pointer to the datastructure can be set and retrieved by calling \c set_datastructure
+and \c get_datastructure respectively.
+
 \section sec_parallel Parallel execution
 
 The pipelining framework provides transparent parallel execution of pipelines.
@@ -637,9 +652,16 @@ left, and a checkmark in the row for each method an implementation may call.
                                                   <br>add_pull_source
                                                   <br>add_dependency</th><th>set_memory_fraction
                                                                          <br>set_minimum_memory
-                                                                         <br>set_maximum_memory</th><th>forward
+                                                                         <br>set_maximum_memory
+                                                                         <br>register_datastructure_usage
+                                                                         <br>set_datastructure_memory_limits</th>
+                                                                         							<th>forward
                                                                                                     <br>can_fetch
-                                                                                                    <br>fetch</th><th>push
+                                                                                                    <br>fetch
+                                                                                                    <br>get_datastructure_memory
+                                                                                                    <br>set_datastructure
+                                                                                                    <br>get_datastructure</th>
+                                                                                                    			  <th>push
                                                                                                                   <br>can_pull
                                                                                                                   <br>pull</th></tr>
 <tr><td>constructor         </td><td>X       </td><td>X             </td><td>X                 </td><td>     </td><td>    </td></tr>

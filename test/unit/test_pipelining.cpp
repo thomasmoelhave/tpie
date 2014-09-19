@@ -1669,6 +1669,162 @@ bool copy_ctor_test() {
 	return true;
 }
 
+struct datastructuretest {
+	size_t totalMemory;
+	size_t minMem1;
+	size_t maxMem1;
+	size_t minMem2;
+	size_t maxMem2;
+	double frac1;
+	double frac2;
+
+	size_t assigned1;
+	size_t assigned2;
+};
+
+template <typename dest_t>
+class datastructuretest_1 : public node {
+	dest_t dest;
+	datastructuretest & settings;
+
+public:
+	datastructuretest_1(const dest_t & dest, datastructuretest & settings)
+		: dest(dest)
+		, settings(settings)
+	{
+		add_push_destination(dest);
+	}
+
+	void prepare() {
+		register_datastructure_usage("datastructure1", settings.frac1);
+		register_datastructure_usage("datastructure2", settings.frac2);
+		if (settings.maxMem1 > 0)
+			set_datastructure_memory_limits("datastructure1", settings.minMem1, settings.maxMem1);
+		else
+			set_datastructure_memory_limits("datastructure1", settings.minMem1);
+
+		if (settings.maxMem2 > 0)
+			set_datastructure_memory_limits("datastructure2", settings.minMem2, settings.maxMem2);
+		else
+			set_datastructure_memory_limits("datastructure2", settings.minMem2);
+	}
+
+	 virtual void go() {
+
+	 }
+};
+
+class datastructuretest_2 : public node {
+	datastructuretest & settings;
+
+public:
+	datastructuretest_2(datastructuretest & settings)
+		: settings(settings)
+	{
+	}
+
+	void prepare() {
+		register_datastructure_usage("datastructure1", settings.frac1);
+		register_datastructure_usage("datastructure2", settings.frac2);
+	}
+
+	virtual void propagate() {
+		settings.assigned1 = get_datastructure_memory("datastructure1");
+		settings.assigned2 = get_datastructure_memory("datastructure2");
+	}
+};
+
+bool datastructure_test(datastructuretest settings) {
+	if (settings.minMem1 + settings.minMem2 > settings.totalMemory) {
+		throw tpie::exception("Memory requirements too high");
+	}
+
+	const memory_size_type NO_MEM = std::numeric_limits<memory_size_type>::max();
+	settings.assigned1 = settings.assigned2 = NO_MEM;
+
+	progress_indicator_null pi;
+
+	pipeline p =
+		make_pipe_begin_1<datastructuretest_1, datastructuretest &>(settings)
+		| make_pipe_end_1<datastructuretest_2, datastructuretest &>(settings);
+	p(0, pi, settings.totalMemory);
+
+	log_debug() << "totalMemory " << settings.totalMemory << '\n'
+	            << "minMem1     " << settings.minMem1 << '\n'
+	            << "maxMem1     " << settings.maxMem1 << '\n'
+	            << "minMem2     " << settings.minMem2 << '\n'
+	            << "maxMem2     " << settings.maxMem2 << '\n'
+	            << "frac1       " << settings.frac1 << '\n'
+	            << "frac2       " << settings.frac2 << '\n'
+	            << "assigned1   " << settings.assigned1 << '\n'
+	            << "assigned2   " << settings.assigned2 << std::endl;
+
+	if (settings.assigned1 == NO_MEM || settings.assigned2 == NO_MEM) {
+		log_error() << "No memory assigned" << std::endl;
+		return false;
+	}
+
+	if (settings.assigned1 + settings.assigned2 > settings.totalMemory) {
+		log_error() << "Too much memory assigned" << std::endl;
+		return false;
+	}
+
+	if (settings.assigned1 < settings.minMem1 || settings.assigned2 < settings.minMem2) {
+		log_error() << "Too little memory assigned" << std::endl;
+		return false;
+	}
+
+	if ((settings.maxMem1 != 0 && settings.assigned1 > settings.maxMem1)
+		|| (settings.maxMem2 != 0 && settings.assigned2 > settings.maxMem2)) {
+		log_error() << "Too much memory assigned" << std::endl;
+		return false;
+	}
+
+	const double EPS = 1e-9;
+	const size_t min1 = settings.minMem1;
+	const size_t max1 = (settings.maxMem1 == 0) ? settings.totalMemory : settings.maxMem1;
+	const size_t min2 = settings.minMem2;
+	const size_t max2 = (settings.maxMem2 == 0) ? settings.totalMemory : settings.maxMem2;
+	const size_t m1 = settings.assigned1;
+	const size_t m2 = settings.assigned2;
+	const double f1 = settings.frac1;
+	const double f2 = settings.frac2;
+	if ((min1 < m1 && m1 < max1) && (min2 < m2 && m2 < max2)
+		&& abs(m1 * f2 - m2 * f1) > EPS)
+	{
+		log_error() << "Fractions not honored" << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+void datastructure_test_shorthand(teststream & ts, size_t totalMemory, size_t minMem1, size_t maxMem1, size_t minMem2, size_t maxMem2, double frac1, double frac2) {
+	ts << "(" << totalMemory << ", " << minMem1 << ", " << maxMem1 << ", " << minMem2 << ", " << maxMem2 << ", " << frac1 << ", " << frac2 << ")";
+	datastructuretest settings;
+	settings.totalMemory = totalMemory;
+	settings.minMem1 = minMem1;
+	settings.maxMem1 = maxMem1;
+	settings.minMem2 = minMem2;
+	settings.maxMem2 = maxMem2;
+	settings.frac1 = frac1;
+	settings.frac2 = frac2;
+	ts << result(datastructure_test(settings));
+}
+
+void datastructure_test_multi(teststream & ts) {
+	//                        total   min1   max1   min2   max2  frac1  frac2
+	datastructure_test_shorthand(ts,  2000,     0,     0,     0,     0,   1.0,   1.0);
+	datastructure_test_shorthand(ts,  2000,   800,     0,   800,     0,   1.0,   1.0);
+	datastructure_test_shorthand(ts,  4000,  1000,     0,  1000,     0,   0.0,   0.0);
+	datastructure_test_shorthand(ts,  2000,     0,     0,     0,     0,   0.0,   1.0);
+	datastructure_test_shorthand(ts,  2000,   500,     0,     0,     0,   0.0,   1.0);
+	datastructure_test_shorthand(ts,  2000,   500,   700,     0,     0,   1.0,   1.0);
+	datastructure_test_shorthand(ts,  2000,     0,   700,     0,   500,   1.0,   1.0);
+	datastructure_test_shorthand(ts,  2000,     0,  2000,     0,  2000,   1.0,   1.0);
+	datastructure_test_shorthand(ts,  2000,   200,  2000,     0,  2000,   1.0,   1.0);
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -1706,5 +1862,6 @@ int main(int argc, char ** argv) {
 	.test(join_test, "join")
 	.multi_test(node_map_multi_test, "node_map")
 	.test(copy_ctor_test, "copy_ctor")
+	.multi_test(datastructure_test_multi, "datastructures")
 	;
 }
