@@ -101,12 +101,14 @@ public:
 	}
 
 	block_handle get_free_block(stream_size_type size) {
+		tp_assert(is_open(), "get_free_block(): the block collection is not open");
 		tp_assert(m_writeable, "get_free_block(): the block collection is read only");
 
 		return m_collection.alloc(size);
 	}
 
 	void free_block(block_handle handle) {
+		tp_assert(is_open(), "free_block(): the block collection is not open");
 		tp_assert(m_writeable, "free_block(): the block collection is read only");
 
 		m_collection.free(handle);
@@ -117,6 +119,8 @@ public:
 	}
 
 	void read_block(block_handle handle, block & b) {
+		tp_assert(is_open(), "read_block(): the block collection is not open");
+
 		b.resize(handle.size);
 
 		m_accessor.seek_i(handle.position + sizeof(stream_size_type));
@@ -124,6 +128,7 @@ public:
 	}
 
 	void write_block(block_handle handle, const block & b) {
+		tp_assert(is_open(), "write_block(): the block collection is not open");
 		tp_assert(m_writeable, "write_block(): the block collection is read only.");
 		tp_assert(handle.size >= b.size(), "the given block is not large enough.");
 
