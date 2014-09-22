@@ -22,6 +22,7 @@
 #include <tpie/tpie.h>
 #include <tpie/sort.h>
 #include <tpie/pipelining.h>
+#include <set>
 
 using namespace tpie;
 using namespace tpie::pipelining;
