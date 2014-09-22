@@ -28,16 +28,16 @@
 namespace tpie {
 
 /**
- * \brief Storrage used for an internal btree
+ * \brief Storage used for an internal btree
  * 
- * T is the type of value storred
+ * T is the type of value stored
  * A is the type of augmentation
- * K is the functor used to istract the key from a given value
- * a is the minimal fanout of a node
- * b is the maximal fanout of a node
+ * K is the functor used to extract the key from a given value
+ * a is the minimum fanout of a node
+ * b is the maximum fanout of a node
  *
  * Note that a user of a btree should
- * not call the 
+ * not call the store directly
  */
 template <typename T,
 		  typename A=empty_augment,
@@ -48,12 +48,12 @@ template <typename T,
 class btree_internal_store {
 public:
 	/**
-	 * \brief Type of value of items storred
+	 * \brief Type of value of items stored
 	 */
 	typedef T value_type;
 
 	/**
-	 * \brief Type of augmentation storred
+	 * \brief Type of augmentation stored
 	 */
 	typedef A augment_type;
 
@@ -70,7 +70,7 @@ public:
 	typedef size_t size_type;
 	
 	/**
-	 * \brief Construct a new empty btree storrage
+	 * \brief Construct a new empty btree storage
 	 */
 	btree_internal_store(K key_extract=K()): 
 		m_root(NULL), key_extract(key_extract),
