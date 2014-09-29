@@ -35,6 +35,10 @@ struct block_handle {
 
 	stream_size_type position;
 	stream_size_type size;
+
+	bool operator==(const block_handle & other) const {
+		return position == other.position && size == other.size;
+	}
 };
 
 } // blocks namespace
