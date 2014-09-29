@@ -30,6 +30,7 @@ namespace blocks {
 typedef array<char> block;
 
 struct block_handle {
+	block_handle() : position(0), size(0) {}
 	block_handle(stream_size_type position, stream_size_type size) : position(position), size(size) {}
 
 	stream_size_type position;
