@@ -20,7 +20,9 @@
 #include "common.h"
 #include <tpie/tpie.h>
 #include <tpie/blocks/internal_store.h>
+#include <tpie/blocks/external_store.h>
 #include <tpie/blocks/tree.h>
+#include <tpie/tempname.h>
 #include <algorithm>
 #include <set>
 #include <map>
@@ -53,10 +55,9 @@ bool compare(tree_t & t, set_t & s) {
 	return compare(node, iter, s.end()) && iter == s.end();
 }
 
-bool basic_test() {
-	typedef btree_internal_store<int> store;
-    
-	btree<store> tree;
+template<typename store>
+bool basic_test(store & s) {
+	btree<store> tree(s);
 	set<int> tree2;
 	
 	std::vector<int> x;
@@ -69,7 +70,7 @@ bool basic_test() {
 		tree.insert(x[i]);
 		tree2.insert(x[i]);
 		if (!compare(tree, tree2)) return false;
-		if (!tree.size() == tree2.size()) return false;
+		if (tree.size() != tree2.size()) return false;
 	}
 
 	std::random_shuffle(x.begin(), x.end());
@@ -78,16 +79,15 @@ bool basic_test() {
 		tree.remove(x[i]);
 		tree2.erase(x[i]);
 		if (!compare(tree, tree2)) return false;
-		if (!tree.size() == tree2.size()) return false;
+		if (tree.size() != tree2.size()) return false;
 	}
 
 	return true;
 }
 
-bool iterator_test() {
-	typedef btree_internal_store<int> store;
-    
-	btree<store> tree;
+template<typename store>
+bool iterator_test(store & s) {
+	btree<store> tree(s);
 	set<int> tree2;
 	
 	std::vector<int> x;
@@ -99,14 +99,14 @@ bool iterator_test() {
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
 		tree2.insert(x[i]);
-		if (!tree.size() == tree2.size()) return false;
+		if (tree.size() != tree2.size()) return false;
 	}
 
-	btree<store>::iterator b1 = tree.begin();
+	typename btree<store>::iterator b1 = tree.begin();
 	set<int>::iterator b2 = tree2.begin();
-	btree<store>::iterator e1 = tree.end();
+	typename btree<store>::iterator e1 = tree.end();
 	set<int>::iterator e2 = tree2.end();
-	btree<store>::iterator i1 = b1;
+	typename btree<store>::iterator i1 = b1;
 	set<int>::iterator i2 = b2;
 	
 	while (true) {
@@ -167,11 +167,11 @@ struct key_extract {
 	value_type operator()(const item & i) const {return i.key;}
 };
 
-bool key_and_comparator_test() {
-	typedef btree_internal_store<item, empty_augment, key_extract> store;
+template<typename store>
+bool key_and_comparator_test(store & s) {
 	std::greater<int> c1;
 	comparator<std::greater<int> > comp(c1);
-	btree<store, comparator<std::greater<int> > > tree(store(), comp);
+	btree<store, comparator<std::greater<int> > > tree(s, comp);
 	std::map<uncomparable<int>, int, comparator<std::greater<int> > > tree2(comp);
 	
 	std::vector<item> x;
@@ -190,8 +190,8 @@ bool key_and_comparator_test() {
 		tree2[x[i].key] = x[i].value;
 	}
 
-	btree<store>::iterator e1 = tree.end();
-	btree<store>::iterator i1 = tree.begin();
+	typename btree<store>::iterator e1 = tree.end();
+	typename btree<store>::iterator i1 = tree.begin();
 	map<uncomparable<int>, int>::iterator i2 = tree2.begin();
 	while (i1 != e1) {
 		if (i1->key.value != i2->first.value ||
@@ -282,11 +282,11 @@ void print(btree_node<S> & n) {
 	std::cout << ")";
 }
 
-bool augment_test() {
-	typedef btree_internal_store<int, ss_augment> store;
+template<typename store>
+bool augment_test(store & s) {
 	std::less<int> c;
 	ss_augmenter a;
-	btree<store, std::less<int>, ss_augmenter> tree(store(), c, a);
+	btree<store, std::less<int>, ss_augmenter> tree(s, c, a);
 	std::vector<int> x;
     for (int i=0; i < 12345; ++i) x.push_back(i);
 	std::random_shuffle(x.begin(), x.end());
@@ -296,7 +296,7 @@ bool augment_test() {
 	}
 
 	std::sort(x.begin(), x.end());
-	btree<store>::iterator i1 = tree.begin();
+	typename btree<store>::iterator i1 = tree.begin();
 	size_t sum=0;
 	for (size_t i=0; i < x.size(); ++i) {
 		if (rank_sum(i1) != ss_augment(i, sum)) return false;
@@ -322,12 +322,61 @@ bool augment_test() {
 	return true;
 }
 
+bool internal_basic_test() {
+	btree_internal_store<int> s;
+	return basic_test(s);
+}
+
+bool internal_iterator_test() {
+	btree_internal_store<int> s;
+	return iterator_test(s);
+}
+
+bool internal_key_and_comparator_test() {
+	btree_internal_store<item, empty_augment, key_extract> s;
+	return key_and_comparator_test(s);
+}
+
+bool internal_augment_test() {
+	btree_internal_store<int, ss_augment> s;
+	return augment_test(s);
+}
+
+bool external_basic_test() {
+	temp_file tmp;
+	btree_external_store<int> s(tmp.path());
+	return basic_test(s);
+}
+
+bool external_iterator_test() {
+	temp_file tmp;
+	btree_external_store<int> s(tmp.path());
+	return iterator_test(s);
+}
+
+bool external_key_and_comparator_test() {
+	temp_file tmp;
+	btree_external_store<item, empty_augment, key_extract> s(tmp.path());
+	return key_and_comparator_test(s);
+}
+
+bool external_augment_test() {
+	temp_file tmp;
+	btree_external_store<int, ss_augment> s(tmp.path());
+	return augment_test(s);
+}
+
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(basic_test, "basic")
-		.test(iterator_test, "iterator")
-		.test(key_and_comparator_test, "key_and_compare")
-		.test(augment_test, "augment");
+		.test(internal_basic_test, "internal_basic")
+		.test(internal_iterator_test, "internal_iterator")
+		.test(internal_key_and_comparator_test, "internal_key_and_compare")
+		.test(internal_augment_test, "internal_augment")
+		.test(external_basic_test, "external_basic")
+		.test(external_iterator_test, "external_iterator")
+		.test(external_key_and_comparator_test, "external_key_and_compare")
+		.test(external_augment_test, "external_augment");
 }
 
 
