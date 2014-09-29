@@ -26,6 +26,7 @@
 #ifndef __TPIE_EXCEPTION_H__
 #define __TPIE_EXCEPTION_H__
 #include <stdexcept>
+#include <string>
 
 namespace tpie {
 
