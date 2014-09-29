@@ -184,7 +184,11 @@ void pipeline_base::order_before(pipeline_base & other) {
 	rt1.get_item_sinks(mySinks);
 	rt2.get_item_sources(otherSources);
 
-	otherSources[0]->add_dependency(*mySinks[0]);
+	for (size_t i = 0; i < otherSources.size(); ++i) {
+		for (size_t j = 0; j < mySinks.size(); ++j) {
+			otherSources[i]->add_dependency(*mySinks[j]);
+		}
+	}
 }
 
 } // namespace bits
