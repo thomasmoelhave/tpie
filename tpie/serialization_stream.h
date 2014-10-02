@@ -88,6 +88,8 @@ private:
 
 	void write_block();
 
+public:
+
 	class serializer {
 		serialization_writer & wr;
 
@@ -115,7 +117,6 @@ private:
 
 	friend class serializer;
 
-public:
 	serialization_writer();
 	~serialization_writer();
 
@@ -165,6 +166,8 @@ class serialization_reverse_writer : public bits::serialization_writer_base {
 
 	void write_block();
 
+public:
+
 	class serializer {
 		serialization_reverse_writer & wr;
 
@@ -208,7 +211,6 @@ class serialization_reverse_writer : public bits::serialization_writer_base {
 
 	friend class serializer;
 
-public:
 	serialization_reverse_writer();
 	~serialization_reverse_writer();
 
