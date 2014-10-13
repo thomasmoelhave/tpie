@@ -175,14 +175,21 @@ void pipeline_base::order_before(pipeline_base & other) {
 			<< std::endl;
 		return;
 	}
-	runtime rt1(get_node_map());
-	runtime rt2(other.get_node_map());
+	runtime rt1(get_node_map()->find_authority());
+	runtime rt2(other.get_node_map()->find_authority());
 
 	std::vector<node *> mySinks;
 	std::vector<node *> otherSources;
 
 	rt1.get_item_sinks(mySinks);
 	rt2.get_item_sources(otherSources);
+
+	if (mySinks.size() == 0) {
+		throw tpie::exception("pipeline::order_before: mySinks is empty");
+	}
+	if (otherSources.size() == 0) {
+		throw tpie::exception("pipeline::order_before: otherSources is empty");
+	}
 
 	for (size_t i = 0; i < otherSources.size(); ++i) {
 		for (size_t j = 0; j < mySinks.size(); ++j) {
