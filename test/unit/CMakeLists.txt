@@ -51,6 +51,7 @@ add_unittest(compressed_stream
 	position_seek_u uncompressed_u uncompressed_new_u
 
 	odd_block_size
+	write_peek
 )
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)

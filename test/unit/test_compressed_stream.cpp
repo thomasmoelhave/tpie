@@ -850,6 +850,25 @@ static bool odd_block_size_test() {
 	return true;
 }
 
+static bool write_peek_test(size_t n) {
+	tpie::temp_file tf;
+	tpie::file_stream<size_t> s;
+	s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, tpie::compression_none);
+
+	for (size_t i = 0; i < n; ++i) {
+		s.write(i);
+	}
+
+	s.seek(0);
+
+	for (size_t i = 0; i < n; ++i) {
+		size_t x = s.peek();
+		s.write(~x);
+	}
+
+	return true;
+}
+
 template <tpie::compression_flags flags>
 tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 	typedef tests<flags> T;
@@ -889,5 +908,6 @@ int main(int argc, char ** argv) {
 		 (t, ""), "_u")
 		.test(backwards_file_stream_test, "backwards_fs", "n", static_cast<size_t>(1 << 23))
 		.test(odd_block_size_test, "odd_block_size")
+		.test(write_peek_test, "write_peek", "n", static_cast<size_t>(1 << 23))
 		;
 }
