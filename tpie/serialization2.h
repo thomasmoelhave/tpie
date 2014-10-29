@@ -236,7 +236,7 @@ template <typename D, typename T>
 void serialize(D & dst, const std::basic_string<T> & v) {
 	using tpie::serialize;
 	serialize(dst, v.size());
-	serialize(dst, v.begin(), v.end());
+	serialize(dst, v.c_str(), v.c_str() + v.size());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -249,7 +249,7 @@ void unserialize(S & src, std::basic_string<T> & v) {
 	using tpie::unserialize;
 	unserialize(src, s);
 	v.resize(s);
-	unserialize(src, v.begin(), v.end());
+	unserialize(src, v.c_str(), v.c_str() + v.size());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
