@@ -17,26 +17,26 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-// block_collection usage test
+// block_collection_cache usage test
 
 #include <tpie/tpie.h>
 #include "block_collection.h"
 
 bool collection_basic() {
 	temp_file file;
-	block_collection collection(file.path(), true);
+	block_collection_cache collection(file.path(), true, max_block_size * 5);
 	return basic(collection);
 }
 
 bool collection_erase() {
 	temp_file file;
-	block_collection collection(file.path(), true);
+	block_collection_cache collection(file.path(), true, max_block_size * 5);
 	return erase(collection);
 }
 
 bool collection_overwrite() {
 	temp_file file;
-	block_collection collection(file.path(), true);
+	block_collection_cache collection(file.path(), true, max_block_size * 5);
 	return overwrite(collection);
 }
 
