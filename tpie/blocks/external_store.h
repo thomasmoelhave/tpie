@@ -24,6 +24,8 @@
 #include <tpie/blocks/base.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/blocks/block_collection_cache.h>
+#include <boost/shared_ptr.hpp>
+
 #include <cstddef>
 
 namespace tpie {
@@ -128,14 +130,13 @@ public:
 		, key_extract(key_extract)
 		, m_height(0)
 		, m_size(0) 
-		, m_collection()
 		{
 			memory_size_type blockSize = get_block_size();
 			m_nodeMax = (blockSize - sizeof(memory_size_type)) / sizeof(internal_content);
 			m_nodeMin = (m_nodeMax + 3) / 4;
 			m_leafMax = (blockSize - sizeof(memory_size_type)) / sizeof(T);
 			m_leafMin = (m_leafMax + 3) / 4;
-			m_collection.open(path, true, blockSize * cacheSize);
+			m_collection.reset(new blocks::block_collection_cache(path, true, blockSize * cacheSize));
 		}
 private:
 
@@ -150,66 +151,66 @@ private:
 	void move(internal_type src, size_t src_i,
 			  internal_type dst, size_t dst_i) {
 		blocks::block srcBlock, dstBlock;
-		m_collection.read_block(src.handle, srcBlock);
-		m_collection.read_block(dst.handle, dstBlock);
+		m_collection->read_block(src.handle, srcBlock);
+		m_collection->read_block(dst.handle, dstBlock);
 
 		internal srcInter(srcBlock);
 		internal dstInter(dstBlock);
 
 		dstInter.values[dst_i] = srcInter.values[src_i];
 
-		m_collection.write_block(src.handle, srcBlock);
-		m_collection.write_block(dst.handle, dstBlock);
+		m_collection->write_block(src.handle, srcBlock);
+		m_collection->write_block(dst.handle, dstBlock);
 	}
 
 	void move(leaf_type src, size_t src_i,
 			  leaf_type dst, size_t dst_i) {
 		blocks::block srcBlock, dstBlock;
-		m_collection.read_block(src.handle, srcBlock);
-		m_collection.read_block(dst.handle, dstBlock);
+		m_collection->read_block(src.handle, srcBlock);
+		m_collection->read_block(dst.handle, dstBlock);
 
 		leaf srcInter(srcBlock);
 		leaf dstInter(dstBlock);
 
 		dstInter.values[dst_i] = srcInter.values[src_i];
 
-		m_collection.write_block(src.handle, srcBlock);
-		m_collection.write_block(dst.handle, dstBlock);
+		m_collection->write_block(src.handle, srcBlock);
+		m_collection->write_block(dst.handle, dstBlock);
 	}
 
 	void set(leaf_type dst, size_t dst_i, T c) {
 		blocks::block dstBlock;
-		m_collection.read_block(dst.handle, dstBlock);
+		m_collection->read_block(dst.handle, dstBlock);
 		leaf dstInter(dstBlock);
 
 		dstInter.values[dst_i] = c;
 
-		m_collection.write_block(dst.handle, dstBlock);
+		m_collection->write_block(dst.handle, dstBlock);
 	}
 		
 	void set(internal_type node, size_t i, internal_type c) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		nodeInter.values[i].handle = c.handle;
 
-		m_collection.write_block(node.handle, nodeBlock);
+		m_collection->write_block(node.handle, nodeBlock);
 	}
 
 	void set(internal_type node, size_t i, leaf_type c) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		nodeInter.values[i].handle = c.handle;
 
-		m_collection.write_block(node.handle, nodeBlock);
+		m_collection->write_block(node.handle, nodeBlock);
 	}
 
 	T & get(leaf_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		leaf nodeInter(nodeBlock);
 
 		return nodeInter.values[i];
@@ -217,7 +218,7 @@ private:
 
 	size_t count(internal_type node) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		return *(nodeInter.count);
@@ -225,7 +226,7 @@ private:
 
 	size_t count(leaf_type node) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		leaf nodeInter(nodeBlock);
 
 		return *(nodeInter.count);
@@ -233,7 +234,7 @@ private:
 
 	size_t count_child_leaf(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		leaf_type wrap(nodeInter.values[i].handle);
@@ -242,7 +243,7 @@ private:
 
 	size_t count_child_internal(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		internal_type wrap(nodeInter.values[i].handle);
@@ -251,27 +252,27 @@ private:
 
 	void set_count(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		*(nodeInter.count) = i;
 
-		m_collection.write_block(node.handle, nodeBlock);
+		m_collection->write_block(node.handle, nodeBlock);
 	}
 
 	void set_count(leaf_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		leaf nodeInter(nodeBlock);
 
 		*(nodeInter.count) = i;
 
-		m_collection.write_block(node.handle, nodeBlock);
+		m_collection->write_block(node.handle, nodeBlock);
 	}
 
 	key_type min_key(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		return nodeInter.values[i].min_key;
@@ -279,7 +280,7 @@ private:
 
 	key_type min_key(leaf_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		leaf nodeInter(nodeBlock);
 
 		return key_extract(nodeInter.values[i]);
@@ -299,6 +300,10 @@ private:
 
 	leaf_type create_leaf() {
 		blocks::block_handle h = m_collection->get_free_block(get_block_size());
+		blocks::block b(h.size);
+		leaf l(b);
+		(*l.count) = 0;
+		m_collection->write_block(h, b);
 		return leaf_type(h);
 	}
 
@@ -308,6 +313,10 @@ private:
 
 	internal_type create_internal() {
 		blocks::block_handle h = m_collection->get_free_block(get_block_size());
+		blocks::block b(h.size);
+		internal i(b);
+		(*i.count) = 0;
+		m_collection->write_block(h, b);
 		return internal_type(h);
 	}
 
