@@ -75,8 +75,6 @@ private:
 		handle.position = prev.position;
 		handle.size += prev.size;
 
-		size_map_t::iterator k = i->second;
-
 		tp_assert(i->first.position == i->second->second, "Inconsistent position between the two maps");
 		tp_assert(i->first.size == i->second->first, "Inconsistent size between the two maps");
 
