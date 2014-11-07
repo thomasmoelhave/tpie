@@ -132,6 +132,7 @@ private:
 		tp_assert(i != m_blockSizeMap.end(), "The freespace_collection ran out of space.");
 
 		position_map_t::iterator j = m_blockPositionMap.find(block_handle(i->second, i->first)); // the size is not used during this lookup
+		i = j->second; // in case of multiple blocks with same size
 
 		block_handle free_block = j->first;
 
