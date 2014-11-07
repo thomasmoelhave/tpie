@@ -47,7 +47,7 @@ private:
 		}
 	};
 
-	typedef std::map<stream_size_type, stream_size_type> size_map_t;
+	typedef std::multimap<stream_size_type, stream_size_type> size_map_t;
 	typedef std::map<block_handle, size_map_t::iterator, position_comparator> position_map_t;
 public:
 	freespace_collection() {
