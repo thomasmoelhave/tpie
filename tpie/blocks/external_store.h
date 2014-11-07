@@ -298,7 +298,8 @@ private:
 	}
 
 	leaf_type create_leaf() {
-		return leaf_type(m_collection.get_free_block(get_block_size()));
+		blocks::block_handle h = m_collection->get_free_block(get_block_size());
+		return leaf_type(h);
 	}
 
 	leaf_type create(leaf_type) {
@@ -306,7 +307,8 @@ private:
 	}
 
 	internal_type create_internal() {
-		return internal_type(m_collection.get_free_block(get_block_size()));
+		blocks::block_handle h = m_collection->get_free_block(get_block_size());
+		return internal_type(h);
 	}
 
 	internal_type create(internal_type) {
@@ -314,11 +316,11 @@ private:
 	}
 
 	void destroy(internal_type node) {
-		m_collection.free_block(node.handle);
+		m_collection->free_block(node.handle);
 	}
 
 	void destroy(leaf_type node) {
-		m_collection.free_block(node.handle);
+		m_collection->free_block(node.handle);
 	}
 
 	void set_root(internal_type node) {
@@ -339,7 +341,7 @@ private:
 
 	internal_type get_child_internal(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal dstInter(nodeBlock);
 
 		return internal_type(dstInter.values[i].handle);
@@ -347,7 +349,7 @@ private:
 
 	leaf_type get_child_leaf(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal dstInter(nodeBlock);
 
 		return leaf_type(dstInter.values[i].handle);
@@ -355,7 +357,7 @@ private:
 
 	size_t index(leaf_type child, internal_type node) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal dstInter(nodeBlock);
 
 		for (size_t i=0; i < *(dstInter.count); ++i)
@@ -366,7 +368,7 @@ private:
 
 	size_t index(internal_type child, internal_type node) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal dstInter(nodeBlock);
 
 		for (size_t i=0; i < *(dstInter.count); ++i)
@@ -377,7 +379,7 @@ private:
 
 	void set_augment(leaf_type child, internal_type node, augment_type augment) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
@@ -385,7 +387,7 @@ private:
 			if (nodeInter.values[i].handle == child.handle) {
 				nodeInter.values[i].min_key = min_key(child);
 				nodeInter.values[i].augment = augment;
-				m_collection.write_block(node.handle, nodeBlock);
+				m_collection->write_block(node.handle, nodeBlock);
 				return;
 			}
 		}
@@ -396,7 +398,7 @@ private:
 
 	void set_augment(internal_type child, internal_type node, augment_type augment) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
@@ -404,7 +406,7 @@ private:
 			if (nodeInter.values[i].handle == child.handle) {
 				nodeInter.values[i].min_key = min_key(child);
 				nodeInter.values[i].augment = augment;
-				m_collection.write_block(node.handle, nodeBlock);
+				m_collection->write_block(node.handle, nodeBlock);
 				return;
 			}
 		}
@@ -415,7 +417,7 @@ private:
 
 	const augment_type & augment(internal_type node, size_t i) {
 		blocks::block nodeBlock;
-		m_collection.read_block(node.handle, nodeBlock);
+		m_collection->read_block(node.handle, nodeBlock);
 		internal nodeInter(nodeBlock);
 
 		return nodeInter.values[i].augment;
@@ -441,7 +443,7 @@ private:
 	K key_extract;
 	size_t m_height;
 	size_t m_size;
-	blocks::block_collection_cache m_collection;
+	boost::shared_ptr<blocks::block_collection_cache> m_collection;
 
 	memory_size_type m_nodeMax;
 	memory_size_type m_nodeMin;
