@@ -55,53 +55,91 @@ public:
 		initial_configuration();
 	}
 
-	void free(block_handle handle) {
-		if(!m_blockPositionMap.empty()) { // try to find adjacent blocks if the map is not empty
-			position_map_t::iterator i = m_blockPositionMap.upper_bound(handle); // find the first block whose position is greather than that of block handle
+private:
+	// merge the handle with free block before it ( if any )
+	block_handle merge_with_block_before(block_handle handle) {
+		if(m_blockPositionMap.empty())
+			return handle;
 
-			if(i != m_blockPositionMap.begin()) {
-				position_map_t::iterator j = i;	--j; // find the last block whose position is less than that of block handle
-				block_handle prev = j->first;
-				if(prev.position + prev.size == handle.position) { // merge the two blocks if they are adjacent
-					handle.position = prev.position;
-					handle.size += prev.size;
-					m_blockSizeMap.erase(j->second);
-					m_blockPositionMap.erase(j);
-				}
-			}
+		position_map_t::iterator i = m_blockPositionMap.upper_bound(handle); // find the first block whose position is greater than that of the block handle
+		if(i == m_blockPositionMap.begin())
+			return handle;
 
-			if(i != m_blockPositionMap.end()) {
-				block_handle next = i->first;
-				if(handle.position + handle.size == next.position) { // merge the two blocks if they are adjacent
-					handle.size += next.size;
-					m_blockSizeMap.erase(i->second);
-					m_blockPositionMap.erase(i);
-				}
-			}
-		}
+		--i;
+		block_handle prev = i->first;
 
-		size_map_t::iterator i = m_blockSizeMap.insert(std::make_pair(handle.size, handle.position)).first;
-		m_blockPositionMap.insert(std::make_pair(handle, i)); // update the block map to contain the now free block
+		if(prev.position + prev.size != handle.position)
+			return handle;
+
+		// merge the two blocks if they are adjacent
+		handle.position = prev.position;
+		handle.size += prev.size;
+
+		size_map_t::iterator k = i->second;
+
+		tp_assert(i->first.position == i->second->second, "Inconsistent position between the two maps");
+		tp_assert(i->first.size == i->second->first, "Inconsistent size between the two maps");
+
+		m_blockSizeMap.erase(i->second);
+		m_blockPositionMap.erase(i);
+		return handle;
 	}
 
+	// merge the handle with free block after it ( if any )
+	block_handle merge_with_block_after(block_handle handle) {
+		position_map_t::iterator i = m_blockPositionMap.upper_bound(handle); // find the first block whose position is greater than that of the block handle
+		if(i == m_blockPositionMap.end())
+			return handle;
+		block_handle next = i->first;
+
+		if(handle.position + handle.size == next.position) { // merge the two blocks if they are adjacent
+			handle.size += next.size;
+			m_blockSizeMap.erase(i->second);
+			m_blockPositionMap.erase(i);
+		}
+
+		return handle;
+	}
+
+	void insert_free_block(block_handle handle) {
+		size_map_t::iterator i = m_blockSizeMap.insert(std::make_pair(handle.size, handle.position));
+		position_map_t::iterator j = m_blockPositionMap.insert(std::make_pair(handle, i)).first; // update the block map to contain the now free block
+
+		tp_assert(i->first == j->first.size, "Inconsistent size insertion.");
+		tp_assert(i->second == j->first.position, "Inconsistent position insertion.");
+	}
+public:
+	void free(block_handle handle) {
+		handle = merge_with_block_before(handle);
+		handle = merge_with_block_after(handle);
+
+		insert_free_block(handle);
+	}
+
+private:
+	// ceil i to nearest multiple of mul
+	stream_size_type mult_ceil(stream_size_type i, stream_size_type mul) {
+		stream_size_type mod = i % mul;
+		if(mod != 0)
+			i += mul - mod;
+		return i;
+	}
+public:
 	block_handle alloc(stream_size_type size) {
 		tp_assert(size > 0, "The block size should be greather than zero");
 
-		stream_size_type mod = size % alignment;
-		if(mod != 0) // ceil to nearest multiple of alignment
-			size += alignment - mod;
+		size = mult_ceil(size, alignment);
 
 		// find the best fit empty block and remove it from the two maps
 		tp_assert(m_blockSizeMap.size() > 0, "the block_size_map should contain at least one chunk.");
 		size_map_t::iterator i = m_blockSizeMap.lower_bound(size);
 		tp_assert(i != m_blockSizeMap.end(), "The freespace_collection ran out of space.");
 
-		position_map_t::iterator j = m_blockPositionMap.find(block_handle(i->second, 0)); // the size does not matter in this lookup
+		position_map_t::iterator j = m_blockPositionMap.find(block_handle(i->second, i->first)); // the size is not used during this lookup
 
 		block_handle free_block = j->first;
 
 		m_blockSizeMap.erase(i);
-
 		m_blockPositionMap.erase(j);
 
 		// create the new block_handle and update the block handle for the free block
@@ -110,16 +148,14 @@ public:
 		free_block.position += size;
 
 		// insert the new free_block into the map and return the new block handle
-		if(free_block.size > 0) {
-			size_map_t::iterator k = m_blockSizeMap.insert(std::make_pair(free_block.size, free_block.position)).first;
-			m_blockPositionMap.insert(std::make_pair(free_block, k));
-		}
+		if(free_block.size > 0)
+			insert_free_block(free_block);
 
 		return res;
 	}
 
-	stream_size_type used_space() {
-		position_map_t::iterator i = m_blockPositionMap.end(); --i;
+	stream_size_type used_space() const {
+		position_map_t::const_iterator i = m_blockPositionMap.end(); --i;
 
 		return i->first.position;
 	}
@@ -134,7 +170,7 @@ public:
 			stream_size_type pos = *i++;
 			stream_size_type size = *i++;
 
-			size_map_t::iterator j = m_blockSizeMap.insert(std::make_pair(size, pos)).first;
+			size_map_t::iterator j = m_blockSizeMap.insert(std::make_pair(size, pos));
 			m_blockPositionMap.insert(std::make_pair(block_handle(pos, size), j));
 		}
 	}
@@ -154,7 +190,7 @@ public:
 		stream_size_type size = std::numeric_limits<stream_size_type>::max();
 		stream_size_type pos = 0;
 
-		size_map_t::iterator i = m_blockSizeMap.insert(std::make_pair(size, pos)).first;
+		size_map_t::iterator i = m_blockSizeMap.insert(std::make_pair(size, pos));
 		m_blockPositionMap.insert(std::make_pair(block_handle(pos, size), i));
 	}
 
