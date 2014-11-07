@@ -124,13 +124,9 @@ private:
 			i += mul - mod;
 		return i;
 	}
-public:
-	block_handle alloc(stream_size_type size) {
-		tp_assert(size > 0, "The block size should be greather than zero");
 
-		size = mult_ceil(size, alignment);
-
-		// find the best fit empty block and remove it from the two maps
+	// remove a block from the free map larger than size
+	block_handle take_free_block(stream_size_type size) {
 		tp_assert(m_blockSizeMap.size() > 0, "the block_size_map should contain at least one chunk.");
 		size_map_t::iterator i = m_blockSizeMap.lower_bound(size);
 		tp_assert(i != m_blockSizeMap.end(), "The freespace_collection ran out of space.");
@@ -142,15 +138,21 @@ public:
 		m_blockSizeMap.erase(i);
 		m_blockPositionMap.erase(j);
 
-		// create the new block_handle and update the block handle for the free block
-		block_handle res(free_block.position, size);
+		return free_block;
+	}
+public:
+	block_handle alloc(stream_size_type size) {
+		tp_assert(size > 0, "The block size should be greather than zero");
+
+		size = mult_ceil(size, alignment);
+
+		block_handle free_block = take_free_block(size);
 		free_block.size -= size;
 		free_block.position += size;
-
-		// insert the new free_block into the map and return the new block handle
 		if(free_block.size > 0)
 			insert_free_block(free_block);
 
+		block_handle res(free_block.position, size);
 		return res;
 	}
 
