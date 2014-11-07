@@ -39,7 +39,7 @@ namespace blocks {
 class block_collection_cache {
 private:
 	struct position_comparator {
-		bool operator()(const block_handle & a, const block_handle & b) {
+		bool operator()(const block_handle & a, const block_handle & b) const {
 			return a.position < b.position;
 		}
 	};
