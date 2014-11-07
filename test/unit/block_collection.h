@@ -32,7 +32,7 @@
 using namespace tpie;
 using namespace tpie::blocks;
 
-const stream_size_type max_block_size = 5 * 1024 * 1024;
+const stream_size_type max_block_size = 1024 * 1024;
 
 memory_size_type random(memory_size_type i) {
 	return 179424673 * i + 15485863;
