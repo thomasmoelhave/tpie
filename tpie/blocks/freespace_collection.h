@@ -148,12 +148,13 @@ public:
 		size = mult_ceil(size, alignment);
 
 		block_handle free_block = take_free_block(size);
+		block_handle res(free_block.position, size);
 		free_block.size -= size;
 		free_block.position += size;
+
 		if(free_block.size > 0)
 			insert_free_block(free_block);
 
-		block_handle res(free_block.position, size);
 		return res;
 	}
 
