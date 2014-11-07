@@ -78,9 +78,6 @@ public:
 			block_map_t::iterator end = m_blockMap.end();
 
 			for(block_map_t::iterator i = m_blockMap.begin(); i != end; ++i) {
-			}
-
-			for(block_map_t::iterator i = m_blockMap.begin(); i != end; ++i) {
 				m_collection.write_block(i->first, *i->second.first);
 				tpie_delete(i->second.first);
 			}
