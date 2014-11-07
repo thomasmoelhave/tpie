@@ -47,17 +47,23 @@ int random_generator(int i) {
 	return 10007 % i;
 }
 
-bool alloc_test() {
+bool alloc_test(memory_size_type size) {
 	typedef std::vector<block_handle> handles_t;
 	freespace_collection collection;
 	handles_t handles;
 
-	for(memory_size_type i = 0; i < 1000; ++i) {
-		memory_size_type size = random(i, 1, 10000);
-		block_handle handle = collection.alloc(size);
-		TEST_ENSURE(handle.size >= size, "The size of the returned handle is too small");
+	for(memory_size_type i = 0; i < size; ++i) {
+		memory_size_type handle_size = random(i, 1, 10000);
+		block_handle handle = collection.alloc(handle_size);
+		TEST_ENSURE(handle.size >= handle_size, "The size of the returned handle is too small");
 
 		for(handles_t::iterator i = handles.begin(); i != handles.end(); ++i) {
+			if(overlaps(handle, *i)) {
+				log_debug() << "Handle overlap "
+							<< "[" << handle.position << ", " << handle.position + handle.size  << ")"
+							<< "[" << i->position << ", " << i->position + i->size << ")" << std::endl;
+			}
+
 			TEST_ENSURE(!overlaps(handle, *i), "The returned handle overlaps with an existing handle");
 		}
 
@@ -67,8 +73,7 @@ bool alloc_test() {
 	return true;
 }
 
-bool used_space_test() {
-	memory_size_type test_size = 100;
+bool used_space_test(memory_size_type size) {
 	typedef std::vector<block_handle> handles_t;
 	typedef std::vector<memory_size_type> sizes_t;
 
@@ -78,23 +83,22 @@ bool used_space_test() {
 
 	stream_size_type minimum_size = 0;
 
-	for(memory_size_type i = 0; i < test_size; ++i) {
+	for(memory_size_type i = 0; i < size; ++i) {
 		TEST_ENSURE(collection.used_space() >= minimum_size, "The space used is too small.");
 		
-		memory_size_type size = random(i, 1, 10000);
-		minimum_size += size;
+		memory_size_type handle_size = random(i, 1, 10000);
+		minimum_size += handle_size;
 
-		block_handle handle = collection.alloc(size);
+		block_handle handle = collection.alloc(handle_size);
 		handles.push_back(handle);
-		sizes.push_back(size);
+		sizes.push_back(handle_size);
 	}
 
 	//  the two arrays are shuffled the same way
 	std::random_shuffle(handles.begin(), handles.end(), random_generator);
 	std::random_shuffle(sizes.begin(), sizes.end(), random_generator);
 
-	for(memory_size_type i = 0; i < test_size; ++i) {
-		//log_debug() << "# handles in collection: " << test_size - i << std::endl;
+	for(memory_size_type i = 0; i < size; ++i) {
 		TEST_ENSURE(collection.used_space() >= minimum_size, "The space used is too small.");
 		collection.free(handles[i]);
 		minimum_size -= sizes[i];
@@ -120,8 +124,8 @@ bool initial_configuration_test() {
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(alloc_test, "alloc")
-		.test(used_space_test, "used_space");
+		.test(alloc_test, "alloc", "size", 1000)
+		.test(used_space_test, "used_space", "size", 1000);
 		/*.test(get_configuration_test, "get_configuration")
 		.test(set_configuration_test, "set_configuration")
 		.test(initial_configuration_test, "initial_configuration")*/
