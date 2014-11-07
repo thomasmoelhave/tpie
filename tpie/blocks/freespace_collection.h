@@ -42,7 +42,7 @@ private:
 	static const memory_size_type alignment = 32; // the block sizes are a multiple of alignment(the smallest block size is therefore alignment)
 
 	struct position_comparator {
-		bool operator()(const block_handle & a, const block_handle & b) {
+		bool operator()(block_handle a, block_handle b) {
 			return a.position < b.position;
 		}
 	};
