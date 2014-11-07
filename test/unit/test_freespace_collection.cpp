@@ -57,14 +57,14 @@ bool alloc_test(memory_size_type size) {
 		block_handle handle = collection.alloc(handle_size);
 		TEST_ENSURE(handle.size >= handle_size, "The size of the returned handle is too small");
 
-		for(handles_t::iterator i = handles.begin(); i != handles.end(); ++i) {
-			if(overlaps(handle, *i)) {
+		for(handles_t::iterator j = handles.begin(); j != handles.end(); ++j) {
+			if(overlaps(handle, *j)) {
 				log_debug() << "Handle overlap "
-							<< "[" << handle.position << ", " << handle.position + handle.size  << ")"
-							<< "[" << i->position << ", " << i->position + i->size << ")" << std::endl;
+							<< "[" << handle.position << ", " << handle.position + handle.size  << ") "
+							<< "[" << j->position << ", " << j->position + j->size << ")" << std::endl;
 			}
 
-			TEST_ENSURE(!overlaps(handle, *i), "The returned handle overlaps with an existing handle");
+			TEST_ENSURE(!overlaps(handle, *j), "The returned handle overlaps with an existing handle");
 		}
 
 		handles.push_back(handle);
