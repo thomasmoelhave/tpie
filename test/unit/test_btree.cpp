@@ -69,8 +69,8 @@ bool basic_test(store & s) {
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
 		tree2.insert(x[i]);
-		if (!compare(tree, tree2)) return false;
-		if (tree.size() != tree2.size()) return false;
+		TEST_ENSURE(compare(tree, tree2), "Compare failed on during insert stage.");
+		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during insert stage.");
 	}
 
 	std::random_shuffle(x.begin(), x.end());
@@ -78,8 +78,8 @@ bool basic_test(store & s) {
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.remove(x[i]);
 		tree2.erase(x[i]);
-		if (!compare(tree, tree2)) return false;
-		if (tree.size() != tree2.size()) return false;
+		TEST_ENSURE(compare(tree, tree2), "Compare failed on during erase stage.");
+		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during erase stage.");
 	}
 
 	return true;
