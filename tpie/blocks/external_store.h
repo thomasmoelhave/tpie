@@ -300,7 +300,7 @@ private:
 
 	leaf_type create_leaf() {
 		blocks::block_handle h = m_collection->get_free_block(get_block_size());
-		blocks::block b(h.size);
+		blocks::block b(get_block_size());
 		leaf l(b);
 		(*l.count) = 0;
 		m_collection->write_block(h, b);
@@ -313,7 +313,7 @@ private:
 
 	internal_type create_internal() {
 		blocks::block_handle h = m_collection->get_free_block(get_block_size());
-		blocks::block b(h.size);
+		blocks::block b(get_block_size());
 		internal i(b);
 		(*i.count) = 0;
 		m_collection->write_block(h, b);
