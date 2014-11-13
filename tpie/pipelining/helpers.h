@@ -25,6 +25,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/memory.h>
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
@@ -418,6 +419,70 @@ public:
 	};
 };
 
+template <typename src_fact_t>
+struct zip_t {
+	typedef typename src_fact_t::constructed_type src_t;
+	template <typename dest_t>
+	class type: public node {
+	public:
+		typedef typename push_type<dest_t>::type::first_type item_type;
+		
+		type(const dest_t & dest, const src_fact_t & src_fact)
+			: src(src_fact.construct()), dest(dest) {
+			add_push_destination(dest);
+			add_pull_source(src);
+		}
+
+		void push(const item_type & item) {
+			tp_assert(src.can_pull(), "We should be able to pull");
+			dest.push(std::make_pair(item, src.pull()));
+		}
+	private:
+		src_t src;
+		dest_t dest;
+	};
+};
+
+template <typename fact2_t>
+struct unzip_t {
+	typedef typename fact2_t::constructed_type dest2_t;
+	
+	template <typename dest1_t> 
+	class type: public node {
+	public:
+		typedef typename push_type<dest1_t>::type first_type;
+		typedef typename push_type<dest2_t>::type second_type;
+		typedef std::pair<first_type, second_type> item_type;
+		
+		type(const dest1_t & dest1, const fact2_t & fact2) : dest1(dest1), dest2(fact2.construct()) {
+			add_push_destination(dest1);
+			add_push_destination(dest2);
+		}
+		
+		void push(const item_type & item) {
+			dest2.push(item.second);
+			dest1.push(item.first);
+		}
+	private:
+		dest1_t dest1;
+		dest2_t dest2;
+	};
+};
+
+template <typename T>
+class item_type_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	private:
+		dest_t dest;
+	public:
+		typedef T item_type;
+		type(const dest_t & dest): dest(dest) {}
+		void push(const item_type & item) {dest.push(item);}
+	};
+};
+
 } // namespace bits
 
 inline pipe_middle<factory_1<bits::ostream_logger_t, std::ostream &> >
@@ -455,6 +520,18 @@ template <typename fact_t>
 inline pipe_middle<tempfactory_1<bits::fork_t<fact_t>, const fact_t &> >
 fork(const pipe_end<fact_t> & to) {
 	return tempfactory_1<bits::fork_t<fact_t>, const fact_t &>(to.factory);
+}
+
+template <typename fact_t>
+inline pipe_middle<tempfactory_1<bits::unzip_t<fact_t>, const fact_t &> >
+unzip(const pipe_end<fact_t> & to) {
+	return tempfactory_1<bits::unzip_t<fact_t>, const fact_t &>(to.factory);
+}
+
+template <typename fact_t>
+inline pipe_middle<tempfactory_1<bits::zip_t<fact_t>, const fact_t &> >
+zip(const pullpipe_begin<fact_t> & to) {
+	return tempfactory_1<bits::zip_t<fact_t>, const fact_t &>(to.factory);
 }
 
 template <typename T>
@@ -540,6 +617,12 @@ template <typename F>
 pipe_middle<tempfactory_1<bits::propagater_t<F>, F> > propagater(const F & functor) {
 	return tempfactory_1<bits::propagater_t<F>, F>(functor);
 }
+
+template <typename T>
+pipe_middle<tempfactory_0<bits::item_type_t<T> > > item_type() {
+	return tempfactory_0<bits::item_type_t<T> >();
+}
+
 
 }
 
