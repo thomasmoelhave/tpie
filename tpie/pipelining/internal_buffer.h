@@ -116,7 +116,7 @@ private:
 	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
 public:
-	internal_passive_buffer(size_t size) {}
+	internal_passive_buffer(size_t size) : size(size) {}
 
 	inline input_t raw_input() {
 		return input_t(input_token, size);
