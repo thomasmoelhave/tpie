@@ -642,6 +642,14 @@ virtual_chunk<T, T> vfork(const virtual_chunk_end<T> & out) {
 	return fork_to_virtual(out);
 }
 
+template <typename T>
+inline virtual_chunk<T> chunk_if(bool b, virtual_chunk<T> t) {
+	if (b)
+		return t;
+	else
+		return virtual_chunk<T>();
+}
+
 } // namespace pipelining
 
 } // namespace tpie
