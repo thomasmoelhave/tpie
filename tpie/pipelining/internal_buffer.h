@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file pipelining/buffer.h  Plain old file_stream buffer.
+/// \file pipelining/internal_buffer.h  Internal pipelining buffer.
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TPIE_PIPELINING_INTERNAL_BUFFER_H__
@@ -41,10 +41,10 @@ class internal_buffer_pull_output_t: public node {
 public:
 	typedef T item_type;
 
-	internal_buffer_pull_output_t(const node_token & input_token, size_t size) {
+	internal_buffer_pull_output_t(const node_token & input_token) {
 		add_pull_source(input_token);
 		set_name("Fetching items", PRIORITY_SIGNIFICANT);
-		set_minimum_memory(internal_queue<T>::memory_usage(size));
+		// Memory is accouted for by the input node
 	}
 
 	virtual void propagate() override {
@@ -67,18 +67,15 @@ public:
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Input node for buffer.
-///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class internal_buffer_input_t: public node {
 public:
 	typedef T item_type;
 
-	internal_buffer_input_t(const node_token & token, size_t size)
+	internal_buffer_input_t(const node_token & token, size_t size, size_t additional_item_size=0)
 		: node(token), size(size) {
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
-		set_minimum_memory(internal_queue<T>::memory_usage(size));
+		set_minimum_memory(internal_queue<T>::memory_usage(size) + size*additional_item_size);
 		set_plot_options(PLOT_SIMPLIFIED_HIDE);
 	}
 
@@ -100,8 +97,9 @@ private:
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Plain old file_stream buffer. Does nothing to the item stream, but
-/// it inserts a phase boundary.
+/// \brief Internal fifo buffer.
+///
+/// Represents an internal buffer with limited capacity.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class internal_passive_buffer {
@@ -110,33 +108,55 @@ public:
 	typedef bits::internal_buffer_input_t<T> input_t;
 	typedef bits::internal_buffer_pull_output_t<T> output_t;
 private:
-	typedef termfactory_2<input_t,  const node_token &, size_t> inputfact_t;
-	typedef termfactory_2<output_t, const node_token &, size_t> outputfact_t;
+	typedef termfactory_3<input_t,  const node_token &, size_t, size_t> inputfact_t;
+	typedef termfactory_1<output_t, const node_token &> outputfact_t;
 	typedef pipe_end      <inputfact_t>  inputpipe_t;
 	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
 public:
-	internal_passive_buffer(size_t size) : size(size) {}
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a factory for the buffer.
+	/// \note The factory may be destroied after input and output has
+	/// been called, it does not  need to stay around util after the
+	/// nodes have been destroied.
+	/// \param size The maximal number of elements the buffer will
+	/// hold.
+	/// \param additional_item_size if itemas have a size different
+	/// then sizeof(T), say if the malloc stuff internally, this
+	/// additional size will be accounted for per element
+	///////////////////////////////////////////////////////////////////////////	
+	 
+	internal_passive_buffer(size_t size, size_t additional_item_size=0)
+		: size(size)
+		, additional_item_size(additional_item_size) {}
 
-	inline input_t raw_input() {
+	input_t raw_input() {
 		return input_t(input_token, size);
 	}
 
-	inline output_t raw_output() {
+	output_t raw_output() {
 		return output_t(input_token, size);
 	}
 
-	inline inputpipe_t input() {
-		return inputfact_t(input_token, size);
+	////////////////////////////////////////////////////////////////////////////
+	/// Return pipe node where items are pushed into the buffer
+	/// Pushing items into a full buffer causes undefined behaviour
+	////////////////////////////////////////////////////////////////////////////
+	inputpipe_t input() {
+		return inputfact_t(input_token, size, additional_item_size);
 	}
 
-	inline outputpipe_t output() {
-		return outputfact_t(input_token, size);
+	////////////////////////////////////////////////////////////////////////////
+	/// Return pipe node where items in the buffer can be pulled from
+	/// Pulling from the empty buffer causes undefined behaviour
+	////////////////////////////////////////////////////////////////////////////
+	outputpipe_t output() {
+		return outputfact_t(input_token);
 	}
 	
 private:
 	node_token input_token;
-	size_t size;
+	size_t size, additional_item_size;
 	
 	internal_passive_buffer(const internal_passive_buffer &);
 	internal_passive_buffer & operator=(const internal_passive_buffer &);
