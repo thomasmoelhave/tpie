@@ -223,14 +223,6 @@ public:
 	};
 };
 
-template <typename T>
-class bitbucket_t : public node {
-public:
-	typedef T item_type;
-
-	inline void push(const T &) {
-	}
-};
 
 template <typename fact2_t>
 class fork_t {
@@ -262,8 +254,6 @@ template <typename T>
 class null_sink_t: public node {
 public:
 	typedef T item_type;
-	null_sink_t() {
-	}
 
 	void push(const T &) {}
 };
@@ -510,33 +500,62 @@ alt_identity() {
 	>(factory_0<bits::pull_identity_t>());
 }
 
-template <typename T>
-inline pipe_end<termfactory_0<bits::bitbucket_t<T> > >
-bitbucket(T) {
-	return termfactory_0<bits::bitbucket_t<T> >();
-}
-
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a fork pipe node.
+/// 
+/// Whenever an element e is push into the fork node, e is pushed
+/// to the destination and then to "to"
+///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<tempfactory_1<bits::fork_t<fact_t>, const fact_t &> >
 fork(const pipe_end<fact_t> & to) {
 	return tempfactory_1<bits::fork_t<fact_t>, const fact_t &>(to.factory);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create unzip pipe node.
+/// 
+/// Whenever a std::pair<A,B>(a,b) is pushed to the unzip node,
+/// a is pushed to its destination, and then b is bushed to "to"
+///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<tempfactory_1<bits::unzip_t<fact_t>, const fact_t &> >
 unzip(const pipe_end<fact_t> & to) {
 	return tempfactory_1<bits::unzip_t<fact_t>, const fact_t &>(to.factory);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a zip pipe node.
+///
+/// Whenever an element a is pushed to the zip node,
+/// an element b is pulled from the "from" node, 
+/// and std::make_pair(a,b) is pushed to the destination
+///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<tempfactory_1<bits::zip_t<fact_t>, const fact_t &> >
-zip(const pullpipe_begin<fact_t> & to) {
-	return tempfactory_1<bits::zip_t<fact_t>, const fact_t &>(to.factory);
+zip(const pullpipe_begin<fact_t> & from) {
+	return tempfactory_1<bits::zip_t<fact_t>, const fact_t &>(from.factory);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a dummy end pipe node
+///
+/// Whenever an element of type T is pushed to the null_sink it is disregarded
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline pipe_end<termfactory_0<bits::null_sink_t<T> > >
 null_sink() {return termfactory_0<bits::null_sink_t<T> >();}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a dummy end pipe node
+///
+/// \deprecated{Use null_sink}
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+inline pipe_end<termfactory_0<bits::null_sink_t<T> > >
+bitbucket(T) {
+	return termfactory_0<bits::null_sink_t<T> >();
+}
 
 template <template <typename dest_t> class Fact>
 pipe_begin<factory_0<Fact> > make_pipe_begin_0() {
@@ -608,16 +627,34 @@ pullpipe_end<tempfactory_1<bits::pull_output_iterator_t<IT>, IT> > pull_output_i
 	return tempfactory_1<bits::pull_output_iterator_t<IT>, IT>(to);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create preparer callback identity pipe node
+///
+/// When prepare is called on the node functor is called
+/// Whenever an element is push, it is immidiatly pushed to the destination
+///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 pipe_middle<tempfactory_1<bits::preparer_t<F>, F> > preparer(const F & functor) {
 	return tempfactory_1<bits::preparer_t<F>, F>(functor);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create propagate callback identity pipe node
+///
+/// When propagate is called on the node functor is called
+/// Whenever an element is push, it is immidiatly pushed to the destination
+///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 pipe_middle<tempfactory_1<bits::propagater_t<F>, F> > propagater(const F & functor) {
 	return tempfactory_1<bits::propagater_t<F>, F>(functor);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create item type defining identity pipe node
+///
+/// Defines the item_type to be T.
+/// Whenever an element is push, it is immidiatly pushed to the destination
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 pipe_middle<tempfactory_0<bits::item_type_t<T> > > item_type() {
 	return tempfactory_0<bits::item_type_t<T> >();
