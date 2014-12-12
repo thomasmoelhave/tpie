@@ -137,23 +137,13 @@ public:
 		else
 			return m_store->min_key(m_path.back(), i);
 	}
-
-	/**
-	 * \brief Return the i'th value
-	 *
-	 * Requires leaf()
-	 */
-	const value_type & value(size_t i) const {
-		tp_assert(m_is_leaf, "Not leaf");
-		return m_store->get(m_leaf, i);
-	}
 	
 	/**
 	 * \brief Return the i'th value
 	 *
 	 * Requires leaf()
 	 */
-	value_type & value(size_t i) {
+	value_type value(size_t i) const {
 		tp_assert(m_is_leaf, "Not leaf");
 		return m_store->get(m_leaf, i);
 	}
@@ -213,7 +203,8 @@ template <typename S>
 class btree_iterator: public boost::iterator_facade<
 	btree_iterator<S>,
 	typename S::value_type,
-	boost::bidirectional_traversal_tag> {
+	boost::bidirectional_traversal_tag,
+	typename S::value_type> {
 private:
 	typedef typename S::internal_type internal_type;
 	typedef typename S::leaf_type leaf_type;
@@ -279,7 +270,7 @@ private:
 public:
 	btree_iterator(): m_index(0), m_leaf() {}
 
-	value_type & dereference() const { 
+	value_type dereference() const {
 		return m_store->get(m_leaf, m_index);
 	}
 

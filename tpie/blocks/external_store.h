@@ -208,7 +208,7 @@ private:
 		m_collection->write_block(node.handle, nodeBlock);
 	}
 
-	T & get(leaf_type node, size_t i) {
+	T get(leaf_type node, size_t i) {
 		blocks::block nodeBlock;
 		m_collection->read_block(node.handle, nodeBlock);
 		leaf nodeInter(nodeBlock);
