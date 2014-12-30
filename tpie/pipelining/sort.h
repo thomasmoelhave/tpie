@@ -37,20 +37,21 @@ namespace pipelining {
 
 namespace bits {
 
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class sort_calc_t;
 
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class sort_input_t;
 
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class sort_output_base : public node {
 	// node has virtual dtor
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
+	
 	/** Type of the merge sort implementation used. */
-	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	typedef merge_sorter<T, true, pred_t, store_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
@@ -63,8 +64,8 @@ public:
 	}
 
 protected:
-	sort_output_base(pred_t pred)
-		: m_sorter(new sorter_t(pred))
+	sort_output_base(pred_t pred, store_t store)
+		: m_sorter(new sorter_t(pred, store))
 	{
 	}
 
@@ -76,18 +77,19 @@ protected:
 /// \tparam pred_t   The less-than predicate.
 /// \tparam dest_t   Destination node type.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
-class sort_pull_output_t : public sort_output_base<T, pred_t> {
+template <typename T, typename pred_t, typename store_t>
+class sort_pull_output_t : public sort_output_base<T, pred_t, store_t> {
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
+	
 	/** Type of the merge sort implementation used. */
-	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t, store_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_pull_output_t(pred_t pred)
-		: sort_output_base<T, pred_t>(pred)
+	sort_pull_output_t(pred_t pred, store_t store)
+		: sort_output_base<T, pred_t, store_t>(pred, store)
 	{
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
@@ -133,20 +135,21 @@ protected:
 /// \tparam pred_t   The less-than predicate.
 /// \tparam dest_t   Destination node type.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t, typename dest_t>
-class sort_output_t : public sort_output_base<typename push_type<dest_t>::type, pred_t> {
+template <typename pred_t, typename dest_t, typename store_t>
+class sort_output_t : public sort_output_base<typename push_type<dest_t>::type, pred_t, store_t> {
 public:
 	/** Type of items sorted. */
 	typedef typename push_type<dest_t>::type item_type;
+	
 	/** Base class */
-	typedef sort_output_base<item_type, pred_t> p_t;
+	typedef sort_output_base<item_type, pred_t, store_t> p_t;
 	/** Type of the merge sort implementation used. */
-	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t, store_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_output_t(const dest_t & dest, pred_t pred)
-		: p_t(pred)
+	inline sort_output_t(const dest_t & dest, pred_t pred, store_t store)
+		: p_t(pred, store)
 		, dest(dest)
 	{
 		this->add_push_destination(dest);
@@ -184,17 +187,18 @@ private:
 /// \tparam T        The type of items sorted
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class sort_calc_t : public node {
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
+	
 	/** Type of the merge sort implementation used. */
-	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t, store_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	typedef sort_output_base<T, pred_t> Output;
+	typedef sort_output_base<T, pred_t, store_t> Output;
 
 	inline sort_calc_t(const sort_calc_t & other)
 		: node(other)
@@ -266,17 +270,18 @@ private:
 /// \tparam T        The type of items sorted
 /// \tparam pred_t   The less-than predicate
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class sort_input_t : public node {
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
+	
 	/** Type of the merge sort implementation used. */
-	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t, store_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_input_t(sort_calc_t<T, pred_t> dest)
+	inline sort_input_t(sort_calc_t<T, pred_t, store_t> dest)
 		: m_sorter(dest.get_sorter())
 		, dest(dest)
 	{
@@ -318,10 +323,10 @@ protected:
 
 private:
 	sorterptr m_sorter;
-	sort_calc_t<T, pred_t> dest;
+	sort_calc_t<T, pred_t, store_t> dest;
 };
 
-template <typename child_t>
+template <typename child_t, typename store_t>
 class sort_factory_base : public factory_base {
 	const child_t & self() const { return *static_cast<const child_t *>(this); }
 public:
@@ -330,49 +335,65 @@ public:
 	private:
 		/** Type of items sorted. */
 		typedef typename push_type<dest_t>::type item_type;
+		typedef typename store_t::template element_type<item_type>::type element_type;
 	public:
-		typedef typename child_t::template predicate<item_type>::type pred_type;
-		typedef sort_input_t<item_type, pred_type> type;
+		typedef typename child_t::template predicate<element_type>::type pred_type;
+		typedef sort_input_t<item_type, pred_type, store_t> type;
 	};
-
+	
 	template <typename dest_t>
 	typename constructed<dest_t>::type construct(const dest_t & dest) const {
 		typedef typename push_type<dest_t>::type item_type;
+		typedef typename store_t::template element_type<item_type>::type element_type;
 		typedef typename constructed<dest_t>::pred_type pred_type;
 
-		sort_output_t<pred_type, dest_t> output(dest, self().template get_pred<item_type>());
+		sort_output_t<pred_type, dest_t, store_t> output(
+			dest, 
+			self().template get_pred<element_type>(), 
+			m_store);
 		this->init_sub_node(output);
-		sort_calc_t<item_type, pred_type> calc(output);
+		sort_calc_t<item_type, pred_type, store_t> calc(output);
 		this->init_sub_node(calc);
-		sort_input_t<item_type, pred_type> input(calc);
+		sort_input_t<item_type, pred_type, store_t> input(calc);
 		this->init_sub_node(input);
 
 		return input;
 	}
+
+	sort_factory_base(store_t store): m_store(store) {}
+private:
+	store_t m_store;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort factory using std::less<T> as comparator.
 ///////////////////////////////////////////////////////////////////////////////
-class default_pred_sort_factory : public sort_factory_base<default_pred_sort_factory> {
+template <typename store_t>
+class default_pred_sort_factory : public sort_factory_base<default_pred_sort_factory<store_t>, store_t> {
 public:
 	template <typename item_type>
 	class predicate {
 	public:
 		typedef std::less<item_type> type;
 	};
-
+	
 	template <typename T>
 	std::less<T> get_pred() const {
 		return std::less<T>();
+	}
+
+	default_pred_sort_factory(const store_t & store)
+		: sort_factory_base<default_pred_sort_factory<store_t>, store_t>(store) 
+	{
 	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort factory using the given predicate as comparator.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t>
-class sort_factory : public sort_factory_base<sort_factory<pred_t> > {
+template <typename pred_t, typename store_t>
+class sort_factory : public sort_factory_base<sort_factory<pred_t, store_t>, store_t> {
 public:
 	template <typename Dummy>
 	class predicate {
@@ -380,8 +401,9 @@ public:
 		typedef pred_t type;
 	};
 
-	sort_factory(const pred_t & p)
-		: pred(p)
+	sort_factory(const pred_t & p, const store_t & store)
+		: sort_factory_base<sort_factory<pred_t, store_t>, store_t>(store)
+		, pred(p)
 	{
 	}
 
@@ -389,7 +411,6 @@ public:
 	pred_t get_pred() const {
 		return pred;
 	}
-
 private:
 	pred_t pred;
 };
@@ -399,23 +420,38 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining sorter using std::less.
 ///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<bits::default_pred_sort_factory>
+inline pipe_middle<bits::default_pred_sort_factory<default_store> >
 sort() {
-	typedef bits::default_pred_sort_factory fact;
-	return pipe_middle<fact>(fact()).name("Sort");
+	typedef bits::default_pred_sort_factory<default_store> fact;
+	return pipe_middle<fact>(fact(default_store())).name("Sort");
+}
+
+template <typename store_t>
+inline pipe_middle<bits::default_pred_sort_factory<store_t> >
+store_sort(store_t store=store_t()) {
+	typedef bits::default_pred_sort_factory<store_t> fact;
+	return pipe_middle<fact>(fact(store)).name("Sort");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining sorter using the given predicate.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t>
-inline pipe_middle<bits::sort_factory<pred_t> >
+inline pipe_middle<bits::sort_factory<pred_t, default_store> >
 sort(const pred_t & p) {
-	typedef bits::sort_factory<pred_t> fact;
-	return pipe_middle<fact>(fact(p)).name("Sort");
+	typedef bits::sort_factory<pred_t, default_store> fact;
+	return pipe_middle<fact>(fact(p, default_store())).name("Sort");
 }
 
-template <typename T, typename pred_t=std::less<T> >
+
+template <typename pred_t, typename store_t>
+inline pipe_middle<bits::sort_factory<pred_t, store_t> >
+sort(const pred_t & p, store_t store) {
+	typedef bits::sort_factory<pred_t, store_t> fact;
+	return pipe_middle<fact>(fact(p, store)).name("Sort");
+}
+
+template <typename T, typename pred_t=std::less<T>, typename store_t=default_store>
 class passive_sorter;
 
 namespace bits {
@@ -423,14 +459,14 @@ namespace bits {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory for the passive sorter input node.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class passive_sorter_factory : public factory_base {
 public:
-	typedef sort_pull_output_t<T, pred_t> output_t;
-	typedef sort_calc_t<T, pred_t> calc_t;
-	typedef sort_input_t<T, pred_t> input_t;
+	typedef sort_pull_output_t<T, pred_t, store_t> output_t;
+	typedef sort_calc_t<T, pred_t, store_t> calc_t;
+	typedef sort_input_t<T, pred_t, store_t> input_t;
 	typedef input_t constructed_type;
-	typedef merge_sorter<T, true, pred_t> sorter_t;
+	typedef merge_sorter<T, true, pred_t, store_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
 	passive_sorter_factory(output_t & output)
@@ -454,13 +490,13 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory for the passive sorter output node.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename PS, typename store_t>
 class passive_sorter_factory_2 : public factory_base {
 public:
-	typedef sort_pull_output_t<T, pred_t> output_t;
+	typedef sort_pull_output_t<T, pred_t, store_t> output_t;
 	typedef output_t constructed_type;
 
-	passive_sorter_factory_2(const passive_sorter<T, pred_t> & sorter)
+	passive_sorter_factory_2(const PS & sorter)
 		: m_sorter(sorter)
 	{
 	}
@@ -468,8 +504,9 @@ public:
 	constructed_type construct() const;
 
 private:
-	const passive_sorter<T, pred_t> & m_sorter;
+	const PS & m_sorter;
 };
+
 
 } // namespace bits
 
@@ -481,54 +518,55 @@ private:
 /// \tparam pred_t The predicate (e.g. std::less<T>) indicating the predicate
 /// on which to order an item before another.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
+template <typename T, typename pred_t, typename store_t>
 class passive_sorter {
 public:
 	/** Type of items sorted. */
 	typedef T item_type;
 	/** Type of the merge sort implementation used. */
-	typedef merge_sorter<item_type, true, pred_t> sorter_t;
+	typedef merge_sorter<item_type, true, pred_t, store_t> sorter_t;
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 	/** Type of pipe sorter output. */
-	typedef bits::sort_pull_output_t<item_type, pred_t> output_t;
+	typedef bits::sort_pull_output_t<item_type, pred_t, store_t> output_t;
 
-	inline passive_sorter(pred_t pred = pred_t())
+	inline passive_sorter(pred_t pred = pred_t(),
+						  store_t store = store_t())
 		: m_sorter(new sorter_t())
-		, pred(pred)
-		, m_output(pred)
+		, m_output(pred, store)
 	{
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
-	inline pipe_end<bits::passive_sorter_factory<item_type, pred_t> > input() {
-		return bits::passive_sorter_factory<item_type, pred_t>(m_output);
+	inline pipe_end<bits::passive_sorter_factory<item_type, pred_t, store_t> > input() {
+		return bits::passive_sorter_factory<item_type, pred_t, store_t>(m_output);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
-	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t> > output() {
-		return bits::passive_sorter_factory_2<item_type, pred_t>(*this);
+	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t,
+														 passive_sorter, store_t> > output() {
+		return bits::passive_sorter_factory_2<item_type, pred_t, passive_sorter, store_t>(*this);
 	}
-
+	
 private:
 	sorterptr m_sorter;
-	pred_t pred;
 	output_t m_output;
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 
-	friend class bits::passive_sorter_factory_2<T, pred_t>;
+	friend class bits::passive_sorter_factory_2<T, pred_t, passive_sorter, store_t>;
 };
+
 
 namespace bits {
 
-template <typename T, typename pred_t>
-typename passive_sorter_factory_2<T, pred_t>::constructed_type
-passive_sorter_factory_2<T, pred_t>::construct() const {
+template <typename T, typename pred_t, typename PS, typename store_t>
+typename passive_sorter_factory_2<T, pred_t, PS, store_t>::constructed_type
+passive_sorter_factory_2<T, pred_t, PS, store_t>::construct() const {
 	constructed_type res = m_sorter.m_output;
 	init_node(res);
 	return res;
