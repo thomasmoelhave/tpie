@@ -490,13 +490,13 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory for the passive sorter output node.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t, typename PS, typename store_t>
+template <typename T, typename pred_t, typename store_t>
 class passive_sorter_factory_2 : public factory_base {
 public:
 	typedef sort_pull_output_t<T, pred_t, store_t> output_t;
 	typedef output_t constructed_type;
 
-	passive_sorter_factory_2(const PS & sorter)
+	passive_sorter_factory_2(const passive_sorter<T, pred_t, store_t> & sorter)
 		: m_sorter(sorter)
 	{
 	}
@@ -504,7 +504,7 @@ public:
 	constructed_type construct() const;
 
 private:
-	const PS & m_sorter;
+	const passive_sorter<T, pred_t, store_t> & m_sorter;
 };
 
 
@@ -548,8 +548,8 @@ public:
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
 	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t,
-														 passive_sorter, store_t> > output() {
-		return bits::passive_sorter_factory_2<item_type, pred_t, passive_sorter, store_t>(*this);
+														 store_t> > output() {
+		return bits::passive_sorter_factory_2<item_type, pred_t, store_t>(*this);
 	}
 	
 private:
@@ -558,15 +558,15 @@ private:
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 
-	friend class bits::passive_sorter_factory_2<T, pred_t, passive_sorter, store_t>;
+	friend class bits::passive_sorter_factory_2<T, pred_t, store_t>;
 };
 
 
 namespace bits {
 
-template <typename T, typename pred_t, typename PS, typename store_t>
-typename passive_sorter_factory_2<T, pred_t, PS, store_t>::constructed_type
-passive_sorter_factory_2<T, pred_t, PS, store_t>::construct() const {
+template <typename T, typename pred_t, typename store_t>
+typename passive_sorter_factory_2<T, pred_t, store_t>::constructed_type
+passive_sorter_factory_2<T, pred_t, store_t>::construct() const {
 	constructed_type res = m_sorter.m_output;
 	init_node(res);
 	return res;
