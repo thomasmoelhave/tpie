@@ -164,7 +164,7 @@ struct pointer_store {
 
 namespace bits {
 
-template <typename element_t, bool>
+template <typename element_t, bool = (sizeof(element_t) > 256)>
 struct dynamic_specific_selector: public plain_store::specific<element_t> {};
 
 template <typename element_t>
@@ -188,7 +188,7 @@ struct dynamic_store {
 	};
 
 	template <typename element_t>
-	struct specific: public bits::dynamic_specific_selector<element_t, (sizeof(element_t) > 256) > {};
+	struct specific: public bits::dynamic_specific_selector<element_t> {};
 
 	template <typename element_t>
 	specific<element_t> get_specific() {return specific<element_t>();}
