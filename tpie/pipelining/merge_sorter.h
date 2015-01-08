@@ -145,19 +145,29 @@ private:
 /// anything to disk. This causes phase 2 to be a no-op and phase 3 to be a
 /// simple array traversal.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, bool UseProgress, typename pred_t = std::less<T> >
+template <typename T, bool UseProgress, typename pred_t = std::less<T>, typename store_t=default_store>
 class merge_sorter {
+private:
+	typedef typename store_t::template element_type<T>::type TT;
+	typedef typename store_t::template specific<TT> specific_store_t;
+	typedef typename specific_store_t::outer_type outer_type;	//Should be the same as T
+	typedef typename specific_store_t::store_type store_type;
+	typedef typename specific_store_t::element_type element_type;	//Should be the same as TT
+	typedef outer_type item_type;
+	static const size_t item_size = specific_store_t::item_size;
 public:
+
 	typedef boost::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
 	static const memory_size_type maximumFanout = 250; // arbitrary. TODO: run experiments to find threshold
 
-	inline merge_sorter(pred_t pred = pred_t())
+	inline merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
 		: m_state(stParameters)
 		, p()
 		, m_parametersSet(false)
-		, m_merger(pred)
+		, m_store(store.template get_specific<element_type>())
+		, m_merger(pred, m_store)
 		, pred(pred)
 		, m_evacuated(false)
 		, m_finalMergeInitialized(false)
@@ -174,7 +184,7 @@ public:
 		p.fanout = p.finalFanout = fanout;
 		m_parametersSet = true;
 		log_debug() << "Manually set merge sort run length and fanout\n";
-		log_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")\n";
+		log_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*item_size + file_stream<element_type>::memory_usage()) << ")\n";
 		log_debug() << "Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl;
 	}
 
@@ -241,13 +251,13 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push item to merge sorter during phase 1.
 	///////////////////////////////////////////////////////////////////////////
-	inline void push(const T & item) {
+	inline void push(const item_type & item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
 			sort_current_run();
 			empty_current_run();
 		}
-		m_currentRunItems[m_currentRunItemCount] = item;
+		m_currentRunItems[m_currentRunItemCount] = m_store.outer_to_store(item);
 		++m_currentRunItemCount;
 		++m_itemCount;
 	}
@@ -273,12 +283,12 @@ public:
 
 		} else if (m_finishedRuns == 0
 				   && m_currentRunItemCount <= p.internalReportThreshold
-				   && array<T>::memory_usage(m_currentRunItemCount) <= get_memory_manager().available()) {
+				   && array<store_type>::memory_usage(m_currentRunItemCount) <= get_memory_manager().available()) {
 			// Our current buffer does not fit within the memory requirements
 			// of phase 2, but we have enough temporary memory to copy and
 			// resize the buffer.
 
-			array<T> currentRun(array_view<T>(m_currentRunItems, 0, m_currentRunItemCount));
+			array<store_type> currentRun(array_view<store_type>(m_currentRunItems, 0, m_currentRunItemCount));
 			m_currentRunItems.swap(currentRun);
 
 			m_reportInternal = true;
@@ -345,7 +355,8 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 
 	inline void sort_current_run() {
-		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, pred);
+		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, 
+					  bits::store_pred<pred_t, specific_store_t>(pred));
 	}
 
 	// postcondition: m_currentRunItemCount = 0
@@ -354,11 +365,10 @@ private:
 			log_debug() << "Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl;
 		else if (m_finishedRuns == 10)
 			log_debug() << "..." << std::endl;
-		file_stream<T> fs;
+		file_stream<element_type> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
-		for (memory_size_type i = 0; i < m_currentRunItemCount; ++i) {
-			fs.write(m_currentRunItems[i]);
-		}
+		for (memory_size_type i = 0; i < m_currentRunItemCount; ++i)
+			fs.write(m_store.store_to_element(m_currentRunItems[i]));
 		m_currentRunItemCount = 0;
 		++m_finishedRuns;
 	}
@@ -372,7 +382,7 @@ private:
 		// many file_streams open at the same time.
 
 		// Open files and seek to the first item in the run.
-		array<file_stream<T> > in(runCount);
+		array<file_stream<element_type> > in(runCount);
 		for (memory_size_type i = 0; i < runCount; ++i) {
 			open_run_file_read(in[i], mergeLevel, runNumber+i);
 		}
@@ -415,7 +425,7 @@ public:
 		tp_assert(m_finalMergeInitialized, "reinitialize_final_merger while !m_finalMergeInitialized");
 		m_runPositions.unevacuate();
 		if (m_finalMergeSpecialRunNumber != std::numeric_limits<memory_size_type>::max()) {
-			array<file_stream<T> > in(p.finalFanout);
+			array<file_stream<element_type> > in(p.finalFanout);
 			for (memory_size_type i = 0; i < p.finalFanout-1; ++i) {
 				open_run_file_read(in[i], m_finalMergeLevel, i);
 				log_debug() << "Run " << i << " is at offset " << in[i].offset() << " and has size " << in[i].size() << std::endl;
@@ -451,12 +461,12 @@ private:
 	template <typename ProgressIndicator>
 	inline memory_size_type merge_runs(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount, ProgressIndicator & pi) {
 		initialize_merger(mergeLevel, runNumber, runCount);
-		file_stream<T> out;
+		file_stream<element_type> out;
 		memory_size_type nextRunNumber = runNumber/p.fanout;
 		open_run_file_write(out, mergeLevel+1, nextRunNumber);
 		while (m_merger.can_pull()) {
 			pi.step();
-			out.write(m_merger.pull());
+			out.write(m_store.store_to_element(m_merger.pull()));
 		}
 		return nextRunNumber;
 	}
@@ -516,16 +526,16 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// In phase 3, fetch next item in the final merge phase.
 	///////////////////////////////////////////////////////////////////////////
-	inline T pull() {
+	inline item_type pull() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
-			T el = m_currentRunItems[m_itemsPulled++];
+			store_type el = m_currentRunItems[m_itemsPulled++];
 			if (!can_pull()) m_currentRunItems.resize(0);
-			return el;
+			return m_store.store_to_outer(el);
 		} else {
 			if (m_evacuated) reinitialize_final_merger();
 			m_runPositions.close();
-			return m_merger.pull();
+			return m_store.store_to_outer(m_merger.pull());
 		}
 	}
 
@@ -534,9 +544,9 @@ public:
 	}
 
 	static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
-		return params.runLength * sizeof(T)
+		return params.runLength * item_size
 			+ bits::run_positions::memory_usage()
-			+ file_stream<T>::memory_usage()
+			+ file_stream<element_type>::memory_usage()
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
@@ -623,21 +633,21 @@ private:
 		// Run length: determined by the number of items we can hold in memory.
 		// Fanout: unbounded
 
-		memory_size_type streamMemory = file_stream<T>::memory_usage();
+		memory_size_type streamMemory = file_stream<element_type>::memory_usage();
 		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 
 		log_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-		memory_size_type min_m1 = 128*1024 / sizeof(T) + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
+		memory_size_type min_m1 = 128*1024 / item_size + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
 		if (p.memoryPhase1 < min_m1) {
 			log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
 			p.memoryPhase1 = min_m1;
 		}
-		p.runLength = (p.memoryPhase1 - bits::run_positions::memory_usage() - streamMemory - tempFileMemory)/sizeof(T);
+		p.runLength = (p.memoryPhase1 - bits::run_positions::memory_usage() - streamMemory - tempFileMemory)/item_size;
 
 		p.internalReportThreshold = (std::min(p.memoryPhase1,
 											  std::min(p.memoryPhase2,
 													   p.memoryPhase3))
-									 - tempFileMemory)/sizeof(T);
+									 - tempFileMemory)/item_size;
 		if (p.internalReportThreshold > p.runLength)
 			p.internalReportThreshold = p.runLength;
 
@@ -689,9 +699,9 @@ private:
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type fanout_memory_usage(memory_size_type fanout) {
-		return merger<T, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
+		return merger<specific_store_t, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
 			+ bits::run_positions::memory_usage()
-			+ file_stream<T>::memory_usage() // output stream
+			+ file_stream<element_type>::memory_usage() // output stream
 			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
 	}
 
@@ -743,7 +753,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Open a new run file and seek to the end.
 	///////////////////////////////////////////////////////////////////////////
-	void open_run_file_write(file_stream<T> & fs, memory_size_type mergeLevel, memory_size_type runNumber) {
+	void open_run_file_write(file_stream<element_type> & fs, memory_size_type mergeLevel, memory_size_type runNumber) {
 		// see run_file_index comment about runNumber
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
@@ -756,7 +766,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Open an existing run file and seek to the correct offset.
 	///////////////////////////////////////////////////////////////////////////
-	void open_run_file_read(file_stream<T> & fs, memory_size_type mergeLevel, memory_size_type runNumber) {
+	void open_run_file_read(file_stream<element_type> & fs, memory_size_type mergeLevel, memory_size_type runNumber) {
 		// see run_file_index comment about runNumber
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
@@ -776,7 +786,8 @@ private:
 	sort_parameters p;
 	bool m_parametersSet;
 
-	merger<T, pred_t> m_merger;
+	specific_store_t m_store;
+	merger<specific_store_t, pred_t> m_merger;
 
 	array<temp_file> m_runFiles;
 
@@ -788,7 +799,7 @@ private:
 	stream_size_type m_finishedRuns;
 
 	// current run buffer. size 0 before begin(), size runLength after begin().
-	array<T> m_currentRunItems;
+	array<store_type> m_currentRunItems;
 
 	// Number of items in current run buffer.
 	// Used to index into m_currentRunItems, so memory_size_type.
@@ -803,7 +814,6 @@ private:
 	stream_size_type m_itemCount;
 
 	pred_t pred;
-
 	bool m_evacuated;
 	bool m_finalMergeInitialized;
 	memory_size_type m_finalMergeLevel;

@@ -24,27 +24,32 @@
 #include <tpie/compressed/stream.h>
 #include <tpie/file_stream.h>
 #include <tpie/tpie_assert.h>
-
+#include <tpie/pipelining/store.h>
 namespace tpie {
 
-template <typename T, typename pred_t>
+template <typename specific_store_t, typename pred_t>
 class merger {
+private:
+	typedef typename specific_store_t::store_type store_type;
+	typedef typename specific_store_t::element_type element_type;
+
+	typedef bits::store_pred<pred_t, specific_store_t> store_pred_t;
 public:
-	inline merger(pred_t pred)
-		: pq(0, predwrap(pred))
-	{
+	inline merger(pred_t pred, specific_store_t store)
+		: pq(0, predwrap(store_pred_t(pred))), m_store(store) {
 	}
 
 	inline bool can_pull() {
 		return !pq.empty();
 	}
 
-	inline T pull() {
+ 	inline store_type pull() {
 		tp_assert(can_pull(), "pull() while !can_pull()");
-		T el = pq.top().first;
+		store_type el = pq.top().first;
 		size_t i = pq.top().second;
 		if (in[i].can_read() && itemsRead[i] < runLength) {
-			pq.pop_and_push(std::make_pair(in[i].read(), i));
+			pq.pop_and_push(
+				std::make_pair(m_store.element_to_store(in[i].read()), i));
 			++itemsRead[i];
 		} else {
 			pq.pop();
@@ -66,13 +71,15 @@ public:
 	// and runLength items are read from each stream (unless end of stream
 	// occurs earlier).
 	// Precondition: !can_pull()
-	void reset(array<file_stream<T> > & inputs, stream_size_type runLength) {
+	void reset(array<file_stream<element_type> > & inputs, stream_size_type runLength) {
 		this->runLength = runLength;
 		tp_assert(pq.empty(), "Reset before we are done");
 		in.swap(inputs);
 		pq.resize(in.size());
 		for (size_t i = 0; i < in.size(); ++i) {
-			pq.unsafe_push(std::make_pair(in[i].read(), i));
+			pq.unsafe_push(
+				std::make_pair(
+					m_store.element_to_store(in[i].read()), i));
 		}
 		pq.make_safe();
 		itemsRead.resize(in.size(), 1);
@@ -80,12 +87,12 @@ public:
 
 	inline static memory_size_type memory_usage(memory_size_type fanout) {
 		return sizeof(merger)
-			- sizeof(internal_priority_queue<std::pair<T, size_t>, predwrap>) // pq
-			+ static_cast<memory_size_type>(internal_priority_queue<std::pair<T, size_t>, predwrap>::memory_usage(fanout)) // pq
-			- sizeof(array<file_stream<T> >) // in
-			+ static_cast<memory_size_type>(array<file_stream<T> >::memory_usage(fanout)) // in
-			- fanout*sizeof(file_stream<T>) // in file_streams
-			+ fanout*file_stream<T>::memory_usage() // in file_streams
+			- sizeof(internal_priority_queue<std::pair<store_type, size_t>, predwrap>) // pq
+			+ static_cast<memory_size_type>(internal_priority_queue<std::pair<store_type, size_t>, predwrap>::memory_usage(fanout)) // pq
+			- sizeof(array<file_stream<element_type> >) // in
+			+ static_cast<memory_size_type>(array<file_stream<element_type> >::memory_usage(fanout)) // in
+			- fanout*sizeof(file_stream<element_type>) // in file_streams
+			+ fanout*file_stream<element_type>::memory_usage() // in file_streams
 			- sizeof(array<size_t>) // itemsRead
 			+ static_cast<memory_size_type>(array<size_t>::memory_usage(fanout)) // itemsRead
 			;
@@ -93,12 +100,12 @@ public:
 
 	class predwrap {
 	public:
-		typedef std::pair<T, size_t> item_type;
+		typedef std::pair<store_type, size_t> item_type;
 		typedef item_type first_argument_type;
 		typedef item_type second_argument_type;
 		typedef bool result_type;
 
-		predwrap(pred_t pred)
+		predwrap(store_pred_t pred)
 			: pred(pred)
 		{
 		}
@@ -108,14 +115,15 @@ public:
 		}
 
 	private:
-		pred_t pred;
+		store_pred_t pred;
 	};
 
 private:
-	internal_priority_queue<std::pair<T, size_t>, predwrap> pq;
-	array<file_stream<T> > in;
+	internal_priority_queue<std::pair<store_type, size_t>, predwrap> pq;
+	array<file_stream<element_type> > in;
 	array<stream_size_type> itemsRead;
 	stream_size_type runLength;
+	specific_store_t m_store;
 };
 
 } // namespace tpie

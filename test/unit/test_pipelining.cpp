@@ -647,13 +647,15 @@ buffer_node() {
 
 struct merger_memory : public memory_test {
 	typedef int test_t;
+	typedef plain_store::specific<test_t> specific_store_t;
+
 	size_t n;
 	array<file_stream<test_t> > inputs;
-	merger<test_t, std::less<test_t> > m;
+	merger<specific_store_t, std::less<test_t> > m;
 
 	inline merger_memory(size_t n)
 		: n(n)
-		, m(std::less<test_t>())
+		, m(std::less<test_t>(), specific_store_t())
 	{
 		inputs.resize(n);
 		for (size_t i = 0; i < n; ++i) {
@@ -683,7 +685,7 @@ struct merger_memory : public memory_test {
 	}
 
 	virtual size_type claimed_size() {
-		return static_cast<size_type>(merger<test_t, std::less<test_t> >::memory_usage(n));
+		return static_cast<size_type>(merger<specific_store_t, std::less<test_t> >::memory_usage(n));
 	}
 };
 
