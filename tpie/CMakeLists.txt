@@ -12,7 +12,7 @@ set (HEADERS
 		blocks/freespace_collection.h
 		blocks/internal_store.h
 		blocks/node.h
-		blocks/tree.h
+		blocks/btree.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h

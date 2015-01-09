@@ -21,7 +21,7 @@
 #include <tpie/tpie.h>
 #include <tpie/blocks/internal_store.h>
 #include <tpie/blocks/external_store.h>
-#include <tpie/blocks/tree.h>
+#include <tpie/blocks/btree.h>
 #include <tpie/tempname.h>
 #include <algorithm>
 #include <set>
