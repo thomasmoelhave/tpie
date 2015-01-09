@@ -50,7 +50,7 @@ public:
 	/**
 	 * \brief Create a block collection
 	 * \param fileName the file in which blocks are saved
-	 * \param indicates whether the collection is readable
+	 * \param writeable indicates whether the collection is readable
 	 */
 	block_collection(std::string fileName, bool writeable)
 	: m_open(false)
@@ -64,7 +64,7 @@ public:
 	}
 
 	/**
-	 * \brief Returns whether the colleciton is open or not
+	 * \brief Returns whether the collection is open or not
 	 */
 	bool is_open() const {
 		return m_open;
@@ -73,7 +73,7 @@ public:
 	/**
 	 * \brief Opens the block collection. If the collection is already open, it will first be closed.
 	 * \param fileName the file in which blocks are saved
-	 * \param indicates whether the collection is readable
+	 * \param writeable indicates whether the collection is readable
 	 */
 	void open(std::string fileName, bool writeable) {
 		close();
@@ -152,7 +152,7 @@ public:
 	/**
 	 * \brief Reads the content of a block from disk
 	 * \param handle the handle of the block to read
-	 * \b the block to store the content in
+	 * \param b the block to store the content in
 	 */
 	void read_block(block_handle handle, block & b) {
 		tp_assert(is_open(), "read_block(): the block collection is not open");
