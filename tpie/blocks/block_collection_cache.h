@@ -93,6 +93,8 @@ public:
 
 	block_handle get_free_block(stream_size_type size) {
 		block_handle h = m_collection.get_free_block(size);
+		block * cache_b = tpie_new<block>(h.size);
+		add_to_cache(h, cache_b);
 		return h;
 	}
 
@@ -133,7 +135,7 @@ private:
 		m_curSize += handle.size;
 	}
 public:
-	void read_block(block_handle handle, block & b) {
+	block * read_block(block_handle handle) {
 		block_map_t::iterator i = m_blockMap.find(handle);
 
 		if(i != m_blockMap.end()) { // the block is already in the cache
@@ -141,9 +143,13 @@ public:
 			m_blockList.erase(i->second.second);
 			m_blockList.push_back(i->first);
 
+			block_list_t::iterator j = m_blockList.end();
+			--j;
+
+			i->second.second = j;
+
 			// return the block content from cache
-			b = *i->second.first;
-			return;
+			return i->second.first;
 		}
 
 		// the block isn't in the cache
@@ -151,35 +157,24 @@ public:
 
 		block * cache_b = tpie_new<block>();
 		m_collection.read_block(handle, *cache_b);
-		b = *cache_b;
-
 		add_to_cache(handle, cache_b);
+
+		return cache_b;
 	}
 
-	void write_block(block_handle handle, const block & b) {
+	// precondintion: the block with the given handle is already in the cache
+	void write_block(block_handle handle) {
 		block_map_t::iterator i = m_blockMap.find(handle);
 
-		if(i != m_blockMap.end()) {
-			block * cache_b = i->second.first;
-			*cache_b = b;
+		tp_assert(i != m_blockMap.end(), "the given handle does not exist in the cache.");
 
-			m_blockList.erase(i->second.second);
-			m_blockList.push_back(handle);
+		m_blockList.erase(i->second.second);
+		m_blockList.push_back(handle);
 
-			block_list_t::iterator j = m_blockList.end();
-			--j;
+		block_list_t::iterator j = m_blockList.end();
+		--j;
 
-			*(i->second.first) = b;
-			i->second.second = j;
-			return;
-		}
-
-		dump_cache(handle.size);
-
-		block * cache_b = tpie_new<block>();
-		*cache_b = b;
-
-		add_to_cache(handle, cache_b);
+		i->second.second = j;
 	}
 private:
 	block_collection m_collection;

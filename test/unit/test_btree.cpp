@@ -288,7 +288,7 @@ bool augment_test(store & s) {
 	ss_augmenter a;
 	btree<store, std::less<int>, ss_augmenter> tree(s, c, a);
 	std::vector<int> x;
-    for (int i=0; i < 12345; ++i) x.push_back(i);
+    for (int i=0; i < 1234; ++i) x.push_back(i);
 	std::random_shuffle(x.begin(), x.end());
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
