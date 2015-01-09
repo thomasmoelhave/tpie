@@ -34,13 +34,24 @@ namespace tpie {
 
 namespace blocks {
 
+/**
+ * \brief A class to manage writing and reading of block to disk.
+ */
 class block_collection {
 public:
+	/**
+	 * \brief Create a new non-open block collection
+	 */
 	block_collection()
 	: m_open(false)
 	, m_writeable(false)
 	{}
 
+	/**
+	 * \brief Create a block collection
+	 * \param fileName the file in which blocks are saved
+	 * \param indicates whether the collection is readable
+	 */
 	block_collection(std::string fileName, bool writeable)
 	: m_open(false)
 	, m_writeable(false)
@@ -52,10 +63,18 @@ public:
 		close();
 	}
 
+	/**
+	 * \brief Returns whether the colleciton is open or not
+	 */
 	bool is_open() const {
 		return m_open;
 	}
 
+	/**
+	 * \brief Opens the block collection. If the collection is already open, it will first be closed.
+	 * \param fileName the file in which blocks are saved
+	 * \param indicates whether the collection is readable
+	 */
 	void open(std::string fileName, bool writeable) {
 		close();
 
@@ -83,6 +102,9 @@ public:
 		m_open = true;
 	}
 
+	/**
+	 * \brief Closes the block collection
+	 */
 	void close() {
 		if(m_open) {
 			stream_size_type data_size = m_collection.used_space();
@@ -100,6 +122,11 @@ public:
 		}
 	}
 
+	/**
+	 * \brief Allocates a new block
+	 * \param size the minimum size needed given in bytes
+	 * \return the handle of the new block
+	 */
 	block_handle get_free_block(stream_size_type size) {
 		tp_assert(is_open(), "get_free_block(): the block collection is not open");
 		tp_assert(m_writeable, "get_free_block(): the block collection is read only");
@@ -107,6 +134,10 @@ public:
 		return m_collection.alloc(size);
 	}
 
+	/**
+	 * \brief frees a block
+	 * \param handle the handle of the block to be freed
+	 */
 	void free_block(block_handle handle) {
 		tp_assert(is_open(), "free_block(): the block collection is not open");
 		tp_assert(m_writeable, "free_block(): the block collection is read only");
@@ -118,6 +149,11 @@ public:
 		}
 	}
 
+	/**
+	 * \brief Reads the content of a block from disk
+	 * \param handle the handle of the block to read
+	 * \b the block to store the content in
+	 */
 	void read_block(block_handle handle, block & b) {
 		tp_assert(is_open(), "read_block(): the block collection is not open");
 
@@ -127,6 +163,11 @@ public:
 		m_accessor.read_i(static_cast<void*>(b.get()), handle.size);
 	}
 
+	/**
+	 * \brief Writes the content of a block to disk
+	 * \param handle the handle of the block to write
+	 * \param b the block type in which the content is stored
+	 */
 	void write_block(block_handle handle, const block & b) {
 		tp_assert(is_open(), "write_block(): the block collection is not open");
 		tp_assert(m_writeable, "write_block(): the block collection is read only.");
