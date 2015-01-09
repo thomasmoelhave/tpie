@@ -36,6 +36,10 @@ namespace tpie {
 
 namespace blocks {
 
+/**
+ * \brief A class to manage writing and reading of block to disk. 
+ * Blocks are stored in an internal cache with a static size.
+ */
 class block_collection_cache {
 private:
 	struct position_comparator {
@@ -47,11 +51,20 @@ private:
 	typedef std::list<block_handle> block_list_t;
 	typedef std::map<block_handle, std::pair<block*, block_list_t::iterator>, position_comparator> block_map_t;
 public:
+	/**
+	 * \brief Create a new non-open block collection cache.
+	 */
 	block_collection_cache()
 	: m_collection()
 	, m_curSize(0)
 	{}
 
+	/**
+	 * \brief Create a block collection
+	 * \param fileName the file in which blocks are saved
+	 * \param indicates whether the collection is readable
+	 * \param maxSize the size of the cache
+	 */
 	block_collection_cache(std::string fileName, bool writeable, memory_size_type maxSize)
 	: m_curSize(0)
 	{
@@ -62,15 +75,27 @@ public:
 		close();
 	}
 
+	/**
+	 * \brief Returns whether the collection is open or not
+	 */
 	bool is_open() const {
 		return m_collection.is_open();
 	}
 
+	/**
+	 * \brief Opens the block collection cache. If the collection is already open, it will first be closed.
+	 * \param fileName the file in which blocks are saved
+	 * \param writeable indicates whether the collection is readable
+	 * \param maxSize the size of the cache
+	 */
 	void open(std::string fileName, bool writeable, memory_size_type maxSize) {
 		m_maxSize = maxSize;
 		m_collection.open(fileName, writeable);
 	}
 
+	/**
+	 * \brief Closes the block collection cache
+	 */
 	void close() {
 
 		if(m_collection.is_open()) {
@@ -91,6 +116,11 @@ public:
 		}
 	}
 
+	/**
+	 * \brief Allocates a new block
+	 * \param size the minimum size needed given in bytes
+	 * \return the handle of the new block
+	 */
 	block_handle get_free_block(stream_size_type size) {
 		block_handle h = m_collection.get_free_block(size);
 		block * cache_b = tpie_new<block>(h.size);
@@ -98,6 +128,10 @@ public:
 		return h;
 	}
 
+	/**
+	 * \brief frees a block
+	 * \param handle the handle of the block to be freed
+	 */
 	void free_block(block_handle handle) {
 		block_map_t::iterator i = m_blockMap.find(handle);
 
@@ -135,6 +169,11 @@ private:
 		m_curSize += handle.size;
 	}
 public:
+	/**
+	 * \brief Reads the content of a block from disk
+	 * \param handle the handle of the block to read
+	 * \return a pointer to the block with the given handle
+	 */
 	block * read_block(block_handle handle) {
 		block_map_t::iterator i = m_blockMap.find(handle);
 
@@ -162,7 +201,11 @@ public:
 		return cache_b;
 	}
 
-	// precondintion: the block with the given handle is already in the cache
+	/**
+	 * \brief Writes the content of a block to disk
+	 * \param handle the handle of the block to write
+	 * \pre the block has been previously read and not flushed from the cache
+	 */
 	void write_block(block_handle handle) {
 		block_map_t::iterator i = m_blockMap.find(handle);
 
