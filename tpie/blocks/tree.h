@@ -52,7 +52,7 @@ public:
 	typedef btree_node<S> node_type;
 
 	/**
-	 * \brief Type of value storred
+	 * \brief Type of value stored
 	 */
 	typedef typename S::value_type value_type;
 
@@ -63,12 +63,12 @@ public:
 
 
 	/**
-	 * Type of the size
+	 * \brief Type of the size
 	 */
 	typedef typename S::size_type size_type;
 
 	/**
-	 * Iterator type
+	 * \brief Iterator type
 	 */
 	typedef btree_iterator<S> iterator;
 private:
@@ -235,12 +235,18 @@ private:
 	}
 
 public:
+	/**
+	 * \brief Returns an iterator pointing to the beginning of the tree
+	 */
 	iterator begin() {
 		iterator i(&m_store);
 		i.goto_begin();
 		return i;
 	}
 
+	/**
+	 * \brief Returns an iterator pointing to the end of the tree
+	 */
 	iterator end() {
 		iterator i(&m_store);
 		i.goto_end();
@@ -336,7 +342,7 @@ public:
 	}
 
 	/**
-	 * Return an iterator to the first item with the given key
+	 * \brief Return an iterator to the first item with the given key
 	 */
 	iterator find(key_type v) {
 		iterator itr;
@@ -454,9 +460,8 @@ public:
 	}
 
 	/**
-	 * Return the root node
-	 *
-	 * Require !empty()
+	 * \brief Return the root node
+	 * \pre !empty()
 	 */
 	node_type root() {
 		if (m_store.height() == 1) return node_type(&m_store, m_store.get_root_leaf());
