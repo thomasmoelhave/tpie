@@ -202,14 +202,14 @@ private:
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
 		tp_assert(false, "Leaf not found");
-		__builtin_unreachable();
+		tpie_unreachable();
 	}
 
 	size_t index(internal_type child, internal_type node) {
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
 		tp_assert(false, "Node nout found");
-		__builtin_unreachable();
+		tpie_unreachable();
 	}
 
 	void set_augment(leaf_type l, internal_type p, augment_type ag) {

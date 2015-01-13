@@ -36,6 +36,7 @@
 #cmakedefine TPIE_CPP_OVERRIDE_KEYWORD
 #cmakedefine TPIE_CPP_DECLTYPE
 #cmakedefine TPIE_CPP_TEMPLATE_ALIAS
+#cmakedefine TPIE_CPP_NONE_POD_UNION
 
 #ifndef TPIE_CPP_OVERRIDE_KEYWORD
 	#define override
@@ -65,7 +66,13 @@
 	// We know that we are casting ints to bool
 	#pragma warning(disable : 4800)
 #endif
-	
+
+#ifdef _MSC_VER
+#define tpie_unreachable() __assume(0)
+#else
+#define tpie_unreachable() __builtin_unreachable()
+#endif
+
 //We use boost filesystem v3 from boost v1.47 and onwards
 //(boost v 1.50 dropped fs v2 altogether)
 #if BOOST_VERSION >= 104700

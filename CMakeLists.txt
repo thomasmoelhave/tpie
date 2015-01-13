@@ -97,10 +97,13 @@ try_compile(TPIE_CPP_RVALUE_REFERENCE ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/rv
 try_compile(TPIE_CPP_OVERRIDE_KEYWORD ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/override_keyword.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 try_compile(TPIE_CPP_DECLTYPE ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/decltype.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 try_compile(TPIE_CPP_TEMPLATE_ALIAS ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/template_alias.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
+try_compile(TPIE_CPP_NONE_POD_UNION ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/none_pod_union.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 
-if (NOT " ${CMAKE_CXX_FLAGS} " MATCHES " -std=(c|gnu)[+][+](0x|1.) ")
-  set(TPIE_CPP_OVERRIDE_KEYWORD OFF)
-endif ()
+if(NOT WIN32) 
+	if (NOT " ${CMAKE_CXX_FLAGS} " MATCHES " -std=(c|gnu)[+][+](0x|1.) ")
+		set(TPIE_CPP_OVERRIDE_KEYWORD OFF)
+	endif ()
+endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})

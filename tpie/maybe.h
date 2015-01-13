@@ -86,7 +86,7 @@ public:
 
 	template <typename Args>
 	void construct(Args args);
-	#elif defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
+	#elif defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE) && defined(TPIE_CPP_NONE_POD_UNION)
 	template <typename ... T_ARGS>
 	void construct(T_ARGS && ... t) {
 		assert_not_constructed(); 
@@ -98,7 +98,7 @@ public:
 	#include <tpie/maybe.inl>
 	#endif
 
-	#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE) 
+	#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE) && defined(TPIE_CPP_NONE_POD_UNION)
 	///////////////////////////////////////////////////////////////////////////////
 	/// \return A reference to the object contained.
 	///////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ public:
 		destruct();
 	}
 private:
-	#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE) 
+	#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE) && defined(TPIE_CPP_NONE_POD_UNION)
 	union { T object; };
 	#else
 	T *object; 
