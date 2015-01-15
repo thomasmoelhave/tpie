@@ -49,7 +49,22 @@ private:
 	};
 
 	typedef std::list<block_handle> block_list_t;
-	typedef std::map<block_handle, std::pair<block*, block_list_t::iterator>, position_comparator> block_map_t;
+
+	struct block_information_t {
+		block_information_t() {}
+
+		block_information_t(block * pointer, block_list_t::iterator iterator, bool dirty)
+			: pointer(pointer)
+			, iterator(iterator)
+			, dirty(dirty)
+		{}
+
+		block * pointer;
+		block_list_t::iterator iterator;
+		bool dirty;
+	};
+
+	typedef std::map<block_handle, block_information_t, position_comparator> block_map_t;
 public:
 	/**
 	 * \brief Create a new non-open block collection cache.
@@ -103,8 +118,8 @@ public:
 			block_map_t::iterator end = m_blockMap.end();
 
 			for(block_map_t::iterator i = m_blockMap.begin(); i != end; ++i) {
-				m_collection.write_block(i->first, *i->second.first);
-				tpie_delete(i->second.first);
+				m_collection.write_block(i->first, *i->second.pointer);
+				tpie_delete(i->second.pointer);
 			}
 
 			// set to the initial state
@@ -124,7 +139,7 @@ public:
 	block_handle get_free_block(stream_size_type size) {
 		block_handle h = m_collection.get_free_block(size);
 		block * cache_b = tpie_new<block>(h.size);
-		add_to_cache(h, cache_b);
+		add_to_cache(h, cache_b, true);
 		return h;
 	}
 
@@ -136,8 +151,8 @@ public:
 		block_map_t::iterator i = m_blockMap.find(handle);
 
 		if(i != m_blockMap.end()) {
-			m_blockList.erase(i->second.second);
-			tpie_delete(i->second.first);
+			m_blockList.erase(i->second.iterator);
+			tpie_delete(i->second.pointer);
 			m_curSize -= i->first.size;
 			m_blockMap.erase(i);
 		}
@@ -153,19 +168,20 @@ private:
 			m_blockList.pop_front();
 
 			block_map_t::iterator i = m_blockMap.find(handle);
-			m_collection.write_block(i->first, *(i->second.first));
-			tpie_delete(i->second.first);
+			if(i->second.dirty)
+				m_collection.write_block(i->first, *(i->second.pointer));
+			tpie_delete(i->second.pointer);
 			m_curSize -= i->first.size;
 			m_blockMap.erase(i);
 		}
 	}
 
-	void add_to_cache(block_handle handle, block * b) {
+	void add_to_cache(block_handle handle, block * b, bool dirty) {
 		m_blockList.push_back(handle);
 		block_list_t::iterator list_pos = m_blockList.end();
 		--list_pos;
 
-		m_blockMap[handle] = std::make_pair(b, list_pos);
+		m_blockMap[handle] = block_information_t(b, list_pos, dirty);
 		m_curSize += handle.size;
 	}
 public:
@@ -179,16 +195,16 @@ public:
 
 		if(i != m_blockMap.end()) { // the block is already in the cache
 			// update the block list to reflect that the block was accessed
-			m_blockList.erase(i->second.second);
+			m_blockList.erase(i->second.iterator);
 			m_blockList.push_back(i->first);
 
 			block_list_t::iterator j = m_blockList.end();
 			--j;
 
-			i->second.second = j;
+			i->second.iterator = j;
 
 			// return the block content from cache
-			return i->second.first;
+			return i->second.pointer;
 		}
 
 		// the block isn't in the cache
@@ -196,7 +212,7 @@ public:
 
 		block * cache_b = tpie_new<block>();
 		m_collection.read_block(handle, *cache_b);
-		add_to_cache(handle, cache_b);
+		add_to_cache(handle, cache_b, false);
 
 		return cache_b;
 	}
@@ -211,13 +227,13 @@ public:
 
 		tp_assert(i != m_blockMap.end(), "the given handle does not exist in the cache.");
 
-		m_blockList.erase(i->second.second);
+		m_blockList.erase(i->second.iterator);
 		m_blockList.push_back(handle);
 
 		block_list_t::iterator j = m_blockList.end();
 		--j;
 
-		i->second.second = j;
+		i->second.iterator = j;
 	}
 private:
 	block_collection m_collection;
