@@ -118,7 +118,9 @@ public:
 			block_map_t::iterator end = m_blockMap.end();
 
 			for(block_map_t::iterator i = m_blockMap.begin(); i != end; ++i) {
-				m_collection.write_block(i->first, *i->second.pointer);
+				if(i->second.dirty) {
+					m_collection.write_block(i->first, *i->second.pointer);
+				}
 				tpie_delete(i->second.pointer);
 			}
 
@@ -234,6 +236,7 @@ public:
 		--j;
 
 		i->second.iterator = j;
+		i->second.dirty = true;
 	}
 private:
 	block_collection m_collection;
