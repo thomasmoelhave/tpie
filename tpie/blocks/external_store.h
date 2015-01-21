@@ -70,7 +70,8 @@ public:
 
 	typedef size_t size_type;
 
-	static const memory_size_type cacheSize = 16;
+	static const memory_size_type cacheSize = 32;
+	static const memory_size_type fanOut = 841;
 private:
 
 	struct internal_content {
@@ -131,21 +132,31 @@ public:
 		, m_height(0)
 		, m_size(0) 
 		{
-			memory_size_type blockSize = get_block_size();
-			m_nodeMax = (blockSize - sizeof(memory_size_type)) / sizeof(internal_content);
+			m_nodeMax = fanOut;
 			m_nodeMin = (m_nodeMax + 3) / 4;
-			m_leafMax = (blockSize - sizeof(memory_size_type)) / sizeof(T);
+			m_leafMax = fanOut;
 			m_leafMin = (m_leafMax + 3) / 4;
-			m_collection.reset(new blocks::block_collection_cache(path, true, blockSize * cacheSize));
+			m_collection.reset(new blocks::block_collection_cache(path, true, get_node_block_size() * cacheSize));
 		}
 private:
+	static size_t get_node_block_size() {
+		size_t factor = sizeof(internal_content);
+		size_t overhead = sizeof(memory_size_type);
+		return max_size() * factor + overhead;
+	}
+
+	static size_t get_leaf_block_size() {
+		size_t factor = sizeof(T);
+		size_t overhead = sizeof(memory_size_type);
+		return max_size() * factor + overhead;
+	}
 
 	static size_t min_size() {
 		return (max_size() + 3) / 4;
 	}
 
 	static size_t max_size() {
-		return (get_block_size() - sizeof(memory_size_type)) / sizeof(internal_content);
+		return fanOut;
 	}
 	
 	void move(internal_type src, size_t src_i,
@@ -285,7 +296,7 @@ private:
 	}
 
 	leaf_type create_leaf() {
-		blocks::block_handle h = m_collection->get_free_block(get_block_size());
+		blocks::block_handle h = m_collection->get_free_block(get_leaf_block_size());
 		blocks::block * b = m_collection->read_block(h);
 		leaf l(b);
 		(*l.count) = 0;
@@ -298,7 +309,7 @@ private:
 	}
 
 	internal_type create_internal() {
-		blocks::block_handle h = m_collection->get_free_block(get_block_size());
+		blocks::block_handle h = m_collection->get_free_block(get_node_block_size());
 		blocks::block * b = m_collection->read_block(h);
 		internal i(b);
 		(*i.count) = 0;
