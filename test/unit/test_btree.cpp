@@ -31,7 +31,7 @@ using namespace std;
 
 template <typename node_t, typename iter_t> 
 bool compare(node_t & n, iter_t & i, iter_t end) {
-	if (n.leaf()) {
+	if (n.is_leaf()) {
 		for (size_t j=0; j < n.count(); ++j) {
 			if (i == end) return false;
 			if (n.value(j) != *i) return false;
@@ -222,14 +222,14 @@ struct ss_augmenter {
 	template <typename N>
 	ss_augment operator()(const N & node) {
 		ss_augment ans(0,0);
-		if (node.leaf()) {
+		if (node.is_leaf()) {
 			for (size_t i=0; i < node.count(); ++i) {
 				ans.first++;
 				ans.second += node.value(i);
 			}
 		} else {
 			for (size_t i=0; i < node.count(); ++i)
-				ans = add(ans, node.augment(i));
+				ans = add(ans, node.get_augmentation(i));
 		}
 		return ans;
 	}
@@ -240,9 +240,9 @@ template <typename S>
 ss_augment rank_sum(const btree_iterator<S> & i) {
 	ss_augment ans(0,0);
 	size_t idx=i.index();
-	btree_node<S> n=i.leaf();
+	btree_node<S> n=i.is_leaf();
 	while (true) {
-		if (n.leaf()) {
+		if (n.is_leaf()) {
 			for (size_t i=0; i < idx; ++i) {
 				ans.first++;
 				ans.second += n.value(i);
@@ -250,7 +250,7 @@ ss_augment rank_sum(const btree_iterator<S> & i) {
 		}
 		else {
 			for (size_t i=0; i < idx; ++i) {
-				ans = add(ans, n.augment(i));
+				ans = add(ans, n.get_augmentation(i));
 			}
 		}
 		if (!n.has_parent()) break;
@@ -262,7 +262,7 @@ ss_augment rank_sum(const btree_iterator<S> & i) {
 
 template <typename S>
 void print(btree_node<S> & n) {
-	if (n.leaf()) {
+	if (n.is_leaf()) {
 		std::cout << "[";
 		for (size_t i=0; i < n.count(); ++i) {
 			if (i != 0) std::cout << ", ";
@@ -274,7 +274,7 @@ void print(btree_node<S> & n) {
 	std::cout << "(";
 	for (size_t i=0; i < n.count(); ++i) {
 		if (i != 0) std::cout << ", ";
-		std::cout << n.augment(i) << " | ";
+		std::cout << n.get_augmentation(i) << " | ";
 		n.child(i);
 		print(n);
 		n.parent();

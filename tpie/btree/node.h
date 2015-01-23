@@ -78,7 +78,7 @@ public:
 	/**
 	 * \brief Move to the ith child
 	 *
-	 * Requires !leaf() and i < count()
+	 * Requires !is_leaf() and i < count()
 	 */
 	void child(size_t i) {
 		tp_assert(!m_is_leaf, "Is leaf");
@@ -104,7 +104,7 @@ public:
 	/**
 	 * \brief Return the ith child note
 	 *
-	 * Requires !leaf() and i < count()
+	 * Requires !is_leaf() and i < count()
 	 */
 	btree_node get_child(size_t i) const {
 		btree_node n=*this;
@@ -115,16 +115,16 @@ public:
 	/**
 	 * \brief Return true if this is a leaf note
 	 */
-	bool leaf() const {
+	bool is_leaf() const {
 		return m_is_leaf;
 	}
 	
 	/**
-	 * \brief Return the augment of the ith child
+	 * \brief Return the augmented data of the ith child
 	 *
-	 * Requires !leaf()
+	 * Requires !is_leaf()
 	 */
-	const augment_type & augment(size_t i) const {
+	const augment_type & get_augmentation(size_t i) const {
 		return m_store->augment(m_path.back(), i);
 	}
 	
@@ -141,7 +141,7 @@ public:
 	/**
 	 * \brief Return the i'th value
 	 *
-	 * Requires leaf()
+	 * Requires is_leaf()
 	 */
 	value_type value(size_t i) const {
 		tp_assert(m_is_leaf, "Not leaf");
@@ -280,7 +280,7 @@ public:
 	
 	size_t index() const {return m_index;}
 
-	btree_node<S> leaf() const {
+	btree_node<S> is_leaf() const {
 		return btree_node<S>(m_store, m_path, m_leaf);
 	}
 	
