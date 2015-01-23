@@ -31,7 +31,7 @@
 using namespace tpie;
 using namespace tpie::blocks;
 
-const stream_size_type max_block_size = 1024 * 1024;
+const memory_size_type BLOCK_SIZE = 1024 * 5;
 
 memory_size_type random(memory_size_type i) {
 	return 179424673 * i + 15485863;
@@ -39,17 +39,15 @@ memory_size_type random(memory_size_type i) {
 
 bool basic() {
 	temp_file file;
-	block_collection_cache collection(file.path(), true, max_block_size * 5);
+	block_collection_cache collection(file.path(), BLOCK_SIZE, true, 5);
 	
 	std::vector<block_handle> blocks;
 
 	// write 20 twenty blocks of random sizes
 	for(char i = 0; i < 20; ++i) {
-		stream_size_type size = random(i) % max_block_size + 1;
+		block_handle handle = collection.get_free_block();
 
-		block_handle handle = collection.get_free_block(size);
-
-		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+		TEST_ENSURE_EQUALITY(BLOCK_SIZE, handle.size, "The size of the returned block is not correct.");
 
 		block * b = collection.read_block(handle);
 
@@ -75,10 +73,6 @@ bool basic() {
 	}
 
 	log_debug() << "Finished reading blocks." << std::endl;
-
-	collection.close();
-
-	log_debug() << "Closed collection." << std::endl;
 	return true;
 }
 
@@ -86,16 +80,14 @@ bool erase() {
 	typedef std::list<std::pair<block_handle, char> > block_list_t;
 	
 	temp_file file;
-	block_collection_cache collection(file.path(), true, max_block_size * 5);
+	block_collection_cache collection(file.path(), BLOCK_SIZE, true, 5);
 	block_list_t blocks;
 
 	// write 20 twenty blocks of random sizes
 	for(char i = 0; i < 20; ++i) {
-		stream_size_type size = random(i) % max_block_size + 1;
+		block_handle handle = collection.get_free_block();
 
-		block_handle handle = collection.get_free_block(size);
-
-		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+		TEST_ENSURE_EQUALITY(BLOCK_SIZE, handle.size, "The size of the returned block is not correct.");
 
 		block * b = collection.read_block(handle);
 
@@ -115,12 +107,9 @@ bool erase() {
 		blocks.erase(j);
 
 		// allocate a new block
+		block_handle handle = collection.get_free_block();
 
-		stream_size_type size = random(i) % max_block_size + 1;
-
-		block_handle handle = collection.get_free_block(size);
-
-		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+		TEST_ENSURE_EQUALITY(BLOCK_SIZE, handle.size, "The size of the returned block is not correct.");
 
 		block * b = collection.read_block(handle);
 
@@ -144,8 +133,6 @@ bool erase() {
 			TEST_ENSURE_EQUALITY((int) *j, (int) content, "the content of the returned block is not correct"); // cast to int for human-readable human
 	}
 
-	collection.close();
-
 	return true;
 }
 
@@ -153,16 +140,14 @@ bool overwrite() {
 	typedef std::list<std::pair<block_handle, char> > block_list_t;
 
 	temp_file file;
-	block_collection_cache collection(file.path(), true, max_block_size * 5);
+	block_collection_cache collection(file.path(), BLOCK_SIZE, true, 5);
 	block_list_t blocks;
 
 	// write 20 twenty blocks of random sizes
 	for(char i = 0; i < 20; ++i) {
-		stream_size_type size = random(i) % max_block_size + 1;
+		block_handle handle = collection.get_free_block();
 
-		block_handle handle = collection.get_free_block(size);
-
-		TEST_ENSURE(handle.size >= size, "The returned block size is too small.");
+		TEST_ENSURE_EQUALITY(BLOCK_SIZE, handle.size, "The size of the returned block is not correct.");
 
 		block * b = collection.read_block(handle);
 
@@ -203,9 +188,6 @@ bool overwrite() {
 		for(block::iterator j = b->begin(); j != b->end(); ++j)
 			TEST_ENSURE_EQUALITY((int) *j, (int) content, "the content of the returned block is not correct"); // cast to int for human-readable human
 	}
-
-	collection.close();
-
 	return true;
 }
 

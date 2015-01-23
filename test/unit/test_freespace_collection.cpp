@@ -22,6 +22,7 @@
 #include <tpie/tpie.h>
 #include "common.h"
 #include <set>
+#include <tpie/tempname.h>
 #include <tpie/blocks/freespace_collection.h>
 
 using namespace tpie;
@@ -47,15 +48,15 @@ int random_generator(int i) {
 	return 10007 % i;
 }
 
-bool alloc_test(memory_size_type size) {
+bool alloc_test(memory_size_type size, memory_size_type block_size) {
 	typedef std::vector<block_handle> handles_t;
-	freespace_collection collection;
+	temp_file file; 
+	freespace_collection collection(file.path(), block_size);
 	handles_t handles;
 
 	for(memory_size_type i = 0; i < size; ++i) {
-		memory_size_type handle_size = random(i, 1, 10000);
-		block_handle handle = collection.alloc(handle_size);
-		TEST_ENSURE(handle.size >= handle_size, "The size of the returned handle is too small");
+		block_handle handle = collection.alloc();
+		TEST_ENSURE(handle.size == block_size, "The size of the returned handle is too small");
 
 		for(handles_t::iterator j = handles.begin(); j != handles.end(); ++j) {
 			if(overlaps(handle, *j)) {
@@ -73,25 +74,25 @@ bool alloc_test(memory_size_type size) {
 	return true;
 }
 
-bool used_space_test(memory_size_type size) {
+bool size_test(memory_size_type size, memory_size_type block_size) {
 	typedef std::vector<block_handle> handles_t;
 	typedef std::vector<memory_size_type> sizes_t;
 
-	freespace_collection collection;
+	temp_file file;
+	freespace_collection collection(file.path(), block_size);
 	handles_t handles;
 	sizes_t sizes;
 
 	stream_size_type minimum_size = 0;
 
 	for(memory_size_type i = 0; i < size; ++i) {
-		TEST_ENSURE(collection.used_space() >= minimum_size, "The space used is too small.");
+		TEST_ENSURE(collection.size() >= minimum_size, "The space used is too small.");
 		
-		memory_size_type handle_size = random(i, 1, 10000);
-		minimum_size += handle_size;
+		minimum_size += block_size;
 
-		block_handle handle = collection.alloc(handle_size);
+		block_handle handle = collection.alloc();
 		handles.push_back(handle);
-		sizes.push_back(handle_size);
+		sizes.push_back(block_size);
 	}
 
 	//  the two arrays are shuffled the same way
@@ -99,7 +100,7 @@ bool used_space_test(memory_size_type size) {
 	std::random_shuffle(sizes.begin(), sizes.end(), random_generator);
 
 	for(memory_size_type i = 0; i < size; ++i) {
-		TEST_ENSURE(collection.used_space() >= minimum_size, "The space used is too small.");
+		TEST_ENSURE(collection.size() >= minimum_size, "The space used is too small.");
 		collection.free(handles[i]);
 		minimum_size -= sizes[i];
 	}
@@ -107,26 +108,8 @@ bool used_space_test(memory_size_type size) {
 	return true;
 }
 
-/*bool get_configuration_test() {
-	// TODO
-	return false;
-}
-
-bool set_configuration_test() {
-	// TODO
-	return false;
-}
-
-bool initial_configuration_test() {
-	// TODO
-	return false;
-}*/
-
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(alloc_test, "alloc", "size", 1000)
-		.test(used_space_test, "used_space", "size", 1000);
-		/*.test(get_configuration_test, "get_configuration")
-		.test(set_configuration_test, "set_configuration")
-		.test(initial_configuration_test, "initial_configuration")*/
+		.test(alloc_test, "alloc", "size", 1000, "block_size", 1024)
+		.test(size_test, "size", "size", 1000, "block_size", 1024);
 }

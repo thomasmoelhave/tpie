@@ -67,69 +67,29 @@ private:
 	typedef std::map<block_handle, block_information_t, position_comparator> block_map_t;
 public:
 	/**
-	 * \brief Create a new non-open block collection cache.
-	 */
-	block_collection_cache()
-	: m_collection()
-	, m_curSize(0)
-	{}
-
-	/**
 	 * \brief Create a block collection
 	 * \param fileName the file in which blocks are saved
-	 * \param indicates whether the collection is readable
-	 * \param maxSize the size of the cache
+	 * \param blockSize the size of blocks constructed
+	 * \param writeable indicates whether the collection is writeable
+	 * \param maxSize the size of the cache given in number of blocks
 	 */
-	block_collection_cache(std::string fileName, bool writeable, memory_size_type maxSize)
-	: m_curSize(0)
+	block_collection_cache(std::string fileName, memory_size_type blockSize, bool writeable, memory_size_type maxSize)
+	: m_collection(fileName, blockSize, writeable)
+	, m_curSize(0)
+	, m_maxSize(maxSize)
+	, m_blockSize(blockSize)
 	{
-		open(fileName, writeable, maxSize);
 	}
 
 	~block_collection_cache() {
-		close();
-	}
+		// write the content of the cache to disk
+		block_map_t::iterator end = m_blockMap.end();
 
-	/**
-	 * \brief Returns whether the collection is open or not
-	 */
-	bool is_open() const {
-		return m_collection.is_open();
-	}
-
-	/**
-	 * \brief Opens the block collection cache. If the collection is already open, it will first be closed.
-	 * \param fileName the file in which blocks are saved
-	 * \param writeable indicates whether the collection is readable
-	 * \param maxSize the size of the cache
-	 */
-	void open(std::string fileName, bool writeable, memory_size_type maxSize) {
-		m_maxSize = maxSize;
-		m_collection.open(fileName, writeable);
-	}
-
-	/**
-	 * \brief Closes the block collection cache
-	 */
-	void close() {
-
-		if(m_collection.is_open()) {
-			// write the content of the cache to disk
-			block_map_t::iterator end = m_blockMap.end();
-
-			for(block_map_t::iterator i = m_blockMap.begin(); i != end; ++i) {
-				if(i->second.dirty) {
-					m_collection.write_block(i->first, *i->second.pointer);
-				}
-				tpie_delete(i->second.pointer);
+		for(block_map_t::iterator i = m_blockMap.begin(); i != end; ++i) {
+			if(i->second.dirty) {
+				m_collection.write_block(i->first, *i->second.pointer);
 			}
-
-			// set to the initial state
-			m_curSize = 0;
-			m_blockList.clear();
-			m_blockMap.clear();
-
-			m_collection.close();
+			tpie_delete(i->second.pointer);
 		}
 	}
 
@@ -138,9 +98,9 @@ public:
 	 * \param size the minimum size needed given in bytes
 	 * \return the handle of the new block
 	 */
-	block_handle get_free_block(stream_size_type size) {
-		block_handle h = m_collection.get_free_block(size);
-		block * cache_b = tpie_new<block>(h.size);
+	block_handle get_free_block() {
+		block_handle h = m_collection.get_free_block();
+		block * cache_b = tpie_new<block>(m_blockSize);
 		add_to_cache(h, cache_b, true);
 		return h;
 	}
@@ -150,12 +110,15 @@ public:
 	 * \param handle the handle of the block to be freed
 	 */
 	void free_block(block_handle handle) {
+		tp_assert(handle.size == m_blockSize, "the size of the handle is not correct")
+		tp_assert(m_curSize > 0, "the current size of the cache is 0");
+
 		block_map_t::iterator i = m_blockMap.find(handle);
 
 		if(i != m_blockMap.end()) {
 			m_blockList.erase(i->second.iterator);
 			tpie_delete(i->second.pointer);
-			m_curSize -= i->first.size;
+			--m_curSize;
 			m_blockMap.erase(i);
 		}
 
@@ -163,19 +126,21 @@ public:
 	}
 
 private:
-	void dump_cache(memory_size_type size) {
-		while(m_curSize > m_maxSize - size) { // while there isn't space in the cache
-			// write the last accessed block to disk
-			block_handle handle = m_blockList.front();
-			m_blockList.pop_front();
+	// make space for a new block in the cache
+	void prepare_cache() {
+		if(m_curSize < m_maxSize)
+			return;
 
-			block_map_t::iterator i = m_blockMap.find(handle);
-			if(i->second.dirty)
-				m_collection.write_block(i->first, *(i->second.pointer));
-			tpie_delete(i->second.pointer);
-			m_curSize -= i->first.size;
-			m_blockMap.erase(i);
-		}
+		// write the last accessed block to disk
+		block_handle handle = m_blockList.front();
+		m_blockList.pop_front();
+
+		block_map_t::iterator i = m_blockMap.find(handle);
+		if(i->second.dirty)
+			m_collection.write_block(i->first, *(i->second.pointer));
+		tpie_delete(i->second.pointer);
+		--m_curSize;
+		m_blockMap.erase(i);
 	}
 
 	void add_to_cache(block_handle handle, block * b, bool dirty) {
@@ -184,7 +149,7 @@ private:
 		--list_pos;
 
 		m_blockMap[handle] = block_information_t(b, list_pos, dirty);
-		m_curSize += handle.size;
+		++m_curSize;
 	}
 public:
 	/**
@@ -210,7 +175,7 @@ public:
 		}
 
 		// the block isn't in the cache
-		dump_cache(handle.size); // make space in the cache
+		prepare_cache(); // make space in the cache for the new block
 
 		block * cache_b = tpie_new<block>();
 		m_collection.read_block(handle, *cache_b);
@@ -244,6 +209,7 @@ private:
 	block_map_t m_blockMap;
 	memory_size_type m_curSize;
 	memory_size_type m_maxSize;
+	memory_size_type m_blockSize;
 };
 
 } // blocks namespace
