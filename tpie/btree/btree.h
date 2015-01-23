@@ -32,7 +32,7 @@ namespace tpie {
 /**
  * \brief Extrenal or internal augmented btree
  *
- * S is the type of the storrage object
+ * S is the type of the storage object
  * C is the comparator used to compare keys
  * A is the functor used to computed an augmented value
  */
