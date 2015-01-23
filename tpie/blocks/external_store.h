@@ -142,20 +142,28 @@ private:
 	static size_t get_node_block_size() {
 		size_t factor = sizeof(internal_content);
 		size_t overhead = sizeof(memory_size_type);
-		return max_size() * factor + overhead;
+		return max_internal_size() * factor + overhead;
 	}
 
 	static size_t get_leaf_block_size() {
 		size_t factor = sizeof(T);
 		size_t overhead = sizeof(memory_size_type);
-		return max_size() * factor + overhead;
+		return max_leaf_size() * factor + overhead;
 	}
 
-	static size_t min_size() {
-		return (max_size() + 3) / 4;
+	static size_t min_internal_size() {
+		return (max_internal_size() + 3) / 4;
 	}
 
-	static size_t max_size() {
+	static size_t max_internal_size() {
+		return fanOut;
+	}
+
+	static size_t min_leaf_size() {
+		return (max_leaf_size() + 3) / 4;
+	}
+
+	static size_t max_leaf_size() {
 		return fanOut;
 	}
 	

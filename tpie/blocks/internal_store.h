@@ -95,8 +95,11 @@ private:
 	typedef internal * internal_type;
 	typedef leaf * leaf_type;
 
-	static size_t min_size() {return a;}
-	static size_t max_size() {return b;}
+	static size_t min_internal_size() {return a;}
+	static size_t max_internal_size() {return b;}
+
+	static size_t min_leaf_size() {return a;}
+	static size_t max_leaf_size() {return b;}
 	
 	void move(internal_type src, size_t src_i,
 			  internal_type dst, size_t dst_i) {

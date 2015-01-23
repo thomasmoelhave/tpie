@@ -121,12 +121,27 @@ private:
 		m_store.set_augment(l, p, m_augmenter(node_type(&m_store, l)));
 	}
 
+	size_t max_size(internal_type) {
+		return m_store.max_internal_size();
+	}
+
+	size_t max_size(leaf_type) {
+		return m_store.max_leaf_size();
+	}
+
+	size_t min_size(internal_type) {
+		return m_store.min_internal_size();
+	}
+
+	size_t min_size(leaf_type) {
+		return m_store.min_leaf_size();
+	}
 
 	template <typename N>
 	N split(N left) {
-		tp_assert(m_store.count(left) == m_store.max_size(), "Node not full");
-		size_t left_size = m_store.max_size()/2;
-		size_t right_size = m_store.max_size()-left_size;
+		tp_assert(m_store.count(left) == max_size(left), "Node not full");
+		size_t left_size = max_size(left)/2;
+		size_t right_size = max_size(left)-left_size;
 		N right = m_store.create(left);
 		for (size_t i=0; i < right_size; ++i)
 			m_store.move(left, left_size+i, right, i);
@@ -148,7 +163,7 @@ private:
 
 	template <typename CT, typename NT>
 	NT split_and_insert(CT c, NT p) {
-		tp_assert(m_store.count(p) == m_store.max_size(), "None not full");
+		tp_assert(m_store.count(p) == max_size(p), "None not full");
 		NT p2=split(p);
 		if (m_comp(m_store.min_key(c), m_store.min_key(p2)))
 			insert_part(p, c);
@@ -174,7 +189,7 @@ private:
 	bool remove_fixup_round(CT c, PT p) {
 		size_t z=m_store.count(c);
 		size_t i=m_store.index(c, p);
-		if (i != 0 && count_child(p, i-1, c) > m_store.min_size()) {
+		if (i != 0 && count_child(p, i-1, c) > min_size(c)) {
 			//We can steel a value from left
 			CT left = get_child(p, i-1, c);
 			size_t left_size = m_store.count(left);
@@ -190,7 +205,7 @@ private:
 		
 
 		if (i +1 != m_store.count(p) &&
-			count_child(p, i+1, c) > m_store.min_size()) {
+			count_child(p, i+1, c) > min_size(c)) {
 			// We can steel from right
 			CT right = get_child(p, i+1, c);
 			size_t right_size = m_store.count(right);
@@ -231,7 +246,7 @@ private:
 		m_store.destroy(c2);
 
 		augment(c1, p);
-		return z_ >= m_store.min_size();
+		return z_ >= min_size(p);
 	}
 
 public:
@@ -275,7 +290,7 @@ public:
 		// Find the leaf contaning the value
 		leaf_type l = find_leaf(path, m_store.min_key(v));
 		//If there is room in the leaf
-		if (m_store.count(l) != m_store.max_size()) {
+		if (m_store.count(l) != m_store.max_leaf_size()) {
 			insert_part(l, v);
 			if (!path.empty()) augment(l, path.back());
 			augment_path(path);
@@ -304,7 +319,7 @@ public:
 		augment(l, p);
 		
 		//If there is room in the parent to insert the extra leave
-		if (m_store.count(p) != m_store.max_size()) {
+		if (m_store.count(p) != m_store.max_internal_size()) {
 			insert_part(p, l2);
 			augment_path(path);
 			return;
@@ -317,7 +332,7 @@ public:
 		while (!path.empty()) {
 			internal_type p = path.back();
 			augment(n1, p);
-			if (m_store.count(p) != m_store.max_size()) {
+			if (m_store.count(p) != m_store.max_internal_size()) {
 				insert_part(p, n2);
 				augment_path(path);
 				return;
@@ -381,7 +396,7 @@ public:
 		m_store.set_count(l, z);
 
 		// If we still have a large enough size
-		if (z >= m_store.min_size()) {
+		if (z >= m_store.min_leaf_size()) {
 			// We are the lone root
 			if (path.empty()) {
 				augment_path(l);
