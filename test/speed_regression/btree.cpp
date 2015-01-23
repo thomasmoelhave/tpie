@@ -22,8 +22,8 @@
 #include <algorithm>
 #include <tpie/array.h>
 #include <tpie/tpie.h>
-#include <tpie/blocks/btree.h>
-#include <tpie/blocks/external_store.h>
+#include <tpie/btree/btree.h>
+#include <tpie/btree/external_store.h>
 #include <tpie/tempname.h>
 #include "testtime.h"
 #include "testinfo.h"

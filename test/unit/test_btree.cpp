@@ -19,9 +19,9 @@
 
 #include "common.h"
 #include <tpie/tpie.h>
-#include <tpie/blocks/internal_store.h>
-#include <tpie/blocks/external_store.h>
-#include <tpie/blocks/btree.h>
+#include <tpie/btree/internal_store.h>
+#include <tpie/btree/external_store.h>
+#include <tpie/btree/btree.h>
 #include <tpie/tempname.h>
 #include <algorithm>
 #include <set>

@@ -21,7 +21,7 @@
 #define _TPIE_BTREE_EXTERNAL_STORE_H_
 
 #include <tpie/portability.h>
-#include <tpie/blocks/base.h>
+#include <tpie/btree/base.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/blocks/block_collection_cache.h>
 #include <boost/shared_ptr.hpp>

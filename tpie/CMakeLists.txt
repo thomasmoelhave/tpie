@@ -6,13 +6,15 @@ set (HEADERS
 		access_type.h
 		atomic.h
 		backtrace.h
-		blocks/base.h
 		blocks/block.h
 		blocks/block_collection.h
+		blocks/block_collection_cache.h
 		blocks/freespace_collection.h
-		blocks/internal_store.h
-		blocks/node.h
-		blocks/btree.h
+		btree/base.h
+		btree/internal_store.h
+		btree/external_store.h
+		btree/node.h
+		btree/btree.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
