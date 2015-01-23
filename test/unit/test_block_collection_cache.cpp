@@ -39,7 +39,7 @@ memory_size_type random(memory_size_type i) {
 
 bool basic() {
 	temp_file file;
-	block_collection_cache collection(file.path(), BLOCK_SIZE, true, 5);
+	block_collection_cache collection(file.path(), BLOCK_SIZE, 5, true);
 	
 	std::vector<block_handle> blocks;
 
@@ -80,7 +80,7 @@ bool erase() {
 	typedef std::list<std::pair<block_handle, char> > block_list_t;
 	
 	temp_file file;
-	block_collection_cache collection(file.path(), BLOCK_SIZE, true, 5);
+	block_collection_cache collection(file.path(), BLOCK_SIZE, 5, true);
 	block_list_t blocks;
 
 	// write 20 twenty blocks of random sizes
@@ -140,7 +140,7 @@ bool overwrite() {
 	typedef std::list<std::pair<block_handle, char> > block_list_t;
 
 	temp_file file;
-	block_collection_cache collection(file.path(), BLOCK_SIZE, true, 5);
+	block_collection_cache collection(file.path(), BLOCK_SIZE, 5, true);
 	block_list_t blocks;
 
 	// write 20 twenty blocks of random sizes

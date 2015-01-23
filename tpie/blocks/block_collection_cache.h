@@ -73,7 +73,7 @@ public:
 	 * \param writeable indicates whether the collection is writeable
 	 * \param maxSize the size of the cache given in number of blocks
 	 */
-	block_collection_cache(std::string fileName, memory_size_type blockSize, bool writeable, memory_size_type maxSize)
+	block_collection_cache(std::string fileName, memory_size_type blockSize, memory_size_type maxSize, bool writeable)
 	: m_collection(fileName, blockSize, writeable)
 	, m_curSize(0)
 	, m_maxSize(maxSize)

@@ -132,7 +132,7 @@ public:
 		, m_height(0)
 		, m_size(0) 
 		{
-			m_collection.reset(new blocks::block_collection_cache(path, blockSize, true, cacheSize));
+			m_collection.reset(new blocks::block_collection_cache(path, blockSize, cacheSize, true));
 		}
 private:
 	static size_t min_internal_size() {
