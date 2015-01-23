@@ -69,10 +69,10 @@ public:
 	typedef typename K::value_type key_type;
 
 	typedef size_t size_type;
+private:
 
 	static const memory_size_type cacheSize = 32;
 	static const memory_size_type blockSize = 7000;
-private:
 
 	struct internal_content {
 		key_type min_key;
