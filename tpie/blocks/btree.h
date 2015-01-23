@@ -163,7 +163,7 @@ private:
 
 	template <typename CT, typename NT>
 	NT split_and_insert(CT c, NT p) {
-		tp_assert(m_store.count(p) == max_size(p), "None not full");
+		tp_assert(m_store.count(p) == max_size(p), "Node not full");
 		NT p2=split(p);
 		if (m_comp(m_store.min_key(c), m_store.min_key(p2)))
 			insert_part(p, c);
