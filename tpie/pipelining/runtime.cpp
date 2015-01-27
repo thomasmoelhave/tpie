@@ -889,8 +889,8 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 		mrt.print_memory(c, log_debug());
 #endif // TPIE_NDEBUG
 		mrt.assign_memory(c);
-		drt.assign_memory();
 	}
+	drt.assign_memory();
 }
 
 /*static*/
