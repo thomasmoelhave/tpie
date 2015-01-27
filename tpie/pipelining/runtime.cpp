@@ -413,8 +413,11 @@ void runtime::go(stream_size_type items,
 	// and call node::prepare in item source to item sink order
 	prepare_all(itemFlow);
 
+	// build the datastructure runtime
+	datastructure_runtime drt(phases, m_nodeMap); 
+
 	// Gather node memory requirements and assign memory to each phase
-	assign_memory(phases, memory, m_nodeMap);
+	assign_memory(phases, memory, drt);
 
 	// Exception guarantees are the following:
 	//   Progress indicators:
@@ -439,6 +442,8 @@ void runtime::go(stream_size_type items,
 		if (i > 0 && evacuateWhenDone[i-1]) evacuate_all(phases[i-1]);
 		// call propagate in item source to item sink order
 		propagate_all(itemFlow[i]);
+		// reassign memory to all nodes in the phase
+		reassign_memory(phases, i, memory, drt);
 		// sum number of steps and call pi.init()
 		phase_progress_indicator phaseProgress(pi, i, phases[i]);
 		// set progress indicators on each node
@@ -705,9 +710,8 @@ void runtime::go_initiators(const std::vector<node *> & phase) {
 
 /*static*/
 void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
-							memory_size_type memory, node_map & nodeMap) {
-	datastructure_runtime drt(phases, nodeMap); // build the datastructure runtime
-
+							memory_size_type memory,
+							datastructure_runtime & drt) {
 	for (size_t phase = 0; phase < phases.size(); ++phase) {
 		memory_runtime mrt(phases[phase]);
 
@@ -725,6 +729,19 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 		mrt.assign_memory(c);
 		drt.assign_memory();
 	}
+}
+
+/*static*/
+void runtime::reassign_memory(const std::vector<std::vector<node *> > & phases,
+							  size_t phase,
+							  memory_size_type memory,
+							  const datastructure_runtime & drt) {
+	memory_runtime mrt(phases[phase]);
+	double c = get_memory_factor(memory, phase, mrt, drt, true);
+#ifndef TPIE_NDEBUG
+	mrt.print_memory(c, log_debug());
+#endif // TPIE_NDEBUG
+	mrt.assign_memory(c);
 }
 
 /*static*/

@@ -516,7 +516,6 @@ private:
 		if (m_params.memoryPhase1 > 0 &&
 			m_params.memoryPhase2 > 0 &&
 			m_params.memoryPhase3 > 0)
-
 			calculate_parameters();
 	}
 
@@ -561,6 +560,14 @@ public:
 		return 2*serialization_reader::memory_usage();
 	}
 
+	memory_size_type actual_memory_phase_3() {
+		if (m_state != state_3)
+			throw tpie::exception("Bad state in actualy_memory_phase_3");
+		if (m_reportInternal)
+			return m_sorter.memory_usage();
+		else
+			return m_files.next_level_runs() * (m_params.minimumItemSize + serialization_reader::memory_usage());
+	}
 private:
 	void calculate_parameters() {
 		if (m_state != state_initial)

@@ -354,7 +354,14 @@ public:
 	/// \brief  Internal method used by go().
 	///////////////////////////////////////////////////////////////////////////
 	static void assign_memory(const std::vector<std::vector<node *> > & phases,
-							  memory_size_type memory, node_map & nodeMap);
+							  memory_size_type memory, datastructure_runtime & drt);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void reassign_memory(const std::vector<std::vector<node *> > & phases,
+								memory_size_type phase,
+								memory_size_type memory, const datastructure_runtime & drt);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by assign_memory().
