@@ -95,7 +95,6 @@ public:
 
 	/**
 	 * \brief Allocates a new block
-	 * \param size the minimum size needed given in bytes
 	 * \return the handle of the new block
 	 */
 	block_handle get_free_block() {

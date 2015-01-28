@@ -42,7 +42,8 @@ public:
 	/**
 	 * \brief Create a block collection
 	 * \param fileName the file in which blocks are saved
-	 * \param writeable indicates whether the collection is readable
+	 * \param blockSize the size of the blocks
+	 * \param writeable indicates whether the collection is writeable
 	 */
 	block_collection(std::string fileName, memory_size_type blockSize, bool writeable)
 	: m_collection(fileName + ".queue", blockSize)
