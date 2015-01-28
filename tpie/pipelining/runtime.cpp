@@ -795,6 +795,7 @@ void runtime::get_graph(std::vector<node *> & phase, graph<node *> & result,
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	typedef node_map::relmapit relmapit;
 	for (size_t i = 0; i < phase.size(); ++i) {
+		result.add_node(phase[i]);
 		std::pair<relmapit, relmapit> edges =
 			relations.equal_range(phase[i]->get_id());
 		for (relmapit j = edges.first; j != edges.second; ++j) {
