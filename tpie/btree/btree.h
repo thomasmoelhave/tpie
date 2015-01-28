@@ -468,10 +468,18 @@ public:
 	}
 		
 	/**
-	 * \brief remove item with given key
+	 * \brief remove all items with given key
 	 */
-	void remove(key_type v) {
-		erase(find(v));	
+	size_type erase(key_type v) {
+		size_type count = 0;
+		iterator i;
+		while(i != end()) {
+			erase(i);
+			++count;
+			i = find(v);
+		}
+
+		return count;
 	}
 
 	/**

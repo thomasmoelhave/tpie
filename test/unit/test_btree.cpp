@@ -76,7 +76,7 @@ bool basic_test(store & s) {
 	std::random_shuffle(x.begin(), x.end());
 	
 	for (size_t i=0; i < x.size(); ++i) {
-		tree.remove(x[i]);
+		tree.erase(x[i]);
 		tree2.erase(x[i]);
 		TEST_ENSURE(compare(tree, tree2), "Compare failed on during erase stage.");
 		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during erase stage.");
@@ -202,7 +202,7 @@ bool key_and_comparator_test(store & s) {
 	
 	std::random_shuffle(x.begin(), x.end());
 	for (size_t i=0; i < x.size(); ++i) {
-		tree.remove(x[i].key);
+		tree.erase(x[i].key);
 	}
 	return tree.empty();
 }
@@ -307,7 +307,7 @@ bool augment_test(store & s) {
 	size_t e=x.size()/2;
 	std::random_shuffle(x.begin(), x.end());
 	for (size_t i=e; i < x.size(); ++i)
-		tree.remove(x[i]);
+		tree.erase(x[i]);
 	x.resize(e);
 	std::sort(x.begin(), x.end());
 

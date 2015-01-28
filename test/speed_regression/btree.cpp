@@ -74,7 +74,7 @@ void test(size_t times, size_t size) {
 
 		getTestRealtime(start);
 		for(size_t i = 0; i < count; ++i) {
-			tree.remove(x[i]);
+			tree.erase(x[i]);
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
