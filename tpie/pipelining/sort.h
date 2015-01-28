@@ -198,6 +198,7 @@ public:
 	inline sort_calc_t(const sort_calc_t & other)
 		: node(other)
 		, m_sorter(other.m_sorter)
+		, m_propagate_called(other.m_propagate_called)
 		, dest(other.dest)
 	{
 	}
@@ -227,7 +228,6 @@ public:
 
 	virtual void propagate() override {
 		set_steps(1000);
-		std::cout << "I BE HERE" << std::endl;
 		m_propagate_called = true;
 	}
 
