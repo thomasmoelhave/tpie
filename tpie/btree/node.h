@@ -42,7 +42,7 @@ public:
 	typedef typename S::key_type key_type;
 
 	/**
-	 * \brief Type of the augment of a set of notes/values
+	 * \brief Type of the augment of a set of nodes/values
 	 */
 	typedef typename S::augment_type augment_type;
 
@@ -52,7 +52,7 @@ public:
 	typedef typename S::value_type value_type;
 
 	/**
-	 * \brief Check if this note has a parent
+	 * \brief Check if this node has a parent
 	 *
 	 * True iff this is not the root
 	 */
@@ -102,7 +102,7 @@ public:
 	}
 	
 	/**
-	 * \brief Return the ith child note
+	 * \brief Return the ith child node
 	 *
 	 * Requires !is_leaf() and i < count()
 	 */
@@ -113,7 +113,7 @@ public:
 	}
 	
 	/**
-	 * \brief Return true if this is a leaf note
+	 * \brief Return true if this is a leaf node
 	 */
 	bool is_leaf() const {
 		return m_is_leaf;
