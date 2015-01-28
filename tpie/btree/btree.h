@@ -30,7 +30,7 @@
 namespace tpie {
 
 /**
- * \brief Extrenal or internal augmented btree
+ * \brief External or internal augmented btree
  *
  * S is the type of the storage object
  * C is the comparator used to compare keys
@@ -492,12 +492,12 @@ public:
 	}
 	
 	/**
-	 * Return the number of elements in the tree	
+	 * \brief Return the number of elements in the tree	
 	 */
 	size_type size() const {return m_store.size();}
 
 	/**
-	 * Check if the tree is empty
+	 * \brief Check if the tree is empty
 	 */
 	bool empty() const {return m_store.size() == 0;}
 

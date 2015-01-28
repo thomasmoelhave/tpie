@@ -37,7 +37,7 @@ struct empty_augmenter {
 };
 
 /**
- * \brief Functor used to extract the key from a value incase 
+ * \brief Functor used to extract the key from a value in case 
  * keys and values are the same
  */
 template <typename T>
@@ -48,7 +48,7 @@ struct identity_key {
 
 
 /**
- * Type that is usefull for navigating a btree
+ * Type that is useful for navigating a btree
  *
  * S is the type of the store used
  */
@@ -62,7 +62,7 @@ class btree_iterator;
 /**
  * \brief Augmented btree
  * 
- * The fanout and externalness is decided by the store type S
+ * The fanout and location of nodes is decided by the store type S
  * C is the item comparator type
  * A is the type of the augmentation computation fuctor
  */

@@ -29,7 +29,7 @@
 namespace tpie {
 
 /**
- * Type that is usefull for navigating a btree
+ * \brief Type that is useful for navigating a btree
  *
  * S is the type of the store used
  */
@@ -37,17 +37,17 @@ template <typename S>
 class btree_node {
 public:
 	/**
-	 * Type of the key of a value
+	 * \brief Type of the key of a value
 	 */
 	typedef typename S::key_type key_type;
 
 	/**
-	 * Type of the augment of a set of notes/values
+	 * \brief Type of the augment of a set of notes/values
 	 */
 	typedef typename S::augment_type augment_type;
 
 	/**
-	 * Type of values
+	 * \brief Type of values
 	 */
 	typedef typename S::value_type value_type;
 
