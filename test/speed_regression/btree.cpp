@@ -39,18 +39,21 @@ void usage() {
 void test(size_t times, size_t size) {
 	// display code
 	std::vector<const char *> names;
-	names.resize(2);
+	names.resize(3);
 	names[0] = "Insertion";
-	names[1] = "Deletion";
+	names[1] = "Searching";
+	names[2] = "Deletion";
 	tpie::test::stat s(names);
 
 	// test code
-	size_t count = size * 1024 * 1024 / sizeof(int);
+	size_t count = size * 1024 / sizeof(int);
 
 	test_realtime_t start;
 	test_realtime_t end;
 
 	for (size_t i = 0; i < times; ++i) {
+		/*btree_internal_store<int> store;
+		btree<btree_internal_store<int> > tree(store);*/
 		temp_file tmp;
 		btree_external_store<int> store(tmp.path());
 		btree<btree_external_store<int> > tree(store);
@@ -65,6 +68,14 @@ void test(size_t times, size_t size) {
 		getTestRealtime(start);
 		for(size_t i = 0; i < count; ++i) {
 			tree.insert(x[i]);
+		}
+		getTestRealtime(end);
+		s(testRealtimeDiff(start,end));
+
+		// searching
+		getTestRealtime(start);
+		for(size_t i = 0; i < count; ++i) {
+			tree.find(i);
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
@@ -98,10 +109,10 @@ int main(int argc, char **argv) {
 	}
 
 	if(argc > 2) {
-		if (std::string(argv[1]) == "0") {
+		if (std::string(argv[2]) == "0") {
 			size = 0;
 		} else {
-			std::stringstream(argv[1]) >> size;
+			std::stringstream(argv[2]) >> size;
 			if (!size) {
 				usage();
 				return EXIT_FAILURE;
@@ -109,7 +120,14 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	testinfo t("External B-tree speed test", times, size);
+	tpie::tpie_init();
+	tpie::get_memory_manager().set_limit(1000 * 1024 * 1024);
+
+	log_info() << "Repetitions: " << times << std::endl;
+	log_info() << "Test size: " << size << " KB" << std::endl;
 	::test(times, size);
+
+	tpie::tpie_finish();
+
 	return EXIT_SUCCESS;
 }
