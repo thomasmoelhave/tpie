@@ -360,7 +360,13 @@ public:
 	 * \brief Return an iterator to the first item with the given key
 	 */
 	iterator find(key_type v) {
-		iterator itr;
+		iterator itr(&m_store);
+
+		if(m_store.height() == 0) {
+			itr.goto_end();
+			return itr;
+		}
+
 		std::vector<internal_type> path;
 		leaf_type l = find_leaf(path, v);
 
@@ -472,7 +478,7 @@ public:
 	 */
 	size_type erase(key_type v) {
 		size_type count = 0;
-		iterator i;
+		iterator i = find(v);
 		while(i != end()) {
 			erase(i);
 			++count;

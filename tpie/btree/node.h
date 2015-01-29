@@ -249,6 +249,13 @@ private:
 
 	void goto_end() {
 		m_path.clear();
+
+		if(m_store->height() == 0) {
+			m_leaf = m_store->get_root_leaf();
+			m_index = 0;
+			return;
+		}
+
 		if (m_store->height() == 1) {
 			m_leaf = m_store->get_root_leaf();
 			m_index = m_store->count(m_leaf);
