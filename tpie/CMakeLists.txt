@@ -144,6 +144,7 @@ set (HEADERS
 set (SOURCES
 	atomic.cpp
 	backtrace.cpp
+	blocks/block_collection_cache.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
 	compressed/scheme_none.cpp
