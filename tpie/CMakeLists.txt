@@ -146,6 +146,7 @@ set (SOURCES
 	backtrace.cpp
 	blocks/block_collection.cpp
 	blocks/block_collection_cache.cpp
+	btree/external_store.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
 	compressed/scheme_none.cpp
