@@ -130,21 +130,21 @@ public:
 
 	~btree_external_store();
 private:
-	static size_t min_internal_size() {
+	static size_t min_internal_size() throw() {
 		return (max_internal_size() + 3) / 4;
 	}
 
-	static size_t max_internal_size() {
+	static size_t max_internal_size() throw() {
 		size_t overhead = sizeof(memory_size_type);
 		size_t factor = sizeof(internal_content);
 		return (blockSize - overhead) / factor;
 	}
 
-	static size_t min_leaf_size() {
+	static size_t min_leaf_size() throw() {
 		return (max_leaf_size() + 3) / 4;
 	}
 
-	static size_t max_leaf_size() {
+	static size_t max_leaf_size() throw() {
 		size_t overhead = sizeof(memory_size_type);
 		size_t factor = sizeof(T);
 		return (blockSize - overhead) / factor;
@@ -328,11 +328,11 @@ private:
 		m_root = node.handle;
 	}
 
-	internal_type get_root_internal() {
+	internal_type get_root_internal() const throw() {
 		return internal_type(m_root);
 	}
 
-	leaf_type get_root_leaf() {
+	leaf_type get_root_leaf() const throw() {
 		return leaf_type(m_root);
 	}
 
@@ -413,19 +413,19 @@ private:
 		return nodeInter.values[i].augment;
 	}
 	
-	size_t height() const {
+	size_t height() const throw() {
 		return m_height;
 	}
 
-	void set_height(size_t height) {
+	void set_height(size_t height) throw() {
 		m_height = height;
 	}
 
-	size_t size() const {
+	size_t size() const throw() {
 		return m_size;
 	}
 
-	void set_size(size_t size) {
+	void set_size(size_t size) throw() {
 		m_size = size;
 	}
 
