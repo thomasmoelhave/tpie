@@ -25,7 +25,6 @@
 #define _TPIE_BLOCKS_BLOCK_COLLECTION_H
 
 #include <tpie/tpie.h>
-#include <tpie/tpie_assert.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/blocks/block.h>
 #include <tpie/blocks/freespace_collection.h>
