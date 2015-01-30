@@ -31,12 +31,15 @@ btree_external_store::btree_external_store(const std::string & path, K key_extra
 	tpie::file_accessor::raw_file_accessor m_accessor;
 	if(m_accessor.try_open_rw(path)) {
 		if(m_accessor.file_size_i() > 0) {
-			tp_assert(m_accessor.file_size_i() >= sizeof(size_t), "file is not empty but does not contain size btree_external_store information");
-			stream_size_type pos = m_accessor.file_size_i() - sizeof(size_t) * 2;
+			stream_size_type size = sizeof(size_t) * 2 + sizeof(blocks::block_handle);
+			tp_assert(m_accessor.file_size_i() >= size, "file is not empty but does not contain size btree_external_store information");
+			stream_size_type pos = m_accessor.file_size_i() - size;
 			m_accessor.seek_i(pos);
 			m_accessor.read_i((void*) &m_height, sizeof(size_t));
 			m_accessor.seek_i(pos + sizeof(size_t));
 			m_accessor.read_i((void*) &m_size, sizeof(size_t));
+			m_accessor.seek_i(pos + 2 * sizeof(size_t));
+			m_accessor.read_i((void*) &m_root, sizeof(blocks::block_handle));
 			m_accessor.truncate_i(pos);
 		}
 	}
@@ -48,12 +51,15 @@ btree_external_store::~btree_external_store() {
 		m_collection.reset();
 		tpie::file_accessor::raw_file_accessor m_accessor;
 		m_accessor.try_open_rw(m_path);
+		stream_size_type size = sizeof(size_t) * 2 + sizeof(blocks::block_handle);
 		stream_size_type pos = m_accessor.file_size_i();
-		m_accessor.truncate_i(pos + 2 * sizeof(size_t));
+		m_accessor.truncate_i(pos + size);
 		m_accessor.seek_i(pos);
 		m_accessor.write_i((void*) &m_height, sizeof(size_t));
 		m_accessor.seek_i(pos + sizeof(size_t));
 		m_accessor.write_i((void*) &m_size, sizeof(size_t));
+		m_accessor.seek_i(pos + 2 * sizeof(size_t));
+		m_accessor.write_i((void*) &m_root, sizeof(blocks::block_handle));
 	}
 
 } // namespace tpie
