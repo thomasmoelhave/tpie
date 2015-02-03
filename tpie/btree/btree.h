@@ -121,19 +121,19 @@ private:
 		m_store.set_augment(l, p, m_augmenter(node_type(&m_store, l)));
 	}
 
-	size_t max_size(internal_type) {
+	size_t max_size(internal_type) const throw() {
 		return m_store.max_internal_size();
 	}
 
-	size_t max_size(leaf_type) {
+	size_t max_size(leaf_type) const throw() {
 		return m_store.max_leaf_size();
 	}
 
-	size_t min_size(internal_type) {
+	size_t min_size(internal_type) const throw() {
 		return m_store.min_internal_size();
 	}
 
-	size_t min_size(leaf_type) {
+	size_t min_size(leaf_type) const throw() {
 		return m_store.min_leaf_size();
 	}
 
@@ -500,12 +500,16 @@ public:
 	/**
 	 * \brief Return the number of elements in the tree	
 	 */
-	size_type size() const {return m_store.size();}
+	size_type size() const throw() {
+		return m_store.size();
+	}
 
 	/**
 	 * \brief Check if the tree is empty
 	 */
-	bool empty() const {return m_store.size() == 0;}
+	bool empty() const throw() {
+		return m_store.size() == 0;
+	}
 
 	/**
 	 * Construct a btree with the given storrage
