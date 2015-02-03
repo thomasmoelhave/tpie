@@ -222,11 +222,21 @@ private:
 		return p->values[i].augment;
 	}
 	
-	size_t height() const {return m_height;}
-	void set_height(size_t height) {m_height = height;}
+	size_t height() const throw() {
+		return m_height;
+	}
 
-	size_t size() const {return m_size;}
-	void set_size(size_t size) {m_size = size;}
+	void set_height(size_t height) throw() {
+		m_height = height;
+	}
+
+	size_t size() const throw() {
+		return m_size;
+	}
+
+	void set_size(size_t size) throw() {
+		m_size = size;
+	}
 
 	void * m_root;
 	K key_extract;
