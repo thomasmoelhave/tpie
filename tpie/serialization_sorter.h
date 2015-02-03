@@ -566,7 +566,7 @@ public:
 		if (m_reportInternal)
 			return m_sorter.memory_usage();
 		else
-			return m_files.next_level_runs() * (m_params.minimumItemSize + serialization_reader::memory_usage());
+			return m_files.next_level_runs() * (m_sorter.get_largest_item_size() + serialization_reader::memory_usage());
 	}
 private:
 	void calculate_parameters() {
