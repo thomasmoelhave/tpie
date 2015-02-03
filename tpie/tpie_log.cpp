@@ -34,16 +34,82 @@ tpie::file_log_target::file_log_target(log_level threshold): m_threshold(thresho
 
 void tpie::file_log_target::log(log_level level, const char * message, size_t) {
 	if (level > m_threshold) return;
-	m_out << message;
+
+	if(LOG_DEBUG > level) { // print without indentation
+		m_out << message;
+		m_out.flush();
+		return;
+	}
+
+	m_out << build_prefix(groups.size()) << " " << message;
 	m_out.flush();
+}
+
+std::string tpie::file_log_target::build_prefix(size_t size) {
+	return std::string(size, '|');
+}
+
+void tpie::file_log_target::begin_group(const std::string & name) {
+	if(LOG_DEBUG > m_threshold) return;
+
+	groups.push(name);
+
+	m_out << build_prefix(groups.size()-1) << "> " << "Entering " << name << std::endl;
+}
+
+void tpie::file_log_target::end_group() {
+	if(LOG_DEBUG > m_threshold) return;
+
+	m_out << build_prefix(groups.size()-1) << "x " << "Leaving " << groups.top() << std::endl;
+	groups.pop();
 }
 
 tpie::stderr_log_target::stderr_log_target(log_level threshold): m_threshold(threshold) {}
 
+std::string tpie::stderr_log_target::build_prefix(size_t size) {
+	std::string prefix;
+	for(size_t i = 0; i < size; ++i) prefix += "|";
+	return prefix;
+}
+
 void tpie::stderr_log_target::log(log_level level, const char * message, size_t size) {
 	if (level > m_threshold) return;
+
+	if(LOG_DEBUG > level) { // print without indentation
+		fwrite(message, 1, size, stderr);
+		return;
+	}
+
+	std::string prefix = build_prefix(groups.size()) + " ";
+
+	fwrite(prefix.c_str(), 1, prefix.size(), stderr);
 	fwrite(message, 1, size, stderr);
+
 }	
+
+void tpie::stderr_log_target::begin_group(const std::string & name) {
+	if(LOG_DEBUG > m_threshold) return;
+
+	groups.push(name);
+	
+	std::string prefix = build_prefix(groups.size()-1) + "> ";
+	std::string text = "Entering " + name + "\n";
+
+	fwrite(prefix.c_str(), sizeof(char), prefix.size(), stderr);
+	fwrite(text.c_str(), sizeof(char), text.size(), stderr);
+}
+
+void tpie::stderr_log_target::end_group() {
+	if(LOG_DEBUG > m_threshold) return;
+
+	std::string text = "Leaving " + groups.top() + "\n";
+	std::string prefix = build_prefix(groups.size()-1) + "x ";
+
+	groups.pop();
+
+	fwrite(prefix.c_str(), sizeof(char), prefix.size(), stderr);	
+	fwrite(text.c_str(), sizeof(char), text.size(), stderr);
+}
 
 
 
@@ -56,8 +122,15 @@ namespace tpie {
 
 static file_log_target * file_target = 0;
 static stderr_log_target * stderr_target = 0;
-logstream log_singleton;
-static logstream & log = log_singleton;
+
+namespace log_bits {
+
+bool log_selector::s_init;
+log_level log_selector::s_level;
+
+std::vector<boost::shared_ptr<logstream> > log_instances;
+
+} // namespace log_bits
 
 const std::string& log_name() {
 	return file_target->m_path;
@@ -67,18 +140,36 @@ void init_default_log() {
 	if (file_target) return;
 	file_target = new file_log_target(LOG_DEBUG);
 	stderr_target = new stderr_log_target(LOG_INFORMATIONAL);
-	log.add_target(file_target);
-	log.add_target(stderr_target);
+	add_log_target(file_target);
+	add_log_target(stderr_target);
 }
 
 void finish_default_log() {
 	if (!file_target) return;
-	log.remove_target(file_target);
-	log.remove_target(stderr_target);
+	remove_log_target(file_target);
+	remove_log_target(stderr_target);
 	delete file_target;
 	delete stderr_target;
 	file_target = 0;
 	stderr_target = 0;
 }
+
+namespace log_bits {
+
+void initiate_log_level(log_level level) {
+	while (log_instances.size() <= level)
+		log_instances.push_back(boost::shared_ptr<logstream>());
+	log_instances[level].reset(new logstream(level));
+}
+
+void flush_logs() {
+	for (size_t i = 0; i < log_instances.size(); ++i) {
+		if (log_instances[i].get() != 0) {
+			*log_instances[i] << std::flush;
+		}
+	}
+}
+
+} // namespace log_bits
 
 } //namespace tpie

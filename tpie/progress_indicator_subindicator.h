@@ -30,6 +30,13 @@
 
 namespace tpie {
 
+struct log_group_mode {
+	enum type {
+		enabled,
+		disabled
+	};
+};
+
 class progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
@@ -41,14 +48,16 @@ public:
 	void setup(progress_indicator_base * parent,
 			   stream_size_type outerRange,
 			   const char * crumb=0,
-			   description_importance importance=IMPORTANCE_MAJOR);
+			   description_importance importance=IMPORTANCE_MAJOR,
+			   log_group_mode::type logGroupMode=log_group_mode::enabled);
 	
 	progress_indicator_subindicator();
 	
 	progress_indicator_subindicator(progress_indicator_base * parent,
 									stream_size_type outerRange,
 									const char * crumb=0,
-									description_importance importance=IMPORTANCE_MAJOR);
+									description_importance importance=IMPORTANCE_MAJOR,
+									log_group_mode::type logGroupMode=log_group_mode::enabled);
 #ifndef TPIE_NDEBUG
 	~progress_indicator_subindicator();
 #endif
@@ -58,6 +67,7 @@ protected:
 	stream_size_type m_oldValue;
 	std::string m_crumb;
 	description_importance m_importance;
+	log_group_mode::type m_logGroupMode;
 #ifndef TPIE_NDEBUG
 	bool m_init_called;
 	bool m_done_called;

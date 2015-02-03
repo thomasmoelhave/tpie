@@ -28,6 +28,7 @@
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <stack>
 
 namespace tpie {
 
@@ -268,10 +269,17 @@ private:
 			
 		void log(log_level level, const char * buf, size_t n) {
 			if (!n) return;
-			if (level <= bufferThreshold) buffer << std::string(buf, n);
+			if (level <= bufferThreshold) {
+				std::string prefix = LOG_DEBUG > bufferThreshold ? "" : (build_prefix(groups.size()) + " ");
+				std::string msg =  prefix + std::string(buf, n);
+				buffer << msg;
+			}
 			if (level > threshold) return;
 			if (m_onNameLine) os << '\n';
-			std::string msg(buf, n);
+
+			std::string prefix = LOG_DEBUG > threshold ? "" : (build_prefix(groups.size()) + " ");
+			std::string msg = prefix + std::string(buf, n);
+	
 			os << msg;
 			m_onNameLine = false;
 			m_onBOL = msg[msg.size()-1] == '\n' || msg[msg.size()-1] == '\r';
@@ -286,8 +294,39 @@ private:
 			bufferThreshold = level;
 		}
 
+		void begin_group(const std::string & name) {
+			groups.push(name);
+			std::string msg = build_prefix(groups.size()-1) + "> " + "Entering " + name + '\n';
+
+			if (LOG_DEBUG <= bufferThreshold) buffer << msg;
+			if (LOG_DEBUG > threshold) return;
+			if (m_onNameLine) os << '\n';
+			
+			os << msg << std::flush;
+			m_onNameLine = false;
+			m_onBOL = true;
+		}
+
+		void end_group() {
+			std::string msg = build_prefix(groups.size()-1) + "x " + "Leaving " + groups.top() + '\n';
+			groups.pop();
+
+			if (LOG_DEBUG <= bufferThreshold) buffer << msg;
+			if (LOG_DEBUG > threshold) return;
+			if (m_onNameLine) os << '\n';
+			
+			os << msg << std::flush;
+			m_onNameLine = false;
+			m_onBOL = true;
+		}
+
 		std::stringstream buffer;
 	private:
+		std::string build_prefix(size_t size) {
+			return std::string(size, '|');
+		}
+
+		std::stack<std::string> groups;
 		std::ostream & os;
 		log_level threshold;
 		log_level bufferThreshold;
