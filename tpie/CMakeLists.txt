@@ -13,6 +13,7 @@ set (HEADERS
 		btree/base.h
 		btree/internal_store.h
 		btree/external_store.h
+		btree/external_store_base.h
 		btree/node.h
 		btree/btree.h
 		cache_hint.h
@@ -146,6 +147,7 @@ set (SOURCES
 	backtrace.cpp
 	blocks/block_collection.cpp
 	blocks/block_collection_cache.cpp
+	btree/external_store_base.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
 	compressed/scheme_none.cpp
