@@ -55,8 +55,8 @@ void test(size_t times, size_t size) {
 		/*btree_internal_store<int> store;
 		btree<btree_internal_store<int> > tree(store);*/
 		temp_file tmp;
-		btree_external_store<int> store(tmp.path());
-		btree<btree_external_store<int> > tree(store);
+
+		btree<btree_external_store<int> > tree(btree_external_store<int>(tmp.path()));
 
 		// pre-protocol
 		int x[count];

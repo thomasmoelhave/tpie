@@ -37,7 +37,7 @@ namespace blocks {
 /**
  * \brief A class to manage writing and reading of block to disk.
  */
-class block_collection : public boost::noncopyable {
+class block_collection {
 public:
 	/**
 	 * \brief Create a block collection
@@ -48,6 +48,13 @@ public:
 	block_collection(std::string fileName, memory_size_type blockSize, bool writeable);
 
 	~block_collection();
+
+	#ifdef TPIE_CPP_RVALUE_REFERENCE
+
+	block_collection(const block_collection &) = delete;
+	block_collection(block_collection &&) = default;
+
+	#endif
 
 	/**
 	 * \brief Allocates a new block

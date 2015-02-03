@@ -55,9 +55,9 @@ bool compare(tree_t & t, set_t & s) {
 	return compare(node, iter, s.end()) && iter == s.end();
 }
 
-template<typename store>
-bool basic_test(store & s) {
-	btree<store> tree(s);
+template<typename store_constructor>
+bool basic_test(store_constructor constructor) {
+	btree<typename store_constructor::build_type> tree(constructor.construct());
 	set<int> tree2;
 	
 	std::vector<int> x;
@@ -85,9 +85,9 @@ bool basic_test(store & s) {
 	return true;
 }
 
-template<typename store>
-bool iterator_test(store & s) {
-	btree<store> tree(s);
+template<typename store_constructor>
+bool iterator_test(store_constructor constructor) {
+	btree<typename store_constructor::build_type> tree(constructor.construct());
 	set<int> tree2;
 	
 	std::vector<int> x;
@@ -102,11 +102,11 @@ bool iterator_test(store & s) {
 		if (tree.size() != tree2.size()) return false;
 	}
 
-	typename btree<store>::iterator b1 = tree.begin();
+	typename btree<typename store_constructor::build_type>::iterator b1 = tree.begin();
 	set<int>::iterator b2 = tree2.begin();
-	typename btree<store>::iterator e1 = tree.end();
+	typename btree<typename store_constructor::build_type>::iterator e1 = tree.end();
 	set<int>::iterator e2 = tree2.end();
-	typename btree<store>::iterator i1 = b1;
+	typename btree<typename store_constructor::build_type>::iterator i1 = b1;
 	set<int>::iterator i2 = b2;
 	
 	while (true) {
@@ -167,11 +167,11 @@ struct key_extract {
 	value_type operator()(const item & i) const {return i.key;}
 };
 
-template<typename store>
-bool key_and_comparator_test(store & s) {
+template<typename store_constructor>
+bool key_and_comparator_test(store_constructor constructor) {
 	std::greater<int> c1;
 	comparator<std::greater<int> > comp(c1);
-	btree<store, comparator<std::greater<int> > > tree(s, comp);
+	btree<typename store_constructor::build_type, comparator<std::greater<int> > > tree(constructor.construct(), comp);
 	std::map<uncomparable<int>, int, comparator<std::greater<int> > > tree2(comp);
 	
 	std::vector<item> x;
@@ -190,8 +190,8 @@ bool key_and_comparator_test(store & s) {
 		tree2[x[i].key] = x[i].value;
 	}
 
-	typename btree<store>::iterator e1 = tree.end();
-	typename btree<store>::iterator i1 = tree.begin();
+	typename btree<typename store_constructor::build_type>::iterator e1 = tree.end();
+	typename btree<typename store_constructor::build_type>::iterator i1 = tree.begin();
 	map<uncomparable<int>, int>::iterator i2 = tree2.begin();
 	while (i1 != e1) {
 		if (i1->key.value != i2->first.value ||
@@ -282,21 +282,21 @@ void print(btree_node<S> & n) {
 	std::cout << ")";
 }
 
-template<typename store>
-bool augment_test(store & s) {
+template<typename store_constructor>
+bool augment_test(store_constructor constructor) {
 	std::less<int> c;
 	ss_augmenter a;
-	btree<store, std::less<int>, ss_augmenter> tree(s, c, a);
+	btree<typename store_constructor::build_type, std::less<int>, ss_augmenter> tree(constructor.construct(), c, a);
 	std::vector<int> x;
     for (int i=0; i < 1234; ++i) x.push_back(i);
 	std::random_shuffle(x.begin(), x.end());
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
-		btree_node<store> n=tree.root();
+		btree_node<typename store_constructor::build_type> n=tree.root();
 	}
 
 	std::sort(x.begin(), x.end());
-	typename btree<store>::iterator i1 = tree.begin();
+	typename btree<typename store_constructor::build_type>::iterator i1 = tree.begin();
 	size_t sum=0;
 	for (size_t i=0; i < x.size(); ++i) {
 		if (rank_sum(i1) != ss_augment(i, sum)) return false;
@@ -322,48 +322,61 @@ bool augment_test(store & s) {
 	return true;
 }
 
+template <typename T>
+struct internal_store_constructor {
+	typedef T build_type;
+
+	build_type construct() {
+		return build_type();
+	}
+};
+
 bool internal_basic_test() {
-	btree_internal_store<int> s;
-	return basic_test(s);
+	return basic_test(internal_store_constructor<btree_internal_store<int> >());
 }
 
 bool internal_iterator_test() {
-	btree_internal_store<int> s;
-	return iterator_test(s);
+	return iterator_test(internal_store_constructor<btree_internal_store<int> >());
 }
 
 bool internal_key_and_comparator_test() {
-	btree_internal_store<item, empty_augment, key_extract> s;
-	return key_and_comparator_test(s);
+	return key_and_comparator_test(internal_store_constructor<btree_internal_store<item, empty_augment, key_extract> >());
 }
 
 bool internal_augment_test() {
-	btree_internal_store<int, ss_augment> s;
-	return augment_test(s);
+	return augment_test(internal_store_constructor<btree_internal_store<int, ss_augment> >());
 }
+
+template <typename T>
+struct external_store_constructor {
+	typedef T build_type;
+	std::string path;
+
+	external_store_constructor(std::string path) : path(path) {}
+
+	build_type construct() {
+		return build_type(path);
+	}
+};
 
 bool external_basic_test() {
 	temp_file tmp;
-	btree_external_store<int> s(tmp.path());
-	return basic_test(s);
+	return basic_test(external_store_constructor<btree_external_store<int> >(tmp.path()));
 }
 
 bool external_iterator_test() {
 	temp_file tmp;
-	btree_external_store<int> s(tmp.path());
-	return iterator_test(s);
+	return iterator_test(external_store_constructor<btree_external_store<int> >(tmp.path()));
 }
 
 bool external_key_and_comparator_test() {
 	temp_file tmp;
-	btree_external_store<item, empty_augment, key_extract> s(tmp.path());
-	return key_and_comparator_test(s);
+	return key_and_comparator_test(external_store_constructor<btree_external_store<item, empty_augment, key_extract> >(tmp.path()));
 }
 
 bool external_augment_test() {
 	temp_file tmp;
-	btree_external_store<int, ss_augment> s(tmp.path());
-	return augment_test(s);
+	return augment_test(external_store_constructor<btree_external_store<int, ss_augment> >(tmp.path()));
 }
 
 

@@ -137,6 +137,13 @@ public:
 	~btree_external_store() {
 		m_collection.reset();
 	}
+
+	#ifdef TPIE_CPP_RVALUE_REFERENCE
+
+	btree_external_store(const btree_external_store &) = delete;
+	btree_external_store(btree_external_store &&) = default;
+
+	#endif
 private:
 	static size_t min_internal_size() throw() {
 		return (max_internal_size() + 3) / 4;
