@@ -37,6 +37,7 @@
 
 // Library
 #include <tpie/pipelining/buffer.h>
+#include <tpie/pipelining/internal_buffer.h>
 #include <tpie/pipelining/file_stream.h>
 #include <tpie/pipelining/helpers.h>
 #include <tpie/pipelining/join.h>

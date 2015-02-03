@@ -6,6 +6,16 @@ set (HEADERS
 		access_type.h
 		atomic.h
 		backtrace.h
+		blocks/block.h
+		blocks/block_collection.h
+		blocks/block_collection_cache.h
+		blocks/freespace_collection.h
+		btree/base.h
+		btree/internal_store.h
+		btree/external_store.h
+		btree/external_store_base.h
+		btree/node.h
+		btree/btree.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
@@ -135,6 +145,9 @@ set (HEADERS
 set (SOURCES
 	atomic.cpp
 	backtrace.cpp
+	blocks/block_collection.cpp
+	blocks/block_collection_cache.cpp
+	btree/external_store_base.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
 	compressed/scheme_none.cpp

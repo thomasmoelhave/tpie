@@ -39,6 +39,8 @@ add_unittest(array
 	from_view
 	)
 add_unittest(atomic basic parallel)
+add_unittest(block_collection basic erase overwrite)
+add_unittest(block_collection_cache basic erase overwrite)
 add_unittest(compressed_stream
 	basic seek seek_2 reopen_1 reopen_2 read_seek
 	truncate truncate_2 position_0 position_1 position_2 position_3
@@ -53,6 +55,7 @@ add_unittest(compressed_stream
 	odd_block_size
 	write_peek
 )
+add_unittest(btree internal_basic internal_iterator internal_key_and_compare internal_augment external_basic external_iterator external_key_and_compare external_augment)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic empty_size sized large)
@@ -60,6 +63,7 @@ add_unittest(external_sort amismall small tiny)
 add_unittest(external_stack new named-new ami named-ami io)
 add_unittest(file_count basic)
 add_unittest(filestream memory)
+add_unittest(freespace_collection alloc size)
 add_unittest(hashmap chaining linear_probing iterators memory)
 add_unittest(internal_priority_queue basic memory)
 add_unittest(internal_queue basic memory)
@@ -153,12 +157,7 @@ add_unittest(pipelining
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic auto_ptr)
-add_unittest(close_file
-	internal
-	serialization_writer_close
-	serialization_writer_dtor
-	serialization_reader_dtor
-)
+add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
 add_unittest(node_name gcc msvc)
 add_unittest(snappy basic)
 
