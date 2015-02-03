@@ -66,13 +66,30 @@ public:
 		add_dependency(calc);
 	}
 
+	virtual void propagate() override {
+		set_steps(m_sorter->item_count());
+		forward("items", static_cast<stream_size_type>(m_sorter->item_count()));
+		memory_size_type memory_usage = m_sorter->actual_memory_phase_3();
+		set_minimum_memory(memory_usage);
+		set_maximum_memory(memory_usage);
+		set_memory_fraction(0);
+		m_propagate_called = true;
+	}
 protected:
+	virtual void set_available_memory(memory_size_type availableMemory) override {
+		node::set_available_memory(availableMemory);
+		if (!m_propagate_called)
+			m_sorter->set_phase_3_memory(availableMemory);
+	}
+
 	sort_output_base(pred_type pred)
 		: m_sorter(new sorter_t(sizeof(item_type), pred))
+		, m_propagate_called(false)
 	{
 	}
 
 	sorterptr m_sorter;
+	bool m_propagate_called;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -94,11 +111,6 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void propagate() override {
-		this->set_steps(this->m_sorter->item_count());
-		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
-	}
-
 	inline bool can_pull() const {
 		return this->m_sorter->can_pull();
 	}
@@ -117,12 +129,6 @@ public:
 		log_warning() << "Passive sorter used without an initiator in the final merge and output phase.\n"
 			<< "Define an initiator and pair it up with the pipe from passive_sorter::output()." << std::endl;
 		throw not_initiator_node();
-	}
-
-protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
-		node::set_available_memory(availableMemory);
-		this->m_sorter->set_phase_3_memory(availableMemory);
 	}
 };
 
@@ -148,24 +154,12 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void propagate() override {
-		this->set_steps(this->m_sorter->item_count());
-		this->forward("items", static_cast<stream_size_type>(this->m_sorter->item_count()));
-	}
-
 	virtual void go() override {
 		while (this->m_sorter->can_pull()) {
 			dest.push(this->m_sorter->pull());
 			this->step();
 		}
 	}
-
-protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
-		node::set_available_memory(availableMemory);
-		this->m_sorter->set_phase_3_memory(availableMemory);
-	}
-
 private:
 	dest_t dest;
 };
@@ -210,10 +204,12 @@ public:
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
+		m_propagate_called = false;
 	}
 
 	virtual void propagate() override {
 		set_steps(1000);
+		m_propagate_called = true;
 	}
 
 	virtual void go() override {
@@ -244,12 +240,14 @@ public:
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
-		m_sorter->set_phase_2_memory(availableMemory);
+		if (!m_propagate_called)
+			m_sorter->set_phase_2_memory(availableMemory);
 	}
 
 private:
 	sorterptr m_sorter;
 	boost::shared_ptr<Output> dest;
+	bool m_propagate_called;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -273,10 +271,14 @@ public:
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
+		m_propagate_called = false;
 	}
 
+	virtual void propagate() override {
+		m_propagate_called = true;
+	}
+	
 	virtual void begin() override {
-		node::begin();
 		m_sorter->begin();
 	}
 
@@ -285,7 +287,6 @@ public:
 	}
 
 	virtual void end() override {
-		node::end();
 		m_sorter->end();
 	}
 
@@ -300,12 +301,14 @@ public:
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
-		m_sorter->set_phase_1_memory(availableMemory);
+		if (!m_propagate_called)
+			m_sorter->set_phase_1_memory(availableMemory);
 	}
 
 private:
 	sorterptr m_sorter;
 	sort_calc_t<Traits> dest;
+	bool m_propagate_called;
 };
 
 template <typename child_t>

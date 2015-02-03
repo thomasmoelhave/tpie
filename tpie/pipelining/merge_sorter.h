@@ -209,6 +209,8 @@ public:
 private:
 	// set_phase_?_memory helper
 	inline void maybe_calculate_parameters() {
+		if (m_state != stParameters)
+			throw tpie::exception("Bad state in maybe_calculate_parameters");
 		if (p.memoryPhase1 > 0 &&
 			p.memoryPhase2 > 0 &&
 			p.memoryPhase3 > 0)
@@ -582,6 +584,15 @@ public:
 
 	static memory_size_type maximum_memory_phase_3() {
 		return fanout_memory_usage(maximumFanout);
+	}
+
+	memory_size_type actual_memory_phase_3() {
+		tp_assert(m_state == stReport, "Wrong phase");
+		if (m_reportInternal)
+			return m_runFiles.memory_usage(m_runFiles.size())
+				+ m_currentRunItems.memory_usage(m_currentRunItems.size());
+		else
+			return fanout_memory_usage(m_finalRunCount);
 	}
 
 	inline memory_size_type evacuated_memory_usage() const {

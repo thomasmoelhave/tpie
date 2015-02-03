@@ -136,6 +136,15 @@ public:
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_memory_fraction(double f) {
+		switch (get_state()) {
+		case STATE_IN_PROPAGATE:
+		case STATE_AFTER_PROPAGATE:
+		case STATE_FRESH:
+		case STATE_IN_PREPARE:
+			break;
+		default:
+			throw call_order_exception("set_memory_fraction");
+		}
 		m_parameters.memoryFraction = f;
 	}
 
@@ -464,7 +473,13 @@ protected:
 	/// \brief Called by implementers to declare minimum memory requirements.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_minimum_memory(memory_size_type minimumMemory) {
-		if (get_state() != STATE_FRESH && get_state() != STATE_IN_PREPARE) {
+		switch (get_state()) {
+		case STATE_IN_PROPAGATE:
+		case STATE_AFTER_PROPAGATE:
+		case STATE_FRESH:
+		case STATE_IN_PREPARE:
+			break;
+		default:
 			throw call_order_exception("set_minimum_memory");
 		}
 		m_parameters.minimumMemory = minimumMemory;
@@ -477,7 +492,13 @@ protected:
 	/// memory fraction to zero.
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_maximum_memory(memory_size_type maximumMemory) {
-		if (get_state() != STATE_FRESH && get_state() != STATE_IN_PREPARE) {
+		switch (get_state()) {
+		case STATE_IN_PROPAGATE:
+		case STATE_AFTER_PROPAGATE:
+		case STATE_FRESH:
+		case STATE_IN_PREPARE:
+			break;
+		default:
 			throw call_order_exception("set_maximum_memory");
 		}
 		m_parameters.maximumMemory = maximumMemory;
