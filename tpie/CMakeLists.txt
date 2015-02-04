@@ -164,6 +164,7 @@ set (SOURCES
 	logstream.cpp
 	memory.cpp
 	pipelining/merge_sorter.cpp
+	pipelining/node.cpp
 	pipelining/node_name.cpp
 	pipelining/pipeline.cpp
 	pipelining/runtime.cpp
