@@ -181,6 +181,7 @@ public:
 	sort_calc_t(const sort_calc_t & other)
 		: node(other)
 		, m_sorter(other.m_sorter)
+		, m_propagate_called(false)
 		, dest(other.dest)
 	{
 	}
