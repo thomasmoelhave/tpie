@@ -23,6 +23,7 @@
 
 #ifndef __TPIE_PIPELINING_FACTORY_BASE_H__
 #define __TPIE_PIPELINING_FACTORY_BASE_H__
+#include <tpie/pipelining/node_set.h>
 
 // XXX remove when init_segment is removed
 #include <tpie/backtrace.h>
@@ -138,16 +139,13 @@ public:
 	/// the implementation should use \c init_sub_node instead.
 	///////////////////////////////////////////////////////////////////////////
 	inline void init_node(node & r) const {
-		if (m_set) r.set_memory_fraction(memory());
 		if (!m_name.empty()) {
 			r.set_name(m_name, m_namePriority);
 		}
 		if (!m_breadcrumbs.empty()) {
 			r.set_breadcrumb(m_breadcrumbs);
 		}
-		for (size_t i = 0; i < m_hooks.size(); ++i) {
-			m_hooks[i]->init_node(r);
-		}
+		init_common(r);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -161,7 +159,6 @@ public:
 	/// the implementation should use \c init_node instead.
 	///////////////////////////////////////////////////////////////////////////
 	void init_sub_node(node & r) const {
-		if (m_set) r.set_memory_fraction(memory());
 		if (m_breadcrumbs.empty()) {
 			if (m_name.empty()) {
 				// no op
@@ -175,9 +172,7 @@ public:
 				r.set_breadcrumb(m_breadcrumbs + " | " + m_name);
 			}
 		}
-		for (size_t i = 0; i < m_hooks.size(); ++i) {
-			m_hooks[i]->init_node(r);
-		}
+		init_common(r);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -244,7 +239,36 @@ public:
 		m_destinationKind = destination_kind::pull;
 	}
 
+	void add_to_set(node_set s) {
+		m_add_to_set.push_back(s);
+	}
+
+	void add_dependencies(node_set s) {
+		m_add_dependencies.push_back(s);
+	}
 private:
+	void init_common(node & r) const {
+		for (size_t i=0; i < m_add_to_set.size(); ++i) {
+			node_set s=m_add_to_set[i];
+			for (size_t j=0; j < s->m_depends.size(); ++j) 
+				s->m_depends[j]->add_dependency(r);
+			s->m_nodes.push_back(&r);
+		}
+
+		for (size_t i=0; i < m_add_dependencies.size(); ++i) {
+			node_set s=m_add_dependencies[i];
+			for (size_t j=0; j < s->m_nodes.size(); ++j)
+				r.add_dependency(*s->m_nodes[j]);
+			s->m_depends.push_back(&r);
+		}
+	
+		if (m_set) r.set_memory_fraction(memory());
+
+		for (size_t i = 0; i < m_hooks.size(); ++i) {
+			m_hooks[i]->init_node(r);
+		}
+	}
+	
 	double m_amount;
 	bool m_set;
 	destination_kind::type m_destinationKind;
@@ -252,6 +276,8 @@ private:
 	std::string m_breadcrumbs;
 	priority_type m_namePriority;
 	std::vector<factory_init_hook *> m_hooks;
+	std::vector<node_set> m_add_to_set;
+	std::vector<node_set> m_add_dependencies;;
 };
 
 } // namespace pipelining

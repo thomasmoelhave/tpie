@@ -24,6 +24,7 @@
 #include <tpie/pipelining/priority_type.h>
 #include <tpie/pipelining/pair_factory.h>
 #include <tpie/pipelining/pipeline.h>
+#include <tpie/pipelining/node_set.h>
 
 #ifdef WIN32
 // Silence warning C4521: multiple copy constructors specified.
@@ -87,6 +88,28 @@ public:
 		return self();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get a refenerce to this node.
+	///
+	/// This reference can be used to call add_dependency on another node
+	///
+	/// \sa factory_base::ref
+	///////////////////////////////////////////////////////////////////////////
+	inline child_t & add_to_set(node_set s) {
+		self().factory.add_to_set(s);
+		return self();
+	}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Add a depencency to a referenced node.
+	///
+	/// \sa factory_base::ref
+	///////////////////////////////////////////////////////////////////////////
+	inline child_t & add_dependencies(node_set s) {
+		self().factory.add_dependency(s);
+		return self();
+	}		
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Set a prefix for the name of this node.
 	///
