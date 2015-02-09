@@ -39,7 +39,7 @@ void node_map::link(node_map::ptr target) {
 	}
 	// union by rank
 	if (target->m_rank > m_rank)
-		return target->link(ptr(self));
+		return target->link(this);
 
 	for (mapit i = target->begin(); i != target->end(); ++i) {
 		set_token(i->first, i->second);
@@ -51,7 +51,7 @@ void node_map::link(node_map::ptr target) {
 		m_relationsInv.insert(*i);
 	}
 	target->m_tokens.clear();
-	target->m_authority = ptr(self);
+	target->m_authority = this;
 
 	// union by rank
 	if (target->m_rank == m_rank)
@@ -60,13 +60,13 @@ void node_map::link(node_map::ptr target) {
 
 node_map::ptr node_map::find_authority() {
 	if (!m_authority)
-		return ptr(self);
+		return this;
 
 	node_map * i = m_authority.get();
 	while (i->m_authority) {
 		i = i->m_authority.get();
 	}
-	ptr result(i->self);
+	ptr result(i);
 
 	// path compression
 	node_map * j = m_authority.get();

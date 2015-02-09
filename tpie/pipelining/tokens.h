@@ -79,8 +79,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 #include <boost/any.hpp>
 
 namespace tpie {
@@ -108,22 +107,19 @@ public:
 
 	typedef std::map<std::string, std::pair<memory_size_type, boost::any> > datastructuremap_t;
 
-	typedef boost::shared_ptr<node_map> ptr;
-	typedef boost::weak_ptr<node_map> wptr;
+	typedef boost::intrusive_ptr<node_map> ptr;
 
-	static inline ptr create() {
-		ptr result(new node_map);
-		result->self = wptr(result);
-		return result;
+	static  ptr create() {
+		return ptr(new node_map);
 	}
 
-	inline id_t add_token(val_t token) {
+	id_t add_token(val_t token) {
 		id_t id = nextId++;
 		set_token(id, token);
 		return id;
 	}
 
-	inline void set_token(id_t id, val_t token) {
+	void set_token(id_t id, val_t token) {
 		assert_authoritative();
 		m_tokens[id] = token;
 	}
@@ -131,21 +127,21 @@ public:
 	// union-find link
 	void link(ptr target);
 
-	inline void union_set(ptr target) {
+	void union_set(ptr target) {
 		find_authority()->link(target->find_authority());
 	}
 
-	inline val_t get(id_t id) const {
+	val_t get(id_t id) const {
 		mapit i = m_tokens.find(id);
 		if (i == m_tokens.end()) return 0;
 		return i->second;
 	}
 
-	inline mapit begin() const {
+	mapit begin() const {
 		return m_tokens.begin();
 	}
 
-	inline mapit end() const {
+	mapit end() const {
 		return m_tokens.end();
 	}
 
@@ -158,7 +154,7 @@ public:
 
 	void add_relation(id_t from, id_t to, node_relation rel);
 
-	inline const relmap_t & get_relations() const {
+	const relmap_t & get_relations() const {
 		return m_relations;
 	}
 
@@ -170,11 +166,11 @@ public:
 		return m_datastructures;
 	}
 
-	inline size_t in_degree(id_t from, node_relation rel) const {
+	size_t in_degree(id_t from, node_relation rel) const {
 		return out_degree(m_relationsInv, from, rel);
 	}
 
-	inline size_t out_degree(id_t from, node_relation rel) const {
+	size_t out_degree(id_t from, node_relation rel) const {
 		return out_degree(m_relations, from, rel);
 	}
 
@@ -194,8 +190,18 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void get_successors(id_t from, std::vector<id_t> & successors);
 
+
+	friend void intrusive_ptr_add_ref(node_map * m) {
+		m->m_refCnt++;
+	}
+	
+	friend void intrusive_ptr_release(node_map * m) {
+		m->m_refCnt--;
+		if (m->m_refCnt == 0) delete m;
+	}
 private:
 	map_t m_tokens;
+	size_t m_refCnt;
 	relmap_t m_relations;
 	relmap_t m_relationsInv;
 	datastructuremap_t m_datastructures;
@@ -203,14 +209,13 @@ private:
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 	size_t out_degree(const relmap_t & map, id_t from) const;
 
-	wptr self;
-
 	// union rank structure
 	ptr m_authority;
 	size_t m_rank;
 
-	inline node_map()
-		: m_rank(0)
+	node_map()
+		: m_refCnt(0)
+		, m_rank(0)
 	{
 	}
 
