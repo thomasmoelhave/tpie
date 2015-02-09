@@ -106,7 +106,7 @@ public:
 	/// \sa factory_base::ref
 	///////////////////////////////////////////////////////////////////////////
 	inline child_t & add_dependencies(node_set s) {
-		self().factory.add_dependency(s);
+		self().factory.add_dependencies(s);
 		return self();
 	}		
 	

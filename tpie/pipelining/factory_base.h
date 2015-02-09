@@ -27,8 +27,8 @@
 
 // XXX remove when init_segment is removed
 #include <tpie/backtrace.h>
-
 #include <tpie/pipelining/node.h>
+#include <tpie/pipelining/tokens.h>
 
 namespace tpie {
 
@@ -248,18 +248,35 @@ public:
 	}
 private:
 	void init_common(node & r) const {
+		bits::node_map::ptr m=r.get_node_map();
+		for (size_t i=0; i < m_add_to_set.size(); ++i) {
+			bits::node_map::ptr m2=m_add_to_set[i]->m_map;
+			if (m2 && m2 != m)
+				m2->union_set(m);
+		}
+		for (size_t i=0; i < m_add_dependencies.size(); ++i) {
+			bits::node_map::ptr m2=m_add_dependencies[i]->m_map;
+			if (m2 && m2 != m)
+				m2->union_set(m);
+		}
+		m = m->find_authority();
+		for (size_t i=0; i < m_add_to_set.size(); ++i)
+			m_add_to_set[i]->m_map = m;
+		for (size_t i=0; i < m_add_dependencies.size(); ++i)
+			m_add_dependencies[i]->m_map = m;
+
 		for (size_t i=0; i < m_add_to_set.size(); ++i) {
 			node_set s=m_add_to_set[i];
-			for (size_t j=0; j < s->m_depends.size(); ++j) 
-				s->m_depends[j]->add_dependency(r);
-			s->m_nodes.push_back(&r);
+			for (size_t j=0; j < s->m_depends.size(); ++j)
+				m->add_relation(s->m_depends[j], r.get_id(), bits::depends);
+			s->m_nodes.push_back(r.get_id());
 		}
 
 		for (size_t i=0; i < m_add_dependencies.size(); ++i) {
 			node_set s=m_add_dependencies[i];
 			for (size_t j=0; j < s->m_nodes.size(); ++j)
-				r.add_dependency(*s->m_nodes[j]);
-			s->m_depends.push_back(&r);
+				m->add_relation(r.get_id(), s->m_nodes[j], bits::depends);
+			s->m_depends.push_back(r.get_id());
 		}
 	
 		if (m_set) r.set_memory_fraction(memory());

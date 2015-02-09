@@ -21,6 +21,7 @@
 #define __TPIE_PIPELINING_NODE_SET_H__
 #include <vector>
 #include <boost/intrusive_ptr.hpp>
+#include <tpie/pipelining/tokens.h>
 
 namespace tpie {
 namespace pipelining {
@@ -31,8 +32,9 @@ namespace bits {
 
 struct node_set_content {
 	size_t m_refCnt;
-	std::vector<node *> m_nodes;
-	std::vector<node *> m_depends;
+	node_map::ptr m_map;
+	std::vector<node_map::id_t> m_nodes;
+	std::vector<node_map::id_t> m_depends;
 	
 	friend void intrusive_ptr_add_ref(node_set_content * s) {
 		s->m_refCnt++;
