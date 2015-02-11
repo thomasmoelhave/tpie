@@ -490,7 +490,10 @@ public:
 	/// \param steps  How many steps to step.
 	///////////////////////////////////////////////////////////////////////////
 	void step(stream_size_type steps = 1) {
-		assert(get_state() == STATE_IN_END || get_state() == STATE_AFTER_BEGIN || get_state() == STATE_IN_END);
+		assert(get_state() == STATE_IN_END ||
+			   get_state() == STATE_IN_BEGIN ||
+			   get_state() == STATE_AFTER_BEGIN ||
+			   get_state() == STATE_IN_END);
 		if (m_stepsLeft < steps)
 			step_overflow();
 		else
