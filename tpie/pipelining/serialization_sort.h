@@ -247,8 +247,8 @@ protected:
 
 private:
 	sorterptr m_sorter;
-	boost::shared_ptr<Output> dest;
 	bool m_propagate_called;
+	boost::shared_ptr<Output> dest;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
