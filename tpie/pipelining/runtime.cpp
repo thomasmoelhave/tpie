@@ -640,6 +640,7 @@ void runtime::get_item_sources(std::vector<node *> & itemSources) {
 				break;
 			case pulls:
 			case depends:
+			case no_forward_depends:
 				possibleSources.erase(from);
 				break;
 		}
@@ -668,6 +669,7 @@ void runtime::get_item_sinks(std::vector<node *> & itemSinks) {
 				break;
 			case pulls:
 			case depends:
+			case no_forward_depends:
 				possibleSinks.erase(to);
 				break;
 		}
@@ -694,7 +696,7 @@ void runtime::get_phase_map(std::map<node *, size_t> & phaseMap) {
 
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second != depends)
+		if (i->second.second != depends && i->second.second != no_forward_depends)
 			unionFind.union_set(numbering[i->first], numbering[i->second.first]);
 	}
 
@@ -720,7 +722,7 @@ void runtime::get_phase_graph(const std::map<node *, size_t> & phaseMap,
 
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second == depends)
+		if (i->second.second == depends || i->second.second == no_forward_depends)
 			phaseGraph.add_edge(phaseMap.find(m_nodeMap.get(i->second.first))->second,
 								phaseMap.find(m_nodeMap.get(i->first))->second);
 	}
@@ -801,7 +803,7 @@ void runtime::get_graph(std::vector<node *> & phase, graph<node *> & result,
 		for (relmapit j = edges.first; j != edges.second; ++j) {
 			node * u = m_nodeMap.get(j->first);
 			node * v = m_nodeMap.get(j->second.first);
-			if (j->second.second == depends) continue;
+			if (j->second.second == depends || j->second.second == no_forward_depends) continue;
 			if (itemFlow && j->second.second == pulls) std::swap(u, v);
 			result.add_edge(u, v);
 		}

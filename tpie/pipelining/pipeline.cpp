@@ -94,6 +94,9 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 			case depends:
 				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
 				break;
+			case no_forward_depends:
+				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dotted];\n";
+				break;
 		}
 	}
 	out << '}' << std::endl;

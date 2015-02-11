@@ -105,7 +105,7 @@ size_t node_map::out_degree(const relmap_t & map, id_t from) const {
 	return std::distance(is.first, is.second);
 }
 
-void node_map::get_successors(id_t from, std::vector<id_t> & successors) {
+void node_map::get_successors(id_t from, std::vector<id_t> & successors, bool forward_only) {
 	std::queue<id_t> q;
 	std::set<id_t> seen;
 	q.push(from);
@@ -124,6 +124,7 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors) {
 						break;
 					case pulls:
 					case depends:
+					case no_forward_depends:
 						break;
 				}
 			}
@@ -137,6 +138,10 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors) {
 					case pulls:
 					case depends:
 						q.push(i->second.first);
+						break;
+					case no_forward_depends:
+						if (!forward_only)
+							q.push(i->second.first);
 						break;
 				}
 			}

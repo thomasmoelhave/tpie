@@ -225,7 +225,7 @@ void node::forward_any(std::string key, boost::any value) {
 
 	typedef node_token::id_t id_t;
 	std::vector<id_t> successors;
-	nodeMap->get_successors(get_id(), successors);
+	nodeMap->get_successors(get_id(), successors, true);
 	for (size_t i = 0; i < successors.size(); ++i) {
 		nodeMap->get(successors[i])->add_forwarded_data(key, value, false);
 	}

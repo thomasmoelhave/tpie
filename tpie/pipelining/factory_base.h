@@ -268,14 +268,14 @@ private:
 		for (size_t i=0; i < m_add_to_set.size(); ++i) {
 			node_set s=m_add_to_set[i];
 			for (size_t j=0; j < s->m_depends.size(); ++j)
-				m->add_relation(s->m_depends[j], r.get_id(), bits::depends);
+				m->add_relation(s->m_depends[j], r.get_id(), bits::no_forward_depends);
 			s->m_nodes.push_back(r.get_id());
 		}
 
 		for (size_t i=0; i < m_add_dependencies.size(); ++i) {
 			node_set s=m_add_dependencies[i];
 			for (size_t j=0; j < s->m_nodes.size(); ++j)
-				m->add_relation(r.get_id(), s->m_nodes[j], bits::depends);
+				m->add_relation(r.get_id(), s->m_nodes[j], bits::no_forward_depends);
 			s->m_depends.push_back(r.get_id());
 		}
 	

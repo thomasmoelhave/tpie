@@ -91,7 +91,8 @@ namespace bits {
 enum node_relation {
 	pushes,
 	pulls,
-	depends
+	depends,
+	no_forward_depends
 };
 
 class node_map {
@@ -188,7 +189,7 @@ public:
 	/// \brief  Compute the transitive closure of the given node in the item
 	/// flow graph.
 	///////////////////////////////////////////////////////////////////////////
-	void get_successors(id_t from, std::vector<id_t> & successors);
+	void get_successors(id_t from, std::vector<id_t> & successors, bool forward_only=false);
 
 
 	friend void intrusive_ptr_add_ref(node_map * m) {
