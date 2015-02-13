@@ -212,6 +212,10 @@ private:
 			return log_debug();
 		case LOG_MEM_DEBUG:
 			return log_mem_debug();
+		case LOG_USER1:
+		case LOG_USER2:
+		case LOG_USER3:
+			break;
 		}
 		return log_info();
 	}

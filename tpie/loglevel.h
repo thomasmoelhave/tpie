@@ -54,7 +54,12 @@ enum log_level {
 	LOG_DEBUG,
 	
 	/** Logging level for warnings concerning memory allocation and deallocation. */
-	LOG_MEM_DEBUG
+	LOG_MEM_DEBUG,
+	
+	/** Logging levels to be further defined by user applications. */
+	LOG_USER1,
+	LOG_USER2,
+	LOG_USER3
 };
 
 } //namespace tpie
