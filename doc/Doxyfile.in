@@ -677,6 +677,7 @@ INPUT += @tpie_BINARY_DIR@/doc/file_stream.dox
 INPUT += @tpie_BINARY_DIR@/doc/sorting_internal.dox
 INPUT += @tpie_BINARY_DIR@/doc/sorting_external.dox
 INPUT += @tpie_BINARY_DIR@/doc/priority_queue.dox
+INPUT += @tpie_BINARY_DIR@/doc/btree.dox
 INPUT += @tpie_BINARY_DIR@/doc/memory.dox
 INPUT += @tpie_BINARY_DIR@/doc/progress.dox
 INPUT += @tpie_BINARY_DIR@/doc/fractiondb.dox

@@ -23,6 +23,9 @@ ADD_CUSTOM_TARGET(apidocs
 	COMMAND ${DOXYGEN} ${DOXYFILE}
 	VERBATIM)
 
+# file(READ code/btree.inl DOCCODE_PRIORITY_QUEUE)
+configure_file(btree.dox.in btree.dox @ONLY)
+
 #CMake should process the Doxyfile.in file replacing
 #variables placing the result in the build directory
 configure_file(Doxyfile.in ${DOXYFILE} @ONLY)
