@@ -23,7 +23,8 @@ ADD_CUSTOM_TARGET(apidocs
 	COMMAND ${DOXYGEN} ${DOXYFILE}
 	VERBATIM)
 
-# file(READ code/btree.inl DOCCODE_PRIORITY_QUEUE)
+file(READ code/btree_key.inl DOCCODE_BTREE_KEY)
+file(READ code/btree_augment.inl DOCCODE_BTREE_AUGMENT)
 configure_file(btree.dox.in btree.dox @ONLY)
 
 #CMake should process the Doxyfile.in file replacing
