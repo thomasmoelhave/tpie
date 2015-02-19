@@ -100,11 +100,19 @@ struct output_factory {
 
 } // namespace serialization_bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that reads items from a \ref serialization_reader.
+/// \param rd The reader from which which items should be read
+///////////////////////////////////////////////////////////////////////////////
 pipe_begin<serialization_bits::input_factory>
 inline serialization_input(serialization_reader & rd) {
 	return serialization_bits::input_factory(&rd);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that writes item to a \ref serialization_writer.
+/// \param wr The writer to which items should be written
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 pipe_end<typename serialization_bits::output_factory<T>::type>
 serialization_output(serialization_writer & wr) {
@@ -209,6 +217,10 @@ typedef bits::pair_factory<rev_input_factory, rev_output_factory> reverse_factor
 
 } // namespace serialization_bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// A pipelining node that reverses serializable items and creates a phase
+/// boundary
+///////////////////////////////////////////////////////////////////////////////
 pipe_middle<serialization_bits::reverse_factory>
 inline serialization_reverser() {
 	serialization_bits::rev_input_factory i;
