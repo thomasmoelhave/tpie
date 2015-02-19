@@ -202,30 +202,57 @@ public:
 
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining nodes that pushes the contents of the given file stream
+/// to the next node in the pipeline.
+/// \param fs The file stream from which it pushes items
+///////////////////////////////////////////////////////////////////////////////
 template<typename T>
 inline pipe_begin<factory_1<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory_1<bits::input_t, file_stream<T> &>(fs);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining pull-node that reads items from the given file_stream
+/// \param fs The file stream from which it reads items.
+///////////////////////////////////////////////////////////////////////////////
 template<typename T>
 inline pullpipe_begin<termfactory_1<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
 	return termfactory_1<bits::pull_input_t<T>, file_stream<T> &>(fs);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that writes the pushed items to a file stream.
+/// \param fs The file stream that items should be written to
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
 	return termfactory_1<bits::output_t<T>, file_stream<T> &>(fs);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pull-pipe node that writes the pulled items to a file stream.
+/// \param fs The file stream that items should be written to
+///////////////////////////////////////////////////////////////////////////////
 template<typename T>
 inline pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
 	return factory_1<bits::pull_output_t, file_stream<T> &>(fs);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that writes the pushed to a file stream and then
+/// pushes the items to the next node.
+/// \param fs The file stream that items should be written to
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline pipe_middle<factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &> >
 tee(T & fs) {return factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &>(fs);}
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pull-pipe node that when pulled from will pull from its source,
+/// write its item to disk and then return the item.
+/// \param fs The file stream that items should be written to
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline pullpipe_middle<factory_1<bits::pull_tee_t<typename push_type<T>::type>::template type, T &> >
 pull_tee(T & fs) {return factory_1<bits::pull_tee_t<typename push_type<T>::type>::template type, T &>(fs);}
