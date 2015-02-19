@@ -221,6 +221,10 @@ public:
 	output_t output;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief The buffer node inserts a phase boundary into the pipeline by
+/// writing items to disk. It does not change the contents of the stream.
+///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<factory_0<buffer_t> > buffer;
 
 } // namespace pipelining
