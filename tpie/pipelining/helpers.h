@@ -475,17 +475,30 @@ public:
 
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that writes items to standard out and then pushes
+/// them to the next node.
+///////////////////////////////////////////////////////////////////////////////
 inline pipe_middle<factory_1<bits::ostream_logger_t, std::ostream &> >
 cout_logger() {
 	return factory_1<bits::ostream_logger_t, std::ostream &>(std::cout);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief The identity node does nothing but push the items to the next node
+///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<factory_0<bits::identity_t> > identity;
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pull-pipe node that does nothing to its items
+///////////////////////////////////////////////////////////////////////////////
 inline pullpipe_middle<factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> > > pull_identity() {
 	return factory_1<bits::push_to_pull<factory_0<bits::identity_t> >::puller_t, factory_0<bits::identity_t> >(factory_0<bits::identity_t>());
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief The identity node does nothing but push the items to the next node
+///////////////////////////////////////////////////////////////////////////////
 typedef pullpipe_middle<factory_0<bits::pull_peek_t> > pull_peek;
 
 inline
@@ -516,7 +529,7 @@ fork(const pipe_end<fact_t> & to) {
 /// \brief Create unzip pipe node.
 /// 
 /// Whenever a std::pair<A,B>(a,b) is pushed to the unzip node,
-/// a is pushed to its destination, and then b is bushed to "to"
+/// a is pushed to its destination, and then b is pushed to "to"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 inline pipe_middle<tempfactory_1<bits::unzip_t<fact_t>, const fact_t &> >
@@ -602,26 +615,56 @@ pipe_end<termfactory_2<Fact, T1, T2> > make_pipe_end_2(T1 e1, T2 e2) {
 	return pipe_end<termfactory_2<Fact, T1, T2> >(termfactory_2<Fact, T1, T2>(e1, e2));
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pull-pipe that returns items in the range given by two iterators
+/// \param begin The iterator pointing to the first item
+/// \param end The iterator pointing to the end of the range
+///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
 pullpipe_begin<termfactory_2<bits::pull_input_iterator_t<IT>, IT, IT> > pull_input_iterator(IT begin, IT end) {
 	return termfactory_2<bits::pull_input_iterator_t<IT>, IT, IT>(begin, end);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that pushes the items in the range given by
+/// two iterators
+/// \param begin The iterator pointing to the first item
+/// \param end The iterator pointing to the end of the range
+///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
 pipe_begin<tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT> > push_input_iterator(IT begin, IT end) {
 	return tempfactory_2<bits::push_input_iterator_t<IT>, IT, IT>(begin, end);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A node that writes its given items to the destination pointed to by
+/// the given iterator
+/// \param to An iterator pointing to the destination that items should be
+/// written to
+///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
 pipe_end<termfactory_1<bits::push_output_iterator_t<IT>, IT> > push_output_iterator(IT to) {
 	return termfactory_1<bits::push_output_iterator_t<IT>, IT>(to);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A node that writes its given items to the destination pointed to by
+/// the given iterator
+/// \param to An iterator pointing to the destination that items should be
+/// written to
+/// \tparam Item The type of the pushed items
+///////////////////////////////////////////////////////////////////////////////
 template <typename Item, typename IT>
 pipe_end<termfactory_1<bits::push_output_iterator_t<IT, Item>, IT> > typed_push_output_iterator(IT to) {
 	return termfactory_1<bits::push_output_iterator_t<IT, Item>, IT>(to);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pull-pipe node that writes its given items to the destination
+/// pointed to by the given iterator
+/// \param to An iterator pointing to the destination that items should be
+/// written to
+///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
 pullpipe_end<tempfactory_1<bits::pull_output_iterator_t<IT>, IT> > pull_output_iterator(IT to) {
 	return tempfactory_1<bits::pull_output_iterator_t<IT>, IT>(to);
