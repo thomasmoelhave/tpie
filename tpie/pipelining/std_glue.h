@@ -117,21 +117,45 @@ public:
 
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining nodes that pushes the contents of the given vector to the
+/// next node in the pipeline.
+/// \param input The vector from which it pushes items
+///////////////////////////////////////////////////////////////////////////////
 template<typename T>
 inline pipe_begin<factory_1<bits::input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
 	return factory_1<bits::input_vector_t, const std::vector<T> &>(input);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining node that pushes items to the given vector.
+/// \param output The vector to push items to
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline pipe_end<termfactory_1<bits::output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
 	return termfactory_1<bits::output_vector_t<T>, std::vector<T> &>(output);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining nodes that applies to given functor to items in
+/// the stream. The functor should have a typedef named argument_type
+/// that is the type of the argument given to the call operator.
+/// \param f The functor that should be applied to items
+///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 inline pipe_middle<tempfactory_1<bits::lambda_t<F>, F> > lambda(const F & f) {
 	return tempfactory_1<bits::lambda_t<F>, F>(f);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining nodes that applies to given functor to items in
+/// the stream. The functor should have a typedef named argument_type
+/// that is the type of the argument given to the call operator. It is required
+/// that the functor returns a pair. The first item should be a boolean
+/// indicating whether the item should be pushed to the next node. The second
+/// should be the value itself.
+/// \param f The functor that should be applied to items
+///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 inline pipe_middle<tempfactory_1<bits::exclude_lambda_t<F>, F> > exclude_lambda(const F & f) {
 	return tempfactory_1<bits::exclude_lambda_t<F>, F>(f);
