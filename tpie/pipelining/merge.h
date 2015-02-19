@@ -64,6 +64,10 @@ public:
 
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// A node that merges a pull pipeline into a push pipeline. It pulls an items
+/// for each item pushed to it.
+///////////////////////////////////////////////////////////////////////////////
 template <typename pull_t>
 inline pipe_middle<factory_1<bits::merge_t<pull_t>::template type, pull_t> >
 merge(const pullpipe_begin<pull_t> & with) {
