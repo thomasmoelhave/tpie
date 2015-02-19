@@ -429,6 +429,10 @@ sort() {
 	return pipe_middle<fact>(fact(default_store())).name("Sort");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that sorts large elements indirectly by using 
+/// a store and std::less.
+///////////////////////////////////////////////////////////////////////////////
 template <typename store_t>
 inline pipe_middle<bits::default_pred_sort_factory<store_t> >
 store_sort(store_t store=store_t()) {
@@ -446,7 +450,10 @@ sort(const pred_t & p) {
 	return pipe_middle<fact>(fact(p, default_store())).name("Sort");
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that sorts large elements indirectly by using 
+/// a storeand a given predicate.
+///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename store_t>
 inline pipe_middle<bits::sort_factory<pred_t, store_t> >
 sort(const pred_t & p, store_t store) {
