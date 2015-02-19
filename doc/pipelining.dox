@@ -122,7 +122,7 @@ which is otherwise inferred in the ordinary case.
 
 If the node needs to allocate a buffer in \c begin() which is deallocated in \c end(),
 it can specify the size of this buffer in bytes using a call to \c set_minimum_memory()
-in the constructor or in \c prepare().
+in the constructor, in \c prepare() or in \c propagate().
 If the node can benefit from a larger buffer, it should set a positive memory priority
 for itself using a call to \c set_memory_fraction().
 If there is a limit to the amount of memory it can use,
@@ -670,7 +670,7 @@ left, and a checkmark in the row for each method an implementation may call.
 <tr><td>prepare             </td><td>        </td><td>              </td><td>X                 </td><td>X    </td><td>    </td></tr>
 <tr><td>set_available_memory</td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
 <tr><td>evacuate            </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
-<tr><td>propagate           </td><td>        </td><td>              </td><td>                  </td><td>X    </td><td>    </td></tr>
+<tr><td>propagate           </td><td>        </td><td>              </td><td>X                 </td><td>X    </td><td>    </td></tr>
 <tr><td>begin               </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
 <tr><td>push/can_pull/pull  </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
 <tr><td>end                 </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
