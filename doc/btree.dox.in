@@ -27,7 +27,7 @@ tree.insert(42);
 \endcode
 
 \section sec_traversal Traversal
-The btree can be traversed by using the interface provided by the node class defined in \ref btree/node.h. The root node of the tree can be retrieved by calling \ref root().
+The btree can be traversed by using the interface provided by the node class defined in \ref btree/node.h. The root node of the tree can be retrieved by calling \c root().
 
 \section sec_augmentation Augmentation of nodes
 The nodes in the btree can be augmented by defining an augment and an augmenter and passing these as template parameters to the tree. The following example computes the averages of nodes in the tree using the augment interface.
