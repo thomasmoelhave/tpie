@@ -51,6 +51,12 @@ private:
 
 } // namespace bits
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that transforms the items by applying a linear 
+/// function to them.
+/// \param factor the factor that items should be multiplied by
+/// \param term the term is added after the item is multipled by the factor
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline pipe_middle<factory_2<bits::linear_t, T, T> >
 linear(T factor, T term) {
