@@ -497,7 +497,7 @@ inline pullpipe_middle<factory_1<bits::push_to_pull<factory_0<bits::identity_t> 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief The identity node does nothing but push the items to the next node
+/// \brief A node that allows peeking at the next item in the pipeline
 ///////////////////////////////////////////////////////////////////////////////
 typedef pullpipe_middle<factory_0<bits::pull_peek_t> > pull_peek;
 
@@ -673,8 +673,8 @@ pullpipe_end<tempfactory_1<bits::pull_output_iterator_t<IT>, IT> > pull_output_i
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create preparer callback identity pipe node
 ///
-/// When prepare is called on the node functor is called
-/// Whenever an element is push, it is immidiatly pushed to the destination
+/// When prepare is called on the node the functor is called
+/// Whenever an element is pushed, it is immidiately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 pipe_middle<tempfactory_1<bits::preparer_t<F>, F> > preparer(const F & functor) {
@@ -684,8 +684,8 @@ pipe_middle<tempfactory_1<bits::preparer_t<F>, F> > preparer(const F & functor) 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create propagate callback identity pipe node
 ///
-/// When propagate is called on the node functor is called
-/// Whenever an element is push, it is immidiatly pushed to the destination
+/// When propagate is called on the node the functor is called
+/// Whenever an element is pushed, it is immidiately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 pipe_middle<tempfactory_1<bits::propagater_t<F>, F> > propagater(const F & functor) {
@@ -696,7 +696,7 @@ pipe_middle<tempfactory_1<bits::propagater_t<F>, F> > propagater(const F & funct
 /// \brief Create item type defining identity pipe node
 ///
 /// Defines the item_type to be T.
-/// Whenever an element is push, it is immidiatly pushed to the destination
+/// Whenever an element is push, it is immidiately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 pipe_middle<tempfactory_0<bits::item_type_t<T> > > item_type() {
