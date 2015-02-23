@@ -689,7 +689,7 @@ the expected number of items being pushed.
 
 \section sec_library Pipelining library
 
-The pipelining framework comes with a library of node implementations.
+The pipelining framework comes with a library of node implementations. A full list of nodes can be seen at \ref pipelining_nodes. Here's an introduction to some of the nodes.
 
 \subsection ssec_buffer Buffer
 
