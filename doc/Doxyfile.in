@@ -683,6 +683,7 @@ INPUT += @tpie_BINARY_DIR@/doc/progress.dox
 INPUT += @tpie_BINARY_DIR@/doc/fractiondb.dox
 INPUT += @tpie_BINARY_DIR@/doc/queue.dox
 INPUT += @tpie_SOURCE_DIR@/doc/pipelining.dox
+INPUT += @tpie_SOURCE_DIR@/doc/pipelining_nodes.dox
 INPUT += @tpie_BINARY_DIR@/doc/serialization.dox
 INPUT += @tpie_SOURCE_DIR@/doc/compressed.dox
 
