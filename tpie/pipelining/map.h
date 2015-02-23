@@ -23,11 +23,40 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
+#include <tpie/pipelining/node_name.h>
+#ifdef TPIE_CPP_DECLTYPE
+#include <type_traits>
+#else
 #include <boost/functional.hpp>
+#endif
 
 namespace tpie {
 namespace pipelining {
 namespace bits {
+
+#ifdef TPIE_CPP_DECLTYPE
+
+template <typename T>
+struct unary_traits: public unary_traits<decltype(&T::operator()) > {};
+
+template <typename C, typename R, typename A>
+struct unary_traits<R(C::*)(A)> {
+	typedef A argument_type;
+	typedef R return_type;
+};
+
+template <typename C, typename R, typename A>
+struct unary_traits<R(C::*)(A) const > {
+	typedef A argument_type;
+	typedef R return_type;
+};
+
+template <typename R, typename A>
+struct unary_traits<R(*)(A)> {
+	typedef A argument_type;
+	typedef R return_type;
+};
+#endif //TPIE_CPP_DECLTYPE
 
 template <typename F>
 class map_t {
@@ -38,8 +67,11 @@ public:
 		F functor;
 		dest_t dest;
 	public:
+#ifdef TPIE_CPP_DECLTYPE
+		typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
+#else
 		typedef typename boost::template unary_traits<F>::argument_type item_type;
-
+#endif	
 		type(const dest_t & dest, const F & functor):
 			functor(functor), dest(dest) {}
 		
