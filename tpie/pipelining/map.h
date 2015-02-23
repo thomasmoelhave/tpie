@@ -73,7 +73,9 @@ public:
 		typedef typename boost::template unary_traits<F>::argument_type item_type;
 #endif	
 		type(const dest_t & dest, const F & functor):
-			functor(functor), dest(dest) {}
+			functor(functor), dest(dest) {
+			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+		}
 		
 		void push(const item_type & item) {
 			dest.push(functor(item));
