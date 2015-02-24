@@ -569,6 +569,14 @@ public:
 		return m_datastructures;
 	}
 
+	memory_size_type get_flush_priority() {
+		return m_flushPriority;
+	}
+
+	void set_flush_priority(memory_size_type flushPriority) {
+		m_flushPriority = flushPriority;
+	}
+
 	friend class bits::memory_runtime;
 
 	friend class factory_base;
@@ -586,6 +594,7 @@ private:
 	valuemap m_values;
 
 	datastructuremap_t m_datastructures;
+	memory_size_type m_flushPriority;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
