@@ -582,6 +582,7 @@ public:
 		return boost::any_cast<T>(i->second.second);
 	}
 
+private:
 	struct datastructure_info_t {
 		datastructure_info_t() : min(0), max(std::numeric_limits<memory_size_type>::max()) {}
 		memory_size_type min;
@@ -595,6 +596,7 @@ public:
 		return m_datastructures;
 	}
 
+public:
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Returns the flush priority of this node
 	///////////////////////////////////////////////////////////////////////////////
@@ -611,6 +613,8 @@ public:
 	}
 
 	friend class bits::memory_runtime;
+
+	friend class bits::datastructure_runtime;
 
 	friend class factory_base;
 
