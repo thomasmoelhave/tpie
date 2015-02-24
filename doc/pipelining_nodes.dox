@@ -4,8 +4,11 @@
 \section sec_passive Passive nodes 
 \secreflist
 \ref tpie::pipelining::internal_passive_buffer
+\ref tpie::pipelining::internal_passive_reverser
 \ref tpie::pipelining::passive_buffer
+\ref tpie::pipelining::passive_reverser
 \ref tpie::pipelining::passive_sorter
+\ref tpie::pipelining::serialization_passive_sorter
 \endsecreflist
 
 \section sec_begin Begin nodes
