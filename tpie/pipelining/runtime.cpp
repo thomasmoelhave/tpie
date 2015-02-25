@@ -75,6 +75,20 @@ public:
 		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
 	}
 
+	void rootfirst_topological_order(std::vector<T> & result) const { // a topological order where the root of trees are always visited first in the DFS
+		std::vector<T> topologicalOrder;
+		topological_order(topologicalOrder);
+
+		const size_t N = m_nodes.size();
+		depth_first_search dfs(m_edgeLists);
+		std::vector<std::pair<size_t, T> > nodes(N);
+		for (typename std::vector<T>::const_iterator i = topologicalOrder.begin(); i != topologicalOrder.end(); ++i)
+			nodes.push_back(std::make_pair(dfs.visit(*i), *i));
+		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
+		result.resize(N);
+		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
+	}
+
 private:
 	std::set<T> m_nodes;
 	std::map<T, std::vector<T> > m_edgeLists;
@@ -828,7 +842,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 						 std::vector<std::vector<node *> > & phases)
 {
 	std::vector<size_t> topologicalOrder;
-	phaseGraph.topological_order(topologicalOrder);
+	phaseGraph.rootfirst_topological_order(topologicalOrder);
 	// topologicalOrder[0] is the first phase to run,
 	// topologicalOrder[1] the next, and so on.
 
