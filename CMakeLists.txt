@@ -98,6 +98,7 @@ try_compile(TPIE_CPP_OVERRIDE_KEYWORD ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/ov
 try_compile(TPIE_CPP_DECLTYPE ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/decltype.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 try_compile(TPIE_CPP_TEMPLATE_ALIAS ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/template_alias.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 try_compile(TPIE_CPP_NONE_POD_UNION ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/none_pod_union.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
+try_compile(TPIE_CPP_TYPE_TRAITS ${TPIE_B}/cpp0xtest ${TPIE_S}/cpp0xtest/type_traits.cpp COMPILE_DEFINITIONS ${TC_COMPILE_DEFS})
 
 if(NOT WIN32) 
 	if (NOT " ${CMAKE_CXX_FLAGS} " MATCHES " -std=(c|gnu)[+][+](0x|1.) ")

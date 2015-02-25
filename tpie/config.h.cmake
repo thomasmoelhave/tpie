@@ -37,6 +37,7 @@
 #cmakedefine TPIE_CPP_DECLTYPE
 #cmakedefine TPIE_CPP_TEMPLATE_ALIAS
 #cmakedefine TPIE_CPP_NONE_POD_UNION
+#cmakedefine TPIE_CPP_TYPE_TRAITS
 
 #ifndef TPIE_CPP_OVERRIDE_KEYWORD
 	#define override
