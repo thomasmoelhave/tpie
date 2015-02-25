@@ -40,6 +40,7 @@
 #cmakedefine TPIE_CPP_TYPE_TRAITS
 
 #ifndef TPIE_CPP_OVERRIDE_KEYWORD
+	#define final
 	#define override
 #endif
 
