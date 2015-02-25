@@ -30,7 +30,11 @@
 #include <tpie/atomic.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/unordered_map.hpp>
+#ifndef TPIE_CPP_TYPE_TRAITS
 #include <boost/type_traits/is_polymorphic.hpp>
+#else
+#include <type_traits>
+#endif
 #include <utility>
 #include <fstream>
 
@@ -222,7 +226,13 @@ inline void assert_tpie_ptr(void * p) {
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, bool x=boost::is_polymorphic<T>::value >
+template <typename T, 
+#ifndef TPIE_CPP_TYPE_TRAITS
+	bool x=boost::is_polymorphic<T>::value
+#else
+	bool x=std::is_polymorphic<T>::value
+#endif
+>
 struct __object_addr {
 	inline void * operator()(T * o) {return static_cast<void *>(o);}
 };
@@ -249,7 +259,11 @@ inline D ptr_cast(T * t) { return reinterpret_cast<D>(__object_addr<T>()(t)); }
 
 template <typename T>
 inline T * __allocate() {
+#ifndef TPIE_CPP_TYPE_TRAITS
 	if(!boost::is_polymorphic<T>::value) return reinterpret_cast<T *>(new uint8_t[sizeof(T)]);	
+#else
+	if(!std::is_polymorphic<T>::value) return reinterpret_cast<T *>(new uint8_t[sizeof(T)]);	
+#endif
 	uint8_t * x = new uint8_t[sizeof(T)+sizeof(size_t)];
 	*reinterpret_cast<size_t*>(x) = sizeof(T);
 	return reinterpret_cast<T*>(x + sizeof(size_t));
@@ -257,7 +271,11 @@ inline T * __allocate() {
 
 template <typename T>
 inline size_t tpie_size(T * p) {
+#ifndef TPIE_CPP_TYPE_TRAITS
 	if(!boost::is_polymorphic<T>::value) return sizeof(T);
+#else
+	if(!std::is_polymorphic<T>::value) return sizeof(T);
+#endif
 	uint8_t * x = ptr_cast<uint8_t *>(p);
 	return * reinterpret_cast<size_t *>(x - sizeof(size_t));
 }
@@ -380,7 +398,11 @@ inline void tpie_delete(T * p) throw() {
 	uint8_t * pp = ptr_cast<uint8_t *>(p);
 	__unregister_pointer(pp, tpie_size(p), typeid(*p));
 	p->~T();
+#ifndef TPIE_CPP_TYPE_TRAITS
 	if(!boost::is_polymorphic<T>::value) 
+#else
+	if(!std::is_polymorphic<T>::value) 
+#endif
 		delete[] pp;
 	else
 		delete[] (pp - sizeof(size_t));
