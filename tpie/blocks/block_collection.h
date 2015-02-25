@@ -52,7 +52,6 @@ public:
 	#ifdef TPIE_CPP_RVALUE_REFERENCE
 
 	block_collection(const block_collection &) = delete;
-	block_collection(block_collection &&) = default;
 
 	#endif
 

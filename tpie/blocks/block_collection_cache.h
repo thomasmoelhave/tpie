@@ -80,7 +80,6 @@ public:
 	#ifdef TPIE_CPP_RVALUE_REFERENCE
 
 	block_collection_cache(const block_collection_cache &) = delete;
-	block_collection_cache(block_collection_cache &&) = default;
 
 	#endif
 
