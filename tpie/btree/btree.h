@@ -511,18 +511,6 @@ public:
 		return m_store.size() == 0;
 	}
 
-	#ifdef TPIE_CPP_RVALUE_REFERENCE
-
-	btree(const btree &) = delete;
-	btree(btree &&) = default;
-
-	btree(S && store=S(), C comp=C(), A augmenter=A()):
-		m_store(std::move(store)),
-		m_comp(comp),
-		m_augmenter(augmenter) {}
-
-	#else
-
 	/**
 	 * Construct a btree with the given storage
 	 */
@@ -531,7 +519,6 @@ public:
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
 
-	#endif
 private:
 	S m_store;
 	C m_comp;

@@ -76,12 +76,6 @@ public:
 		m_root(NULL), key_extract(key_extract),
 		m_height(0), m_size(0) {}
 
-	#ifdef TPIE_CPP_RVALUE_REFERENCE
-
-	btree_internal_store(const btree_internal_store &) = delete;
-	btree_internal_store(btree_internal_store &&) = default;
-
-	#endif
 private:
 	struct internal_content {
 		key_type min_key;

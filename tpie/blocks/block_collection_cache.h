@@ -77,11 +77,6 @@ public:
 
 	~block_collection_cache();
 
-	#ifdef TPIE_CPP_RVALUE_REFERENCE
-
-	block_collection_cache(const block_collection_cache &) = delete;
-
-	#endif
 
 	/**
 	 * \brief Allocates a new block
