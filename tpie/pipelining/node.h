@@ -528,12 +528,33 @@ public:
 	inline void push(const item_type & item);
 #endif
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Registers a datastructure
+	/// \param name the name of the datastructure
+	/// \param priority the priority that should be given to this datastructure
+	/// when assigning memory
+	///////////////////////////////////////////////////////////////////////////////
 	void register_datastructure_usage(const std::string & name, double priority=1);
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Assign memory to a registered datastructure
+	/// \param name the name of the datastructure
+	/// \param min the minimum amount of memory required by the datastructure
+	/// \param max the maximum amount of memory used by the datastructure
+	///////////////////////////////////////////////////////////////////////////////
 	void set_datastructure_memory_limits(const std::string & name, memory_size_type min, memory_size_type max=std::numeric_limits<memory_size_type>::max());
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns the memory assigned to a datastructure
+	/// \param name the name of the datastructure
+	///////////////////////////////////////////////////////////////////////////////
 	memory_size_type get_datastructure_memory(const std::string & name);
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a previously declared datastructure
+	/// \param name the name of the datastructure
+	/// \param datastructure the datastructure itself
+	///////////////////////////////////////////////////////////////////////////////
 	template<typename T>
 	void set_datastructure(const std::string & name, T datastructure) {
 		bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
@@ -545,6 +566,11 @@ public:
 		i->second.second = datastructure;
 	}
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a previously declared datastructure
+	/// \param name the name of the datastructure
+	/// \tparam the type of the datastructure
+	///////////////////////////////////////////////////////////////////////////////
 	template<typename T>
 	T get_datastructure(const std::string & name) {
 		bits::node_map::datastructuremap_t & structures = get_node_map()->get_datastructures();
@@ -556,6 +582,7 @@ public:
 		return boost::any_cast<T>(i->second.second);
 	}
 
+private:
 	struct datastructure_info_t {
 		datastructure_info_t() : min(0), max(std::numeric_limits<memory_size_type>::max()) {}
 		memory_size_type min;
@@ -569,7 +596,25 @@ public:
 		return m_datastructures;
 	}
 
+public:
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns the flush priority of this node
+	///////////////////////////////////////////////////////////////////////////////
+	memory_size_type get_flush_priority() {
+		return m_flushPriority;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Sets the flush priority of this node
+	/// \param flushPriority the flush priority
+	///////////////////////////////////////////////////////////////////////////////
+	void set_flush_priority(memory_size_type flushPriority) {
+		m_flushPriority = flushPriority;
+	}
+
 	friend class bits::memory_runtime;
+
+	friend class bits::datastructure_runtime;
 
 	friend class factory_base;
 
@@ -586,6 +631,7 @@ private:
 	valuemap m_values;
 
 	datastructuremap_t m_datastructures;
+	memory_size_type m_flushPriority;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;

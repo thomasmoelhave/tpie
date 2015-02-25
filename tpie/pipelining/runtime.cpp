@@ -50,6 +50,10 @@ public:
 		m_edgeLists[u].push_back(v);
 	}
 
+	const std::vector<T> & get_edge_list(const T & i) const {
+		return m_edgeLists.find(i)->second;
+	}
+
 	size_t size() const {
 		return m_nodes.size();
 	}
@@ -66,6 +70,20 @@ public:
 		for (typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.begin();
 			 i != m_edgeLists.end(); ++i)
 			nodes.push_back(std::make_pair(dfs.visit(i->first), i->first));
+		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
+		result.resize(N);
+		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
+	}
+
+	void rootfirst_topological_order(std::vector<T> & result) const { // a topological order where the root of trees are always visited first in the DFS
+		std::vector<T> topologicalOrder;
+		topological_order(topologicalOrder);
+
+		const size_t N = m_nodes.size();
+		depth_first_search dfs(m_edgeLists);
+		std::vector<std::pair<size_t, T> > nodes(N);
+		for (typename std::vector<T>::const_iterator i = topologicalOrder.begin(); i != topologicalOrder.end(); ++i)
+			nodes.push_back(std::make_pair(dfs.visit(*i), *i));
 		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
 		result.resize(N);
 		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
@@ -540,6 +558,68 @@ size_t runtime::get_node_count() {
 	return m_nodeMap.size();
 }
 
+size_t calculate_recursive_flush_priority(size_t phase, std::vector<std::pair<size_t, bool> > & mem, const std::vector<size_t> & flushPriorities, const graph<size_t> & phaseGraph) {
+	if(mem[phase].second)
+		return mem[phase].first;
+
+	size_t priority = flushPriorities[phase];
+
+	const std::vector<size_t> & edges = phaseGraph.get_edge_list(phase);
+	for(std::vector<size_t>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+		priority = std::max(priority, calculate_recursive_flush_priority(*i, mem, flushPriorities, phaseGraph));
+	}
+
+	mem[phase] = std::make_pair(priority, true);
+	return priority;
+}
+
+class flush_priority_greater_comp {
+public:
+	flush_priority_greater_comp(const std::vector<std::pair<size_t, bool> > & priorities)
+		: m_priorities(priorities) 
+	{}
+
+	bool operator()(size_t a, size_t b) const {
+		return m_priorities[a].first > m_priorities[b].first;
+	}
+
+private:
+	const std::vector<std::pair<size_t, bool> > & m_priorities;
+};
+
+void runtime::get_ordered_graph(const std::vector<size_t> & flushPriorities, const graph<size_t> & phaseGraph, graph<size_t> & orderedPhaseGraph) {
+	std::vector<std::pair<size_t, bool> > recursiveFlushPriorites;
+	recursiveFlushPriorites.resize(phaseGraph.size());
+	std::fill(recursiveFlushPriorites.begin(), recursiveFlushPriorites.end(), std::make_pair(0, false));
+
+	for(size_t i = 0; i != recursiveFlushPriorites.size(); ++i) {
+		calculate_recursive_flush_priority(i, recursiveFlushPriorites, flushPriorities, phaseGraph);
+	}
+
+	for(size_t i = 0; i < phaseGraph.size(); ++i)
+		orderedPhaseGraph.add_node(i);
+
+	// Build ordered phase graph
+	for(size_t i = 0; i < phaseGraph.size(); ++i) {
+		std::vector<size_t> edges = phaseGraph.get_edge_list(i);
+		std::sort(edges.begin(), edges.end(), flush_priority_greater_comp(recursiveFlushPriorites));
+		for(std::vector<size_t>::iterator j = edges.begin(); j != edges.end(); ++j) {
+			orderedPhaseGraph.add_edge(i, *j);
+		}
+	}
+}
+
+void runtime::get_flush_priorities(const std::map<node *, size_t> & phaseMap, std::vector<size_t> & flushPriorities) {
+	for (node_map::mapit i = m_nodeMap.begin(); i != m_nodeMap.end(); ++i) {
+		node * a = i->second;
+		size_t phase = phaseMap.find(a)->second;
+
+		while(flushPriorities.size() <= phase)
+			flushPriorities.push_back(0);
+		flushPriorities[phase] = std::max(flushPriorities[phase], a->get_flush_priority());
+	}
+}
+
 void runtime::go(stream_size_type items,
 				 progress_indicator_base & progress,
 				 memory_size_type memory)
@@ -554,13 +634,23 @@ void runtime::go(stream_size_type items,
 		throw tpie::exception("get_phase_map did not return "
 							  "correct number of nodes");
 
+	// Calculate phase flush priorities
+	std::vector<size_t> flushPriorities;
+	get_flush_priorities(phaseMap, flushPriorities);
+
 	// Build phase graph
 	graph<size_t> phaseGraph;
 	get_phase_graph(phaseMap, phaseGraph);
 
+	// Calculate recursive flush priorities
+	graph<size_t> orderedPhaseGraph;
+	get_ordered_graph(flushPriorities, phaseGraph, orderedPhaseGraph);
+
+	// Build phases vector
+
 	std::vector<std::vector<node *> > phases;
 	std::vector<bool> evacuateWhenDone;
-	get_phases(phaseMap, phaseGraph, evacuateWhenDone, phases);
+	get_phases(phaseMap, orderedPhaseGraph, evacuateWhenDone, phases);
 
 	// Build item flow graph and actor graph for each phase
 	std::vector<graph<node *> > itemFlow;
@@ -752,7 +842,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 						 std::vector<std::vector<node *> > & phases)
 {
 	std::vector<size_t> topologicalOrder;
-	phaseGraph.topological_order(topologicalOrder);
+	phaseGraph.rootfirst_topological_order(topologicalOrder);
 	// topologicalOrder[0] is the first phase to run,
 	// topologicalOrder[1] the next, and so on.
 

@@ -216,6 +216,9 @@ public:
 									const memory_runtime & mrt,
 									const datastructure_runtime & drt,
 									bool datastructures_locked);
+private:
+	void get_flush_priorities(const std::map<node *, size_t> & phaseMap, std::vector<size_t> & flushPriorities);
+	void get_ordered_graph(const std::vector<size_t> & flushPriorities, const graph<size_t> & phaseGraph, graph<size_t> & orderedPhaseGraph);
 
 };
 
