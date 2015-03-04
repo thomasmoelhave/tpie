@@ -42,7 +42,7 @@ namespace tpie {
 /// \brief  Base class containing the implementation details that are
 /// independent of the item type.
 ///////////////////////////////////////////////////////////////////////////////
-class compressed_stream_base {
+class TPIE_PUBLIC compressed_stream_base {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
 

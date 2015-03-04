@@ -62,8 +62,8 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	TPIE_PUBLIC void increment_bytes_written(stream_size_type delta);
 
-	stream_size_type get_user(size_t i);
-	void increment_user(size_t i, stream_size_type delta);
+	TPIE_PUBLIC stream_size_type get_user(size_t i);
+	TPIE_PUBLIC void increment_user(size_t i, stream_size_type delta);
 
 class ptime {
 public:

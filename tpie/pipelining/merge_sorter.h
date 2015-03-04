@@ -57,7 +57,7 @@ namespace bits {
 /// runNumber = 0. get_position may be called with mergeLevel = d-2 and any
 /// runNumber in any order.
 ///////////////////////////////////////////////////////////////////////////////
-class run_positions {
+class TPIE_PUBLIC run_positions {
 public:
 	run_positions();
 	~run_positions();

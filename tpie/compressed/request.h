@@ -47,7 +47,7 @@ namespace tpie {
 /// request, and whether the stream object (main thread) or the compressor
 /// thread should call it.
 ///////////////////////////////////////////////////////////////////////////////
-class compressor_response {
+class TPIE_PUBLIC  compressor_response {
 public:
 	compressor_response()
 		: m_blockNumber(std::numeric_limits<stream_size_type>::max())
@@ -174,7 +174,7 @@ class __attribute__((__may_alias__)) write_request;
 /// Each request should have a pointer to the response object, which is
 /// contained in this base class.
 ///////////////////////////////////////////////////////////////////////////////
-class request_base {
+class TPIE_PUBLIC request_base {
 protected:
 	request_base(compressor_response * response)
 		: m_response(response)

@@ -117,15 +117,15 @@ TPIE_PUBLIC void init_default_log();
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the log subsystem.
 ///////////////////////////////////////////////////////////////////////////////
-void finish_default_log();
+TPIE_PUBLIC void finish_default_log();
 
 namespace log_bits {
 
-extern std::vector<boost::shared_ptr<logstream> > log_instances;
+TPIE_PUBLIC extern std::vector<boost::shared_ptr<logstream> > log_instances;
 
-void initiate_log_level(log_level level);
+TPIE_PUBLIC void initiate_log_level(log_level level);
 
-void flush_logs();
+TPIE_PUBLIC void flush_logs();
 
 }
 
@@ -171,7 +171,7 @@ inline logstream & log_debug() {return get_log_by_level(LOG_DEBUG);}
 ///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_mem_debug() {return get_log_by_level(LOG_MEM_DEBUG);}
 
-class scoped_log_enabler {
+class TPIE_PUBLIC scoped_log_enabler {
 private:
 	bool m_orig;
 public:
@@ -187,7 +187,7 @@ public:
 
 namespace log_bits {
 
-class log_selector {
+class TPIE_PUBLIC log_selector {
 private:
 	static bool s_init;
 	static log_level s_level;

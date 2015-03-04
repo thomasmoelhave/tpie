@@ -33,7 +33,7 @@
 
 namespace tpie {
 
-class compressor_thread {
+class TPIE_PUBLIC compressor_thread {
 	class impl;
 	impl * pimpl;
 

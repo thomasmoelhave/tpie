@@ -33,12 +33,12 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Used by tpie::init to initialize stream buffer pool.
 ///////////////////////////////////////////////////////////////////////////////
-void init_stream_buffer_pool();
+TPIE_PUBLIC void init_stream_buffer_pool();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Used by tpie::finish to free stream buffer pool.
 ///////////////////////////////////////////////////////////////////////////////
-void finish_stream_buffer_pool();
+TPIE_PUBLIC void finish_stream_buffer_pool();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  The different states of a compressor buffer.
@@ -80,7 +80,7 @@ struct compressor_buffer_state {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  A buffer for elements belonging to a specific stream block.
 ///////////////////////////////////////////////////////////////////////////////
-class compressor_buffer {
+class TPIE_PUBLIC  compressor_buffer {
 private:
 	typedef array<char> storage_t;
 
@@ -206,7 +206,7 @@ public:
 /// The stream_buffers class is responsible for making sure it only requests
 /// as many own buffers as a stream is allowed to.
 ///////////////////////////////////////////////////////////////////////////////
-class stream_buffer_pool {
+class TPIE_PUBLIC  stream_buffer_pool {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
 
@@ -231,7 +231,7 @@ private:
 /// You must have initialized the stream buffer pool with \c tpie::init
 /// beforehand, or you will get a null pointer or an assertion error!
 ///////////////////////////////////////////////////////////////////////////////
-stream_buffer_pool & the_stream_buffer_pool();
+TPIE_PUBLIC stream_buffer_pool & the_stream_buffer_pool();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Buffer manager for a single stream.
@@ -239,7 +239,7 @@ stream_buffer_pool & the_stream_buffer_pool();
 /// Buffers are provided via \c get_buffer.  You should call \c clean before
 /// destroying.
 ///////////////////////////////////////////////////////////////////////////////
-class stream_buffers {
+class TPIE_PUBLIC stream_buffers {
 public:
 	typedef boost::shared_ptr<compressor_buffer> buffer_t;
 

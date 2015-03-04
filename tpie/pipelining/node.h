@@ -66,7 +66,7 @@ struct node_parameters {
 /// and implement methods begin(), push() and end(), if it is not a source
 /// node.
 ///////////////////////////////////////////////////////////////////////////////
-class node {
+class TPIE_PUBLIC node {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Options for how to plot this node
@@ -424,7 +424,7 @@ private:
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
 	///////////////////////////////////////////////////////////////////////////
-	void add_forwarded_data(std::string key, boost::any value, bool explicitForward);
+	TPIE_PRIVATE void add_forwarded_data(std::string key, boost::any value, bool explicitForward);
 
 public:
 	///////////////////////////////////////////////////////////////////////////

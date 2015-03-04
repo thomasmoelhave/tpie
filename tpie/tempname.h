@@ -147,7 +147,7 @@ namespace tpie {
 
 	namespace bits {
 	
-	class temp_file_inner : public boost::noncopyable {
+	class TPIE_PUBLIC temp_file_inner : public boost::noncopyable {
 	public:
 		temp_file_inner();
 		temp_file_inner(const std::string & path, bool persist);
@@ -174,8 +174,8 @@ namespace tpie {
 		memory_size_type m_count;			
 	};
 
-	void intrusive_ptr_add_ref(temp_file_inner * p);
-	void intrusive_ptr_release(temp_file_inner * p);
+	TPIE_PUBLIC void intrusive_ptr_add_ref(temp_file_inner * p);
+	TPIE_PUBLIC void intrusive_ptr_release(temp_file_inner * p);
 
 	} // namespace bits
 
@@ -184,7 +184,7 @@ namespace tpie {
 	/// When all temp_file objects to a file go out of scope and are not set 
 	/// to persistent, the associated temporary file will be deleted.
 	///////////////////////////////////////////////////////////////////////////
-	class TPIE PUBLIC temp_file {
+	class TPIE_PUBLIC temp_file {
 	public:
 		///////////////////////////////////////////////////////////////////////////////
 		/// \brief Create a temp_file associated with a temporary file

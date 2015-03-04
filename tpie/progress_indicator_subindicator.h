@@ -37,7 +37,7 @@ struct log_group_mode {
 	};
 };
 
-class progress_indicator_subindicator: public progress_indicator_base {
+class TPIE_PUBLIC progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
 	virtual void push_breadcrumb(const char * crumb, description_importance importance);
