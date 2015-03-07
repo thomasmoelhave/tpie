@@ -170,6 +170,45 @@ private:
 	friend class invoker;
 };
 
+
+template <template <typename item_type> class I, typename OB, template<typename dest_t> class O>
+class split_factory : public factory_base {
+public:
+	template <typename dest_t>
+	struct constructed {
+		typedef typename push_type<dest_t>::type item_type;
+		typedef I<item_type> type;
+	};
+
+	template <typename dest_t>
+	typename constructed<dest_t>::type construct(dest_t && dest) const {
+		node_token input_token;
+		typedef typename push_type<dest_t>::type item_type;
+		boost::shared_ptr<O<dest_t> > o(new O<dest_t>(std::forward<dest_t>(dest), input_token));
+		return I(input_token, std::move(o));
+	};
+};
+
+#else
+
+template <template <typename item_type> class I, typename OB, template<typename dest_t> class O>
+class split_factory : public factory_base {
+public:
+	template <typename dest_t>
+	struct constructed {
+		typedef typename push_type<dest_t>::type item_type;
+		typedef I<item_type> type;
+	};
+
+	template <typename dest_t>
+	typename constructed<dest_t>::type construct(const dest_t & dest) const {
+		node_token input_token;
+		typedef typename push_type<dest_t>::type item_type;
+		boost::shared_ptr<O<dest_t> > o(new O<dest_t>(dest, input_token));
+		return I<item_type>(input_token, o);
+	};
+};
+
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////

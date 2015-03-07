@@ -35,18 +35,18 @@ namespace bits {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief input node for reverser stored in external memory
 ///////////////////////////////////////////////////////////////////////////////
-
 template <typename T>
 class reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline reverser_input_t(const node_token & token)
-		: node(token)
+	inline reverser_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
+		: node(token), m_output(output)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(stack<item_type>::memory_usage());
 	}
+
 
 	virtual void propagate() override {
 		m_stack = tpie_new<stack<item_type> >();
@@ -61,6 +61,7 @@ public:
 	}
 private:
 	stack<item_type> * m_stack;
+	boost::shared_ptr<node> m_output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,8 +73,8 @@ class internal_reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline internal_reverser_input_t(const node_token & token)
-		: node(token)
+	inline internal_reverser_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
+		: node(token), m_output(output)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(sizeof(std::stack<item_type>));
@@ -92,6 +93,7 @@ public:
 	}
 private:
 	std::stack<item_type> * m_stack;
+	boost::shared_ptr<node> m_output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,71 +254,6 @@ private:
 	std::stack<item_type> * m_stack;
 };
 
-
-template <typename dest_t>
-class reverser_t: public node {
-public:
-	typedef typename push_type<dest_t>::type item_type;
-	typedef reverser_output_t<dest_t> output_t;
-	typedef reverser_input_t<item_type> input_t;
-
-	inline reverser_t(const dest_t & dest)
-		: input_token()
-		, input(input_token)
-		, output(dest, input_token)
-	{
-		add_push_destination(input);
-		set_plot_options(PLOT_BUFFERED);
-	}
-
-	inline reverser_t(const reverser_t & o)
-		: node(o)
-		, input_token(o.input_token)
-		, input(o.input)
-		, output(o.output)
-	{
-	}
-
-	void push(const item_type & i) {input.push(i);}
-private:
-	node_token input_token;
-
-	input_t input;
-	output_t output;
-};
-
-template <typename dest_t>
-class internal_reverser_t: public node {
-public:
-	typedef typename push_type<dest_t>::type item_type;
-	typedef internal_reverser_output_t<dest_t> output_t;
-	typedef internal_reverser_input_t<item_type> input_t;
-
-	inline internal_reverser_t(const dest_t & dest)
-		: input_token()
-		, input(input_token)
-		, output(dest, input_token)
-	{
-		add_push_destination(input);
-		set_name("Reverser", PRIORITY_INSIGNIFICANT);
-	}
-
-	inline internal_reverser_t(const internal_reverser_t & o)
-		: node(o)
-		, input_token(o.input_token)
-		, input(o.input)
-		, output(o.output)
-	{
-	}
-
-	void push(const item_type & i) {input.push(i);}
-private:
-	node_token input_token;
-
-	input_t input;
-	output_t output;
-};
-
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -416,13 +353,13 @@ private:
 /// \brief Constructs a reverser node stored in external memory. Reverses
 /// the stream and creates a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
-typedef pipe_middle<factory_0<bits::reverser_t> > reverser;
+typedef pipe_middle<split_factory<bits::reverser_input_t, node, bits::reverser_output_t> > reverser;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Constructs a reverser node stored in internal memory. Reverses
 /// the stream and creates a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
-typedef pipe_middle<factory_0<bits::internal_reverser_t> > internal_reverser;
+typedef pipe_middle<split_factory<bits::internal_reverser_input_t, node, bits::internal_reverser_output_t> > internal_reverser;
 
 } // namespace pipelining
 

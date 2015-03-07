@@ -72,19 +72,21 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Input node for buffer.
 ///////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
 class buffer_input_t: public node {
 public:
 	typedef T item_type;
 
-	buffer_input_t(const node_token & token)
+	buffer_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
 		: node(token)
+		, m_output(output)
 	{
 		set_name("Storing items", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
-
+	
 	virtual void propagate() override {
 		m_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
 		m_queue->open(static_cast<memory_size_type>(0), access_sequential, compression_normal);
@@ -97,6 +99,7 @@ public:
 
 private:
 	tpie::file_stream<T> * m_queue;
+	boost::shared_ptr<node> m_output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,13 +137,10 @@ public:
 	virtual void end() override {
 		tpie::tpie_delete(m_queue);
 	}
-
 private:
 	dest_t dest;
 	file_stream<item_type> * m_queue;
 };
-
-
 
 } // namespace bits
 
@@ -186,46 +186,11 @@ private:
 	passive_buffer & operator=(const passive_buffer &);
 };
 
-template <typename dest_t>
-class buffer_t: public node {
-public:
-	typedef typename push_type<dest_t>::type item_type;
-	typedef bits::buffer_input_t<item_type> input_t;
-	typedef bits::buffer_output_t<dest_t> output_t;
-
-	buffer_t(const dest_t & dest)
-		: input_token()
-		, input(input_token)
-		, output(dest, input_token)
-	{
-		add_push_destination(input);
-		set_name("Buffer", PRIORITY_INSIGNIFICANT);
-		set_plot_options(PLOT_BUFFERED);
-	}
-
-	buffer_t(const buffer_t &o)
-		: node(o)
-		, input_token(o.input_token)
-		, input(o.input)
-		, output(o.output)
-	{
-	}
-
-	virtual void push(item_type item) {
-		input.push(item);
-	}
-
-	node_token input_token;
-
-	input_t input;
-	output_t output;
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief The buffer node inserts a phase boundary into the pipeline by
 /// writing items to disk. It does not change the contents of the stream.
 ///////////////////////////////////////////////////////////////////////////////
-typedef pipe_middle<factory_0<buffer_t> > buffer;
+typedef pipe_middle<split_factory<bits::buffer_input_t, node, bits::buffer_output_t> > buffer;
 
 } // namespace pipelining
 
