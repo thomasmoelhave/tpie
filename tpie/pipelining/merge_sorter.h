@@ -253,6 +253,19 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push item to merge sorter during phase 1.
 	///////////////////////////////////////////////////////////////////////////
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	inline void push(item_type && item) {
+		tp_assert(m_state == stRunFormation, "Wrong phase");
+		if (m_currentRunItemCount >= p.runLength) {
+			sort_current_run();
+			empty_current_run();
+		}
+		m_currentRunItems[m_currentRunItemCount] = m_store.outer_to_store(std::move(item));
+		++m_currentRunItemCount;
+		++m_itemCount;
+	}
+#endif
+	
 	inline void push(const item_type & item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
@@ -290,7 +303,9 @@ public:
 			// of phase 2, but we have enough temporary memory to copy and
 			// resize the buffer.
 
-			array<store_type> currentRun(array_view<store_type>(m_currentRunItems, 0, m_currentRunItemCount));
+			array<store_type> currentRun(m_currentRunItemCount);
+			for (size_t i=0; i < m_currentRunItemCount; ++i)
+				currentRun[i] = TPIE_MOVE(m_currentRunItems[i]);
 			m_currentRunItems.swap(currentRun);
 
 			m_reportInternal = true;
@@ -370,7 +385,7 @@ private:
 		file_stream<element_type> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
 		for (memory_size_type i = 0; i < m_currentRunItemCount; ++i)
-			fs.write(m_store.store_to_element(m_currentRunItems[i]));
+			fs.write(m_store.store_to_element(TPIE_MOVE(m_currentRunItems[i])));
 		m_currentRunItemCount = 0;
 		++m_finishedRuns;
 	}
@@ -531,9 +546,9 @@ public:
 	inline item_type pull() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
-			store_type el = m_currentRunItems[m_itemsPulled++];
+			store_type el = TPIE_MOVE(m_currentRunItems[m_itemsPulled++]);
 			if (!can_pull()) m_currentRunItems.resize(0);
-			return m_store.store_to_outer(el);
+			return m_store.store_to_outer(TPIE_MOVE(el));
 		} else {
 			if (m_evacuated) reinitialize_final_merger();
 			m_runPositions.close();

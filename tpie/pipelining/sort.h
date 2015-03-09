@@ -169,7 +169,8 @@ public:
 
 	virtual void go() override {
 		while (this->m_sorter->can_pull()) {
-			dest.push(this->m_sorter->pull());
+			auto y=this->m_sorter->pull();
+			dest.push(TPIE_MOVE(y));
 			this->step();
 		}
 	}
@@ -300,10 +301,16 @@ public:
 		m_propagate_called = true;
 	}
 
-	inline void push(const item_type & item) {
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	void push(item_type && item) {
+		m_sorter->push(std::move(item));
+	}
+#endif
+
+	void push(const item_type & item) {
 		m_sorter->push(item);
 	}
-
+	
 	virtual void end() override {
 		node::end();
 		m_sorter->end();
