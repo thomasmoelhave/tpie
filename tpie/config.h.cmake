@@ -48,6 +48,14 @@
 #define TPIE_VARIADIC_FACTORIES
 #endif
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+#define TPIE_MOVE(X) std::move(X)
+#define TPIE_RREF(T) T &&
+#else
+#define TPIE_MOVE(X) X
+#define TPIE_RREF(T) const T &&
+#endif
+
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings
 	#define _CRT_SECURE_NO_DEPRECATE 
