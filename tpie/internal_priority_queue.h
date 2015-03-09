@@ -70,8 +70,14 @@ public:
     /// \param v The element that should be inserted.
 	///////////////////////////////////////////////////////////////////////////
 	void unsafe_push(const T & v) { 
-		pq[sz++] = v; 
+		pq[sz++] = v;
 	}
+
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	void unsafe_push(T && v) {
+		pq[sz++] = std::move(v);
+	}
+#endif
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Make the priority queue safe after a sequence of calls to
@@ -104,6 +110,14 @@ public:
 		std::push_heap(pq.begin(), pq.find(sz), comp);
     }
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	void push(T && v) {
+		assert(size() < pq.size());
+		pq[sz++] = std::move(v);
+		std::push_heap(pq.begin(), pq.find(sz), comp);
+    }
+#endif
+
 	///////////////////////////////////////////////////////////////////////////
     /// \brief Remove the minimum element from heap.
 	///////////////////////////////////////////////////////////////////////////
@@ -122,12 +136,22 @@ public:
 		pop_and_push_heap(pq.begin(), pq.find(sz), comp);
 	}
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+	void pop_and_push(T && v) {
+		assert(!empty());
+		pq[0] = std::move(v);
+		pop_and_push_heap(pq.begin(), pq.find(sz), comp);
+	}
+#endif
+
 	///////////////////////////////////////////////////////////////////////////
     /// \brief Return the minimum element.
     ///
     /// \return The minimum element.
 	///////////////////////////////////////////////////////////////////////////
     inline const T & top() const {return pq[0];}
+
+	T & top() {return pq[0];}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copybrief linear_memory_structure_doc::memory_coefficient()
