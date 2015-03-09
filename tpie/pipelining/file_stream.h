@@ -25,6 +25,7 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/pipe_base.h>
+#include <tpie/maybe.h>
 
 namespace tpie {
 
@@ -124,6 +125,40 @@ public:
 private:
 	file_stream<T> & fs;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// \class named_output_t
+///
+/// file_stream output terminator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class named_output_t : public node {
+public:
+	typedef T item_type;
+
+	named_output_t(const std::string & path): path(path) {
+		set_name("Write", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(file_stream<T>::memory_usage());
+	}
+
+	void begin() override {
+		fs.construct();
+		fs->open(path, access_write);
+	}
+	
+	void push(const T & item) {
+		fs->write(item);
+	}
+
+	void end() override {
+		fs->close();
+		fs.destruct();
+	}
+private:
+	maybe<file_stream<T> > fs;
+	std::string path;
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pull_output_t
@@ -229,6 +264,16 @@ template <typename T>
 inline pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
 	return termfactory_1<bits::output_t<T>, file_stream<T> &>(fs);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that writes the pushed items to a named file stream.
+/// \param path The path of where to write the firestream
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+inline pipe_end<termfactory_1<bits::named_output_t<T>, std::string> > named_output(const std::string & path) {
+	return termfactory_1<bits::named_output_t<T>, std::string>(path);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pull-pipe node that writes the pulled items to a file stream.
