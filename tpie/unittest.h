@@ -100,7 +100,7 @@ TPIE_PUBLIC testmanip<bool> failure();
 class TPIE_PUBLIC tests;
 
 namespace bits {
-	class test_runner {
+	class TPIE_PUBLIC test_runner {
 		tests * t;
 		bool result;
 		boost::posix_time::ptime m_time;
