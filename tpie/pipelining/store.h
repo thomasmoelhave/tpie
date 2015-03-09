@@ -123,6 +123,42 @@ struct explicit_tpie_pointer_store {
 	specific<element_t> get_specific() {return specific<element_t>();}
 };
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+/**
+ * \brief Sort elements in tpie unique pointers
+ *
+ * We sort elements of type T, they are pushed to us as tpie::unique_ptr<T> and we store them as tpie::unique_ptr<T>.
+ */
+struct explicit_tpie_unique_pointer_store {
+	template <typename outer_t>
+	struct element_type {
+		typedef typename outer_t::element_type type;
+	};
+
+	template <typename element_t>
+	struct specific {
+		typedef element_t element_type;
+		typedef tpie::unique_ptr<element_t> store_type;
+		typedef tpie::unique_ptr<element_t> outer_type;
+
+		static const size_t item_size = sizeof(element_t) + sizeof(store_type);
+
+		element_type store_to_element(store_type e) {
+			return *e;
+		}
+		store_type element_to_store(const element_type & e) {
+			return outer_type(tpie_new<element_type>(e));
+		}
+		static const element_type & store_as_element(const store_type & e) {return *e;}
+		store_type outer_to_store(outer_type e) {return std::move(e);}
+		outer_type store_to_outer(store_type e) {return std::move(e);}
+	};
+
+	template <typename element_t>
+	specific<element_t> get_specific() {return specific<element_t>();}
+};
+#endif //TPIE_CPP_RVALUE_REFERENCE
+
 /**
  * \brief Sort elements using pointer indirection.
  *
