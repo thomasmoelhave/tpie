@@ -309,7 +309,7 @@ public:
 	inline bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
 	operator|(const pipe_end<fact2_t> & r) {
 		factory.set_destination_kind_push();
-		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory).final();
+		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory).finalize();
 	}
 
 	fact_t factory;
@@ -452,7 +452,7 @@ public:
 	operator|(const pullpipe_end<fact2_t> & r) {
 		fact2_t f = r.factory;
 		f.set_destination_kind_pull();
-		return bits::termpair_factory<fact2_t, fact_t>(f, factory).final();
+		return bits::termpair_factory<fact2_t, fact_t>(f, factory).finalize();
 	}
 
 	fact_t factory;

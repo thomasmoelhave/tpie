@@ -107,7 +107,7 @@ public:
 	/// \brief Signal that this factory is used to instantiate a pipeline_impl,
 	/// i.e. that it was made by piping together a pipe_begin and a pipe_end.
 	///////////////////////////////////////////////////////////////////////////
-	child_t & final() {
+	child_t & finalize() {
 		m_final = true;
 		return self();
 	}
