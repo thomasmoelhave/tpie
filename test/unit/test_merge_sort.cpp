@@ -82,7 +82,8 @@ bool sort_upper_bound_test() {
 	Traits::merge_runs(s);
 	while (s.can_pull()) s.pull();
 
-	return io == get_bytes_written();
+	TEST_ENSURE_EQUALITY(io, get_bytes_written(), "The number of bytes written was not correct.")
+	return true;
 }
 
 bool temp_file_usage_test() {
