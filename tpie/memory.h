@@ -475,6 +475,23 @@ public:
 		inline operator auto_ptr<Y>() throw() {return auto_ptr<Y>(release());}
 };
 
+#ifdef TPIE_CPP_RVALUE_REFERENCE
+struct tpie_deleter {
+	template <typename T>
+	void operator()(T * t) {
+		tpie_delete(t);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief like std::unique_ptr, but delete the object with tpie_delete.
+/// \tparam T the type of the object.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+using unique_ptr=std::unique_ptr<T, tpie_deleter>;
+#endif
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A allocator object usable in STL containers, using the TPIE
 /// memory manager.
