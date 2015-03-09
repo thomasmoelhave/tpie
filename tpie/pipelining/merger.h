@@ -45,7 +45,7 @@ public:
 
  	inline store_type pull() {
 		tp_assert(can_pull(), "pull() while !can_pull()");
-		store_type el = pq.top().first;
+		store_type el = TPIE_MOVE(pq.top().first);
 		size_t i = pq.top().second;
 		if (in[i].can_read() && itemsRead[i] < runLength) {
 			pq.pop_and_push(
@@ -57,7 +57,7 @@ public:
 		if (!can_pull()) {
 			reset();
 		}
-		return el;
+		return TPIE_MOVE(el);
 	}
 
 	inline void reset() {
