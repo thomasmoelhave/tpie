@@ -28,16 +28,14 @@
 namespace tpie {
 
 /**
- * \brief Storage used for an internal btree
- * 
- * T is the type of value stored
- * A is the type of augmentation
- * K is the functor used to extract the key from a given value
- * a is the minimum fanout of a node
- * b is the maximum fanout of a node
- *
- * Note that a user of a btree should
+ * \brief Storage used for an internal btree. Note that a user of a btree should
  * not call the store directly
+ *
+ * \tparam T the type of value stored
+ * \tparam A the type of augmentation
+ * \tparam K the functor used to extract the key from a given value
+ * \tparam a the minimum fanout of a node
+ * \tparam b the maximum fanout of a node
  */
 template <typename T,
 		  typename A=empty_augment,
