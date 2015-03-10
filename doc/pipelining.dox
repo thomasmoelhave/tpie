@@ -685,9 +685,9 @@ left, and a checkmark in the row for each method an implementation may call.
 <tr><td>set_available_memory</td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
 <tr><td>evacuate            </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>    </td></tr>
 <tr><td>propagate           </td><td>        </td><td>              </td><td>X                 </td><td>X    </td><td>    </td></tr>
-<tr><td>begin               </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
-<tr><td>push/can_pull/pull  </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
-<tr><td>end                 </td><td>        </td><td>              </td><td>                  </td><td>     </td><td>X   </td></tr>
+<tr><td>begin               </td><td>        </td><td>              </td><td>                  </td><td>X    </td><td>X   </td></tr>
+<tr><td>push/can_pull/pull  </td><td>        </td><td>              </td><td>                  </td><td>X    </td><td>X   </td></tr>
+<tr><td>end                 </td><td>        </td><td>              </td><td>                  </td><td>X    </td><td>X   </td></tr>
 </table>
 
 Note that the push, can_pull and pull contracts are those obeyed by the
