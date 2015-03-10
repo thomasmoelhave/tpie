@@ -7,7 +7,7 @@ TPIE provides an implementation of augmented B-trees that can be stored in both 
 
 The storage of nodes is deligated to a store class. TPIE comes with two stores; the \ref btree_internal_store defined in \ref btree/internal_store.h and \ref btree_external_store defined in \ref btree/external_store.h.
 
-The internal store, stores the nodes in internal memory. The minimum and maximum number of children of each node can be set using a template parameter. The usage of the internal store is straight forward: 
+The internal store stores the nodes in internal memory. The nodes in the internal has between 2 and 4 children by default, however this can be changed by setting a template parameter. The usage of the internal store is straight forward:
 \code
 typedef tpie::btree_internal_store<int> store_t;
 		
