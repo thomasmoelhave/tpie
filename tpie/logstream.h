@@ -43,7 +43,7 @@ extern bool logging_disabled;
 struct log_target {
 	virtual void log(log_level level, const char * message, size_t message_size) = 0;
 	virtual ~log_target() { }
-	virtual void begin_group(const std::string & name) {};
+	virtual void begin_group(const std::string &) {};
 	virtual void end_group() {};
 };
 
