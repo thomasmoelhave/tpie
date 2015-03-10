@@ -731,7 +731,7 @@ public:
 		if (m_state != stParameters)
 			throw exception("Wrong state in set_items: state is not stParameters");
 
-		if (n < p.internalReportThreshold && p.internalReportThreshold < p.runLength) {
+		if(n < p.runLength) {
 			p.runLength = p.internalReportThreshold;
 			log_debug() << "Decreasing run length from " << p.runLength
 				<< " to " << p.internalReportThreshold << std::endl;
