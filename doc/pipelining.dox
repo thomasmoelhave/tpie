@@ -48,18 +48,6 @@ when \c begin() and \c end() are called.
 
 <img src="pipelining_sequence.png" />
 
-In some applications it might be easier to express the operation
-in terms of pulling items from a source and returning a processed item.
-This is the style used by STL iterators, and it is the style preferred
-by STXXL, another framework which implements pipelining.
-
-In this case, a TPIE pipelining node should implement the two methods
-\c pull() and \c can_pull().
-Again, the framework ensures that it is permitted to call
-\c pull() and \c can_pull() in \c begin() and \c end().
-
-<img src="pipelining_sequence_pull.png" />
-
 Since the framework computes the topological order of the nodes
 of the actor graph (that is, using the actor edges as in the above two figures)
 and the framework requires that the actor graph is acyclic,
@@ -202,6 +190,20 @@ private:
 
 typedef tp::pipe_begin<tp::factory_0<hello_world_type> > hello_world;
 \endcode
+
+\section sec_pull Pull nodes
+
+In some applications it might be easier to express the operation
+in terms of pulling items from a source and returning a processed item.
+This is the style used by STL iterators, and it is the style preferred
+by STXXL, another framework which implements pipelining.
+
+In this case, a TPIE pipelining node should implement the two methods
+\c pull() and \c can_pull().
+Again, the framework ensures that it is permitted to call
+\c pull() and \c can_pull() in \c begin() and \c end().
+
+<img src="pipelining_sequence_pull.png" />
 
 \section sec_pipe_memory Memory assignment
 
