@@ -761,7 +761,7 @@ int main() {
 }
 \endcode
 
-A full list of passive nodes can be seen at \ref pipelining_nodes.
+A full list of passive nodes can be seen at \ref pipelining_nodes. Another example of the usage of a passive node can be seen in \c apps/pipelining_passive_sorter.
 
 \section sec_library Pipelining library
 
