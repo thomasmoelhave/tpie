@@ -231,6 +231,33 @@ private:
 typedef pullpipe_middle<factory_0<pull_hello_world_type> > pull_hello_world;
 \endcode
 
+\section sec_forming_pipelines Forming pipelines
+
+When nodes are used together they form a pipeline. When a pipeline is run,
+the items from the first node - the iniator node - is pushed through each node
+and into the last node where they are written disk or processed in some similar
+fashion. The following is a simple example using the \c hello_world node and
+some of the nodes in the pipelining library. Pull pipelines are
+created the same way, but by using pull nodes only.
+
+\code
+int main() {
+	tpie::tpie_init();
+
+	// Calling tpie_finish() before the pipeline is destructed would result in a segmentation fault. A new scope is created to avoid this.
+	{
+	tpie::get_memory_manager().set_limit(50*1024*1024);
+
+	pipeline p = scanf_ints() // Read integers from standard input
+		| hello_world() // Push the items through the hello_world node.
+		| printf_ints(); // Print the integers.
+	p(); // run the pipeline
+	}
+
+	tpie::tpie_finish();
+}
+\endcode
+
 \section sec_pipe_memory Memory assignment
 
 Each node has three properties that control how much memory is assigned to it:
