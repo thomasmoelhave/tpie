@@ -62,22 +62,19 @@ namespace tp = tpie::pipelining;
 template <typename dest_t>
 class hello_world_type : public tp::node {
 public:
-	hello_world_type(dest_t dest)
-		: dest(dest) {}
+	hello_world_type(dest_t dest): dest(dest) {}
 
 	void push(const size_t & item) {
-		if ((item % 2) == 0) {
+		if ((item % 2) == 0)
 			dest.push(item/2);
-		} else {
+		else
 			dest.push(3*item+1);
-		}
 	}
-
 private:
 	dest_t dest;
 };
 
-typedef tp::pipe_begin<tp::factory_0<hello_world_type> > hello_world;
+typedef tp::pipe_middle<tp::factory_0<hello_world_type> > hello_world;
 \endcode
 
 A node implementation may supply the following extra information to the framework
@@ -188,7 +185,7 @@ private:
 	dest_t dest;
 };
 
-typedef tp::pipe_begin<tp::factory_0<hello_world_type> > hello_world;
+typedef tp::pipe_middle<tp::factory_0<hello_world_type> > hello_world;
 \endcode
 
 \section sec_pull Pull nodes
