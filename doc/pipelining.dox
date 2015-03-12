@@ -317,6 +317,68 @@ and \c get_datastructure respectively.
 
 If you want to see an example pipelining program using auxiliary datastructures, checkout \c apps/pipelining_datastructures in the repository.
 
+\section sec_passive Passive nodes
+Several passive nodes have been implemented in the pipelining library.
+These node accepts items pushed to them and allow items to be pulled from them.
+The following is a bare-bones example of a pipeline that uses a passive buffer.
+The \c square node pulls integers from a passive buffer and pushes the square
+of the integer into its destination node.
+
+\code
+template <typename source_t>
+class square_t {
+public:
+	template <typename dest_t>
+	class type : public node {
+	public:
+		typedef int item_type;
+
+		type(const dest_t & dest, const source_t & src)
+			: dest(dest)
+			, puller(src.construct())
+		{
+			add_push_destination(dest);
+			add_pull_source(puller);
+		}
+
+		virtual void go() override {
+			while (puller.can_pull()) {
+				int a = puller.pull();
+
+				dest.push(a * a);
+			}
+		}
+
+	private:
+		dest_t dest;
+		typename source_t::constructed_type puller;
+	};
+};
+
+template <typename source_t>
+inline pipe_begin<tempfactory_1<square_t<source_t>, source_t> > square(const source_t & source) {
+	return tempfactory_1<square_t<source_t>, source_t >(source);
+}
+\endcode
+\code
+int main() {
+	tpie_init();
+	{
+		get_memory_manager().set_limit(50*1024*1024);
+
+		passive_buffer<int> buffer;
+		pipeline p1 = scanf_ints() | buffer.input();
+		pipeline p2 = square(buffer.output()) | printf_ints();
+
+		p1();
+	}
+	tpie_finish();
+	return 0;
+}
+\endcode
+
+A full list of passive nodes can be seen at \ref pipelining_nodes. Another example of the usage of a passive node can be seen in \c apps/pipelining_passive_sorter.
+
 \section sec_parallel Parallel execution
 
 The pipelining framework provides transparent parallel execution of pipelines.
@@ -755,68 +817,6 @@ You will rarely need to implement initiators. For an initiator, instead of
 \c push(), the virtual \c go() method must be overridden, and this is called once.
 go() should forward() a piece of stream_size_type data named "items" indicating
 the expected number of items being pushed.
-
-\section sec_passive Passive nodes
-Several passive nodes have been implemented in the pipelining library.
-These node accepts items pushed to them and allow items to be pulled from them.
-The following is a bare-bones example of a pipeline that uses a passive buffer.
-The \c square node pulls integers from a passive buffer and pushes the square
-of the integer into its destination node.
-
-\code
-template <typename source_t>
-class square_t {
-public:
-	template <typename dest_t>
-	class type : public node {
-	public:
-		typedef int item_type;
-
-		type(const dest_t & dest, const source_t & src)
-			: dest(dest)
-			, puller(src.construct())
-		{
-			add_push_destination(dest);
-			add_pull_source(puller);
-		}
-
-		virtual void go() override {
-			while (puller.can_pull()) {
-				int a = puller.pull();
-				
-				dest.push(a * a);
-			}
-		}
-
-	private:
-		dest_t dest;
-		typename source_t::constructed_type puller;
-	};
-};
-
-template <typename source_t>
-inline pipe_begin<tempfactory_1<square_t<source_t>, source_t> > square(const source_t & source) {
-	return tempfactory_1<square_t<source_t>, source_t >(source);
-}
-\endcode
-\code
-int main() {
-	tpie_init();
-	{
-		get_memory_manager().set_limit(50*1024*1024);
-	
-		passive_buffer<int> buffer;
-		pipeline p1 = scanf_ints() | buffer.input();
-		pipeline p2 = square(buffer.output()) | printf_ints();
-
-		p1();
-	}
-	tpie_finish();
-	return 0;
-}
-\endcode
-
-A full list of passive nodes can be seen at \ref pipelining_nodes. Another example of the usage of a passive node can be seen in \c apps/pipelining_passive_sorter.
 
 \section sec_library Pipelining library
 
