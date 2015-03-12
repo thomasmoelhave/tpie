@@ -170,7 +170,14 @@ private:
 	friend class invoker;
 };
 
-
+///////////////////////////////////////////////////////////////////////////////
+/// Node factory for split nodes, typically used for phase boundary nodes.
+/// \tparam I the type of the input node
+/// \tparam item_type the type of item used by both nodes
+/// \tparam OB the base class for both input and output node. Typically 
+/// \ref tpie::pipelining::node
+/// \tparam O the type of the output node
+///////////////////////////////////////////////////////////////////////////////
 template <template <typename item_type> class I, typename OB, template<typename dest_t> class O>
 class split_factory : public factory_base {
 public:
@@ -191,6 +198,14 @@ public:
 
 #else
 
+///////////////////////////////////////////////////////////////////////////////
+/// Node factory for split nodes, typically used for phase boundary nodes.
+/// \tparam I the type of the input node
+/// \tparam item_type the type of item used by both nodes
+/// \tparam OB the base class for both input and output node. Typically 
+/// \ref tpie::pipelining::node
+/// \tparam O the type of the output node
+///////////////////////////////////////////////////////////////////////////////
 template <template <typename item_type> class I, typename OB, template<typename dest_t> class O>
 class split_factory : public factory_base {
 public:
