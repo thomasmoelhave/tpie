@@ -459,71 +459,63 @@ A buffering node is split into an in-going and out-going node and a dependency
 is added between the two. This makes the buffering node act as a phase-boundary.
 Consider the following example of a node that reverses the input:
 \code
-class reverser_input_type: public tpie::pipelining::node {
+template <typename T>
+class reverser_input_t: public node {
 public:
-	reverser_input_type(const tpie::pipelining::node_token & token, tpie::stack<int> * stack)
-		: node(token)
-		, stack(stack)
+	typedef T item_type;
+
+	inline reverser_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
+		: node(token), m_output(output)
 	{
+		set_minimum_memory(stack<item_type>::memory_usage());
 	}
 
-	void push(int t) {
-		stack->push(t);
+
+	virtual void propagate() override {
+		m_stack = tpie_new<stack<item_type> >();
+		forward("stack", m_stack);
 	}
 
+	void push(const item_type & t) {
+		m_stack->push(t);
+	}
 private:
-	tpie::stack<int> * stack;
+	stack<item_type> * m_stack;
+	boost::shared_ptr<node> m_output;
 };
 
-template <typename dest_type>
-class reverser_output_type: public tpie::pipelining::node {
+template <typename dest_t>
+class reverser_output_t: public node {
 public:
-	reverser_output_type(const dest_type & dest, const tpie::pipelining::node_token & input_token, tpie::stack<int> * stack)
+	typedef typename push_type<dest_t>::type item_type;
+
+	reverser_output_t(const dest_t & dest, const node_token & input_token)
 		: dest(dest)
-		, stack(stack)
 	{
 		add_dependency(input_token);
 		add_push_destination(dest);
+		set_minimum_memory(this->m_stack->memory_usage());
+	}
+
+	virtual void propagate() override {
+		m_stack = fetch<stack<item_type> *>("stack");
+		forward("items", m_stack->size());
 	}
 
 	virtual void go() override {
-		while(!stack->empty()) {
-			dest.push(stack->pop());
-		}
+		while (!m_stack->empty())
+			dest.push(m_stack->pop());
 	}
 
 	virtual void end() override {
-		delete stack;
+		tpie_delete(m_stack);
 	}
 private:
-	dest_type dest;
-	tpie::stack<int> * stack;
+	dest_t dest;
+	stack<item_type> * m_stack;
 };
 
-template <typename dest_type>
-class reverser_type: public tpie::pipelining::node {
-public:
-	typedef reverser_input_type input_type;
-	typedef reverser_output_type<dest_type> output_type;
-
-	reverser_type(const dest_type & dest)
-		: input_token()
-		, stack(new tpie::stack<int>())
-		, input(input_token, stack)
-		, output(dest, input_token, stack)
-	{
-		add_push_destination(input);
-	}
-
-	void push(int item) {
-		input.push(item);
-	}
-
-	tpie::pipelining::node_token input_token;
-	tpie::stack<int> * stack;
-	input_type input;
-	output_type output;
-};
+typedef pipe_middle<split_factory<bits::reverser_input_t, node, bits::reverser_output_t> > reverser;
 \endcode
 
 Common buffering operations that give rise to new phases are sorting and
