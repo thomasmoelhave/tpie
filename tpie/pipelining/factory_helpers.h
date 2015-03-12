@@ -185,7 +185,7 @@ public:
 		node_token input_token;
 		typedef typename push_type<dest_t>::type item_type;
 		boost::shared_ptr<O<dest_t> > o(new O<dest_t>(std::forward<dest_t>(dest), input_token));
-		return I(input_token, std::move(o));
+		return I<item_type>(input_token, std::move(o));
 	};
 };
 
