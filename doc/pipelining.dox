@@ -841,5 +841,5 @@ For reading and writing 32-bit ints using scanf (stdin) and printf (stdout),
 the pipelining framework provides \c scanf_ints() and \c printf_ints().
 
 \section sec_example_code Example Code
-The full source code for programs that use the pipelining framework are available in the repository, see \c apps/unique and \c apps/pipelining_datastructures.
+The full source code for programs that use the pipelining framework are available in the repository, see \c apps/unique, \c pipelining_passive_sorter or \c apps/pipelining_datastructures.
 */
