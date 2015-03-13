@@ -100,23 +100,13 @@ private:
 	dest_t dest;
 
 public:
-#ifndef TPIE_CPP_RVALUE_REFERENCE
-	virtsrc_impl(const dest_t & dest)
-		: dest(dest)
-	{
-		node::add_push_destination(dest);
-		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
-		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
-	}
-#else // TPIE_CPP_RVALUE_REFERENCE
-	virtsrc_impl(dest_t dest)
-		: dest(std::move(dest))
+	virtsrc_impl(TPIE_RREF(dest_t) dest)
+		: dest(TPIE_MOVE(dest))
 	{
 		node::add_push_destination(this->dest);
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
 		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
-#endif // TPIE_CPP_RVALUE_REFERENCE
 
 	const node_token & get_token() {
 		return node::get_token();
@@ -610,10 +600,10 @@ public:
 	public:
 		typedef T item_type;
 
-		type(dest_t dest, virtual_chunk_end<T> out)
+		type(TPIE_RREF(dest_t) dest, virtual_chunk_end<T> out)
 			: vnode(out.get_node())
 			, dest2(bits::access::get_source(out))
-			, dest(dest)
+			, dest(TPIE_MOVE(dest))
 		{
 			add_push_destination(dest);
 			add_push_destination(*dest2);
