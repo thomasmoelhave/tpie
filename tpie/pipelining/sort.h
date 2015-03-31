@@ -169,7 +169,7 @@ public:
 
 	virtual void go() override {
 		while (this->m_sorter->can_pull()) {
-			auto y=this->m_sorter->pull();
+			TPIE_RREF(item_type) y=this->m_sorter->pull();
 			dest.push(TPIE_MOVE(y));
 			this->step();
 		}

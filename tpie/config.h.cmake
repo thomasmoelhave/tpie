@@ -53,7 +53,7 @@
 #define TPIE_RREF(T) T &&
 #else
 #define TPIE_MOVE(X) X
-#define TPIE_RREF(T) const T &&
+#define TPIE_RREF(T) const T &
 #endif
 
 #ifdef WIN32
