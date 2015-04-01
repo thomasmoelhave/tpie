@@ -53,8 +53,10 @@ enum subsystem {
 	STREAMS=64,
 	/** \brief Generate random hashcodes for tabulation hashing*/
 	HASH=128,
+	/** \brief Generate temporary files */
+	TEMPFILE=256,
 	/** \brief Alias for all default subsystems. */
-    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | STREAMS | HASH
+    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | STREAMS | HASH | TEMPFILE
 };
 
 ///////////////////////////////////////////////////////////////////////////////
