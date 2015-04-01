@@ -175,7 +175,7 @@ public:
 
 		inline puller_t(const source_t & source, const pushfact_t & pushfact)
 			: source(source)
-			, pusher(pushfact.construct(dummydest))
+			, pusher(pushfact.construct(dummydest_t<item_type>(dummydest)))
 		{
 			add_pull_source(source);
 			add_push_destination(pusher);
