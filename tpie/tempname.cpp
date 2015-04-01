@@ -95,10 +95,7 @@ std::string create_subdir() {
 	boost::filesystem::path p;
 	for (int i=0; i < 42; ++i) {
 		p = base_dir / construct_name("", "", i);
-		if ( !boost::filesystem::exists(p) )
-			if(!boost::filesystem::create_directory(p)) {
-				throw tempfile_error("Failed creating subdirectory for temporary files");
-			}
+		if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p))
 #if BOOST_FILESYSTEM_VERSION == 3
 			return p.string();
 #else
