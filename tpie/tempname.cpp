@@ -80,12 +80,14 @@ std::string get_timestamp() {
 	return name;
 }
 
-std::string construct_name(std::string post_base, std::string suffix, int i) {
+std::string construct_name(std::string post_base, std::string timestamp, std::string suffix, int i) {
 	std::stringstream ss;
 	ss << default_base_name << "_";
 	if(!post_base.empty())
-		ss << "_" << post_base;
-	ss << get_timestamp() << "_" << i << suffix;
+		ss << post_base << "_";
+	if(!timestamp.empty())
+		ss << timestamp << "_";
+	ss << i << suffix;
 
 	return ss.str();
 }
@@ -94,7 +96,7 @@ std::string create_subdir() {
 	boost::filesystem::path base_dir = tempname::get_actual_path();
 	boost::filesystem::path p;
 	for (int i=0; i < 42; ++i) {
-		p = base_dir / construct_name("", "", i);
+		p = base_dir / construct_name("", get_timestamp(), "", i);
 		if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p))
 #if BOOST_FILESYSTEM_VERSION == 3
 			return p.string();
@@ -110,7 +112,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 	if (!dir.empty()) {
 		boost::filesystem::path p;
 		for (int i=0; i < 42; ++i) {
-			p = dir; p /= construct_name(post_base, suffix, i);
+			p = dir; p /= construct_name(post_base, get_timestamp(), suffix, i);
 			if ( !boost::filesystem::exists(p) ) {
 #if BOOST_FILESYSTEM_VERSION == 3
 				return p.string();
@@ -125,7 +127,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 		if (subdir.empty()) subdir = create_subdir();
 
 		boost::filesystem::path p = subdir;
-		p /= construct_name(post_base, suffix, file_index++);
+		p /= construct_name(post_base, "", suffix, file_index++);
 
 #if BOOST_FILESYSTEM_VERSION == 3
 		return p.string();
