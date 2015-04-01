@@ -25,6 +25,7 @@
 #include <tpie/tempname.h>
 #include <tpie/tpie_log.h>
 #include <string>
+#include <sstream>
 #include <tpie/portability.h>
 #include <boost/filesystem.hpp>
 #include <boost/random.hpp>
@@ -45,9 +46,10 @@ boost::rand48 prng(42);
 namespace {
 
 std::string default_path;
-std::string default_base_name;
+std::string default_base_name = "TPIE";
 std::string default_extension;
-std::string tpie_mktemp();
+std::string subdir;
+memory_size_type file_index = 0;
 
 }
 
@@ -68,26 +70,32 @@ std::string tempname::get_system_path() {
 }
 
 namespace {
-std::string gen_temp(const std::string& post_base, const std::string& dir, const std::string& suffix) {
-	std::string base_name;
-	boost::filesystem::path base_dir;
 
-	base_name = default_base_name;
-	if(base_name.empty())
-		base_name = "TPIE";
+std::string get_timestamp() {
+	std::stringstream ss;
+	ss << boost::posix_time::second_clock::local_time();
+	std::string name = ss.str();
+	std::replace(name.begin(), name.end(), ':', '-');
+	std::replace(name.begin(), name.end(), ' ', '_');
+	return name;
+}
 
-	if(!dir.empty())
-		base_dir = dir;
-	else
-		base_dir = tempname::get_actual_path();
+std::string construct_name(std::string post_base, std::string suffix, int i) {
+	std::stringstream ss;
+	ss << default_base_name << "_";
+	if(!post_base.empty())
+		ss << "_" << post_base;
+	ss << get_timestamp() << "_" << i << suffix;
 
+	return ss.str();
+}
+
+std::string create_subdir() {
+	boost::filesystem::path base_dir = tempname::get_actual_path();
 	boost::filesystem::path p;
-	for(int i=0; i < 42; ++i) {
-		if(post_base.empty())
-			p = base_dir / (base_name + "_" + tpie_mktemp() + suffix);
-		else
-			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp() + suffix);
-		if ( !boost::filesystem::exists(p) )
+	for (int i=0; i < 42; ++i) {
+		p = base_dir / construct_name("", "", i);
+		if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p))
 #if BOOST_FILESYSTEM_VERSION == 3
 			return p.string();
 #else
@@ -95,8 +103,46 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 #endif
 		
 	}
-	throw tempfile_error("Unable to find free name for temporary file");
+	throw tempfile_error("Unable to find free name for temporary folder");
 }
+
+std::string gen_temp(const std::string& post_base, const std::string& dir, const std::string& suffix) {
+	if (!dir.empty()) {
+		boost::filesystem::path p;
+		for (int i=0; i < 42; ++i) {
+			p = dir; p /= construct_name(post_base, suffix, i);
+			if ( !boost::filesystem::exists(p) ) {
+#if BOOST_FILESYSTEM_VERSION == 3
+				return p.string();
+#else
+				return p.file_string();
+#endif
+			}
+		}
+		throw tempfile_error("Unable to find free name for temporary file");
+	}
+	else {
+		if (subdir.empty()) subdir = create_subdir();
+
+		boost::filesystem::path p = subdir;
+		p /= construct_name(post_base, suffix, file_index++);
+
+#if BOOST_FILESYSTEM_VERSION == 3
+		return p.string();
+#else
+		return p.file_string();
+#endif
+	}
+}
+
+}
+
+namespace tpie {
+	void finish_tempfile() {
+		if (!subdir.empty()) {
+			boost::filesystem::remove_all(subdir);
+		}
+	}
 }
 
 std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) {
@@ -122,36 +168,6 @@ std::string tempname::get_actual_path() {
 
 	return dir;
 }
-
-namespace {
-std::string tpie_mktemp()
-{
-	const std::string chars[] = 
-	{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
-	"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", 
-	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
-	"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-	const int chars_count = 62;
-	static int counter = boost::posix_time::second_clock::local_time().time_of_day().total_seconds() % (chars_count * chars_count); 
-
-	std::string result = "";
-	result +=
-		chars[counter/chars_count] +
-		chars[counter%chars_count] +
-		chars[prng() % chars_count] +
-		chars[prng() % chars_count] +
-		chars[prng() % chars_count] +
-		chars[prng() % chars_count] +
-		chars[prng() % chars_count] +
-		chars[prng() % chars_count];
-
-	counter = (counter + 1) % (chars_count * chars_count);
-
-	return result;
-}
-}
-
 
 void tempname::set_default_path(const std::string&  path, const std::string& subdir) {
 	if (subdir=="") {

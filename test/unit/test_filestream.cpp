@@ -25,7 +25,7 @@
 
 using namespace tpie;
 
-static const std::string TEMPFILE = "tmp";
+static const std::string TEMP_FILE = "tmp";
 static const size_t ITEMS = 16*1024*1024;
 
 class file_stream_memory_test : public memory_test {
@@ -44,8 +44,8 @@ public:
 	}
 
 	virtual void use() {
-		boost::filesystem::remove(TEMPFILE);
-		m_stream->open(TEMPFILE);
+		boost::filesystem::remove(TEMP_FILE);
+		m_stream->open(TEMP_FILE);
 		for (size_t i = 0; i < ITEMS; ++i) {
 			m_stream->write(i);
 		}

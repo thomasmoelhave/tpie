@@ -27,6 +27,7 @@
 #include <tpie/compressed/thread.h>
 #include <tpie/compressed/buffer.h>
 #include <tpie/hash.h>
+#include <tpie/tempname.h>
 
 namespace {
 static tpie::memory_size_type the_block_size=0;
@@ -86,6 +87,9 @@ void tpie_finish(int subsystems) {
 
 	if (subsystems & MEMORY_MANAGER)	
 	 	finish_memory_manager();
+
+	if (subsystems & TEMPFILE)
+		finish_tempfile();
 }
 
 memory_size_type get_block_size() {

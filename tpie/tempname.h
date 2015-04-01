@@ -145,6 +145,8 @@ namespace tpie {
 		static std::string get_actual_path();
 	};
 
+	void finish_tempfile();
+
 	namespace bits {
 	
 	class temp_file_inner : public boost::noncopyable {
