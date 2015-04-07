@@ -194,9 +194,8 @@ public:
 		/// [a,b), spawn a job on the left part and recurse on the right part,
 		/// until the min_size limit is reached.
 		///////////////////////////////////////////////////////////////////////
-		virtual void operator()() {
+		virtual void operator()() override {
 			assert(a <= b);
-			assert(&*a != 0);
 			while (static_cast<size_t>(b - a) >= min_size) {
 				iterator_type pivot = partition(a, b, comp);
 				add_progress(b - a);

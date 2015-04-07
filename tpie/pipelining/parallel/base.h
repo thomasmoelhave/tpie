@@ -473,7 +473,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Invoked by before::worker (in worker thread context).
 	///////////////////////////////////////////////////////////////////////////
-	virtual void worker_initialize() {
+	virtual void worker_initialize() override {
 		m_buffer.reset(new parallel_output_buffer<T>(st.opts));
 		m_outputBuffers[parId] = m_buffer.get();
 	}
