@@ -209,7 +209,7 @@ public:
 
 		inline pusher_t(const dest_t & dest, const pullfact_t & pullfact)
 			: dest(dest)
-			, puller(pullfact.construct(dummydest))
+			, puller(pullfact.construct(dummydest_t<item_type>(dummydest)))
 		{
 			add_push_destination(dest);
 			add_pull_source(puller);
