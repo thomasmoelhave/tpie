@@ -82,7 +82,7 @@ struct SingleInsertHelp {
 		template <typename Comp>
 		static result handle(Inner & inner, const Comp & comp) {
 			iterator fend=std::prev(inner.end());
-			iterator i=std::lower_bound(inner.begin(), fend, *fend);
+			iterator i=std::lower_bound(inner.begin(), fend, *fend, comp);
 			if (i != fend && !comp(*fend, *i)) {
 				inner.pop_back();
 				return std::make_pair(i, false);
