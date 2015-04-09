@@ -122,6 +122,7 @@ set (HEADERS
 		sysinfo.h
 		tpie_assert.h
 		tpie_log.h
+		tiny.h
 		stats.h
 		types.h
 		tempname.h
