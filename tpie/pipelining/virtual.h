@@ -605,7 +605,7 @@ public:
 			, dest2(bits::access::get_source(out))
 			, dest(TPIE_MOVE(dest))
 		{
-			add_push_destination(dest);
+			add_push_destination(this->dest);
 			add_push_destination(*dest2);
 		}
 

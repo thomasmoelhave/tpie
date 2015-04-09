@@ -36,8 +36,8 @@ class scanf_ints_t : public node {
 public:
 	typedef int item_type;
 
-	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
-		add_push_destination(dest);
+	inline scanf_ints_t(TPIE_RREF(dest_t) dest) : dest(TPIE_MOVE(dest)) {
+		add_push_destination(this->dest);
 	}
 
 	virtual void go() override {

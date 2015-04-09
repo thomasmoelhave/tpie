@@ -37,11 +37,11 @@ public:
 	typedef uint64_t count_t;
 	typedef typename push_type<dest_t>::type::first_type item_type;
 
-	inline count_consecutive_t(const dest_t & dest)
-		: dest(dest)
+	inline count_consecutive_t(TPIE_RREF(dest_t) dest)
+		: dest(TPIE_MOVE(dest))
 		, current_count(0)
 	{
-		add_push_destination(dest);
+		add_push_destination(this->dest);
 	}
 
 	virtual void end() override {
@@ -82,8 +82,8 @@ class extract_first_t : public node {
 public:
 	typedef std::pair<typename push_type<dest_t>::type, any_type> item_type;
 
-	inline extract_first_t(const dest_t & dest) : dest(dest) {
-		add_push_destination(dest);
+	inline extract_first_t(TPIE_RREF(dest_t) dest) : dest(TPIE_MOVE(dest)) {
+		add_push_destination(this->dest);
 	}
 
 	inline void push(const item_type & item) {

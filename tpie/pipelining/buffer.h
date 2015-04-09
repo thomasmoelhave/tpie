@@ -110,11 +110,11 @@ class buffer_output_t: public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	buffer_output_t(const dest_t &dest, const node_token & input_token)
-		: dest(dest)
+	buffer_output_t(TPIE_RREF(dest_t) dest, const node_token & input_token)
+		: dest(TPIE_MOVE(dest))
 	{
 		add_dependency(input_token);
-		add_push_destination(dest);
+		add_push_destination(this->dest);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
 		set_name("Fetching items", PRIORITY_INSIGNIFICANT);
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);

@@ -54,13 +54,13 @@ public:
 	template <typename dest_t>
 	class source_impl : public source_base {
 	public:
-		source_impl(const dest_t & dest, node_token token, source_base ** the_source)
+		source_impl(TPIE_RREF(dest_t) dest, node_token token, source_base ** the_source)
 			: source_base(token)
 			, the_source(the_source)
-			, dest(dest)
+			, dest(TPIE_MOVE(dest))
 		{
 			this->set_name("Join source", PRIORITY_INSIGNIFICANT);
-			this->add_push_destination(dest);
+			this->add_push_destination(this->dest);
 		}
 
 		virtual void prepare() override {

@@ -44,12 +44,12 @@ class input_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	input_t(const dest_t & dest, serialization_reader * rd)
-		: dest(dest)
+	input_t(TPIE_RREF(dest_t) dest, serialization_reader * rd)
+		: dest(TPIE_MOVE(dest))
 		, rd(rd)
 	{
 		set_name("Serialization reader");
-		add_push_destination(dest);
+		add_push_destination(this->dest);
 		set_minimum_memory(rd->memory_usage());
 	}
 
@@ -135,12 +135,12 @@ class rev_output_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	rev_output_t(const dest_t & dest)
-		: dest(dest)
+	rev_output_t(TPIE_RREF(dest_t) dest)
+		: dest(TPIE_MOVE(dest))
 		, m_stack(0)
 	{
 		this->set_name("Serialization reverse reader");
-		this->add_push_destination(dest);
+		this->add_push_destination(this->dest);
 	}
 
 	virtual void propagate() override {
@@ -186,8 +186,8 @@ class rev_input_t<rev_output_t<output_dest_t> > : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	rev_input_t(const dest_t & dest)
-		: dest(dest)
+	rev_input_t(TPIE_RREF(dest_t) dest)
+		: dest(TPIE_MOVE(dest))
 		, wr()
 		, items(0)
 	{
