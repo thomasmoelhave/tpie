@@ -159,8 +159,12 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 														 typename T::result_type> {
 	T i;
 	binary_argument_swap(const T & _=T()): i(_) {}
-	inline bool operator()(const typename T::second_argument_type & x,
-						   const typename T::first_argument_type & y) {
+	bool operator()(const typename T::second_argument_type & x,
+					const typename T::first_argument_type & y) const {
+		return i(y,x);
+	}
+	bool operator()(const typename T::second_argument_type & x,
+					const typename T::first_argument_type & y) {
 		return i(y,x);
 	}
 };
