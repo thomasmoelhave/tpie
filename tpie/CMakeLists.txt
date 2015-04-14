@@ -122,7 +122,6 @@ set (HEADERS
 		sysinfo.h
 		tpie_assert.h
 		tpie_log.h
-		tiny.h
 		stats.h
 		types.h
 		tempname.h
@@ -142,6 +141,10 @@ set (HEADERS
 		tpie.h
 		unittest.h
 		)
+
+if(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
+	set (HEADERS ${HEADERS} tiny.h)
+endif(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
 
 set (SOURCES
 	atomic.cpp

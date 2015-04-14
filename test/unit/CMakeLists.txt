@@ -162,7 +162,11 @@ add_unittest(maybe basic auto_ptr)
 add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
 add_unittest(node_name gcc msvc)
 add_unittest(snappy basic)
-add_unittest(tiny sort set map multiset multimap)
+
+if (TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
+	add_unittest(tiny sort set map multiset multimap)
+endif(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
+
 
 add_fulltest(ami_stream stress)
 add_fulltest(disjoint_set large large_cycle very_large medium ovelflow)
