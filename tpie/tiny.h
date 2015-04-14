@@ -315,7 +315,7 @@ public:
 	iterator erase(iterator first, iterator last) {
 		std::rotate(first, last, inner.end());
 		inner.resize(size() - (last-first));
-		return first;
+		return begin();
 	}
 
 	/**

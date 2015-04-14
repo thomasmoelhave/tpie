@@ -122,7 +122,9 @@ bool set_test() {
 	s2.erase(s2.find(14));
 	TEST_ENSURE_EQUALITY(s2.count(14), 0, "count");
 
-	TEST_ENSURE(s2.erase(s2.begin(), s2.end()) == s2.end(), "erase");
+	tpie::tiny::set<int>::const_iterator i = s2.erase(s2.begin(), s2.end());
+	tpie::tiny::set<int>::const_iterator j = s2.end();
+	TEST_ENSURE(i == j, "erase");
 	TEST_ENSURE(s2.empty(), "empty");
 	return true;
 }
