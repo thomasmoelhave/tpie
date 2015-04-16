@@ -33,6 +33,7 @@
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/err.h>
+#include <stack>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -48,7 +49,7 @@ namespace {
 std::string default_path;
 std::string default_base_name = "TPIE";
 std::string default_extension;
-std::string subdir;
+std::stack<std::string> subdirs;
 memory_size_type file_index = 0;
 
 }
@@ -92,18 +93,23 @@ std::string construct_name(std::string post_base, std::string timestamp, std::st
 	return ss.str();
 }
 
-std::string create_subdir() {
+void create_subdir() {
 	boost::filesystem::path base_dir = tempname::get_actual_path();
 	boost::filesystem::path p;
 	for (int i=0; i < 42; ++i) {
 		p = base_dir / construct_name("", get_timestamp(), "", i);
-		if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p))
+		if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p)) {
 #if BOOST_FILESYSTEM_VERSION == 3
-			return p.string();
+			std::string path = p.string();
 #else
-			return p.file_string();
+			std::string path = p.file_string();
 #endif
-		
+			if (!subdirs.empty() && subdirs.top().empty())
+				subdirs.pop();
+			subdirs.push(path);
+			return;
+		}
+
 	}
 	throw tempfile_error("Unable to find free name for temporary folder");
 }
@@ -124,9 +130,9 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 		throw tempfile_error("Unable to find free name for temporary file");
 	}
 	else {
-		if (subdir.empty()) subdir = create_subdir();
+		if (subdirs.empty() || subdirs.top().empty()) create_subdir();
 
-		boost::filesystem::path p = subdir;
+		boost::filesystem::path p = subdirs.top();
 		p /= construct_name(post_base, "", suffix, file_index++);
 
 #if BOOST_FILESYSTEM_VERSION == 3
@@ -141,8 +147,10 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 
 namespace tpie {
 	void finish_tempfile() {
-		if (!subdir.empty()) {
-			boost::filesystem::remove_all(subdir);
+		while(!subdirs.empty()) {
+			if(!subdirs.top().empty())
+				boost::filesystem::remove_all(subdirs.top());
+			subdirs.pop();
 		}
 	}
 }
@@ -174,6 +182,7 @@ std::string tempname::get_actual_path() {
 void tempname::set_default_path(const std::string&  path, const std::string& subdir) {
 	if (subdir=="") {
 		default_path = path;
+		subdirs.push(""); // signals that the current global subdirectory has not been created yet
 		return;
 	}
 	boost::filesystem::path p = path;
@@ -184,6 +193,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 		}
 		if (!boost::filesystem::is_directory(p)) {	
 			default_path = path;
+			subdirs.push(""); // signals that the current global subdirectory has not been created yet
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
 
@@ -192,6 +202,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 #else
 		default_path = p.directory_string();
 #endif
+		subdirs.push(""); // signals that the current global subdirectory has not been created yet
 	} catch (boost::filesystem::filesystem_error) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
