@@ -85,6 +85,14 @@ namespace tpie {
 		static std::string get_system_path();
 
 		///////////////////////////////////////////////////////////////////////
+		/// \brief Tests whether a temporary path is usable for tpie
+		///
+		/// \param path The path to test
+		/// \param subdir Subdirectory of the temporary path, will be created if it does not exist.
+		///////////////////////////////////////////////////////////////////////
+		static bool try_directory(const std::string& path, const std::string& subdir="");
+
+		///////////////////////////////////////////////////////////////////////
 		/// \brief Sets the default temporary path.
 		///
 		/// \param path The default path to use; this path must exist in the system.

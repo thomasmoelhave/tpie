@@ -32,7 +32,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdexcept>
 #include <tpie/util.h>
+#include <tpie/exception.h>
 #include <tpie/err.h>
+#include <tpie/file_accessor/file_accessor.h>
 #include <stack>
 
 #ifdef _WIN32
@@ -177,6 +179,53 @@ std::string tempname::get_actual_path() {
 		dir = get_system_path(); //OS path
 
 	return dir;
+}
+
+bool tempname::try_directory(const std::string& path, const std::string& subdir) {
+	boost::filesystem::path p = path;
+	if(!subdir.empty())
+		p = p / subdir;
+
+	bool exists = boost::filesystem::exists(p);
+
+
+	if (exists && !boost::filesystem::is_directory(p))
+		return false;
+
+	if (!exists) {
+		try {
+			boost::filesystem::create_directory(p);
+		}
+		catch(boost::filesystem::filesystem_error) {
+			return false;
+		}
+	}
+
+	for(size_t i = 0; i < 42; ++i) {
+		boost::filesystem::path f = p / construct_name("", get_timestamp(), "", i);
+		if(boost::filesystem::exists(f)) continue;
+
+#if BOOST_FILESYSTEM_VERSION == 3
+		std::string file_path = f.string();
+#else
+		std::string file_path = f.directory_string();
+#endif
+
+		try {
+			tpie::file_accessor::raw_file_accessor accessor;
+			accessor.open_rw_new(file_path);
+			accessor.write_i(static_cast<const void*>(&i), sizeof(i));
+			if(exists)
+				boost::filesystem::remove_all(file_path);
+			else
+				boost::filesystem::remove_all(p);
+			return true;
+		}
+		catch(tpie::exception) {}
+	}
+
+	return false;
+	// remove file
 }
 
 void tempname::set_default_path(const std::string&  path, const std::string& subdir) {
