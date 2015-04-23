@@ -69,7 +69,8 @@ public:
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipelining nodes gathers elements into a vector of some size.
+/// \brief A pipelining node that gathers elements into a vector of some size.
+/// \param maxSize the maximum size of the vector
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<factory_1<bits::chunker_t, size_t> > chunker;
 

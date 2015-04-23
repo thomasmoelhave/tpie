@@ -58,10 +58,9 @@ public:
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipelining nodes that keeps only elements where functor evaluates
-// to true.
-/// the stream.
-/// \param f The filter to use
+/// \brief A pipelining node that keeps only elements where functor evaluates
+/// to true.
+/// \param functor The filter to use
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 pipe_middle<tempfactory_1<bits::filter_t<F>, F> > filter(const F & functor) {

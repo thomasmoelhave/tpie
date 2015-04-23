@@ -22,8 +22,10 @@
 
 \section sec_middle Middle nodes
 \secreflist
+\ref tpie::pipelining::chunker
 \ref tpie::pipelining::cout_logger
 \ref tpie::pipelining::exclude_lambda
+\ref tpie::pipelining::filter
 \ref tpie::pipelining::fork
 \ref tpie::pipelining::identity
 \ref tpie::pipelining::internal_reverser
