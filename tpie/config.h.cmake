@@ -34,6 +34,7 @@
 #cmakedefine TPIE_CPP_VARIADIC_TEMPLATES
 #cmakedefine TPIE_CPP_RVALUE_REFERENCE
 #cmakedefine TPIE_CPP_OVERRIDE_KEYWORD
+#cmakedefine TPIE_CPP_NOXECEPT_KEYWORD
 #cmakedefine TPIE_CPP_DECLTYPE
 #cmakedefine TPIE_CPP_TEMPLATE_ALIAS
 #cmakedefine TPIE_CPP_NONE_POD_UNION
@@ -43,6 +44,14 @@
 	#define final
 	#define override
 #endif
+
+#ifndef TPIE_CPP_NOXECEPT_KEYWORD
+	#define TPIE_NOEXCEPT throw()
+#else
+	#define TPIE_NOEXCEPT noexcept
+#endif
+
+
 
 #if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
 #define TPIE_VARIADIC_FACTORIES

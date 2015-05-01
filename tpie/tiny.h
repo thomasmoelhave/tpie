@@ -20,6 +20,7 @@
 #define __TPIE_TINY_H__
 #include <algorithm>
 #include <stdexcept>
+#include <tpie/config.h>
 
 namespace tpie {
 namespace tiny {
@@ -214,83 +215,83 @@ public:
 	/**
 	 * \brief Returns an iterator to the first element of the container.
 	 */
-	iterator begin() noexcept {return inner.begin();}
+	iterator begin() TPIE_NOEXCEPT {return inner.begin();}
 
 	/**
 	 * \brief Returns an iterator to the first element of the container.
 	 */
-	const_iterator begin() const noexcept {return inner.cbegin();}
+	const_iterator begin() const TPIE_NOEXCEPT {return inner.cbegin();}
 
 	/**
 	 * \brief Returns an iterator to the first element of the container.
 	 */
-	const_iterator cbegin() const noexcept {return inner.cbegin();}
+	const_iterator cbegin() const TPIE_NOEXCEPT {return inner.cbegin();}
 
 	/**
 	 * \brief Returns a reverse iterator to the first element of the reversed container.
 	 */
-	reverse_iterator rbegin() noexcept {return inner.rbegin();}
+	reverse_iterator rbegin() TPIE_NOEXCEPT {return inner.rbegin();}
 
 	/**
 	 * \brief Returns a reverse iterator to the first element of the reversed container.
 	 */
-	const_reverse_iterator rbegin() const noexcept {return inner.rbegin();}
+	const_reverse_iterator rbegin() const TPIE_NOEXCEPT {return inner.rbegin();}
 
 	/**
 	 * \brief Returns a reverse iterator to the first element of the reversed container.
 	 */
-	const_reverse_iterator crbegin() const noexcept {return inner.rbegin();}
+	const_reverse_iterator crbegin() const TPIE_NOEXCEPT {return inner.rbegin();}
 
 	/**
 	 * \brief Returns an iterator to the element following the last element of the container.
 	 */
-	iterator end() noexcept {return inner.end();}
+	iterator end() TPIE_NOEXCEPT {return inner.end();}
 
 	/**
 	 * \brief Returns an iterator to the element following the last element of the container.
 	 */
-	const_iterator end() const noexcept {return inner.cend();}
+	const_iterator end() const TPIE_NOEXCEPT {return inner.cend();}
 
 	/** 
 	 * \brief Returns an iterator to the element following the last element of the container.
 	 */
-	const_iterator cend() const noexcept {return inner.cend();}
+	const_iterator cend() const TPIE_NOEXCEPT {return inner.cend();}
 
 	/**
 	 * \brief Returns a reverse iterator to the element following the
 	 * last element of the reversed container.
 	 */
-	reverse_iterator rend() noexcept {return inner.rend();}
+	reverse_iterator rend() TPIE_NOEXCEPT {return inner.rend();}
 
 	/**
 	 * \brief Returns a reverse iterator to the element following the
 	 * last element of the reversed container.
 	 */
-	const_reverse_iterator rend() const noexcept {return inner.rend();}
+	const_reverse_iterator rend() const TPIE_NOEXCEPT {return inner.rend();}
 
 	/**
 	 * \brief Returns a reverse iterator to the element following the
 	 * last element of the reversed container.
 	 */
-	const_reverse_iterator crend() const noexcept {return inner.rend();}
+	const_reverse_iterator crend() const TPIE_NOEXCEPT {return inner.rend();}
 
 	/**
 	 * \brief Checks if the container has no elements, i.e. whether
 	 * begin() == end().
 	 */
-	bool empty() const noexcept {return inner.empty();}
+	bool empty() const TPIE_NOEXCEPT {return inner.empty();}
 
 	/**
 	 * \brief Returns the number of elements in the container, i.e. std::distance(begin(), end())
 	 */
-	size_t size() const noexcept {return inner.size();}
+	size_t size() const TPIE_NOEXCEPT {return inner.size();}
 
 	/**
 	 * \brief Returns the maximum number of elements the container is
 	 * able to hold due to system or library implementation
 	 * limitations.
 	 */
-	size_t max_size() const noexcept {return inner.max_size();}
+	size_t max_size() const TPIE_NOEXCEPT {return inner.max_size();}
 
 	/**
 	 * \brief Removes all elements from the container. 
@@ -342,7 +343,7 @@ public:
 	 * \brief Finds an element with key equivalent to key. If no such
 	 * element is found, past-the-end iterator is returned.
 	 */
-	iterator find(const Key & key) noexcept {
+	iterator find(const Key & key) TPIE_NOEXCEPT {
 		iterator x=lower_bound(key);
 		if (x == end() || comp(key, *x)) return end();
 		return x;
@@ -352,7 +353,7 @@ public:
 	 * \brief Finds an element with key equivalent to key. If no such
 	 * element is found, past-the-end iterator is returned.
 	 */
-	const_iterator find(const Key & key) const noexcept {
+	const_iterator find(const Key & key) const TPIE_NOEXCEPT {
 		const_iterator x=lower_bound(key);
 		if (x == end() || comp(key, *x)) return end();
 		return x;
@@ -364,7 +365,7 @@ public:
 	 * one pointing to the first element that is not less than key and
 	 * another pointing to the first element greater than key.
 	 */
-	std::pair<iterator, iterator> equal_range(const Key & key) noexcept {
+	std::pair<iterator, iterator> equal_range(const Key & key) TPIE_NOEXCEPT {
 		return std::equal_range(inner.begin(), inner.end(), key, comp);
 	}
 
@@ -374,7 +375,7 @@ public:
 	 * one pointing to the first element that is not less than key and
 	 * another pointing to the first element greater than key.
 	 */
-	std::pair<const_iterator, const_iterator> equal_range(const Key & key) const noexcept {
+	std::pair<const_iterator, const_iterator> equal_range(const Key & key) const TPIE_NOEXCEPT {
 		return std::equal_range(inner.begin(), inner.end(), key, comp);
 	}
 
@@ -382,7 +383,7 @@ public:
 	 * \brief Returns an iterator pointing to the first element that
 	 * is not less than key.
 	 */
-	iterator lower_bound(const Key & key) noexcept {
+	iterator lower_bound(const Key & key) TPIE_NOEXCEPT {
 		return std::lower_bound(inner.begin(), inner.end(), key, comp);
 	}
 
@@ -390,7 +391,7 @@ public:
 	 * \brief Returns an iterator pointing to the first element that
 	 * is not less than key.
 	 */
-	const_iterator lower_bound(const Key & key) const noexcept {
+	const_iterator lower_bound(const Key & key) const TPIE_NOEXCEPT {
 		return std::lower_bound(inner.begin(), inner.end(), key, comp);
 	}
 
@@ -398,7 +399,7 @@ public:
 	 * \brief Returns an iterator pointing to the first element that
 	 * is greater than key.
 	 */
-	iterator upper_bound(const Key & key) noexcept {
+	iterator upper_bound(const Key & key) TPIE_NOEXCEPT {
 		return std::upper_bound(inner.begin(), inner.end(), key, comp);
 	}
 
@@ -406,7 +407,7 @@ public:
 	 * \brief Returns an iterator pointing to the first element that
 	 * is greater than key.
 	 */
-	const_iterator upper_bound(const Key & key) const noexcept {
+	const_iterator upper_bound(const Key & key) const TPIE_NOEXCEPT {
 		return std::upper_bound(inner.begin(), inner.end(), key, comp);
 	}
 
@@ -414,7 +415,7 @@ public:
 	 * \brief Returns the function object that compares the keys,
 	 * which is a copy of this container's constructor argument comp.
 	 */
-	key_compare key_comp() const noexcept {
+	key_compare key_comp() const TPIE_NOEXCEPT {
 		return comp.comp;
 	}
 
@@ -423,7 +424,7 @@ public:
 	 * std::map::value_type (key-value pairs) by using key_comp to
 	 * compare the first components of the pairs.
 	 */
-	value_compare value_comp() const noexcept {
+	value_compare value_comp() const TPIE_NOEXCEPT {
 		return comp;
 	}
 
@@ -520,7 +521,7 @@ public:
 	/**
 	 * \brief Returns the number of elements with key k.
 	 */
-	size_t count(const Key k) const noexcept {
+	size_t count(const Key k) const TPIE_NOEXCEPT {
 		if (IH::multi) {
 			auto x=equal_range(k);
 			return x.second - x.first;
@@ -632,7 +633,7 @@ public:
 	 * \brief Returns the number of elements that the container has
 	 * currently allocated space for.
 	 */
-	size_t capacity() const noexcept {return inner.capacity();}
+	size_t capacity() const TPIE_NOEXCEPT {return inner.capacity();}
 protected:	
 	value_compare comp;
 	std::vector<value_type, Alloc> inner;
@@ -674,7 +675,23 @@ template <typename Key,
 private:
 	typedef set_impl<std::pair<Key, T>, T, bits::PairExtract<Key, T>, Comp, Alloc, bits::SingleInsertHelp> P;
 public:
-	using P::P;
+
+	map() {}
+	explicit map(const Comp & comp, const Alloc & alloc = Alloc()) : P(comp alloc) {}
+	explicit map(const Alloc & alloc) : P(alloc) {}
+	map(const map & other) : P(other) {}
+	map(const map & other, const Alloc & alloc) : P(other, alloc) {}
+	map(map && other) : P(other) {}
+	map(map && other, const Alloc & alloc) : P(std::move(other), alloc) {}
+	template< class InputIterator >
+	map(InputIterator first, InputIterator last,
+		const Comp& comp = Comp(),
+		const Alloc& alloc = Alloc()) : P(first, last, comp, alloc) {}
+	map(std::initializer_list<value_type> init,
+		const Comp& comp = Comp(),
+		const Alloc& alloc = Alloc()) : P(init, comp, alloc) {}
+
+	//using P::P; we must explicity copy the constructors until VS supports this
 		
 	/**
 	 * \brief Returns a reference to the value that is mapped to a key
