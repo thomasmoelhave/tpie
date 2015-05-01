@@ -212,9 +212,11 @@ bool tempname::try_directory(const std::string& path, const std::string& subdir)
 #endif
 
 		try {
-			tpie::file_accessor::raw_file_accessor accessor;
-			accessor.open_rw_new(file_path);
-			accessor.write_i(static_cast<const void*>(&i), sizeof(i));
+			{
+				tpie::file_accessor::raw_file_accessor accessor;
+				accessor.open_rw_new(file_path);
+				accessor.write_i(static_cast<const void*>(&i), sizeof(i));
+			}
 			if(exists)
 				boost::filesystem::remove_all(file_path);
 			else
@@ -222,6 +224,7 @@ bool tempname::try_directory(const std::string& path, const std::string& subdir)
 			return true;
 		}
 		catch(tpie::exception) {}
+		catch (boost::filesystem::filesystem_error) {}
 	}
 
 	return false;
