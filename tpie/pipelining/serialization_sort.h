@@ -446,13 +446,14 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory for the passive sorter output node.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename Traits>
+template <typename T, typename pred_t>
 class passive_sorter_factory_2 : public factory_base {
+	typedef serialization_bits::sorter_traits<T, pred_t> Traits;
 public:
 	typedef sort_pull_output_t<Traits> output_t;
 	typedef output_t constructed_type;
 
-	passive_sorter_factory_2(const serialization_passive_sorter<Traits> & sorter)
+	passive_sorter_factory_2(const serialization_passive_sorter<T, pred_t> & sorter)
 		: m_sorter(sorter)
 	{
 	}
@@ -460,7 +461,7 @@ public:
 	constructed_type construct() const;
 
 private:
-	const serialization_passive_sorter<Traits> & m_sorter;
+	const serialization_passive_sorter<T, pred_t> & m_sorter;
 };
 
 } // namespace serialization_bits
@@ -503,8 +504,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
-	pullpipe_begin<serialization_bits::passive_sorter_factory_2<Traits> > output() {
-		return serialization_bits::passive_sorter_factory_2<Traits>(*this);
+	pullpipe_begin<serialization_bits::passive_sorter_factory_2<T, pred_t> > output() {
+		return serialization_bits::passive_sorter_factory_2<T, pred_t>(*this);
 	}
 
 private:
@@ -514,14 +515,14 @@ private:
 	serialization_passive_sorter(const serialization_passive_sorter &);
 	serialization_passive_sorter & operator=(const serialization_passive_sorter &);
 
-	friend class serialization_bits::passive_sorter_factory_2<Traits>;
+	friend class serialization_bits::passive_sorter_factory_2<T, pred_t>;
 };
 
 namespace serialization_bits {
 
-template <typename Traits>
-typename passive_sorter_factory_2<Traits>::constructed_type
-passive_sorter_factory_2<Traits>::construct() const {
+template <typename T, typename pred_t>
+typename passive_sorter_factory_2<T, pred_t>::constructed_type
+passive_sorter_factory_2<T, pred_t>::construct() const {
 	constructed_type res = m_sorter.m_output;
 	init_node(res);
 	return res;
