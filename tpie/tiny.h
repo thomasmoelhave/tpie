@@ -677,7 +677,7 @@ private:
 public:
 
 	map() {}
-	explicit map(const Comp & comp, const Alloc & alloc = Alloc()) : P(comp alloc) {}
+	explicit map(const Comp & comp, const Alloc & alloc = Alloc()) : P(comp, alloc) {}
 	explicit map(const Alloc & alloc) : P(alloc) {}
 	map(const map & other) : P(other) {}
 	map(const map & other, const Alloc & alloc) : P(other, alloc) {}
@@ -687,7 +687,7 @@ public:
 	map(InputIterator first, InputIterator last,
 		const Comp& comp = Comp(),
 		const Alloc& alloc = Alloc()) : P(first, last, comp, alloc) {}
-	map(std::initializer_list<value_type> init,
+	map(std::initializer_list<typename P::value_type> init,
 		const Comp& comp = Comp(),
 		const Alloc& alloc = Alloc()) : P(init, comp, alloc) {}
 
