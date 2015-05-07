@@ -76,23 +76,23 @@ private:
 	typedef typename S::internal_type internal_type;
 
 	
-	size_t count_child(internal_type node, size_t i, leaf_type) {
+	size_t count_child(internal_type node, size_t i, leaf_type) const {
 		return m_store.count_child_leaf(node, i);
 	}
 
-	size_t count_child(internal_type node, size_t i, internal_type) {
+	size_t count_child(internal_type node, size_t i, internal_type) const {
 		return m_store.count_child_internal(node, i);
 	}
 
-	internal_type get_child(internal_type node, size_t i, internal_type) {
+	internal_type get_child(internal_type node, size_t i, internal_type) const {
 		return m_store.get_child_internal(node, i);
 	}
 
-	leaf_type get_child(internal_type node, size_t i, leaf_type) {
+	leaf_type get_child(internal_type node, size_t i, leaf_type) const {
 		return m_store.get_child_leaf(node, i);
 	}
 
-	leaf_type find_leaf(std::vector<internal_type> & path, key_type k) {
+	leaf_type find_leaf(std::vector<internal_type> & path, key_type k) const {
 		path.clear();
 		if (m_store.height() == 1) return m_store.get_root_leaf();
 		internal_type n = m_store.get_root_internal();
@@ -253,7 +253,7 @@ public:
 	/**
 	 * \brief Returns an iterator pointing to the beginning of the tree
 	 */
-	iterator begin() {
+	iterator begin() const {
 		iterator i(&m_store);
 		i.goto_begin();
 		return i;
@@ -262,7 +262,7 @@ public:
 	/**
 	 * \brief Returns an iterator pointing to the end of the tree
 	 */
-	iterator end() {
+	iterator end() const {
 		iterator i(&m_store);
 		i.goto_end();
 		return i;
@@ -359,7 +359,7 @@ public:
 	/**
 	 * \brief Return an iterator to the first item with the given key
 	 */
-	iterator find(key_type v) {
+	iterator find(key_type v) const {
 		iterator itr(&m_store);
 
 		if(m_store.height() == 0) {
@@ -492,7 +492,7 @@ public:
 	 * \brief Return the root node
 	 * \pre !empty()
 	 */
-	node_type root() {
+	node_type root() const {
 		if (m_store.height() == 1) return node_type(&m_store, m_store.get_root_leaf());
 		return node_type(&m_store, m_store.get_root_internal());
 	}

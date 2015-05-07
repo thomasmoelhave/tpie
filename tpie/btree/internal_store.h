@@ -122,23 +122,23 @@ private:
 		node->values[i].ptr = c;
 	}
 
-	T & get(leaf_type l, size_t i) {
+	T & get(leaf_type l, size_t i) const {
 		return l->values[i];
 	}
 
-	size_t count(internal_type node) {
+	size_t count(internal_type node) const {
 		return node->count;
 	}
 
-	size_t count_child_leaf(internal_type node, size_t i) {
+	size_t count_child_leaf(internal_type node, size_t i) const {
 		return static_cast<leaf_type>(node->values[i].ptr)->count;
 	}
 
-	size_t count_child_internal(internal_type node, size_t i) {
+	size_t count_child_internal(internal_type node, size_t i) const {
 		return static_cast<internal_type>(node->values[i].ptr)->count;
 	}
 
-	size_t count(leaf_type node) {
+	size_t count(leaf_type node) const {
 		return node->count;
 	}
 
@@ -150,23 +150,23 @@ private:
 		node->count = i;
 	}
 
-	key_type min_key(internal_type node, size_t i) {
+	key_type min_key(internal_type node, size_t i) const {
 		return node->values[i].min_key;
 	}
 
-	key_type min_key(leaf_type node, size_t i) {
+	key_type min_key(leaf_type node, size_t i) const {
 		return key_extract(node->values[i]);
 	}
 
-	key_type min_key(T v) {
+	key_type min_key(T v) const {
 		return key_extract(v);
 	}
 
-	key_type min_key(internal_type v) {
+	key_type min_key(internal_type v) const {
 		return min_key(v, 0);
 	}
 
-	key_type min_key(leaf_type v) {
+	key_type min_key(leaf_type v) const {
 		return min_key(v, 0);
 	}
 
@@ -181,23 +181,30 @@ private:
 	void set_root(internal_type node) {m_root = node;}
 	void set_root(leaf_type node) {m_root = node;}
 
-	internal_type get_root_internal() {return static_cast<internal_type>(m_root);}
-	leaf_type get_root_leaf() {return static_cast<leaf_type>(m_root);}
-	internal_type get_child_internal(internal_type node, size_t i) {
+	internal_type get_root_internal() const {
+		return static_cast<internal_type>(m_root);
+	}
+
+	leaf_type get_root_leaf() const {
+		return static_cast<leaf_type>(m_root);
+	}
+
+	internal_type get_child_internal(internal_type node, size_t i) const {
 		return static_cast<internal_type>(node->values[i].ptr);
 	}
-	leaf_type get_child_leaf(internal_type node, size_t i) {
+
+	leaf_type get_child_leaf(internal_type node, size_t i) const {
 		return static_cast<leaf_type>(node->values[i].ptr);
 	}
 
-	size_t index(leaf_type child, internal_type node) {
+	size_t index(leaf_type child, internal_type node) const {
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
 		tp_assert(false, "Leaf not found");
 		tpie_unreachable();
 	}
 
-	size_t index(internal_type child, internal_type node) {
+	size_t index(internal_type child, internal_type node) const {
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
 		tp_assert(false, "Node nout found");
@@ -217,7 +224,7 @@ private:
 		p->values[idx].augment = ag;
 	}
 
-	const augment_type & augment(internal_type p, size_t i) {
+	const augment_type & augment(internal_type p, size_t i) const {
 		return p->values[i].augment;
 	}
 	

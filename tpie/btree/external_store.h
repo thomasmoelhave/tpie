@@ -210,28 +210,28 @@ private:
 		m_collection->write_block(node.handle);
 	}
 
-	T get(leaf_type node, size_t i) {
+	T get(leaf_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		leaf nodeInter(nodeBlock);
 
 		return nodeInter.values[i];
 	}
 
-	size_t count(internal_type node) {
+	size_t count(internal_type node) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		return *(nodeInter.count);
 	}
 
-	size_t count(leaf_type node) {
+	size_t count(leaf_type node) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		leaf nodeInter(nodeBlock);
 
 		return *(nodeInter.count);
 	}
 
-	size_t count_child_leaf(internal_type node, size_t i) {
+	size_t count_child_leaf(internal_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
@@ -239,7 +239,7 @@ private:
 		return count(wrap);	
 	}
 
-	size_t count_child_internal(internal_type node, size_t i) {
+	size_t count_child_internal(internal_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
@@ -265,29 +265,29 @@ private:
 		m_collection->write_block(node.handle);
 	}
 
-	key_type min_key(internal_type node, size_t i) {
+	key_type min_key(internal_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		return nodeInter.values[i].min_key;
 	}
 
-	key_type min_key(leaf_type node, size_t i) {
+	key_type min_key(leaf_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		leaf nodeInter(nodeBlock);
 
 		return key_extract(nodeInter.values[i]);
 	}
 
-	key_type min_key(T v) {
+	key_type min_key(T v) const {
 		return key_extract(v);
 	}
 
-	key_type min_key(internal_type v) {
+	key_type min_key(internal_type v) const {
 		return min_key(v, 0);
 	}
 
-	key_type min_key(leaf_type v) {
+	key_type min_key(leaf_type v) const {
 		return min_key(v, 0);
 	}
 
@@ -341,21 +341,21 @@ private:
 		return leaf_type(m_root);
 	}
 
-	internal_type get_child_internal(internal_type node, size_t i) {
+	internal_type get_child_internal(internal_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal dstInter(nodeBlock);
 
 		return internal_type(dstInter.values[i].handle);
 	}
 
-	leaf_type get_child_leaf(internal_type node, size_t i) {
+	leaf_type get_child_leaf(internal_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal dstInter(nodeBlock);
 
 		return leaf_type(dstInter.values[i].handle);
 	}
 
-	size_t index(leaf_type child, internal_type node) {
+	size_t index(leaf_type child, internal_type node) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal dstInter(nodeBlock);
 
@@ -365,7 +365,7 @@ private:
 		__builtin_unreachable();
 	}
 
-	size_t index(internal_type child, internal_type node) {
+	size_t index(internal_type child, internal_type node) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal dstInter(nodeBlock);
 
@@ -411,7 +411,7 @@ private:
 		__builtin_unreachable();
 	}
 
-	const augment_type & augment(internal_type node, size_t i) {
+	const augment_type & augment(internal_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 

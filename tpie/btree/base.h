@@ -43,7 +43,10 @@ struct empty_augmenter {
 template <typename T>
 struct identity_key {
 	typedef T value_type;
-	T operator()(T & t) {return t;}
+	
+	T operator()(T & t) const {
+		return t;
+	}
 };
 
 

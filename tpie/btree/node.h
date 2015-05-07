@@ -174,20 +174,20 @@ private:
 	typedef typename S::leaf_type leaf_type;
 	typedef typename S::internal_type internal_type;
 
-	btree_node(S * store, leaf_type root)
+	btree_node(const S * store, leaf_type root)
 		: m_store(store), m_leaf(root), m_is_leaf(true) {
 	}
 
-	btree_node(S * store, internal_type root)
+	btree_node(const S * store, internal_type root)
 		: m_store(store), m_is_leaf(false) {
 		m_path.push_back(root);
 	}
 
-	btree_node(S * store, std::vector<internal_type> path, leaf_type leaf)
+	btree_node(const S * store, std::vector<internal_type> path, leaf_type leaf)
 		: m_store(store), m_path(path), m_leaf(leaf), m_is_leaf(true) {
 	}
 
-	S * m_store;
+	const S * m_store;
 	std::vector<internal_type> m_path;
 	leaf_type m_leaf;
 	bool m_is_leaf;
@@ -202,7 +202,7 @@ private:
 template <typename S>
 class btree_iterator: public boost::iterator_facade<
 	btree_iterator<S>,
-	typename S::value_type,
+	typename S::value_type const,
 	boost::bidirectional_traversal_tag,
 	typename S::value_type> {
 private:
@@ -211,7 +211,7 @@ private:
 	typedef typename S::value_type value_type;
 	typedef typename S::key_type key_type;
 
-	S * m_store;
+	const S * m_store;
 	std::vector<internal_type> m_path;
 	size_t m_index;
 	leaf_type m_leaf;
@@ -219,7 +219,7 @@ private:
 	template <typename, typename, typename>
 	friend class btree;
 
-	btree_iterator(S * store): m_store(store) {}
+	btree_iterator(const S * store): m_store(store) {}
 
 	void goto_item(const std::vector<internal_type> & p, leaf_type l, size_t i) {
 		m_path = p;
