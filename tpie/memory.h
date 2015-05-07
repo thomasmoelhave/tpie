@@ -535,8 +535,8 @@ public:
 
 #ifdef TPIE_CPP_RVALUE_REFERENCE
 #ifdef TPIE_CPP_VARIADIC_TEMPLATES
-	template <typename ...TT>
-	inline void construct(T * p, TT &&...x) {a.construct(p, x...);}
+	template <typename U, typename ...TT>
+	inline void construct(U * p, TT &&...x) {a.construct(p, x...);}
 #else
 	#ifdef __clang__
 		//push the current warning state
