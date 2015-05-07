@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <boost/progress.hpp>
-#include <boost/strong_typedef.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include <sstream>
 #include <tpie/array.h>
 #include <tpie/tpie.h>
