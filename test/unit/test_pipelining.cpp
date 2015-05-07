@@ -22,6 +22,7 @@
 #include <tpie/file_stream.h>
 #include <boost/filesystem.hpp>
 #include <algorithm>
+#include <cmath>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
 #include <tpie/progress_indicator_arrow.h>
@@ -582,7 +583,7 @@ bool memory_test(memtest settings) {
 	const double f1 = settings.frac1;
 	const double f2 = settings.frac2;
 	if ((min1 < m1 && m1 < max1) && (min2 < m2 && m2 < max2)
-		&& abs(m1 * f2 - m2 * f1) > EPS)
+		&& std::abs(m1 * f2 - m2 * f1) > EPS)
 	{
 		log_error() << "Fractions not honored" << std::endl;
 		return false;
@@ -1791,7 +1792,7 @@ bool datastructure_test(datastructuretest settings) {
 	const double f1 = settings.frac1;
 	const double f2 = settings.frac2;
 	if ((min1 < m1 && m1 < max1) && (min2 < m2 && m2 < max2)
-		&& abs(m1 * f2 - m2 * f1) > EPS)
+		&& std::abs(m1 * f2 - m2 * f1) > EPS)
 	{
 		log_error() << "Fractions not honored" << std::endl;
 		return false;
