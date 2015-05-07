@@ -103,7 +103,7 @@ inline stream_size_type posix::file_size_i() {
 }
 
 void posix::open_wo(const std::string & path) {
-	m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
+	m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT, 0777);
 	if (m_fd == -1) throw_errno();
 	give_advice();
 }
@@ -125,7 +125,7 @@ bool posix::try_open_rw(const std::string & path) {
 }
 
 void posix::open_rw_new(const std::string & path) {
-	m_fd = ::open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+	m_fd = ::open(path.c_str(), O_RDWR | O_CREAT, 0777);
 	if (m_fd == -1) throw_errno();
 	give_advice();
 }
