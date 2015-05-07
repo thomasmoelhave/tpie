@@ -80,7 +80,7 @@ namespace tpie {
 
 const compression_scheme & get_compression_scheme_snappy() {
 	if (!warned) {
-		log_warning() << "get_compression_scheme_snappy: "
+		log_debug() << "get_compression_scheme_snappy: "
 			<< "No snappy support; return none instead." << std::endl;
 		warned = true;
 	}
