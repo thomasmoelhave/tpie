@@ -28,6 +28,8 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/file_stream.h>
+#include <tpie/maybe.h>
+#include <memory>
 
 namespace tpie {
 
@@ -37,8 +39,8 @@ namespace bits {
 
 template <typename T>
 class buffer_pull_output_t: public node {
+	tpie::maybe<file_stream<T> > * m_queue_ptr;
 	file_stream<T> * m_queue;
-
 public:
 	typedef T item_type;
 
@@ -50,7 +52,8 @@ public:
 	}
 
 	virtual void propagate() override {
-		m_queue = fetch<file_stream<T> *>("queue");
+		m_queue_ptr = fetch<tpie::maybe<file_stream<T> > *>("queue");
+		m_queue = &**m_queue_ptr;
 		m_queue->seek(0);
 		forward("items", m_queue->size());
 	}
@@ -64,8 +67,7 @@ public:
 	}
 
 	virtual void end() override {
-		tpie_delete(m_queue);
-		m_queue=NULL;
+		(*m_queue_ptr).destruct();
 	}
 };
 
@@ -87,18 +89,21 @@ public:
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 	
-	virtual void propagate() override {
-		m_queue = tpie::tpie_new<tpie::file_stream<item_type> >();
+	void begin() override {
+		m_queue.construct();
 		m_queue->open(static_cast<memory_size_type>(0), access_sequential, compression_normal);
-		forward("queue", m_queue);
 	}
 
 	void push(const T & item) {
 		m_queue->write(item);
 	}
 
+	void end() override {
+		forward("queue", &m_queue);
+	}
+
 private:
-	tpie::file_stream<T> * m_queue;
+	tpie::maybe< file_stream<T> > m_queue;
 	boost::shared_ptr<node> m_output;
 };
 
@@ -120,13 +125,15 @@ public:
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtual void propagate() override {
-		m_queue = fetch<tpie::file_stream<item_type> *>("queue");
+
+	void propagate() override {
+		m_queue_ptr = fetch<tpie::maybe<file_stream<item_type> > *>("queue");
+		m_queue = &**m_queue_ptr;
 		forward("items", m_queue->size());
 		set_steps(m_queue->size());
 	}
 
-	virtual void go() override {
+	void go() override {
 		m_queue->seek(0);
 		while (m_queue->can_read()) {
 			dest.push(m_queue->read());
@@ -134,12 +141,13 @@ public:
 		}
 	}
 
-	virtual void end() override {
-		tpie::tpie_delete(m_queue);
+	void end() {
+		m_queue_ptr->destruct();
 	}
 private:
-	dest_t dest;
+	tpie::maybe<file_stream<item_type> > * m_queue_ptr;
 	file_stream<item_type> * m_queue;
+	dest_t dest;
 };
 
 } // namespace bits

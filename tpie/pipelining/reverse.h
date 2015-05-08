@@ -47,10 +47,8 @@ public:
 		set_minimum_memory(stack<item_type>::memory_usage());
 	}
 
-
-	virtual void propagate() override {
-		m_stack = tpie_new<stack<item_type> >();
-		forward("stack", m_stack);
+	void begin() override {
+		m_stack.construct();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -59,8 +57,12 @@ public:
 	void push(const item_type & t) {
 		m_stack->push(t);
 	}
+
+	void end() override {
+		forward("stack", &m_stack);
+	}
 private:
-	stack<item_type> * m_stack;
+	tpie::maybe<stack<item_type> > m_stack;
 	boost::shared_ptr<node> m_output;
 };
 
@@ -113,24 +115,26 @@ public:
 		set_minimum_memory(this->m_stack->memory_usage());
 	}
 
-	virtual void propagate() override {
-		m_stack = fetch<stack<item_type> *>("stack");
+	void propagate() override {
+		m_stack_ptr = fetch<tpie::maybe<stack<item_type> > *>("stack");
+		m_stack = &**m_stack_ptr;
 		forward("items", m_stack->size());
 		set_steps(m_stack->size());
 	}
 
-	virtual void go() override {
+	void go() override {
 		while (!m_stack->empty()) {
 			dest.push(m_stack->pop());
 			step();
 		}
 	}
 
-	virtual void end() override {
-		tpie_delete(m_stack);
-	}
+	void end() override {
+		m_stack_ptr->destruct();
+		}
 private:
 	dest_t dest;
+	tpie::maybe<stack<item_type> > * m_stack_ptr;
 	stack<item_type> * m_stack;
 };
 
@@ -186,8 +190,9 @@ public:
 		set_minimum_memory(stack<item_type>::memory_usage());
 	}
 
-	virtual void propagate() override {
-		m_stack = fetch<stack<item_type> *>("stack");
+	void propagate() override {
+		m_stack_ptr = fetch<tpie::maybe<stack<item_type> > *>("stack");
+		m_stack = &**m_stack_ptr;
 		forward("items", m_stack->size());
 	}
 
@@ -205,10 +210,11 @@ public:
 		return m_stack->pop();
 	}
 
-	virtual void end() override {
-		tpie_delete(m_stack);
+	void end() override {
+		m_stack_ptr->destroy();
 	}
 private:
+	tpie::maybe<stack<item_type> > * m_stack_ptr;
 	stack<item_type> * m_stack;
 };
 
