@@ -69,8 +69,6 @@ private:
 		static_cast<tpie::memory_size_type>(1 << BLOCK_SIZE_BITS) - 1;
 	static const tpie::uint32_t COMPRESSION_BITS = 8;
 	static const tpie::uint32_t COMPRESSION_MASK = ((1 << COMPRESSION_BITS) - 1) << BLOCK_SIZE_BITS;
-	static const tpie::memory_size_type COMPRESSION_MAX =
-		static_cast<tpie::memory_size_type>(1 << COMPRESSION_BITS) - 1;
 
 	tpie::uint32_t m_payload;
 };

@@ -265,7 +265,7 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 	m_init_called(false),
 	m_done_called(false),
 #endif
-	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
+	m_confidence(1.0), m_total_sum(0), m_time_sum(0) {}
 	
 void fractional_progress::init(stream_size_type range) {
 	unused(range);

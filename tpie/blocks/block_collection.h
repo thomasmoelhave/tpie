@@ -84,7 +84,6 @@ private:
 	bits::freespace_collection m_collection;
 	tpie::file_accessor::raw_file_accessor m_accessor;
 
-	bool m_open;
 	bool m_writeable;
 };
 

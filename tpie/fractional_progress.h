@@ -147,7 +147,6 @@ private:
 	unique_id_type m_id;
 	double m_total_sum;
 	stream_size_type m_time_sum;
-	double m_timed_sum;
 
 	void stat(std::string, time_type, stream_size_type);
 	std::vector< std::pair<std::string, std::pair<time_type, stream_size_type> > > m_stat;
