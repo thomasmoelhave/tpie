@@ -550,7 +550,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 		buffer[(buffer_size+buffer_start)%setting_m] = heap.top();
 		buffer_size++;
 
-		assert(group_size(current_group)-1 >= 0);
+		assert(group_size(current_group) >= 1);
 		group_size_set(current_group, group_size(current_group)-1);
 		group_start_set(current_group, (group_start(current_group)+1)%setting_m);
 		if(group_size(current_group) == 0) {
