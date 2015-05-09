@@ -64,11 +64,11 @@ namespace bits {
 ///////////////////////////////////////////////////////////////////////////////
 template<typename Stream, typename T, typename Compare>
 void generic_sort(Stream & instream, Compare comp,
-				  progress_indicator_base & indicator) {
+				  progress_indicator_base * indicator) {
 
 	stream_size_type sz = instream.size();
 
-	fractional_progress fp(&indicator);
+	fractional_progress fp(indicator);
 	fractional_subindicator push(fp, "sort", TPIE_FSI, sz, "Write sorted runs");
 	fractional_subindicator merge(fp, "sort", TPIE_FSI, sz, "Perform merge heap");
 	fractional_subindicator output(fp, "sort", TPIE_FSI, sz, "Write sorted output");
@@ -96,7 +96,7 @@ void generic_sort(Stream & instream, Compare comp,
 
 template<typename Stream, typename T, typename Compare>
 void generic_sort(Stream & instream, Stream & outstream, Compare comp,
-				  progress_indicator_base & indicator) {
+				  progress_indicator_base *indicator) {
 
 	if (&instream == &outstream) {
 		generic_sort<Stream, T, Compare>(instream, comp, indicator);
@@ -105,7 +105,7 @@ void generic_sort(Stream & instream, Stream & outstream, Compare comp,
 
 	stream_size_type sz = instream.size();
 
-	fractional_progress fp(&indicator);
+	fractional_progress fp(indicator);
 	fractional_subindicator push(fp, "sort", TPIE_FSI, sz, "Write sorted runs");
 	fractional_subindicator merge(fp, "sort", TPIE_FSI, sz, "Perform merge heap");
 	fractional_subindicator output(fp, "sort", TPIE_FSI, sz, "Write sorted output");
@@ -140,7 +140,7 @@ void generic_sort(Stream & instream, Stream & outstream, Compare comp,
 template<typename T, typename Compare>
 void sort(uncompressed_stream<T> &instream, uncompressed_stream<T> &outstream,
 		  Compare comp, progress_indicator_base & indicator) {
-	bits::generic_sort<uncompressed_stream<T>, T, Compare>(instream, outstream, comp, indicator);
+	bits::generic_sort<uncompressed_stream<T>, T, Compare>(instream, outstream, &comp, &indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ template<typename T>
 void sort(uncompressed_stream<T> &instream, uncompressed_stream<T> &outstream,
 		  tpie::progress_indicator_base* indicator=NULL) {
 	std::less<T> comp;
-	sort(instream, outstream, comp, *indicator);
+	sort(instream, outstream, comp, indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ template<typename T>
 void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		  tpie::progress_indicator_base* indicator=NULL) {
 	std::less<T> comp;
-	bits::generic_sort<file_stream<T>, T>(instream, outstream, comp, *indicator);
+	bits::generic_sort<file_stream<T>, T>(instream, outstream, comp, indicator);
 }
 
 
@@ -178,7 +178,7 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 template<typename T, typename Compare>
 void sort(uncompressed_stream<T> &instream, Compare comp,
 		  progress_indicator_base & indicator) {
-	sort(instream, instream, comp, indicator);
+	sort(instream, instream, comp, &indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ void sort(uncompressed_stream<T> &instream, Compare comp,
 template<typename T, typename Compare>
 void sort(file_stream<T> &instream, Compare comp,
 		  progress_indicator_base & indicator) {
-	bits::generic_sort<file_stream<T>, T>(instream, comp, indicator);
+	bits::generic_sort<file_stream<T>, T>(instream, comp, &indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
