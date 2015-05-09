@@ -211,7 +211,7 @@ public:
 	}
 
 	void end() override {
-		m_stack_ptr->destroy();
+		m_stack_ptr->destruct();
 	}
 private:
 	tpie::maybe<stack<item_type> > * m_stack_ptr;
