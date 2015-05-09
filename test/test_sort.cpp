@@ -501,6 +501,7 @@ void load_list(ami::stream<SortItem>* str, SortItem* list, TPIE_OS_SIZE_T nitems
   str->seek(0);
   for(TPIE_OS_SIZE_T i=0; i<nitems; i++){
     str->read_item(&s_item);
+    assert(s_item != NULL);
     list[i]=*s_item;
   }
 }
