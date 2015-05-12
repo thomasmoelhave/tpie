@@ -141,7 +141,7 @@ public:
 		}
 	}
 
-	void end() {
+	void end() override {
 		m_queue_ptr->destruct();
 	}
 private:
