@@ -513,7 +513,8 @@ void write_test(const std::string& fname, appInfo & info){
 void read_test(const std::string& fname, appInfo & info){
 
     stream_size_type i,n;
-    Item *x1, x2;
+    Item *x1 = NULL;
+    Item x2;
     ami::err ae=ami::NO_ERROR;
    
     i=0;
