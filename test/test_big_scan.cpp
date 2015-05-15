@@ -27,6 +27,7 @@
 #include <tpie/memory.h>
 #include <tpie/types.h>
 #include <iostream>
+#include <tpie/pretty_print.h>
 
 using namespace tpie;
 
@@ -389,43 +390,13 @@ void get_app_info(int argc, char** argv, appInfo & Info){
     return; 
 }
 
-//converts numbers into strings
-//with appropriate G, M, K suffixes
-char* ll2size(stream_size_type n){
-  
-    const int bufsize = 20;
-    float size;
-    char* buf = new char[bufsize];
-    if(n > APP_GIG ){
-	size = (n*1.0f)/APP_GIG;
-	APP_SNPRINTF(buf, bufsize, "%.2f G",size);
-    }
-    else if (n > APP_MEG ){
-	size = (n*1.0f)/APP_MEG;
-	APP_SNPRINTF(buf, bufsize, "%.2f M",size);
-    } 
-    else if (n > 1024 ){
-	size = (n*1.0f)/1024.0f;
-	APP_SNPRINTF(buf, bufsize, "%.2f K",size);
-    }
-    else {
-	size = (n*1.0f);
-	APP_SNPRINTF(buf,bufsize, "%.0f", size);
-    }
-  
-    return buf;
-}
-
 // A simple progress bar that shows percentage complete
 // and current file offset
 void progress_bar(float pct, stream_size_type nbytes){
 
-    //how long is progress bar?
     const int nticks=20;
-    const int bufsize=30;
   
     int intpct, i;
-    char* buf;
   
     //percent done as an integer
     intpct = static_cast<int>(100*pct);
@@ -442,9 +413,7 @@ void progress_bar(float pct, stream_size_type nbytes){
     }
     std::cout <<"] "<<intpct<<"%";
  
-    buf = new char[bufsize];
-    APP_SNPRINTF(buf, bufsize, " - %sB      ",ll2size(nbytes));
-    std::cout << buf;
+    std::cout << " - " << bits::pretty_print::size_type(nbytes) << "      ";
     std::cout.flush();
 }
 
@@ -573,7 +542,7 @@ int main(int argc, char **argv){
     std::cout << "Path:  " << info.path 
 	      << "\nNum Items: " << info.num_items 
 	      << "\nItem Size: " << info.item_size
-	      << "\nFile Size: " << ll2size(filesize) << "B\n" << std::endl;
+	      << "\nFile Size: " << bits::pretty_print::size_type(filesize) << std::endl;
  
 	tempname::set_default_base_name(APP_FILE_BASE);
 	tempname::set_default_path(info.path);
