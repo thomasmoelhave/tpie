@@ -558,6 +558,7 @@ void read_test(const std::string& fname, appInfo & info){
 }
 
 int main(int argc, char **argv){
+    tpie_init();
     appInfo info;
     Item x;
 
@@ -585,5 +586,6 @@ int main(int argc, char **argv){
     TPIE_OS_UNLINK(fname);
   
     std::cout << "Test ran successfully " << std::endl;
+    tpie_finish();
     return 0;
 }
