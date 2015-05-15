@@ -35,9 +35,9 @@ namespace bits {
 
 	class pretty_print {
 		public:
-			static std::string size_type(memory_size_type size) {
+			static std::string size_type(stream_size_type size) {
 				static std::string units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
-				memory_size_type i = 0;
+				stream_size_type i = 0;
 				while(size > 1024 && i < 8) {
 					size /= 1024;
 					++i;
