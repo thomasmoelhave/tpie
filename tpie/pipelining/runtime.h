@@ -30,11 +30,104 @@ namespace pipelining {
 
 namespace bits {
 
-template <typename T>
-class graph;
 class memory_runtime;
 class datastructure_runtime;
-	
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief  Directed graph with nodes of type T.
+///
+/// The node set is implied by the endpoints of the edges.
+///
+/// Computes the topological order using depth first search.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class graph {
+public:
+	void add_node(T v) {
+		m_nodes.insert(v);
+		m_edgeLists[v]; // ensure v has an edge list
+	}
+
+	void add_edge(T u, T v) {
+		add_node(u);
+		add_node(v);
+		m_edgeLists[u].push_back(v);
+	}
+
+	const std::vector<T> & get_edge_list(const T & i) const {
+		return m_edgeLists.find(i)->second;
+	}
+
+	size_t size() const {
+		return m_nodes.size();
+	}
+
+	bool has_edge(T u, T v) const {
+		const std::vector<T> & edgeList = m_edgeLists.find(u)->second;
+		return std::find(edgeList.begin(), edgeList.end(), v) != edgeList.end();
+	}
+
+	void topological_order(std::vector<T> & result) const {
+		const size_t N = m_nodes.size();
+		depth_first_search dfs(m_edgeLists);
+		std::vector<std::pair<size_t, T> > nodes(N);
+		for (typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.begin();
+			 i != m_edgeLists.end(); ++i)
+			nodes.push_back(std::make_pair(dfs.visit(i->first), i->first));
+		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
+		result.resize(N);
+		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
+	}
+
+	void rootfirst_topological_order(std::vector<T> & result) const { // a topological order where the root of trees are always visited first in the DFS
+		std::vector<T> topologicalOrder;
+		topological_order(topologicalOrder);
+
+		const size_t N = m_nodes.size();
+		depth_first_search dfs(m_edgeLists);
+		std::vector<std::pair<size_t, T> > nodes(N);
+		for (typename std::vector<T>::const_iterator i = topologicalOrder.begin(); i != topologicalOrder.end(); ++i)
+			nodes.push_back(std::make_pair(dfs.visit(*i), *i));
+		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
+		result.resize(N);
+		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
+	}
+
+private:
+	std::set<T> m_nodes;
+	std::map<T, std::vector<T> > m_edgeLists;
+
+	class depth_first_search {
+	public:
+		depth_first_search(const std::map<T, std::vector<T> > & edgeLists)
+			: m_time(0)
+			, m_edgeLists(edgeLists)
+		{
+		}
+
+		size_t visit(T u) {
+			if (m_finishTime.count(u)) return m_finishTime[u];
+			m_finishTime[u] = 0;
+			++m_time;
+			const std::vector<T> & edgeList = get_edge_list(u);
+			for (size_t i = 0; i < edgeList.size(); ++i) visit(edgeList[i]);
+			return m_finishTime[u] = m_time++;
+		}
+
+	private:
+		const std::vector<T> & get_edge_list(T u) {
+			typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.find(u);
+			if (i == m_edgeLists.end())
+				throw tpie::exception("get_edge_list: no such node");
+			return i->second;
+		}
+
+		size_t m_time;
+		const std::map<T, std::vector<T> > & m_edgeLists;
+		std::map<T, size_t> m_finishTime;
+	};
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Execute the pipeline contained in a node_map.
 ///////////////////////////////////////////////////////////////////////////////
