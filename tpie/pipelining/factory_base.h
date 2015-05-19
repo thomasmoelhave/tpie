@@ -244,8 +244,13 @@ public:
 	}
 
 	void add_dependencies(node_set s) {
-		m_add_dependencies.push_back(s);
+		m_add_relations.push_back(std::make_pair(s,bits::no_forward_depends));
 	}
+
+	void add_forwarding_dependencies(node_set s) {
+		m_add_relations.push_back(std::make_pair(s,bits::depends));
+	}
+
 private:
 	void init_common(node & r) const {
 		bits::node_map::ptr m=r.get_node_map();
@@ -254,29 +259,30 @@ private:
 			if (m2 && m2 != m)
 				m2->union_set(m);
 		}
-		for (size_t i=0; i < m_add_dependencies.size(); ++i) {
-			bits::node_map::ptr m2=m_add_dependencies[i]->m_map;
+		for (size_t i=0; i < m_add_relations.size(); ++i) {
+			bits::node_map::ptr m2=m_add_relations[i].first->m_map;
 			if (m2 && m2 != m)
 				m2->union_set(m);
 		}
 		m = m->find_authority();
 		for (size_t i=0; i < m_add_to_set.size(); ++i)
 			m_add_to_set[i]->m_map = m;
-		for (size_t i=0; i < m_add_dependencies.size(); ++i)
-			m_add_dependencies[i]->m_map = m;
+		for (size_t i=0; i < m_add_relations.size(); ++i)
+			m_add_relations[i].first->m_map = m;
 
 		for (size_t i=0; i < m_add_to_set.size(); ++i) {
 			node_set s=m_add_to_set[i];
-			for (size_t j=0; j < s->m_depends.size(); ++j)
-				m->add_relation(s->m_depends[j], r.get_id(), bits::no_forward_depends);
+			for (size_t j=0; j < s->m_relations.size(); ++j)
+				m->add_relation(s->m_relations[j].first, r.get_id(), s->m_relations[j].second);
 			s->m_nodes.push_back(r.get_id());
 		}
 
-		for (size_t i=0; i < m_add_dependencies.size(); ++i) {
-			node_set s=m_add_dependencies[i];
+		for (size_t i=0; i < m_add_relations.size(); ++i) {
+			node_set s=m_add_relations[i].first;
+			bits::node_relation relation = m_add_relations[i].second;
 			for (size_t j=0; j < s->m_nodes.size(); ++j)
-				m->add_relation(r.get_id(), s->m_nodes[j], bits::no_forward_depends);
-			s->m_depends.push_back(r.get_id());
+				m->add_relation(r.get_id(), s->m_nodes[j], relation);
+			s->m_relations.push_back(std::make_pair(r.get_id(), relation));
 		}
 	
 		if (m_set) r.set_memory_fraction(memory());
@@ -294,7 +300,7 @@ private:
 	priority_type m_namePriority;
 	std::vector<factory_init_hook *> m_hooks;
 	std::vector<node_set> m_add_to_set;
-	std::vector<node_set> m_add_dependencies;;
+	std::vector<std::pair<node_set, bits::node_relation> > m_add_relations;
 };
 
 } // namespace pipelining

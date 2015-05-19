@@ -34,7 +34,7 @@ struct node_set_content {
 	size_t m_refCnt;
 	node_map::ptr m_map;
 	std::vector<node_map::id_t> m_nodes;
-	std::vector<node_map::id_t> m_depends;
+	std::vector<std::pair<node_map::id_t, node_relation> > m_relations;
 	
 	friend void intrusive_ptr_add_ref(node_set_content * s) {
 		s->m_refCnt++;
