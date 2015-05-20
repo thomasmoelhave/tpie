@@ -52,7 +52,8 @@ namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class priority_queue
-/// \brief External memory priority queue implementation.
+/// \brief External memory priority queue implementation. The top of the 
+/// queue is the least element in the specified ordering.
 ///
 /// Originally implemented by Lars Hvam Petersen for his Master's thesis
 /// titled "External Priority Queues in Practice", June 2007.
@@ -120,7 +121,7 @@ public:
     ///
     /// See what's on the top of the priority queue
     ///
-    /// \return Top element
+    /// \return the least element in the specified ordering
     ///
     /////////////////////////////////////////////////////////
     const T& top();
