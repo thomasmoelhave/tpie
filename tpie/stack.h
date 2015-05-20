@@ -320,6 +320,8 @@ err stack<T>::push(const T &t) {
 
 template<class T>
 err stack<T>::pop(const T **t) {
+    if(m_ulate.empty())
+        return END_OF_STREAM;
 
     err retval = NO_ERROR;
 
@@ -342,6 +344,8 @@ err stack<T>::pop(const T **t) {
 
 template<class T>
 err stack<T>::peek(const T **t) {
+    if(m_ulate.empty())
+        return END_OF_STREAM;
 
     err retval = NO_ERROR;
 	
