@@ -121,8 +121,8 @@ public:
 		add_dependency(input_token);
 		add_push_destination(this->dest);
 		set_minimum_memory(tpie::file_stream<item_type>::memory_usage());
-		set_name("Fetching items", PRIORITY_INSIGNIFICANT);
-		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
+		set_name("Buffer", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 
