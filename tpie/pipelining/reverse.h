@@ -45,7 +45,7 @@ public:
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(stack<item_type>::memory_usage());
-		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	void begin() override {
@@ -81,7 +81,7 @@ public:
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(sizeof(std::stack<item_type>));
-		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
