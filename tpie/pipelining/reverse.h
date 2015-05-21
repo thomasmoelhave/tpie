@@ -45,6 +45,7 @@ public:
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(stack<item_type>::memory_usage());
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	void begin() override {
@@ -80,6 +81,7 @@ public:
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
 		set_minimum_memory(sizeof(std::stack<item_type>));
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
 	virtual void propagate() override {
@@ -113,6 +115,7 @@ public:
 		add_push_destination(this->dest);
 		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(this->m_stack->memory_usage());
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	void propagate() override {
@@ -153,6 +156,7 @@ public:
 		add_push_destination(this->dest);
 		set_name("Output reversed", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(sizeof(std::stack<item_type>));
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	virtual void propagate() override {
@@ -188,6 +192,7 @@ public:
 		add_dependency(input_token);
 		set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(stack<item_type>::memory_usage());
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	void propagate() override {
@@ -230,6 +235,7 @@ public:
 		add_dependency(input_token);
 		set_name("Input items to reverse", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(sizeof(std::stack<item_type>));
+		set_plot_options(PLOT_BUFFERED);
 	}
 
 	virtual void propagate() override {
