@@ -215,6 +215,117 @@ typedef factory_0<rev_input_t> rev_input_factory;
 
 typedef bits::pair_factory<rev_input_factory, rev_output_factory> reverse_factory;
 
+
+
+
+
+
+
+
+
+template <typename> class buffer_input_t;
+
+template <typename dest_t>
+class buffer_output_t : public node {
+	friend class buffer_input_t<buffer_output_t<dest_t> >;
+
+	dest_t dest;
+	tpie::temp_file * m_file;
+
+	serialization_reader rd;
+
+public:
+	typedef typename push_type<dest_t>::type item_type;
+
+	buffer_output_t(TPIE_RREF(dest_t) dest)
+		: dest(TPIE_MOVE(dest))
+		, m_file(0)
+	{
+		this->set_name("Serialization buffer reader");
+	}
+
+	virtual void propagate() override {
+		if (m_file == 0)
+			throw tpie::exception("No one created my file");
+
+		rd.open(m_file->path());
+		this->set_steps(rd.size());
+	}
+
+	virtual void go() override {
+		item_type x;
+		stream_size_type bytesRead = 0;
+		while (rd.can_read()) {
+			rd.unserialize(x);
+			dest.push(x);
+
+			stream_size_type bytesRead2 = rd.offset();
+			step(bytesRead2 - bytesRead);
+			bytesRead = bytesRead2;
+		}
+	}
+
+	virtual void end() override {
+		rd.close();
+		delete m_file;
+	}
+};
+
+typedef factory_0<buffer_output_t> buffer_output_factory;
+
+template <typename dest_t>
+class buffer_input_t;
+
+template <typename output_dest_t>
+class buffer_input_t<buffer_output_t<output_dest_t> > : public node {
+	typedef buffer_output_t<output_dest_t> dest_t;
+	dest_t dest;
+
+	serialization_writer wr;
+	stream_size_type items;
+
+public:
+	typedef typename push_type<dest_t>::type item_type;
+
+	buffer_input_t(TPIE_RREF(dest_t) dest)
+		: dest(TPIE_MOVE(dest))
+		, wr()
+		, items(0)
+	{
+		this->set_name("Serialization buffer writer");
+		this->dest.add_dependency(*this);
+	}
+
+	virtual void begin() override {
+		dest.m_file = new tpie::temp_file();
+		wr.open(dest.m_file->path());
+	}
+
+	void push(const item_type & x) {
+		wr.serialize(x);
+		++items;
+	}
+
+	virtual void end() override {
+		wr.close();
+		this->forward<stream_size_type>("items", items);
+	}
+};
+
+typedef factory_0<buffer_input_t> buffer_input_factory;
+
+typedef bits::pair_factory<buffer_input_factory, buffer_output_factory> buffer_factory;
+
+
+
+
+
+
+
+
+
+
+
 } // namespace serialization_bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -226,6 +337,17 @@ inline serialization_reverser() {
 	serialization_bits::rev_input_factory i;
 	serialization_bits::rev_output_factory o;
 	return serialization_bits::reverse_factory(i, o);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// A pipelining node that acts as a buffer for serializable items and creates 
+/// a phase boundary
+///////////////////////////////////////////////////////////////////////////////
+pipe_middle<serialization_bits::buffer_factory>
+inline serialization_buffer() {
+	serialization_bits::buffer_input_factory i;
+	serialization_bits::buffer_output_factory o;
+	return serialization_bits::buffer_factory(i, o);
 }
 
 } // namespace pipelining
