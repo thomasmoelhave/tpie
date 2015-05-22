@@ -44,7 +44,7 @@ public:
 		, dest(TPIE_MOVE(dest))
 	{
 			set_minimum_memory(sizeof(item_type) * maxSize);
-			set_name("Chunker", PRIORITY_INSIGNIFICANT)
+			set_name("Chunker", PRIORITY_INSIGNIFICANT);
 	}
 	
 	void flush() {
