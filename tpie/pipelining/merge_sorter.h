@@ -801,6 +801,9 @@ private:
 		stReport
 	};
 
+
+	array<temp_file> m_runFiles;
+
 	state_type m_state;
 
 	sort_parameters p;
@@ -808,8 +811,6 @@ private:
 
 	specific_store_t m_store;
 	merger<specific_store_t, pred_t> m_merger;
-
-	array<temp_file> m_runFiles;
 
 	bits::run_positions m_runPositions;
 
