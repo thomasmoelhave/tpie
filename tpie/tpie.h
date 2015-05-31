@@ -21,6 +21,7 @@
 
 #include <tpie/config.h>
 #include <tpie/types.h>
+#include <tpie/flags.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \file tpie.h tpie_init and tpie_finish.
@@ -59,11 +60,13 @@ enum subsystem {
     ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | STREAMS | HASH | TEMPFILE
 };
 
+TPIE_DECLARE_OPERATORS_FOR_FLAGS(subsystem)
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Initialize the given subsystems of TPIE.
 /// \param subsystems Logical OR of \ref subsystem entries.
 ///////////////////////////////////////////////////////////////////////////////
-void tpie_init(int subsystems=ALL);
+void tpie_init(flags<subsystem> subsystems=ALL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Deinitialize the given subsystems of TPIE.
@@ -71,7 +74,7 @@ void tpie_init(int subsystems=ALL);
 /// tpie_init.
 /// \param subsystems Logical OR of \ref subsystem entries.
 ///////////////////////////////////////////////////////////////////////////////
-void tpie_finish(int subsystems=ALL);
+void tpie_finish(flags<subsystem> subsystems=ALL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Get the TPIE block size.

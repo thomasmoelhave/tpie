@@ -35,7 +35,7 @@ static tpie::memory_size_type the_block_size=0;
 
 namespace tpie {
 
-void tpie_init(int subsystems) {
+void tpie_init(flags<subsystem> subsystems) {
 	if (subsystems & MEMORY_MANAGER)	
 	 	init_memory_manager();
 
@@ -65,7 +65,7 @@ void tpie_init(int subsystems) {
 		init_hash();
 }
 
-void tpie_finish(int subsystems) {
+void tpie_finish(flags<subsystem> subsystems) {
 	if (subsystems & STREAMS) {
 		finish_compressor();
 		finish_stream_buffer_pool();
