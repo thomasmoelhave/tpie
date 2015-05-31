@@ -29,6 +29,7 @@
 #include <tpie/pipelining/predeclare.h>
 #include <tpie/pipelining/node_name.h>
 #include <tpie/pipelining/node_traits.h>
+#include <tpie/flags.h>
 
 namespace tpie {
 
@@ -295,7 +296,7 @@ public:
 	/// \brief  Get options specified for plot(), as a combination of
 	/// \c node::PLOT values.
 	///////////////////////////////////////////////////////////////////////////
-	int get_plot_options() const {
+	flags<PLOT> get_plot_options() const {
 		return m_plotOptions;
 	}
 
@@ -303,7 +304,7 @@ public:
 	/// \brief  Set options specified for plot(), as a combination of
 	/// \c node::PLOT values.
 	///////////////////////////////////////////////////////////////////////////
-	void set_plot_options(int options) {
+	void set_plot_options(flags<PLOT> options) {
 		m_plotOptions = options;
 	}
 protected:
@@ -636,10 +637,14 @@ private:
 	progress_indicator_base * m_pi;
 	STATE m_state;
 	std::auto_ptr<progress_indicator_base> m_piProxy;
-	int m_plotOptions;
+	flags<PLOT> m_plotOptions;
 
 	friend class bits::proxy_progress_indicator;
 };
+
+
+TPIE_DECLARE_OPERATORS_FOR_FLAGS(node::PLOT);
+
 
 } // namespace pipelining
 

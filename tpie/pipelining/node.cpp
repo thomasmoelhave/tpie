@@ -87,7 +87,7 @@ node::node()
 	, m_stepsLeft(0)
 	, m_pi(0)
 	, m_state(STATE_FRESH)
-	, m_plotOptions(0)
+	, m_plotOptions()
 {
 }
 
@@ -133,7 +133,7 @@ node::node(const node_token & token)
 	, m_stepsLeft(0)
 	, m_pi(0)
 	, m_state(STATE_FRESH)
-	, m_plotOptions(0)
+	, m_plotOptions()
 {
 }
 
