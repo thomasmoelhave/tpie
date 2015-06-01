@@ -34,17 +34,17 @@ void usage(const char app[]) {
 }
 
 class tpie_initer {
-	static const int subsystems =
-		(tpie::ALL & ~(tpie::DEFAULT_LOGGING | tpie::PRIMEDB | tpie::JOB_MANAGER))
-		| tpie::CAPTURE_FRACTIONS;
-
+	tpie::flags<tpie::subsystem> subsystems() {
+		return (tpie::ALL & ~(tpie::DEFAULT_LOGGING | tpie::PRIMEDB | tpie::JOB_MANAGER))
+			| tpie::CAPTURE_FRACTIONS;
+	}
 public:
 	tpie_initer() {
-		tpie::tpie_init(subsystems);
+		tpie::tpie_init(subsystems() );
 	}
 
 	~tpie_initer() {
-		tpie::tpie_finish(subsystems);
+		tpie::tpie_finish(subsystems() );
 	}
 };
 
