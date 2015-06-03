@@ -25,28 +25,29 @@
 #define _TPIE_FLAGS_H
 
 #include <boost/cstdint.hpp>
+#include <tpie/serialization2.h>
 
 namespace tpie {
 namespace bits {
 	
 template <int S>
-struct enum_storrage_type_help {};
+struct enum_storage_type_help {};
 
 template <>
-struct enum_storrage_type_help<1> {typedef uint8_t type;};
+struct enum_storage_type_help<1> {typedef uint8_t type;};
 
 template <>
-struct enum_storrage_type_help<2> {typedef uint16_t type;};
+struct enum_storage_type_help<2> {typedef uint16_t type;};
 
 template <>
-struct enum_storrage_type_help<4> {typedef uint32_t type;};
+struct enum_storage_type_help<4> {typedef uint32_t type;};
 
 template <>
-struct enum_storrage_type_help<8> {typedef uint64_t type;};
+struct enum_storage_type_help<8> {typedef uint64_t type;};
   
 template <typename T>
-struct enum_storrage_type {
-	typedef typename enum_storrage_type_help<sizeof(T)>::type type;
+struct enum_storage_type {
+	typedef typename enum_storage_type_help<sizeof(T)>::type type;
 };
 } //namespace bits
 
@@ -70,7 +71,7 @@ struct enum_storrage_type {
 template <typename T>
 class flags {
 private:
-	typedef typename bits::enum_storrage_type<T>::type st;
+	typedef typename bits::enum_storage_type<T>::type st;
 	typedef void (flags::*bool_type)() const;
 	void bool_type_true() const {}
 public:
@@ -82,9 +83,21 @@ public:
 	friend flags operator&(const flags & l, const flags & r) {return flags(l.m_value & r.m_value);}
 	friend flags operator&(const T & l, const flags & r) {return flags(flags(l).m_value & r.m_value);}
 	friend flags operator&(const flags & l, const T & r) {return flags(l.m_value & flags(r).m_value);}
+	flags & operator|=(const T & r) { return *this |= flags(r); }
+	flags & operator|=(const flags & r) { m_value |= r.m_value; return *this; }
 	// See http://www.artima.com/cppsource/safebool2.html
 	operator bool_type() const {return m_value?&flags::bool_type_true:NULL;}
 	flags operator~() const {return flags(~m_value);}
+	
+	template <typename D>
+	friend void serialize(D & dst, const flags<T> & f) {
+		serialize(dst, f.m_value);
+	}
+
+	template <typename S>
+	friend void unserialize(S & src, flags<T> & f) {
+		unserialize(src, f.m_value);
+	}
 private:
 	explicit flags(st value): m_value(value) {}
 	st m_value;
@@ -92,9 +105,9 @@ private:
 
 #define TPIE_DECLARE_OPERATORS_FOR_FLAGS(T) \
 inline tpie::flags<T> operator|(const T & l, const T & r) {return tpie::flags<T>(l) | r;} \
-inline tpie::flags<T> operator~(const T & l) {return ~tpie::flags<T>(l) ;}
+inline tpie::flags<T> operator~(const T & l) {return ~tpie::flags<T>(l);}
 
-  
+
 } //namespace tpie
 
 #endif //#_TPIE_FLAGS_H
