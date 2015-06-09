@@ -68,7 +68,7 @@ public:
 	/// \param n The maximal number of sets to support
 	/// \param u A value you guarentee not to use.
 	/////////////////////////////////////////////////////////
-	disjoint_sets(size_type n, value_t u = default_unused<value_t>::v()): m_elements(n, u), m_unused(u), m_size(0) {}	
+	disjoint_sets(size_type n=0, value_t u = default_unused<value_t>::v()): m_elements(n, u), m_unused(u), m_size(0) {}	
 
 	/////////////////////////////////////////////////////////
 	/// \brief Make a singleton set
@@ -151,6 +151,15 @@ public:
 	/////////////////////////////////////////////////////////
 	inline size_type count_sets() {
 		return m_size;
+	}
+
+	void clear() {
+		m_size = 0;
+	}
+
+	void resize(size_t size) {
+		m_elements.resize(size);
+		m_size = 0;
 	}
 };
 
