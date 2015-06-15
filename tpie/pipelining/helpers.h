@@ -258,6 +258,17 @@ public:
 	void push(const T &) {}
 };
 
+
+template <typename T>
+class zero_source_t: public node {
+public:
+	typedef T item_type;
+
+	T pull() {tpie_unreachable();}
+	bool can_pull() {return false;}
+};
+
+
 template <typename IT>
 class pull_input_iterator_t: public node {
 	IT i;
@@ -558,6 +569,15 @@ zip(const pullpipe_begin<fact_t> & from) {
 template <typename T>
 inline pipe_end<termfactory_0<bits::null_sink_t<T> > >
 null_sink() {return termfactory_0<bits::null_sink_t<T> >();}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a dummy pull begin pipe node
+///
+/// Whenever an element of type T is pushed to the null_sink it is disregarded
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+inline pullpipe_begin<termfactory_0<bits::zero_source_t<T> > >
+zero_source() {return termfactory_0<bits::zero_source_t<T> >();}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create a dummy end pipe node
