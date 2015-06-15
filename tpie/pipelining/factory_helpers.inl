@@ -22,6 +22,7 @@ public:
 			r(std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 };
@@ -46,6 +47,7 @@ public:
 			r(std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 };
@@ -73,6 +75,7 @@ public:
 			r(std::forward<dest_t>(dest), t1);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -103,6 +106,7 @@ public:
 			r(std::forward<dest_t>(dest), t1);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -133,6 +137,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -164,6 +169,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -195,6 +201,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -227,6 +234,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -259,6 +267,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3, t4);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -292,6 +301,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3, t4);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -325,6 +335,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3, t4, t5);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -359,6 +370,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3, t4, t5);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -393,6 +405,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -428,6 +441,7 @@ public:
 			r(std::forward<dest_t>(dest), t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
 		this->add_default_edge(r, tok);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -460,6 +474,7 @@ public:
 		R<dest_t> r(dest);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 };
@@ -482,6 +497,7 @@ public:
 		typename Holder::template type<dest_t> r(dest);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 };
@@ -507,6 +523,7 @@ public:
 		R<dest_t> r(dest, t1);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -535,6 +552,7 @@ public:
 		typename Holder::template type<dest_t> r(dest, t1);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -563,6 +581,7 @@ public:
 		R<dest_t> r(dest, t1, t2);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -592,6 +611,7 @@ public:
 		typename Holder::template type<dest_t> r(dest, t1, t2);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -621,6 +641,7 @@ public:
 		R<dest_t> r(dest, t1, t2, t3);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -651,6 +672,7 @@ public:
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -681,6 +703,7 @@ public:
 		R<dest_t> r(dest, t1, t2, t3, t4);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -712,6 +735,7 @@ public:
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -743,6 +767,7 @@ public:
 		R<dest_t> r(dest, t1, t2, t3, t4, t5);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -775,6 +800,7 @@ public:
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4, t5);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -807,6 +833,7 @@ public:
 		R<dest_t> r(dest, t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -840,6 +867,7 @@ public:
 		typename Holder::template type<dest_t> r(dest, t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
 		this->add_default_edge(r, dest);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -866,6 +894,7 @@ public:
 	R construct() const {
 		R r;
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 };
@@ -885,6 +914,7 @@ public:
 	R construct() const {
 		R r(t1);
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -907,6 +937,7 @@ public:
 	R construct() const {
 		R r(t1, t2);
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -930,6 +961,7 @@ public:
 	R construct() const {
 		R r(t1, t2, t3);
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -954,6 +986,7 @@ public:
 	R construct() const {
 		R r(t1, t2, t3, t4);
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -979,6 +1012,7 @@ public:
 	R construct() const {
 		R r(t1, t2, t3, t4, t5);
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 
@@ -1005,6 +1039,7 @@ public:
 	R construct() const {
 		R r(t1, t2, t3, t4, t5, t6);
 		this->init_node(r);
+		this->add_node_set_edges(r);
 		return r;
 	}
 

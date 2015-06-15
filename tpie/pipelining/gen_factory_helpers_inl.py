@@ -92,6 +92,7 @@ def gen(types, terminal, templated, move):
 		else:
 			print("\t\t%s r;" % generator)
 		print("\t\tthis->init_node(r);")
+		print("\t\tthis->add_node_set_edges(r);")
 		print("\t\treturn r;")
 		print("\t}")
 	else:
@@ -106,6 +107,7 @@ def gen(types, terminal, templated, move):
 					"".join(", t%d" % x for x in indices)))
 			print("\t\tthis->init_node(r);")
 			print("\t\tthis->add_default_edge(r, tok);")
+			print("\t\tthis->add_node_set_edges(r);")
 		else:
 			print("\t%s" % return_type)
 			print("\tconstruct(const dest_t & dest) const {")
@@ -114,6 +116,7 @@ def gen(types, terminal, templated, move):
 					"".join(", t%d" % x for x in indices)))
 			print("\t\tthis->init_node(r);")
 			print("\t\tthis->add_default_edge(r, dest);")
+			print("\t\tthis->add_node_set_edges(r);")
 		print("\t\treturn r;")
 		print("\t}")
 

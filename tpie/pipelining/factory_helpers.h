@@ -74,6 +74,7 @@ private:
 				r(std::forward<dest_t>(dest), std::get<S>(parent.m_v)...);
 			parent.init_node(r);
 			parent.add_default_edge(r, tok);
+			parent.add_node_set_edges(r);
 			return r;
 		}
 	};
@@ -122,6 +123,7 @@ private:
 			typename constructed<dest_t>::type r(std::forward<dest_t>(dest), std::get<S>(parent.m_v)...);
 			parent.init_node(r);
 			parent.add_default_edge(r, tok);
+			parent.add_node_set_edges(r);
 			return r;
 		}
 	};
@@ -162,6 +164,7 @@ private:
 		static R go(const termfactory & parent) {
 			R r(std::get<S>(parent.m_v)...);
 			parent.init_node(r);
+			parent.add_node_set_edges(r);
 			return r;
 		}
 	};

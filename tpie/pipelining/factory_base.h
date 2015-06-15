@@ -201,6 +201,41 @@ public:
 		}
 	}
 
+	void add_node_set_edges(node & r) const {
+		bits::node_map::ptr m=r.get_node_map();
+		for (size_t i=0; i < m_add_to_set.size(); ++i) {
+			bits::node_map::ptr m2=m_add_to_set[i]->m_map;
+			if (m2 && m2 != m)
+				m2->union_set(m);
+		}
+		for (size_t i=0; i < m_add_relations.size(); ++i) {
+			bits::node_map::ptr m2=m_add_relations[i].first->m_map;
+			if (m2 && m2 != m)
+				m2->union_set(m);
+		}
+		m = m->find_authority();
+		for (size_t i=0; i < m_add_to_set.size(); ++i)
+			m_add_to_set[i]->m_map = m;
+		for (size_t i=0; i < m_add_relations.size(); ++i)
+			m_add_relations[i].first->m_map = m;
+
+		for (size_t i=0; i < m_add_to_set.size(); ++i) {
+			node_set s=m_add_to_set[i];
+			for (size_t j=0; j < s->m_relations.size(); ++j)
+				m->add_relation(s->m_relations[j].first, r.get_id(), s->m_relations[j].second);
+			s->m_nodes.push_back(r.get_id());
+		}
+
+		for (size_t i=0; i < m_add_relations.size(); ++i) {
+			node_set s=m_add_relations[i].first;
+			bits::node_relation relation = m_add_relations[i].second;
+			for (size_t j=0; j < s->m_nodes.size(); ++j)
+				m->add_relation(r.get_id(), s->m_nodes[j], relation);
+			s->m_relations.push_back(std::make_pair(r.get_id(), relation));
+		}
+	}
+
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \copybrief bits::pipe_base::name
 	/// \copydetails bits::pipe_base::name
@@ -253,38 +288,6 @@ public:
 
 private:
 	void init_common(node & r) const {
-		bits::node_map::ptr m=r.get_node_map();
-		for (size_t i=0; i < m_add_to_set.size(); ++i) {
-			bits::node_map::ptr m2=m_add_to_set[i]->m_map;
-			if (m2 && m2 != m)
-				m2->union_set(m);
-		}
-		for (size_t i=0; i < m_add_relations.size(); ++i) {
-			bits::node_map::ptr m2=m_add_relations[i].first->m_map;
-			if (m2 && m2 != m)
-				m2->union_set(m);
-		}
-		m = m->find_authority();
-		for (size_t i=0; i < m_add_to_set.size(); ++i)
-			m_add_to_set[i]->m_map = m;
-		for (size_t i=0; i < m_add_relations.size(); ++i)
-			m_add_relations[i].first->m_map = m;
-
-		for (size_t i=0; i < m_add_to_set.size(); ++i) {
-			node_set s=m_add_to_set[i];
-			for (size_t j=0; j < s->m_relations.size(); ++j)
-				m->add_relation(s->m_relations[j].first, r.get_id(), s->m_relations[j].second);
-			s->m_nodes.push_back(r.get_id());
-		}
-
-		for (size_t i=0; i < m_add_relations.size(); ++i) {
-			node_set s=m_add_relations[i].first;
-			bits::node_relation relation = m_add_relations[i].second;
-			for (size_t j=0; j < s->m_nodes.size(); ++j)
-				m->add_relation(r.get_id(), s->m_nodes[j], relation);
-			s->m_relations.push_back(std::make_pair(r.get_id(), relation));
-		}
-	
 		if (m_set) r.set_memory_fraction(memory());
 
 		for (size_t i = 0; i < m_hooks.size(); ++i) {
