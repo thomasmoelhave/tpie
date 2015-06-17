@@ -154,17 +154,15 @@ void pop_and_push_heap(T a, T b) {
 /// \brief  A binary functor with the arguments swapped.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct binary_argument_swap: public std::binary_function<typename T::second_argument_type,
-														 typename T::first_argument_type,
-														 typename T::result_type> {
+struct binary_argument_swap {
 	T i;
 	binary_argument_swap(const T & _=T()): i(_) {}
-	bool operator()(const typename T::second_argument_type & x,
-					const typename T::first_argument_type & y) const {
+	template<typename T1, typename T2>
+	bool operator()(const T1 & x, const T2 & y) const {
 		return i(y,x);
 	}
-	bool operator()(const typename T::second_argument_type & x,
-					const typename T::first_argument_type & y) {
+	template<typename T1, typename T2>
+	bool operator()(const T1 & x, const T2 & y) {
 		return i(y,x);
 	}
 };
