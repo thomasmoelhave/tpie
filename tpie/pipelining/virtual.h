@@ -28,6 +28,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/pipeline.h>
 #include <tpie/pipelining/factory_helpers.h>
+#include <tpie/pipelining/helpers.h>
 
 namespace tpie {
 
@@ -643,6 +644,14 @@ inline virtual_chunk<T> chunk_if(bool b, virtual_chunk<T> t) {
 		return t;
 	else
 		return virtual_chunk<T>();
+}
+
+template <typename T>
+virtual_chunk_end<T> chunk_end_if(bool b, virtual_chunk_end<T> t) {
+	if (b)
+		return t;
+	else 
+		return virtual_chunk_end<T>(null_sink<T>());
 }
 
 } // namespace pipelining
