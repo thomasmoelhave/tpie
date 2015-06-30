@@ -554,18 +554,20 @@ public:
 	{
 	}
 
+	typedef pipe_end<bits::passive_sorter_factory<item_type, pred_t, store_t> > input_pipe_t;
+	typedef pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t, store_t> > output_pipe_t;
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
-	inline pipe_end<bits::passive_sorter_factory<item_type, pred_t, store_t> > input() {
+	inline input_pipe_t input() {
 		return bits::passive_sorter_factory<item_type, pred_t, store_t>(m_output);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
-	inline pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t,
-														 store_t> > output() {
+	inline output_pipe_t output() {
 		return bits::passive_sorter_factory_2<item_type, pred_t, store_t>(*this);
 	}
 	
