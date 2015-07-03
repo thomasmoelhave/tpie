@@ -338,20 +338,30 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////
+	/// \brief Fill the entier array with the given value
+	///
+	/// \param elm the initialization element
+	/////////////////////////////////////////////////////////
+	void fill(T value) {
+		storage_type x=0;
+		for (size_t i=0; i < perword(); ++i) 
+			x = (x << B) + ((storage_type)value & mask());
+		for (size_t i=0; i < words(m_size); ++i)
+			m_elements[i] = x;		
+	}
+	
+	
+	/////////////////////////////////////////////////////////
 	/// \brief Change the size of the array
 	///
 	/// All elements are lost, after resize the value of the entries
 	/// is initialized by a copy of elm
 	/// \param s the new size of the array
-	/// \param elm the initialization element
+	/// \param value the initialization element
 	/////////////////////////////////////////////////////////
 	void resize(size_t s, T value) {
 		resize(s);
-		storage_type x=0;
-		for (size_t i=0; i < perword(); ++i) 
-			x = (x << B) + ((storage_type)value & mask());
-		for (size_t i=0; i < words(m_size); ++i)
-			m_elements[i] = x;
+		fill(value);
 	}
 
 	/////////////////////////////////////////////////////////
@@ -440,7 +450,22 @@ public:
 	inline const_reverse_iterator rbegin() const {return const_reverse_iterator(m_elements-1, perword()+m_size-1);}
 	inline reverse_iterator rend() {return reverse_iterator(m_elements-1, perword()-1);}
 	inline const_reverse_iterator rend() const {return const_reverse_iterator(m_elements-1, perword()-1);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Swap two arrays.
+	///////////////////////////////////////////////////////////////////////////
+	void swap(packed_array & o) {
+		std::swap(m_elements, o.m_elements);
+		std::swap(m_size, o.m_size);
+	}
 };
 
+} //namespace tpie
+
+namespace std {
+template <typename T, int B>
+void swap(tpie::packed_array<T, B> & a, tpie::packed_array<T, B> & b) {
+	a.swap(b);
 }
+} //namespace std
 #endif //__TPIE_PACKED_ARRAY_H__
