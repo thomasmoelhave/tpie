@@ -416,6 +416,15 @@ public:
 		m_recv = acc::get_destination(right);
 	}
 
+	virtual_chunk(const virtual_chunk_end<Input> & left,
+				  const virtual_chunk_begin<Output> & right)
+		: virtual_chunk_base(left.get_node_map(), bits::virt_node::combine(left.get_node(), right.get_node()))
+	{
+		m_src = acc::get_source(left);
+		m_recv = acc::get_destination(right);
+	}
+
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
