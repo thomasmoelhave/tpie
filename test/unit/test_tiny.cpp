@@ -17,6 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+#ifdef TPIE_CPP_TINY
+
 #include "common.h"
 #include <iostream>
 #include <random>
@@ -190,3 +192,11 @@ int main(int argc, char ** argv) {
 		.test(multimap_test, "multimap")
 		;
 }
+
+#else // TPIE_CPP_TINY
+
+int main() {
+	return 0;
+}
+
+#endif // TPIE_CPP_TINY

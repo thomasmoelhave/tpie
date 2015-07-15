@@ -57,6 +57,10 @@
 #define TPIE_VARIADIC_FACTORIES
 #endif
 
+#if defined(TPIE_CPP_RVALUE_REFERENCE) && defined(TPIE_CPP_TEMPLATE_ALIAS) && defined(TPIE_CPP_INITIALIZER_LIST)
+#define TPIE_VARIADIC_FACTORIES
+#endif
+
 #ifdef TPIE_CPP_RVALUE_REFERENCE
 #define TPIE_MOVE(X) std::move(X)
 #define TPIE_RREF(T) T &&

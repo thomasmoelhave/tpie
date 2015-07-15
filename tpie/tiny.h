@@ -18,6 +18,9 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_TINY_H__
 #define __TPIE_TINY_H__
+
+#ifdef TPIE_CPP_TINY
+
 #include <algorithm>
 #include <stdexcept>
 #include <tpie/config.h>
@@ -736,5 +739,7 @@ public:
 
 } //namespace tiny
 } //namespace tpie;
+
+#endif // TPIE_CPP_TINY
 
 #endif //__TPIE_TINY_H__
