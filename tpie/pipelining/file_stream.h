@@ -43,7 +43,7 @@ class input_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline input_t(TPIE_RREF(dest_t) dest, file_stream<item_type> & fs) : dest(TPIE_MOVE(dest)), fs(fs) {
+	inline input_t(TPIE_TRANSFERABLE(dest_t) dest, file_stream<item_type> & fs) : dest(TPIE_MOVE(dest)), fs(fs) {
 		add_push_destination(this->dest);
 		set_name("Read", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(fs.memory_usage());
@@ -170,7 +170,7 @@ class pull_output_t : public node {
 public:
 	typedef typename pull_type<source_t>::type item_type;
 
-	inline pull_output_t(TPIE_RREF(source_t) source, file_stream<item_type> & fs) : source(TPIE_MOVE(source)), fs(fs) {
+	inline pull_output_t(TPIE_TRANSFERABLE(source_t) source, file_stream<item_type> & fs) : source(TPIE_MOVE(source)), fs(fs) {
 		add_pull_source(this->source);
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 		set_minimum_memory(fs.memory_usage());
@@ -195,7 +195,7 @@ public:
 	class type: public node {
 	public:
 		typedef T item_type;
-		type(TPIE_RREF(dest_t) dest, file_stream<item_type> & fs): fs(fs), dest(TPIE_MOVE(dest)) {
+		type(TPIE_TRANSFERABLE(dest_t) dest, file_stream<item_type> & fs): fs(fs), dest(TPIE_MOVE(dest)) {
 			set_minimum_memory(fs.memory_usage());
 		}
 
@@ -216,7 +216,7 @@ public:
 	class type: public node {
 	public:
 		typedef T item_type;
-		type(TPIE_RREF(source_t) source, file_stream<item_type> & fs): fs(fs), source(TPIE_MOVE(source)) {
+		type(TPIE_TRANSFERABLE(source_t) source, file_stream<item_type> & fs): fs(fs), source(TPIE_MOVE(source)) {
 			set_minimum_memory(fs.memory_usage());
 		}
 		

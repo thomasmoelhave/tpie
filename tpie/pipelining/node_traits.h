@@ -133,12 +133,14 @@ struct pull_type {
 
 template <typename T>
 struct push_type {
-  typedef typename T::item_type type;
+	typedef typename bits::remove<T>::type node_type;
+	typedef typename node_type::item_type type;
 };
 
 template <typename T>
 struct pull_type {
-  typedef typename T::item_type type;
+	typedef typename bits::remove<T>::type node_type;
+	typedef typename node_type::item_type type;
 };
 
 #endif //TPIE_CPP_DECLTYPE

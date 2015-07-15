@@ -219,7 +219,7 @@ public:
 	};
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(TPIE_RREF(dest_t) dest) const {
+	typename constructed<dest_t>::type construct(TPIE_TRANSFERABLE(dest_t) dest) const {
 		node_token input_token;
 		typedef typename push_type<dest_t>::type item_type;
 		boost::shared_ptr<OB> o(new O<dest_t>(TPIE_MOVE(dest), input_token));

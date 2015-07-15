@@ -108,7 +108,7 @@ class reverser_output_t: public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	reverser_output_t(TPIE_RREF(dest_t) dest, const node_token & input_token)
+	reverser_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
 		: dest(TPIE_MOVE(dest))
 	{
 		add_dependency(input_token);
@@ -149,7 +149,7 @@ class internal_reverser_output_t: public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	internal_reverser_output_t(TPIE_RREF(dest_t) dest, const node_token & input_token)
+	internal_reverser_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
 		: dest(TPIE_MOVE(dest))
 	{
 		add_dependency(input_token);

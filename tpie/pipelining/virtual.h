@@ -102,7 +102,7 @@ private:
 	dest_t dest;
 
 public:
-	virtsrc_impl(TPIE_RREF(dest_t) dest)
+	virtsrc_impl(TPIE_TRANSFERABLE(dest_t) dest)
 		: dest(TPIE_MOVE(dest))
 	{
 		node::add_push_destination(this->dest);
@@ -611,7 +611,7 @@ public:
 	public:
 		typedef T item_type;
 
-		type(TPIE_RREF(dest_t) dest, virtual_chunk_end<T> out)
+		type(TPIE_TRANSFERABLE(dest_t) dest, virtual_chunk_end<T> out)
 			: vnode(out.get_node())
 			, dest2(bits::access::get_source(out))
 			, dest(TPIE_MOVE(dest))

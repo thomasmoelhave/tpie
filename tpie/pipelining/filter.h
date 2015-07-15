@@ -43,7 +43,7 @@ public:
 #else
 		typedef typename boost::template unary_traits<F>::argument_type item_type;
 #endif	
-		type(TPIE_RREF(dest_t) dest, const F & functor):
+		type(TPIE_TRANSFERABLE(dest_t) dest, const F & functor):
 			functor(functor), dest(TPIE_MOVE(dest)) {
 			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 		}

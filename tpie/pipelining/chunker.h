@@ -39,7 +39,7 @@ private:
 	vector_type items;
 	dest_t dest;
 public:
-	chunker_t(TPIE_RREF(dest_t) dest, size_t maxSize)
+	chunker_t(TPIE_TRANSFERABLE(dest_t) dest, size_t maxSize)
 		: maxSize(maxSize)
 		, dest(TPIE_MOVE(dest))
 	{
