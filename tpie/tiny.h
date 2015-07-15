@@ -640,7 +640,7 @@ protected:
 };
 
 /**
- * \brief A std::set compatible set, usefull when we do not have many elements (less then 512)
+ * \brief A std::set compatible set, useful when we do not have many elements (less then 512)
  */
 template <typename T,
 		  typename Comp=std::less<T>,
@@ -648,7 +648,7 @@ template <typename T,
 using set = set_impl<T, T, bits::IdentityExtract, Comp, Alloc, bits::SingleInsertHelp>;
 
 /**
- * \brief A std::multiset compatible multi set, usefull when we do not have many elements (less then 512)
+ * \brief A std::multiset compatible multi set, useful when we do not have many elements (less then 512)
  */
 template <typename T,
 		  typename Comp=std::less<T>,
@@ -656,7 +656,7 @@ template <typename T,
 using multiset = set_impl<T, T, bits::IdentityExtract, Comp, Alloc, bits::MultiInsertHelp>;
 
 /**
- * \brief A std::multimap compatible multi map, usefull when we do not have many elements (less then 512)
+ * \brief A std::multimap compatible multi map, useful when we do not have many elements (less then 512)
  */
 template <typename Key,
 		  typename T,
@@ -665,7 +665,7 @@ template <typename Key,
 using multimap = set_impl<std::pair<Key, T>, T, bits::PairExtract<Key, T>, Comp, Alloc, bits::MultiInsertHelp>;
 
 /**
- * \brief A std::map compatible map, usefull when we do not have many elements (less then 512)
+ * \brief A std::map compatible map, useful when we do not have many elements (less then 512)
  */
 template <typename Key,
 		  typename T,
