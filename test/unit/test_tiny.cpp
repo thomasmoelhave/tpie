@@ -17,12 +17,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifdef TPIE_CPP_TINY
-
 #include "common.h"
 #include <iostream>
 #include <random>
 #include <tpie/tiny.h>
+
+#ifdef TPIE_CPP_TINY
 
 bool sort_test() {
 	{
@@ -195,8 +195,15 @@ int main(int argc, char ** argv) {
 
 #else // TPIE_CPP_TINY
 
-int main() {
-	return 0;
+bool basic_test() {
+	tpie::log_warning() << "ut-tiny: Tiny is not supported on this system!" << std::endl;
+	return true;
+}
+
+int main(int argc, char ** argv) {
+	return tpie::tests(argc, argv)
+	.test(basic_test, "basic")
+	;
 }
 
 #endif // TPIE_CPP_TINY

@@ -39,6 +39,8 @@
 #cmakedefine TPIE_CPP_TEMPLATE_ALIAS
 #cmakedefine TPIE_CPP_NONE_POD_UNION
 #cmakedefine TPIE_CPP_TYPE_TRAITS
+#cmakedefine TPIE_CPP_INITIALIZER_LIST
+#cmakedefine TPIE_CPP_AUTO_KEYWORD
 
 #ifndef TPIE_CPP_OVERRIDE_KEYWORD
 	#define final
@@ -58,7 +60,7 @@
 #endif
 
 #if defined(TPIE_CPP_RVALUE_REFERENCE) && defined(TPIE_CPP_TEMPLATE_ALIAS) && defined(TPIE_CPP_INITIALIZER_LIST)
-#define TPIE_VARIADIC_FACTORIES
+#define TPIE_CPP_TINY
 #endif
 
 #ifdef TPIE_CPP_RVALUE_REFERENCE
