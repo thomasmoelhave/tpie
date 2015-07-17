@@ -210,7 +210,7 @@ private:
 		m_collection->write_block(node.handle);
 	}
 
-	T get(leaf_type node, size_t i) const {
+	const T & get(leaf_type node, size_t i) const {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		leaf nodeInter(nodeBlock);
 

@@ -203,8 +203,7 @@ template <typename S>
 class btree_iterator: public boost::iterator_facade<
 	btree_iterator<S>,
 	typename S::value_type const,
-	boost::bidirectional_traversal_tag,
-	typename S::value_type> {
+	boost::bidirectional_traversal_tag> {
 private:
 	typedef typename S::internal_type internal_type;
 	typedef typename S::leaf_type leaf_type;
@@ -230,7 +229,7 @@ private:
 
 	void goto_begin() {
 		m_path.clear();
-		if (m_store->height() == 1) {
+		if (m_store->height() < 2) {
 			m_leaf = m_store->get_root_leaf();
 			m_index = 0;
 			return;
@@ -277,7 +276,7 @@ private:
 public:
 	btree_iterator(): m_index(0), m_leaf() {}
 
-	value_type dereference() const {
+	const value_type & dereference() const {
 		return m_store->get(m_leaf, m_index);
 	}
 

@@ -122,7 +122,7 @@ private:
 		node->values[i].ptr = c;
 	}
 
-	T & get(leaf_type l, size_t i) const {
+	const T & get(leaf_type l, size_t i) const {
 		return l->values[i];
 	}
 

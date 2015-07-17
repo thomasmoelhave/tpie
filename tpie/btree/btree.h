@@ -272,9 +272,9 @@ public:
 	 * \brief Insert given value into the btree
 	 */
 	void insert(value_type v) {
-		// Handle the special case of the empty tree
 		m_store.set_size(m_store.size() + 1);
-		
+
+		// Handle the special case of the empty tree
 		if (m_store.height() == 0) {
 			leaf_type n = m_store.create_leaf();
 			m_store.set_count(n, 1);
