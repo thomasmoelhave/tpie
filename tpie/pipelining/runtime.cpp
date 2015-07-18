@@ -959,8 +959,11 @@ void runtime::go_initiators(const std::vector<node *> & phase) {
 	std::vector<node *> initiators;
 	for (size_t i = 0; i < phase.size(); ++i)
 		if (is_initiator(phase[i])) initiators.push_back(phase[i]);
-	for (size_t i = 0; i < initiators.size(); ++i)
+	for (size_t i = 0; i < initiators.size(); ++i) {
+		initiators[i]->set_state(node::STATE_IN_GO);
 		initiators[i]->go();
+		initiators[i]->set_state(node::STATE_AFTER_BEGIN);
+	}
 }
 
 /*static*/
