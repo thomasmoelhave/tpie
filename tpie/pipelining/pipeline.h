@@ -148,22 +148,38 @@ public:
 		return *this;
 	}
 
-	inline void operator()() {
+	pipeline(const boost::shared_ptr<bits::pipeline_base> & p): p(p) {}
+
+	void operator()() {
+		pipeline * oc = m_current;
+		m_current = this;
 		progress_indicator_null pi;
 		(*p)(1, pi, get_memory_manager().available());
+		m_current = oc;
 	}
-	inline void operator()(stream_size_type items, progress_indicator_base & pi) {
+
+	void operator()(stream_size_type items, progress_indicator_base & pi) {
+		pipeline * oc = m_current;
+		m_current = this;
 		(*p)(items, pi, get_memory_manager().available());
+		m_current = oc;
 	}
-	inline void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) {
+
+	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) {
+		pipeline * oc = m_current;
+		m_current = this;
 		(*p)(items, pi, mem);
+		m_current = oc;
 	}
-	inline void plot(std::ostream & os = std::cout) {
+	
+	void plot(std::ostream & os = std::cout) {
 		p->plot(os);
 	}
+
 	void plot_full(std::ostream & os = std::cout) {
 		p->plot_full(os);
 	}
+	
 	inline double memory() const {
 		return p->memory();
 	}
@@ -200,7 +216,10 @@ public:
 	}
 
 	void output_memory(std::ostream & o) const;
+
+	static pipeline * current() {return m_current;}
 private:
+	static pipeline * m_current;
 	boost::shared_ptr<bits::pipeline_base> p;
 };
 

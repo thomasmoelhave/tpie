@@ -201,8 +201,12 @@ void pipeline_base::order_before(pipeline_base & other) {
 	}
 }
 
+
+	
 } // namespace bits
 
+pipeline * pipeline::m_current = NULL;
+	
 void pipeline::output_memory(std::ostream & o) const {
 	bits::node_map::ptr nodeMap = p->get_node_map()->find_authority();
 	for (bits::node_map::mapit i = nodeMap->begin(); i != nodeMap->end(); ++i) {
