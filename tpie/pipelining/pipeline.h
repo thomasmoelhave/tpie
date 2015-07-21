@@ -134,6 +134,16 @@ private:
 /// pipeline_impl type.
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline {
+private:
+	struct CurrentPipeSetter {
+		pipeline * old;
+		CurrentPipeSetter(pipeline * self) {
+			old = m_current;
+			m_current = self;
+		}
+
+		~CurrentPipeSetter() {m_current = old;}
+	};
 public:
 	pipeline() {}
 
@@ -151,25 +161,19 @@ public:
 	pipeline(const boost::shared_ptr<bits::pipeline_base> & p): p(p) {}
 
 	void operator()() {
-		pipeline * oc = m_current;
-		m_current = this;
+		CurrentPipeSetter _(this);
 		progress_indicator_null pi;
 		(*p)(1, pi, get_memory_manager().available());
-		m_current = oc;
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi) {
-		pipeline * oc = m_current;
-		m_current = this;
+		CurrentPipeSetter _(this);
 		(*p)(items, pi, get_memory_manager().available());
-		m_current = oc;
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) {
-		pipeline * oc = m_current;
-		m_current = this;
+		CurrentPipeSetter _(this);
 		(*p)(items, pi, mem);
-		m_current = oc;
 	}
 	
 	void plot(std::ostream & os = std::cout) {
