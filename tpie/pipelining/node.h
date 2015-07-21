@@ -499,7 +499,8 @@ public:
 		assert(get_state() == STATE_IN_END ||
 			   get_state() == STATE_IN_BEGIN ||
 			   get_state() == STATE_AFTER_BEGIN ||
-			   get_state() == STATE_IN_END);
+			   get_state() == STATE_IN_END ||
+			   get_state() == STATE_IN_GO);
 		if (m_stepsLeft < steps)
 			step_overflow();
 		else
