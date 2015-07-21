@@ -56,6 +56,7 @@ public:
 		m_queue = &**m_queue_ptr;
 		m_queue->seek(0);
 		forward("items", m_queue->size());
+		set_steps(m_queue->size());
 	}
 
 	bool can_pull() const {
@@ -63,6 +64,7 @@ public:
 	}
 
 	T pull() {
+		step();
 		return m_queue->read();
 	}
 

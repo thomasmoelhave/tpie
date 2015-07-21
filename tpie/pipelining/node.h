@@ -43,7 +43,7 @@ class proxy_progress_indicator : public tpie::progress_indicator_base {
 public:
 	proxy_progress_indicator(node & s);
 
-	inline void refresh();
+	virtual void refresh() override;
 };
 
 } // namespace bits
