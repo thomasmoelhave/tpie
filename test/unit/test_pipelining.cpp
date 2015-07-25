@@ -1504,7 +1504,7 @@ enum nocopy_tag { nocopy };
 class node_map_tester : public node {
 	friend class node_map_tester_factory;
 
-	std::auto_ptr<node_map_tester> dest;
+	std::unique_ptr<node_map_tester> dest;
 
 public:
 	node_map_tester() {

@@ -642,7 +642,7 @@ private:
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
-	std::auto_ptr<progress_indicator_base> m_piProxy;
+	std::unique_ptr<progress_indicator_base> m_piProxy;
 	flags<PLOT> m_plotOptions;
 
 	friend class bits::proxy_progress_indicator;

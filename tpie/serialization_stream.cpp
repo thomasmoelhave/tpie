@@ -119,7 +119,7 @@ private:
 	};
 #pragma pack(pop)
 
-	std::auto_ptr<stream_header_t> m_headerPtr;
+	std::unique_ptr<stream_header_t> m_headerPtr;
 	stream_header_t & m_header;
 
 	file_accessor::raw_file_accessor & m_fileAccessor;

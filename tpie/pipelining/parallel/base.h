@@ -388,7 +388,7 @@ public:
 
 	consumer<T2> * m_cons;
 
-	std::auto_ptr<threads<T1, T2> > pipes;
+	std::unique_ptr<threads<T1, T2> > pipes;
 
 	template <typename fact_t>
 	state(const options opts, const fact_t & fact)
@@ -418,7 +418,7 @@ class after : public after_base {
 protected:
 	state_base & st;
 	size_t parId;
-	std::auto_ptr<parallel_output_buffer<T> > m_buffer;
+	std::unique_ptr<parallel_output_buffer<T> > m_buffer;
 	array<parallel_output_buffer<T> *> & m_outputBuffers;
 	typedef state_base::lock_t lock_t;
 	consumer<T> * const * m_cons;
@@ -557,7 +557,7 @@ class before : public node {
 protected:
 	state_base & st;
 	size_t parId;
-	std::auto_ptr<parallel_input_buffer<T> > m_buffer;
+	std::unique_ptr<parallel_input_buffer<T> > m_buffer;
 	array<parallel_input_buffer<T> *> & m_inputBuffers;
 	boost::thread m_worker;
 

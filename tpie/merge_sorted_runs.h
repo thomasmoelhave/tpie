@@ -148,8 +148,8 @@ namespace tpie {
 		/// \internal \todo add comparison operator version
 		///////////////////////////////////////////////////////////////////////////
 		template <class T, class CMPR>
-		void merge_sorted(typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator start,
-						 typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator end,
+		void merge_sorted(typename tpie::array<std::unique_ptr<file_stream<T> > >::iterator start,
+						 typename tpie::array<std::unique_ptr<file_stream<T> > >::iterator end,
 						 file_stream<T> *outStream, CMPR *cmp) {
 	    
 			// make a merge heap which uses the user's comparison object
@@ -158,7 +158,7 @@ namespace tpie {
 			mrgheap.allocate(end-start);
 	    
 			//Rewind all the input streams
-			for (typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator i=start; 
+			for (typename tpie::array<std::unique_ptr<file_stream<T> > >::iterator i=start; 
 				 i != end; ++i)
 				i->seek(0); 
 	    
@@ -191,7 +191,7 @@ namespace tpie {
 			mrgheap.allocate(end-start);
 	    
 			// Rewind all the input streams
-			for (typename tpie::array<std::auto_ptr<file_stream<T> > >::iteratorarity_t i=start; 
+			for (typename tpie::array<std::unique_ptr<file_stream<T> > >::iteratorarity_t i=start; 
 				 i != end; ++i)
 				i->seek(0); 
 	    

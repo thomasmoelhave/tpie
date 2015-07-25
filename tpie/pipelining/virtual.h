@@ -185,8 +185,8 @@ public:
 	typedef boost::shared_ptr<virt_node> ptr;
 
 private:
-	std::auto_ptr<node> m_node;
-	std::auto_ptr<virtual_container> m_container;
+	std::unique_ptr<node> m_node;
+	std::unique_ptr<virtual_container> m_container;
 	ptr m_left;
 	ptr m_right;
 
