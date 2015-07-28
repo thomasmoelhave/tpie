@@ -37,11 +37,11 @@ memory_manager * mm = 0;
 memory_manager::memory_manager(): m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN) {}
 
 size_t memory_manager::used() const throw() {
-	return m_used.fetch();
+	return m_used.load();
 }
 
 size_t memory_manager::available() const throw() {
-	size_t used = m_used.fetch();
+	size_t used = m_used.load();
 	size_t limit = m_limit;
 	if (used < limit) return limit-used;
 	return 0;
@@ -60,10 +60,10 @@ namespace tpie {
 void memory_manager::register_allocation(size_t bytes) {
 	switch(m_enforce) {
 	case ENFORCE_IGNORE:
-		m_used.add(bytes);
+		m_used.fetch_add(bytes);
 		break;
 	case ENFORCE_THROW: {
-		size_t usage = m_used.add_and_fetch(bytes);
+		size_t usage = m_used.fetch_add(bytes);
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
 			tpie_print_memory_complaint(ss, bytes, usage, m_limit);
@@ -72,7 +72,7 @@ void memory_manager::register_allocation(size_t bytes) {
 		break; }
 	case ENFORCE_DEBUG:
 	case ENFORCE_WARN: {
-		size_t usage = m_used.add_and_fetch(bytes);
+		size_t usage = m_used.fetch_add(bytes);
 		if (usage > m_limit && usage - m_limit > m_maxExceeded && m_limit > 0) {
 			m_maxExceeded = usage - m_limit;
 			if (m_maxExceeded >= m_nextWarning) {
@@ -95,7 +95,7 @@ void memory_manager::register_deallocation(size_t bytes) {
 		segfault();
 	}
 #else
-	m_used.sub(bytes);
+	m_used.fetch_sub(bytes);
 #endif
 }
 
@@ -139,7 +139,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	//directly.
 	try {
 		res = new uint8_t[high*granularity];
-		m_used.add(high*granularity);
+		m_used.fetch_add(high*granularity);
 #ifndef TPIE_NDEBUG
 		register_pointer(res, high*granularity, typeid(uint8_t) );
 #endif	      
@@ -174,7 +174,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	lf.buf << "- - - - - - - END MEMORY SEARCH - - - - - -\n";	
 
 	res = new uint8_t[best];
-	m_used.add(best);
+	m_used.fetch_add(best);
 #ifndef TPIE_NDEBUG
 	register_pointer(res, best, typeid(uint8_t) );
 #endif	      
