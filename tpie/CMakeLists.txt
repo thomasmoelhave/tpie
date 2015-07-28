@@ -139,11 +139,8 @@ set (HEADERS
 		tpie.h
 		unittest.h
 		maybe.h
+		tiny.h
 		)
-
-if(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
-	set (HEADERS ${HEADERS} tiny.h)
-endif(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
 
 set (SOURCES
 	backtrace.cpp
