@@ -138,6 +138,7 @@ set (HEADERS
 		concept_doc.h
 		tpie.h
 		unittest.h
+		maybe.h
 		)
 
 if(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
