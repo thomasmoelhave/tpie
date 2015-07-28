@@ -21,7 +21,7 @@
 #include <iostream>
 #include <random>
 #include <tpie/tiny.h>
-
+#include <set>
 #ifdef TPIE_CPP_TINY
 
 bool sort_test() {

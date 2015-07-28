@@ -84,6 +84,11 @@ endif()
 
 set(TPIE_S ${CMAKE_CURRENT_SOURCE_DIR})
 set(TPIE_B ${CMAKE_CURRENT_BINARY_DIR})
+
+if(NOT WIN32) 
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
 if(WIN32) 
   set(TC_COMPILE_DEFS)
 else(WIN32)

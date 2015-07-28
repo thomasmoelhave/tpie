@@ -23,6 +23,7 @@
 #include <tpie/util.h>
 #include <boost/static_assert.hpp>
 #include <iterator>
+#include <cassert>
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file packed_array.h
