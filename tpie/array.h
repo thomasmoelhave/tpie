@@ -29,6 +29,7 @@
 #include <boost/utility/enable_if.hpp>
 #include <tpie/memory.h>
 #include <tpie/array_view_base.h>
+#include <cassert>
 
 namespace tpie {
 
