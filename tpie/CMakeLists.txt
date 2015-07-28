@@ -54,7 +54,6 @@ set (HEADERS
 		mergeheap.h
 		merge_sorted_runs.h
 		memory.h
-		memory.inl
 		persist.h
 		pipelining/buffer.h
 		pipelining/exception.h
