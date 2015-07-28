@@ -36,7 +36,7 @@ public:
 	typedef std::vector<std::pair<std::string, boost::any> > values_t;
 	
 	Forwarder(TPIE_TRANSFERABLE(dest_t) dest, values_t values)
-		: values(TPIE_MOVE(values)), dest(TPIE_MOVE(dest)) {}
+		: values(std::move(values)), dest(std::move(dest)) {}
 
 	void prepare() override {
 		for (typename values_t::iterator i=values.begin(); i != values.end(); ++i)
@@ -57,7 +57,7 @@ private:
 // pass though items on push
 ///////////////////////////////////////////////////////////////////////////////
 inline pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> > > > forwarder(std::vector<std::pair<std::string, boost::any> > items) {
-	return factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> >  >(TPIE_MOVE(items));
+	return factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> >  >(std::move(items));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ template <typename VT>
 pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> > > > forwarder(std::string name, VT value) {
 	std::vector<std::pair<std::string, boost::any> > v;
 	v.push_back(std::make_pair(name, boost::any(value)));
-	return forwarder(TPIE_MOVE(v));
+	return forwarder(std::move(v));
 }
 
 } //namespace pipelining

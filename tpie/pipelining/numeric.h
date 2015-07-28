@@ -36,7 +36,7 @@ class linear_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline linear_t(TPIE_TRANSFERABLE(dest_t) dest, item_type factor, item_type term) : dest(TPIE_MOVE(dest)), factor(factor), term(term) {
+	inline linear_t(TPIE_TRANSFERABLE(dest_t) dest, item_type factor, item_type term) : dest(std::move(dest)), factor(factor), term(term) {
 		add_push_destination(this->dest);
 		set_name("Linear transform", PRIORITY_INSIGNIFICANT);
 	}

@@ -303,7 +303,7 @@ public:
 
 			array<store_type> currentRun(m_currentRunItemCount);
 			for (size_t i=0; i < m_currentRunItemCount; ++i)
-				currentRun[i] = TPIE_MOVE(m_currentRunItems[i]);
+				currentRun[i] = std::move(m_currentRunItems[i]);
 			m_currentRunItems.swap(currentRun);
 
 			m_reportInternal = true;
@@ -383,7 +383,7 @@ private:
 		file_stream<element_type> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
 		for (memory_size_type i = 0; i < m_currentRunItemCount; ++i)
-			fs.write(m_store.store_to_element(TPIE_MOVE(m_currentRunItems[i])));
+			fs.write(m_store.store_to_element(std::move(m_currentRunItems[i])));
 		m_currentRunItemCount = 0;
 		++m_finishedRuns;
 	}
@@ -544,9 +544,9 @@ public:
 	inline item_type pull() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
-			store_type el = TPIE_MOVE(m_currentRunItems[m_itemsPulled++]);
+			store_type el = std::move(m_currentRunItems[m_itemsPulled++]);
 			if (!can_pull()) m_currentRunItems.resize(0);
-			return m_store.store_to_outer(TPIE_MOVE(el));
+			return m_store.store_to_outer(std::move(el));
 		} else {
 			if (m_evacuated) reinitialize_final_merger();
 			m_runPositions.close();

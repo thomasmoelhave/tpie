@@ -38,7 +38,7 @@ class ostream_logger_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline ostream_logger_t(TPIE_TRANSFERABLE(dest_t) dest, std::ostream & log) : dest(TPIE_MOVE(dest)), log(log), begun(false), ended(false) {
+	inline ostream_logger_t(TPIE_TRANSFERABLE(dest_t) dest, std::ostream & log) : dest(std::move(dest)), log(log), begun(false), ended(false) {
 		add_push_destination(this->dest);
 		set_name("Log", PRIORITY_INSIGNIFICANT);
 	}
@@ -74,7 +74,7 @@ class identity_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline identity_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(TPIE_MOVE(dest)) {
+	inline identity_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(std::move(dest)) {
 		add_push_destination(this->dest);
 	}
 
@@ -90,7 +90,7 @@ class pull_identity_t : public node {
 public:
 	typedef typename pull_type<source_t>::type item_type;
 
-	inline pull_identity_t(TPIE_TRANSFERABLE(source_t) source) : source(TPIE_MOVE(source)) {
+	inline pull_identity_t(TPIE_TRANSFERABLE(source_t) source) : source(std::move(source)) {
 		add_pull_source(this->source);
 		set_name("Identity", PRIORITY_INSIGNIFICANT);
 	}
@@ -112,7 +112,7 @@ class pull_peek_t : public node {
 public:
 	typedef typename pull_type<source_t>::type item_type;
 
-	pull_peek_t(TPIE_TRANSFERABLE(source_t) source) : source(TPIE_MOVE(source)) {
+	pull_peek_t(TPIE_TRANSFERABLE(source_t) source) : source(std::move(source)) {
 		add_pull_source(this->source);
 		set_plot_options(PLOT_SIMPLIFIED_HIDE);
 	}
@@ -174,7 +174,7 @@ public:
 		pusher_t pusher;
 
 		inline puller_t(TPIE_TRANSFERABLE(source_t) source, const pushfact_t & pushfact)
-			: source(TPIE_MOVE(source))
+			: source(std::move(source))
 			, pusher(pushfact.construct(dummydest_t<item_type>(dummydest)))
 		{
 			add_pull_source(this->source);
@@ -208,7 +208,7 @@ public:
 		puller_t puller;
 
 		inline pusher_t(TPIE_TRANSFERABLE(dest_t) dest, const pullfact_t & pullfact)
-			: dest(TPIE_MOVE(dest))
+			: dest(std::move(dest))
 			, puller(pullfact.construct(dummydest_t<item_type>(dummydest)))
 		{
 			add_push_destination(this->dest);
@@ -234,7 +234,7 @@ public:
 	public:
 		typedef typename push_type<dest_t>::type item_type;
 
-		inline type(TPIE_TRANSFERABLE(dest_t) dest, const fact2_t & fact2) : dest(TPIE_MOVE(dest)), dest2(fact2.construct()) {
+		inline type(TPIE_TRANSFERABLE(dest_t) dest, const fact2_t & fact2) : dest(std::move(dest)), dest2(fact2.construct()) {
 			add_push_destination(this->dest);
 			add_push_destination(dest2);
 		}
@@ -385,7 +385,7 @@ public:
 		dest_t dest;
 	public:
 		typedef typename push_type<dest_t>::type item_type;
-		type(TPIE_TRANSFERABLE(dest_t) dest, const F & functor): functor(functor), dest(TPIE_MOVE(dest)) {
+		type(TPIE_TRANSFERABLE(dest_t) dest, const F & functor): functor(functor), dest(std::move(dest)) {
 			add_push_destination(this->dest);
 		}
 
@@ -408,7 +408,7 @@ public:
 		dest_t dest;
 	public:
 		typedef typename push_type<dest_t>::type item_type;
-		type(TPIE_TRANSFERABLE(dest_t) dest, const F & functor): functor(functor), dest(TPIE_MOVE(dest)) {
+		type(TPIE_TRANSFERABLE(dest_t) dest, const F & functor): functor(functor), dest(std::move(dest)) {
 			add_push_destination(this->dest);
 		}
 
@@ -429,7 +429,7 @@ struct zip_t {
 		typedef typename push_type<dest_t>::type::first_type item_type;
 		
 		type(TPIE_TRANSFERABLE(dest_t) dest, const src_fact_t & src_fact)
-			: src(src_fact.construct()), dest(TPIE_MOVE(dest)) {
+			: src(src_fact.construct()), dest(std::move(dest)) {
 			add_push_destination(this->dest);
 			add_pull_source(src);
 		}
@@ -455,7 +455,7 @@ struct unzip_t {
 		typedef typename push_type<dest2_t>::type second_type;
 		typedef std::pair<first_type, second_type> item_type;
 		
-		type(TPIE_TRANSFERABLE(dest1_t) dest1, const fact2_t & fact2) : dest1(TPIE_MOVE(dest1)), dest2(fact2.construct()) {
+		type(TPIE_TRANSFERABLE(dest1_t) dest1, const fact2_t & fact2) : dest1(std::move(dest1)), dest2(fact2.construct()) {
 			add_push_destination(this->dest1);
 			add_push_destination(dest2);
 		}
@@ -479,7 +479,7 @@ public:
 		dest_t dest;
 	public:
 		typedef T item_type;
-		type(TPIE_TRANSFERABLE(dest_t) dest): dest(TPIE_MOVE(dest)) {}
+		type(TPIE_TRANSFERABLE(dest_t) dest): dest(std::move(dest)) {}
 		void push(const item_type & item) {dest.push(item);}
 	};
 };
