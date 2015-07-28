@@ -153,19 +153,11 @@ public:
 		: fact1(fact1), fact2(fact2) {
 	}
 
-#ifndef TPIE_CPP_RVALUE_REFERENCE
-	template <typename dest_t>
-	typename constructed<dest_t>::type
-	construct(const dest_t & dest) const {
-		return this->record(0, fact1.construct(this->record(1, fact2.construct(dest))));
-	}
-#else // TPIE_CPP_RVALUE_REFERENCE
 	template <typename dest_t>
 	typename constructed<dest_t>::type
 	construct(dest_t && dest) const {
 		return this->record(0, fact1.construct(this->record(1, fact2.construct(std::forward<dest_t>(dest)))));
 	}
-#endif // TPIE_CPP_RVALUE_REFERENCE
 
 	void recursive_connected_check() const {
 		maybe_check_connected<fact1_t>::check(fact1);

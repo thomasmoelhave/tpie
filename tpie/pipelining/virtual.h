@@ -439,11 +439,7 @@ public:
 		this->m_nodeMap = temp.get_node_map();
 		fact_t f = pipe.factory;
 		f.set_destination_kind_push();
-#ifndef TPIE_CPP_RVALUE_REFERENCE
-		m_src = new bits::virtsrc_impl<constructed_type>(f.construct(temp));
-#else // TPIE_CPP_RVALUE_REFERENCE
 		m_src = new bits::virtsrc_impl<constructed_type>(f.construct(std::move(temp)));
-#endif // TPIE_CPP_RVALUE_REFERENCE
 		this->m_node = bits::virt_node::take_own(m_src);
 
 		return *this;
@@ -547,11 +543,7 @@ public:
 		this->m_nodeMap = m_recv->get_node_map();
 		fact_t f = pipe.factory;
 		f.set_destination_kind_push();
-#ifndef TPIE_CPP_RVALUE_REFERENCE
-		this->m_node = bits::virt_node::take_own(new constructed_type(f.construct(temp)));
-#else // TPIE_CPP_RVALUE_REFERENCE
 		this->m_node = bits::virt_node::take_own(new constructed_type(f.construct(std::move(temp))));
-#endif // TPIE_CPP_RVALUE_REFERENCE
 		return *this;
 	}
 

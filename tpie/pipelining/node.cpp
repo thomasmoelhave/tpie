@@ -106,8 +106,6 @@ node::node(const node & other)
 			"Tried to copy pipeline node after prepare had been called");
 }
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
-
 node::node(node && other)
 	: token(std::move(other.token), this)
 	, m_parameters(std::move(other.m_parameters))
@@ -122,8 +120,6 @@ node::node(node && other)
 		throw call_order_exception(
 			"Tried to move pipeline node after prepare had been called");
 }
-
-#endif // TPIE_CPP_RVALUE_REFERENCE
 
 node::node(const node_token & token)
 	: token(token, this, true)
