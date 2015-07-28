@@ -82,8 +82,8 @@ public:
 		dest_t dest;
 	};
 
-	pipe_begin<factory_2<source_impl, node_token, source_base **> > source() {
-		return factory_2<source_impl, node_token, source_base **>(source_token, &the_source);
+	pipe_begin<factory<source_impl, node_token, source_base **> > source() {
+		return factory<source_impl, node_token, source_base **>(source_token, &the_source);
 	}
 
 	class sink_impl : public node {
@@ -110,8 +110,8 @@ public:
 		source_base ** the_source;
 	};
 
-	pipe_end<termfactory_2<sink_impl, node_token, source_base **> > sink() {
-		return termfactory_2<sink_impl, node_token, source_base **>(source_token, &the_source);
+	pipe_end<termfactory<sink_impl, node_token, source_base **> > sink() {
+		return termfactory<sink_impl, node_token, source_base **>(source_token, &the_source);
 	}
 
 	join() : the_source(NULL) {}

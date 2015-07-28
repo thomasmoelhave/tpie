@@ -68,12 +68,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining node that pushes the integers it reads using scanf
 ///////////////////////////////////////////////////////////////////////////////
-typedef pipe_begin<factory_0<bits::scanf_ints_t> > scanf_ints;
+typedef pipe_begin<factory<bits::scanf_ints_t> > scanf_ints;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining node that prints the items that are pushed to it.
 ///////////////////////////////////////////////////////////////////////////////
-typedef pipe_end<termfactory_0<bits::printf_ints_t> > printf_ints;
+typedef pipe_end<termfactory<bits::printf_ints_t> > printf_ints;
 
 } // namespace pipelining
 

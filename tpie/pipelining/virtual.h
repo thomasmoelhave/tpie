@@ -638,7 +638,7 @@ public:
 } // namespace bits
 
 template <typename T>
-pipe_middle<tempfactory_1<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
+pipe_middle<tempfactory<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
 	return out;
 }
 

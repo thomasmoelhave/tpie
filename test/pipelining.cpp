@@ -107,10 +107,7 @@ private:
 	size_t nodes;
 };
 
-inline P::pipe_begin<P::factory_1<input_nodes_t, size_t> >
-input_nodes(size_t nodes) {
-	return P::factory_1<input_nodes_t, size_t>(nodes);
-}
+typedef  P::pipe_begin<P::factory<input_nodes_t, size_t> > input_nodes;
 
 template <typename dest_t, typename byid_t, typename byparent_t>
 class count_t : public P::node {
@@ -222,10 +219,7 @@ public:
 	}
 };
 
-inline P::pipe_end<P::termfactory_0<output_count_t> >
-output_count() {
-	return P::termfactory_0<output_count_t>();
-}
+typedef P::pipe_end<P::termfactory<output_count_t> > output_count;
 
 int main(int argc, char ** argv) {
 	TP::tpie_init(TP::ALL & ~TP::DEFAULT_LOGGING);

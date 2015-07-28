@@ -152,10 +152,7 @@ public:
 	}
 };
 
-pipe_begin<factory_1<random_strings_type, stream_size_type> >
-random_strings(stream_size_type n) {
-	return factory_1<random_strings_type, stream_size_type>(n);
-}
+typedef pipe_begin<factory<random_strings_type, stream_size_type> > random_strings;
 
 class sort_verifier_type : public node {
 	bool & res;
@@ -179,10 +176,7 @@ public:
 	}
 };
 
-pipe_end<termfactory_1<sort_verifier_type, bool &> >
-sort_verifier(bool & res) {
-	return termfactory_1<sort_verifier_type, bool &>(res);
-}
+typedef pipe_end<termfactory<sort_verifier_type, bool &> > sort_verifier;
 
 bool sort_test(stream_size_type n) {
 	bool result = false;

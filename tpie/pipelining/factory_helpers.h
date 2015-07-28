@@ -22,14 +22,10 @@
 
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/pipelining/node.h>
-#ifdef TPIE_VARIADIC_FACTORIES
 #include <tuple>
-#endif // TPIE_VARIADIC_FACTORIES
 
 namespace tpie {
 namespace pipelining {
-
-#ifdef TPIE_VARIADIC_FACTORIES
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory
@@ -198,95 +194,6 @@ public:
 		return I<item_type>(input_token, std::move(o));
 	};
 };
-
-#else
-
-///////////////////////////////////////////////////////////////////////////////
-/// Node factory for split nodes, typically used for phase boundary nodes.
-/// \tparam I the type of the input node
-/// \tparam item_type the type of item used by both nodes
-/// \tparam OB the base class for both input and output node. Typically 
-/// \ref tpie::pipelining::node
-/// \tparam O the type of the output node
-///////////////////////////////////////////////////////////////////////////////
-template <template <typename item_type> class I, typename OB, template<typename dest_t> class O>
-class split_factory : public factory_base {
-public:
-	template <typename dest_t>
-	struct constructed {
-		typedef typename push_type<dest_t>::type item_type;
-		typedef I<item_type> type;
-	};
-
-	template <typename dest_t>
-	typename constructed<dest_t>::type construct(TPIE_TRANSFERABLE(dest_t) dest) const {
-		node_token input_token;
-		typedef typename push_type<dest_t>::type item_type;
-		boost::shared_ptr<OB> o(new O<dest_t>(TPIE_MOVE(dest), input_token));
-		return I<item_type>(input_token, o);
-	};
-};
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Legacy typedefs
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(TPIE_CPP_TEMPLATE_ALIAS) && defined(TPIE_VARIADIC_FACTORIES)
-
-template <template <typename dest_t> class R>
-using factory_0 = factory<R>;
-template <template <typename dest_t> class R, typename T1>
-using factory_1 = factory<R, T1>;
-template <template <typename dest_t> class R, typename T1, typename T2>
-using factory_2 = factory<R, T1, T2>;
-template <template <typename dest_t> class R, typename T1, typename T2, typename T3>
-using factory_3 = factory<R, T1, T2, T3>;
-template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4>
-using factory_4 = factory<R, T1, T2, T3, T4>;
-template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4, typename T5>
-using factory_5 = factory<R, T1, T2, T3, T4, T5>;
-template <template <typename dest_t> class R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-using factory_6 = factory<R, T1, T2, T3, T4, T5, T6>;
-
-template <typename Holder>
-using tempfactory_0 = tempfactory<Holder>;
-template <typename Holder, typename T1>
-using tempfactory_1 = tempfactory<Holder, T1>;
-template <typename Holder, typename T1, typename T2>
-using tempfactory_2 = tempfactory<Holder, T1, T2>;
-template <typename Holder, typename T1, typename T2, typename T3>
-using tempfactory_3 = tempfactory<Holder, T1, T2, T3>;
-template <typename Holder, typename T1, typename T2, typename T3, typename T4>
-using tempfactory_4 = tempfactory<Holder, T1, T2, T3, T4>;
-template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5>
-using tempfactory_5 = tempfactory<Holder, T1, T2, T3, T4, T5>;
-template <typename Holder, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-using tempfactory_6 = tempfactory<Holder, T1, T2, T3, T4, T5, T6>;
-
-template <typename R>
-using termfactory_0 = termfactory<R>;
-template <typename R, typename T1>
-using termfactory_1 = termfactory<R, T1>;
-template <typename R, typename T1, typename T2>
-using termfactory_2 = termfactory<R, T1, T2>;
-template <typename R, typename T1, typename T2, typename T3>
-using termfactory_3 = termfactory<R, T1, T2, T3>;
-template <typename R, typename T1, typename T2, typename T3, typename T4>
-using termfactory_4 = termfactory<R, T1, T2, T3, T4>;
-template <typename R, typename T1, typename T2, typename T3, typename T4, typename T5>
-using termfactory_5 = termfactory<R, T1, T2, T3, T4, T5>;
-template <typename R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-using termfactory_6 = termfactory<R, T1, T2, T3, T4, T5, T6>;
-
-#else
-
-#ifndef DOXYGEN
-#include <tpie/pipelining/factory_helpers.inl>
-#endif
-
-#endif
 
 } // namespace pipelining
 } // namespace tpie

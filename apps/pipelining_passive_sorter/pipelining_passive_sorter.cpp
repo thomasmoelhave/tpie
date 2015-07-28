@@ -53,9 +53,7 @@ private:
 	int n;
 };
 
-inline pipe_begin<factory_1<Generator, int> > generator(int n) {
-	return factory_1<Generator, int>(n);
-}
+typedef pipe_begin<factory<Generator, int> > generator;
 
 // Increases each incoming value by 1.
 template <typename dest_t>
@@ -78,9 +76,8 @@ private:
 	dest_t dest;
 };
 
-inline pipe_middle<factory_0<AddOne> > addOne() {
-	return factory_0<AddOne>();
-}
+typedef pipe_middle<factory<AddOne> > addOne;
+
 
 template <typename source_t>
 class AddPairwise {
@@ -118,8 +115,8 @@ public:
 };
 
 template <typename source_t>
-inline pipe_begin<tempfactory_1<AddPairwise<source_t>, source_t> > addPairwise(const source_t & source) {
-	return tempfactory_1<AddPairwise<source_t>, source_t >(source);
+inline pipe_begin<tempfactory<AddPairwise<source_t>, source_t> > addPairwise(const source_t & source) {
+	return {source};
 }
 
 void go() {

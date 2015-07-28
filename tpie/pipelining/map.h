@@ -91,8 +91,8 @@ public:
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-pipe_middle<tempfactory_1<bits::map_t<F>, F> > map(const F & functor) {
-	return tempfactory_1<bits::map_t<F>, F >(functor);
+pipe_middle<tempfactory<bits::map_t<F>, F> > map(const F & functor) {
+	return tempfactory<bits::map_t<F>, F >(functor);
 }
 
 } //namespace pipelining
