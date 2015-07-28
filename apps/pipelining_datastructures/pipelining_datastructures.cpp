@@ -48,7 +48,7 @@ private:
 	dest_t dest;
 };
 
-typedef pipe_begin<factory_0<generator_type> > generator;
+typedef pipe_begin<factory<generator_type> > generator;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// An implementation of a node that store the 20 largest items in a set
@@ -95,7 +95,7 @@ private:
 	std::multiset<int> * m_set;
 };
 
-typedef pipe_middle<factory_0<set_filler_type> > set_filler;
+typedef pipe_middle<factory<set_filler_type> > set_filler;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// An implementation of a node that calculates the sum of differences to the 
@@ -139,7 +139,7 @@ private:
 	std::multiset<int> * m_set;
 };
 
-typedef pipe_middle<factory_0<sum_differences_type> > sum_differences;
+typedef pipe_middle<factory<sum_differences_type> > sum_differences;
 
 int main() {
 	tpie::tpie_init();

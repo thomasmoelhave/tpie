@@ -58,9 +58,9 @@ private:
 /// \param term the term is added after the item is multipled by the factor
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pipe_middle<factory_2<bits::linear_t, T, T> >
+inline pipe_middle<factory<bits::linear_t, T, T> >
 linear(T factor, T term) {
-	return factory_2<bits::linear_t, T, T>(factor, term);
+	return factory<bits::linear_t, T, T>(factor, term);
 }
 
 } // namespace pipelining

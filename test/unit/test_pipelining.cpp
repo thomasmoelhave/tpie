@@ -58,7 +58,7 @@ struct multiply_t : public node {
 	uint64_t factor;
 };
 
-typedef pipe_middle<factory_1<multiply_t, uint64_t> > multiply;
+typedef pipe_middle<factory<multiply_t, uint64_t> > multiply;
 
 std::vector<test_t> inputvector;
 std::vector<test_t> expectvector;
@@ -280,9 +280,9 @@ public:
 };
 
 template <typename pipe_type>
-tpie::pipelining::pipe_middle<tpie::pipelining::tempfactory_1<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type> >
+tpie::pipelining::pipe_middle<tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type> >
 add_pairs(const pipe_type &pipe) {
-	return tpie::pipelining::tempfactory_1<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type>(pipe.factory);
+	return tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type>(pipe.factory);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -356,7 +356,7 @@ private:
 	bool reverse;
 };
 
-typedef pipe_begin<factory_2<sequence_generator_type, size_t, bool> >
+typedef pipe_begin<factory<sequence_generator_type, size_t, bool> >
 	sequence_generator;
 
 struct sequence_verifier_type : public node {
@@ -405,7 +405,7 @@ private:
 	bool bad;
 };
 
-typedef pipe_end<termfactory_2<sequence_verifier_type, size_t, bool *> >
+typedef pipe_end<termfactory<sequence_verifier_type, size_t, bool *> >
 	sequence_verifier;
 
 bool sort_test(size_t elements) {
@@ -538,8 +538,8 @@ bool memory_test(memtest settings) {
 	progress_indicator_null pi;
 
 	pipeline p =
-		make_pipe_begin_1<memtest_1, memtest &>(settings)
-		| make_pipe_end_1<memtest_2, memtest &>(settings);
+		make_pipe_begin<memtest_1, memtest &>(settings)
+		| make_pipe_end<memtest_2, memtest &>(settings);
 	p(0, pi, settings.totalMemory);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
@@ -620,7 +620,7 @@ void memory_test_multi(teststream & ts) {
 
 bool fork_test() {
 	expectvector = inputvector;
-	pipeline p = input_vector(inputvector).name("Input vector") | fork(output_vector(outputvector)) | bitbucket<test_t>(0);
+	pipeline p = input_vector(inputvector).name("Input vector") | fork(output_vector(outputvector)) | null_sink<test_t>();
 	p();
 	return check_test_vectors();
 }
@@ -642,10 +642,7 @@ struct buffer_node_t : public node {
 	dest_t dest;
 };
 
-inline pipe_middle<factory_0<buffer_node_t> >
-buffer_node() {
-	return pipe_middle<factory_0<buffer_node_t> >();
-}
+typedef pipe_middle<factory<buffer_node_t> > buffer_node;
 
 struct merger_memory : public memory_test {
 	typedef int test_t;
@@ -747,9 +744,9 @@ struct FF3 : public node {
 
 bool fetch_forward_test() {
 	fetch_forward_result = true;
-	pipeline p = make_pipe_begin_0<FF1>()
-		| make_pipe_middle_0<FF2>()
-		| make_pipe_end_0<FF3>()
+	pipeline p = make_pipe_begin<FF1>()
+		| make_pipe_middle<FF2>()
+		| make_pipe_end<FF3>()
 		;
 	p.plot(log_info());
 	p.forward<int>("test", 42);
@@ -784,10 +781,7 @@ public:
 	}
 };
 
-pipe_begin<factory_0<push_zero_t> >
-push_zero() {
-	return factory_0<push_zero_t>();
-}
+typedef pipe_begin<factory<push_zero_t> > push_zero;
 
 bool virtual_test() {
 	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
@@ -909,10 +903,7 @@ public:
 	}
 };
 
-inline pipe_begin<factory_1<prepare_begin_type, prepare_result &> >
-prepare_begin(prepare_result & r) {
-	return factory_1<prepare_begin_type, prepare_result &>(r);
-}
+typedef pipe_begin<factory<prepare_begin_type, prepare_result &> > prepare_begin;
 
 template <typename dest_t>
 class prepare_middle_type : public node {
@@ -962,10 +953,7 @@ public:
 	}
 };
 
-inline pipe_middle<factory_1<prepare_middle_type, prepare_result &> >
-prepare_middle(prepare_result & r) {
-	return factory_1<prepare_middle_type, prepare_result &>(r);
-}
+typedef pipe_middle<factory<prepare_middle_type, prepare_result &> > prepare_middle;
 
 class prepare_end_type : public node {
 	prepare_result & r;
@@ -1009,10 +997,7 @@ public:
 	}
 };
 
-inline pipe_end<termfactory_1<prepare_end_type, prepare_result &> >
-prepare_end(prepare_result & r) {
-	return termfactory_1<prepare_end_type, prepare_result &>(r);
-}
+typedef pipe_end<termfactory<prepare_end_type, prepare_result &> > prepare_end;
 
 bool prepare_test() {
 	prepare_result r;
@@ -1075,10 +1060,7 @@ public:
 	}
 };
 
-pullpipe_begin<termfactory_1<begin_type, result &> >
-inline begin(result & r) {
-	return termfactory_1<begin_type, result &>(r);
-}
+typedef pullpipe_begin<termfactory<begin_type, result &> > begin;
 
 template <typename dest_t>
 class end_type : public node {
@@ -1098,10 +1080,8 @@ public:
 	}
 };
 
-pullpipe_end<factory_1<end_type, result &> >
-inline end(result & r) {
-	return factory_1<end_type, result &>(r);
-}
+typedef pullpipe_end<factory<end_type, result &> > end;
+
 
 bool test() {
 	result r;
@@ -1164,10 +1144,7 @@ public:
 	}
 };
 
-inline pipe_middle<factory_1<multiplicative_inverter_type, size_t> >
-multiplicative_inverter(size_t p) {
-	return factory_1<multiplicative_inverter_type, size_t>(p);
-}
+typedef pipe_middle<factory<multiplicative_inverter_type, size_t> > multiplicative_inverter;
 
 bool parallel_test(size_t modulo) {
 	bool result = false;
@@ -1219,10 +1196,7 @@ public:
 	}
 };
 
-pipe_begin<factory_2<Monotonic, test_t, test_t> >
-monotonic(test_t sum, test_t chunkSize) {
-	return factory_2<Monotonic, test_t, test_t>(sum, chunkSize);
-}
+typedef pipe_begin<factory<Monotonic, test_t, test_t> > monotonic;
 
 template <typename dest_t>
 class Splitter : public node {
@@ -1243,10 +1217,7 @@ public:
 	}
 };
 
-pipe_middle<factory_0<Splitter> >
-splitter() {
-	return factory_0<Splitter>();
-}
+typedef pipe_middle<factory<Splitter> > splitter;
 
 class Summer : public node {
 	test_t & result;
@@ -1262,10 +1233,7 @@ public:
 	}
 };
 
-pipe_end<termfactory_1<Summer, test_t &> >
-summer(test_t & result) {
-	return termfactory_1<Summer, test_t &>(result);
-}
+typedef pipe_end<termfactory<Summer, test_t &> > summer;
 
 bool parallel_multiple_test() {
 	test_t sumInput = 1000;
@@ -1316,10 +1284,7 @@ private:
 	}
 };
 
-pipe_middle<factory_0<buffering_accumulator_type> >
-buffering_accumulator() {
-	return factory_0<buffering_accumulator_type>();
-}
+typedef pipe_middle<factory<buffering_accumulator_type> > buffering_accumulator;
 
 bool parallel_own_buffer_test() {
 	test_t sumInput = 64;
@@ -1353,10 +1318,7 @@ public:
 	}
 };
 
-pipe_begin<factory_0<noop_initiator_type> >
-noop_initiator() {
-	return factory_0<noop_initiator_type>();
-}
+typedef pipe_begin<factory<noop_initiator_type> > noop_initiator;
 
 template <typename dest_t>
 class push_in_end_type : public node {
@@ -1380,10 +1342,7 @@ public:
 	}
 };
 
-pipe_middle<factory_0<push_in_end_type> >
-push_in_end() {
-	return factory_0<push_in_end_type>();
-}
+typedef pipe_middle<factory<push_in_end_type> > push_in_end;
 
 bool parallel_push_in_end_test() {
 	test_t sumOutput = 0;
@@ -1425,10 +1384,7 @@ public:
 	}
 };
 
-pipe_begin<factory_0<step_begin_type> >
-step_begin() {
-	return factory_0<step_begin_type>();
-}
+typedef pipe_begin<factory<step_begin_type> > step_begin;
 
 template <typename dest_t>
 class step_middle_type : public node {
@@ -1454,10 +1410,7 @@ public:
 	}
 };
 
-pipe_middle<factory_0<step_middle_type> >
-step_middle() {
-	return factory_0<step_middle_type>();
-}
+typedef pipe_middle<factory<step_middle_type> > step_middle;
 
 class step_end_type : public node {
 public:
@@ -1467,11 +1420,7 @@ public:
 	}
 };
 
-pipe_end<termfactory_0<step_end_type> >
-step_end() {
-	return termfactory_0<step_end_type>();
-}
-
+typedef pipe_end<termfactory<step_end_type> > step_end;
 bool parallel_step_test() {
 	pipeline p = step_begin() | parallel(step_middle()) | step_end();
 	progress_indicator_arrow pi("Test", 0);
@@ -1747,8 +1696,8 @@ bool datastructure_test(datastructuretest settings) {
 	progress_indicator_null pi;
 
 	pipeline p =
-		make_pipe_begin_1<datastructuretest_1, datastructuretest &>(settings)
-		| make_pipe_end_1<datastructuretest_2, datastructuretest &>(settings);
+		make_pipe_begin<datastructuretest_1, datastructuretest &>(settings)
+		| make_pipe_end<datastructuretest_2, datastructuretest &>(settings);
 	p(0, pi, settings.totalMemory);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
@@ -1853,7 +1802,7 @@ private:
 	size_t & returnedValue;
 };
 
-typedef pipe_begin<factory_2<flush_priority_test_node_t, size_t, size_t &> > flush_priority_test_node;
+typedef pipe_begin<factory<flush_priority_test_node_t, size_t, size_t &> > flush_priority_test_node;
 
 bool set_flush_priority_test() {
 	for(size_t i = 0; i < 100; ++i) {
@@ -1895,7 +1844,7 @@ public:
 	}
 };
 
-typedef pipe_middle<factory_4<reference_incrementer_type, size_t, size_t &, size_t &, std::string> > reference_incrementer;
+typedef pipe_middle<factory<reference_incrementer_type, size_t, size_t &, size_t &, std::string> > reference_incrementer;
 
 bool phase_priority_test() {
 	size_t branchA;

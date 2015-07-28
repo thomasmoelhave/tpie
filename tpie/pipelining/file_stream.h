@@ -243,8 +243,8 @@ public:
 /// \param fs The file stream from which it pushes items
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T>
-inline pipe_begin<factory_1<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
-	return factory_1<bits::input_t, file_stream<T> &>(fs);
+inline pipe_begin<factory<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+	return factory<bits::input_t, file_stream<T> &>(fs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,8 +252,8 @@ inline pipe_begin<factory_1<bits::input_t, file_stream<T> &> > input(file_stream
 /// \param fs The file stream from which it reads items.
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T>
-inline pullpipe_begin<termfactory_1<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
-	return termfactory_1<bits::pull_input_t<T>, file_stream<T> &>(fs);
+inline pullpipe_begin<termfactory<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
+	return termfactory<bits::pull_input_t<T>, file_stream<T> &>(fs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -261,8 +261,8 @@ inline pullpipe_begin<termfactory_1<bits::pull_input_t<T>, file_stream<T> &> > p
 /// \param fs The file stream that items should be written to
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
-	return termfactory_1<bits::output_t<T>, file_stream<T> &>(fs);
+inline pipe_end<termfactory<bits::output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
+	return termfactory<bits::output_t<T>, file_stream<T> &>(fs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -270,8 +270,8 @@ inline pipe_end<termfactory_1<bits::output_t<T>, file_stream<T> &> > output(file
 /// \param path The path of where to write the firestream
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pipe_end<termfactory_1<bits::named_output_t<T>, std::string> > named_output(const std::string & path) {
-	return termfactory_1<bits::named_output_t<T>, std::string>(path);
+inline pipe_end<termfactory<bits::named_output_t<T>, std::string> > named_output(const std::string & path) {
+	return termfactory<bits::named_output_t<T>, std::string>(path);
 }
 
 
@@ -280,8 +280,8 @@ inline pipe_end<termfactory_1<bits::named_output_t<T>, std::string> > named_outp
 /// \param fs The file stream that items should be written to
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T>
-inline pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
-	return factory_1<bits::pull_output_t, file_stream<T> &>(fs);
+inline pullpipe_end<factory<bits::pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
+	return factory<bits::pull_output_t, file_stream<T> &>(fs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -290,8 +290,8 @@ inline pullpipe_end<factory_1<bits::pull_output_t, file_stream<T> &> > pull_outp
 /// \param fs The file stream that items should be written to
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pipe_middle<factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &> >
-tee(T & fs) {return factory_1<bits::tee_t<typename push_type<T>::type>::template type, T &>(fs);}
+inline pipe_middle<factory<bits::tee_t<typename push_type<T>::type>::template type, T &> >
+tee(T & fs) {return factory<bits::tee_t<typename push_type<T>::type>::template type, T &>(fs);}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pull-pipe node that when pulled from will pull from its source,
@@ -299,8 +299,8 @@ tee(T & fs) {return factory_1<bits::tee_t<typename push_type<T>::type>::template
 /// \param fs The file stream that items should be written to
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pullpipe_middle<factory_1<bits::pull_tee_t<typename push_type<T>::type>::template type, T &> >
-pull_tee(T & fs) {return factory_1<bits::pull_tee_t<typename push_type<T>::type>::template type, T &>(fs);}
+inline pullpipe_middle<factory<bits::pull_tee_t<typename push_type<T>::type>::template type, T &> >
+pull_tee(T & fs) {return factory<bits::pull_tee_t<typename push_type<T>::type>::template type, T &>(fs);}
 
 } // namespace pipelining
 

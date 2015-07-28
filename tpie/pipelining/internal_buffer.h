@@ -108,8 +108,8 @@ public:
 	typedef bits::internal_buffer_input_t<T> input_t;
 	typedef bits::internal_buffer_pull_output_t<T> output_t;
 private:
-	typedef termfactory_3<input_t,  const node_token &, size_t, size_t> inputfact_t;
-	typedef termfactory_1<output_t, const node_token &> outputfact_t;
+	typedef termfactory<input_t,  const node_token &, size_t, size_t> inputfact_t;
+	typedef termfactory<output_t, const node_token &> outputfact_t;
 	typedef pipe_end      <inputfact_t>  inputpipe_t;
 	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 

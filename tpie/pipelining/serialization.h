@@ -71,7 +71,7 @@ public:
 	}
 };
 
-typedef factory_1<input_t, serialization_reader *> input_factory;
+typedef factory<input_t, serialization_reader *> input_factory;
 
 
 template <typename T>
@@ -95,7 +95,7 @@ public:
 
 template <typename T>
 struct output_factory {
-	typedef termfactory_1<output_t<T>, serialization_writer *> type;
+	typedef termfactory<output_t<T>, serialization_writer *> type;
 };
 
 } // namespace serialization_bits
@@ -170,7 +170,7 @@ public:
 	}
 };
 
-typedef factory_0<rev_output_t> rev_output_factory;
+typedef factory<rev_output_t> rev_output_factory;
 
 template <typename dest_t>
 class rev_input_t;
@@ -211,15 +211,9 @@ public:
 	}
 };
 
-typedef factory_0<rev_input_t> rev_input_factory;
+typedef factory<rev_input_t> rev_input_factory;
 
 typedef bits::pair_factory<rev_input_factory, rev_output_factory> reverse_factory;
-
-
-
-
-
-
 
 
 
@@ -271,7 +265,7 @@ public:
 	}
 };
 
-typedef factory_0<buffer_output_t> buffer_output_factory;
+typedef factory<buffer_output_t> buffer_output_factory;
 
 template <typename dest_t>
 class buffer_input_t;
@@ -312,18 +306,9 @@ public:
 	}
 };
 
-typedef factory_0<buffer_input_t> buffer_input_factory;
+typedef factory<buffer_input_t> buffer_input_factory;
 
 typedef bits::pair_factory<buffer_input_factory, buffer_output_factory> buffer_factory;
-
-
-
-
-
-
-
-
-
 
 
 } // namespace serialization_bits

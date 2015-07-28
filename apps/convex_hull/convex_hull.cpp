@@ -218,15 +218,10 @@ private:
 	}
 };
 
-P::pipe_middle<P::factory_0<graham_scan_type> >
-graham_scan_in() {
-	return P::factory_0<graham_scan_type>();
-}
+typedef P::pipe_middle<P::factory<graham_scan_type> > graham_scan_in;
 
-P::pipe_middle<P::factory_0<graham_scan_reconstruct_type> >
-graham_scan_out() {
-	return P::factory_0<graham_scan_reconstruct_type>();
-}
+
+typedef P::pipe_middle<P::factory<graham_scan_reconstruct_type> > graham_scan_out;
 
 // Aggregates two coordinates into one point.
 template <typename dest_t>
@@ -258,10 +253,7 @@ public:
 	}
 };
 
-P::pipe_middle<P::factory_0<make_points_type> >
-make_points() {
-	return P::factory_0<make_points_type>();
-}
+typedef P::pipe_middle<P::factory<make_points_type> > make_points;
 
 // Print and verify polygon. Weeds out duplicates.
 template <typename T>
@@ -316,9 +308,9 @@ public:
 };
 
 template <typename T>
-P::pipe_end<P::termfactory_0<print_points_type<T> > >
+P::pipe_end<P::termfactory<print_points_type<T> > >
 print_points() {
-	return P::termfactory_0<print_points_type<T> >();
+	return P::termfactory<print_points_type<T> >();
 }
 
 int main() {

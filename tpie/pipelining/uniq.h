@@ -99,10 +99,10 @@ private:
 /// \brief A pipelining node that removes duplicate items and create a phase
 /// boundary
 ///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<bits::pair_factory<factory_0<bits::count_consecutive_t>, factory_0<bits::extract_first_t> > >
+inline pipe_middle<bits::pair_factory<factory<bits::count_consecutive_t>, factory<bits::extract_first_t> > >
 pipeuniq() {
-	return bits::pair_factory<factory_0<bits::count_consecutive_t>, factory_0<bits::extract_first_t> >
-		(factory_0<bits::count_consecutive_t>(), factory_0<bits::extract_first_t>());
+	return bits::pair_factory<factory<bits::count_consecutive_t>, factory<bits::extract_first_t> >
+		(factory<bits::count_consecutive_t>(), factory<bits::extract_first_t>());
 }
 
 }
