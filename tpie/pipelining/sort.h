@@ -301,11 +301,9 @@ public:
 		m_propagate_called = true;
 	}
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 	void push(item_type && item) {
 		m_sorter->push(std::move(item));
 	}
-#endif
 
 	void push(const item_type & item) {
 		m_sorter->push(item);

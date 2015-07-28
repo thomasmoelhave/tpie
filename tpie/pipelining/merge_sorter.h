@@ -253,7 +253,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push item to merge sorter during phase 1.
 	///////////////////////////////////////////////////////////////////////////
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 	inline void push(item_type && item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
@@ -264,7 +263,6 @@ public:
 		++m_currentRunItemCount;
 		++m_itemCount;
 	}
-#endif
 	
 	inline void push(const item_type & item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");

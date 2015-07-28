@@ -43,12 +43,8 @@ public:
 			forward_any(i->first, i->second);
 	}
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 	template <typename T>
 	void push(T && t) {dest.push(std::forward<T>(t));}
-#else
-	void push(const item_type & t) {dest.push(t);}
-#endif
 private:
 	std::vector<std::pair<std::string, boost::any> > values;
 	dest_t dest;
