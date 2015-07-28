@@ -4,7 +4,6 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BIN
 
 set (HEADERS
 		access_type.h
-		atomic.h
 		backtrace.h
 		blocks/block.h
 		blocks/block_collection.h
@@ -146,7 +145,6 @@ if(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
 endif(TPIE_CPP_RANDOM AND TPIE_CPP_AUTO_KEYWORD)
 
 set (SOURCES
-	atomic.cpp
 	backtrace.cpp
 	blocks/block_collection.cpp
 	blocks/block_collection_cache.cpp

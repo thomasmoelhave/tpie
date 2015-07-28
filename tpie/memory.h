@@ -27,12 +27,12 @@
 
 #include <tpie/config.h>
 #include <tpie/util.h>
-#include <tpie/atomic.h>
 #include <mutex>
 #include <unordered_map>
 #include <type_traits>
 #include <utility>
 #include <memory>
+#include <atomic>
 
 namespace tpie {
 
@@ -141,7 +141,7 @@ public:
 
 
 private:
-	atomic_int m_used;
+	std::atomic<size_t> m_used;
 	size_t m_limit;
 	size_t m_maxExceeded;
 	size_t m_nextWarning;

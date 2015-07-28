@@ -38,7 +38,6 @@ add_unittest(array
 	copy
 	from_view
 	)
-add_unittest(atomic basic parallel)
 add_unittest(block_collection basic erase overwrite)
 add_unittest(block_collection_cache basic erase overwrite)
 add_unittest(compressed_stream
