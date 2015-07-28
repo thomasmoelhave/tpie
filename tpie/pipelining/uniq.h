@@ -38,7 +38,7 @@ public:
 	typedef typename push_type<dest_t>::type::first_type item_type;
 
 	inline count_consecutive_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 		, current_count(0)
 	{
 		add_push_destination(this->dest);
@@ -82,7 +82,7 @@ class extract_first_t : public node {
 public:
 	typedef std::pair<typename push_type<dest_t>::type, any_type> item_type;
 
-	inline extract_first_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(TPIE_MOVE(dest)) {
+	inline extract_first_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(std::move(dest)) {
 		add_push_destination(this->dest);
 	}
 

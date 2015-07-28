@@ -36,7 +36,7 @@ class scanf_ints_t : public node {
 public:
 	typedef int item_type;
 
-	inline scanf_ints_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(TPIE_MOVE(dest)) {
+	inline scanf_ints_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(std::move(dest)) {
 		add_push_destination(this->dest);
 	}
 

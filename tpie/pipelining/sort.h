@@ -170,7 +170,7 @@ public:
 	virtual void go() override {
 		while (this->m_sorter->can_pull()) {
 			TPIE_RREF(item_type) y=this->m_sorter->pull();
-			dest.push(TPIE_MOVE(y));
+			dest.push(std::move(y));
 			this->step();
 		}
 	}

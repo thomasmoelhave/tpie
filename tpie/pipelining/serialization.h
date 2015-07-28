@@ -45,7 +45,7 @@ public:
 	typedef typename push_type<dest_t>::type item_type;
 
 	input_t(TPIE_TRANSFERABLE(dest_t) dest, serialization_reader * rd)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 		, rd(rd)
 	{
 		set_name("Serialization reader");
@@ -136,7 +136,7 @@ public:
 	typedef typename push_type<dest_t>::type item_type;
 
 	rev_output_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 		, m_stack(0)
 	{
 		this->set_name("Serialization reverse reader");
@@ -187,7 +187,7 @@ public:
 	typedef typename push_type<dest_t>::type item_type;
 
 	rev_input_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 		, wr()
 		, items(0)
 	{
@@ -232,7 +232,7 @@ public:
 	typedef typename push_type<dest_t>::type item_type;
 
 	buffer_output_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 		, m_file(0)
 	{
 		this->set_name("Serialization buffer reader");
@@ -282,7 +282,7 @@ public:
 	typedef typename push_type<dest_t>::type item_type;
 
 	buffer_input_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 		, wr()
 		, items(0)
 	{

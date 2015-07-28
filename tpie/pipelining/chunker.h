@@ -41,7 +41,7 @@ private:
 public:
 	chunker_t(TPIE_TRANSFERABLE(dest_t) dest, size_t maxSize)
 		: maxSize(maxSize)
-		, dest(TPIE_MOVE(dest))
+		, dest(std::move(dest))
 	{
 			set_minimum_memory(sizeof(item_type) * maxSize);
 			set_name("Chunker", PRIORITY_INSIGNIFICANT);

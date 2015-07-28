@@ -57,7 +57,7 @@ public:
 		source_impl(TPIE_TRANSFERABLE(dest_t) dest, node_token token, source_base ** the_source)
 			: source_base(token)
 			, the_source(the_source)
-			, dest(TPIE_MOVE(dest))
+			, dest(std::move(dest))
 		{
 			this->set_name("Join source", PRIORITY_INSIGNIFICANT);
 			this->add_push_destination(this->dest);

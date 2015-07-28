@@ -103,7 +103,7 @@ private:
 
 public:
 	virtsrc_impl(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(TPIE_MOVE(dest))
+		: dest(std::move(dest))
 	{
 		node::add_push_destination(this->dest);
 		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
@@ -606,7 +606,7 @@ public:
 		type(TPIE_TRANSFERABLE(dest_t) dest, virtual_chunk_end<T> out)
 			: vnode(out.get_node())
 			, dest2(bits::access::get_source(out))
-			, dest(TPIE_MOVE(dest))
+			, dest(std::move(dest))
 		{
 			add_push_destination(this->dest);
 			add_push_destination(*dest2);
