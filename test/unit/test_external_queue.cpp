@@ -18,7 +18,6 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "common.h"
 #include <queue>
-#include <boost/filesystem.hpp>
 #include <tpie/queue.h>
 #include <cmath>
 #include <random>
