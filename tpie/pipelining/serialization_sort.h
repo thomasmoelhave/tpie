@@ -38,7 +38,7 @@ public:
 	typedef T item_type;
 	typedef pred_t pred_type;
 	typedef serialization_sorter<item_type, pred_type> sorter_t;
-	typedef boost::shared_ptr<sorter_t> sorterptr;
+	typedef std::shared_ptr<sorter_t> sorterptr;
 };
 
 template <typename Traits>
@@ -248,7 +248,7 @@ protected:
 private:
 	sorterptr m_sorter;
 	bool m_propagate_called;
-	boost::shared_ptr<Output> dest;
+	std::shared_ptr<Output> dest;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

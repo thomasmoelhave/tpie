@@ -182,7 +182,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class virt_node {
 public:
-	typedef boost::shared_ptr<virt_node> ptr;
+	typedef std::shared_ptr<virt_node> ptr;
 
 private:
 	std::unique_ptr<node> m_node;

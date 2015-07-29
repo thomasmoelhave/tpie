@@ -146,10 +146,10 @@ private:
 template <typename T>
 class dummydest_t : public node {
 public:
-	dummydest_t() : buffer(new T()) {}
+	dummydest_t() : buffer(std::make_shared<T>()) {}
 
 	typedef T item_type;
-	boost::shared_ptr<T> buffer;
+	std::shared_ptr<T> buffer;
 	inline void push(const T & el) {
 		*buffer = el;
 	}

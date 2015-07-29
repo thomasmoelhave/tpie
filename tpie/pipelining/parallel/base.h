@@ -23,7 +23,7 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/array_view.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <tpie/pipelining/maintain_order_type.h>
 #include <tpie/pipelining/parallel/options.h>
 #include <tpie/pipelining/parallel/worker_state.h>
@@ -197,7 +197,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Common state in parallel pipelining library.
-/// This class is instantiated once and kept in a boost::shared_ptr, and it is
+/// This class is instantiated once and kept in a std::shared_ptr, and it is
 /// not copy constructible.
 ///
 /// Unless noted otherwise, a thread must own the state mutex to access other
@@ -378,7 +378,7 @@ public:
 template <typename T1, typename T2>
 class state : public state_base {
 public:
-	typedef boost::shared_ptr<state> ptr;
+	typedef std::shared_ptr<state> ptr;
 	typedef state_base::mutex_t mutex_t;
 	typedef state_base::cond_t cond_t;
 	typedef state_base::lock_t lock_t;
@@ -759,7 +759,7 @@ private:
 	array<T1> inputBuffer;
 	size_t written;
 	size_t readyIdx;
-	boost::shared_ptr<consumer<T2> > cons;
+	std::shared_ptr<consumer<T2> > cons;
 	internal_queue<memory_size_type> m_outputOrder;
 	stream_size_type m_steps;
 

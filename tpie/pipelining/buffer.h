@@ -82,7 +82,7 @@ class buffer_input_t: public node {
 public:
 	typedef T item_type;
 
-	buffer_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
+	buffer_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
 		: node(token)
 		, m_output(output)
 	{
@@ -106,7 +106,7 @@ public:
 
 private:
 	tpie::maybe< file_stream<T> > m_queue;
-	boost::shared_ptr<node> m_output;
+	std::shared_ptr<node> m_output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

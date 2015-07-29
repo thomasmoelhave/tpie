@@ -475,7 +475,7 @@ private:
 template <typename T, typename pred_t = std::less<T> >
 class serialization_sorter {
 public:
-	typedef boost::shared_ptr<serialization_sorter> ptr;
+	typedef std::shared_ptr<serialization_sorter> ptr;
 
 private:
 	enum sorter_state { state_initial, state_1, state_2, state_3 };

@@ -29,7 +29,7 @@
 #include <tpie/tempname.h>
 #include <tpie/memory.h>
 #include <queue>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace tpie {
 
@@ -263,7 +263,7 @@ protected:
 private:
 	sorterptr m_sorter;
 	bool m_propagate_called;
-	boost::shared_ptr<Output> dest;
+	std::shared_ptr<Output> dest;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -40,7 +40,7 @@ class reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline reverser_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
+	inline reverser_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
 		: node(token), m_output(output)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
@@ -64,7 +64,7 @@ public:
 	}
 private:
 	tpie::maybe<stack<item_type> > m_stack;
-	boost::shared_ptr<node> m_output;
+	std::shared_ptr<node> m_output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ class internal_reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline internal_reverser_input_t(const node_token & token, boost::shared_ptr<node> output=boost::shared_ptr<node>())
+	inline internal_reverser_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
 		: node(token), m_output(output)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
@@ -97,7 +97,7 @@ public:
 	}
 private:
 	std::stack<item_type> * m_stack;
-	boost::shared_ptr<node> m_output;
+	std::shared_ptr<node> m_output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
