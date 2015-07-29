@@ -21,7 +21,7 @@
 #include <tpie/hash_map.h>
 #include <tpie/tpie.h>
 #include <map>
-#include <boost/random/linear_congruential.hpp>
+#include <random>
 #include <boost/unordered_map.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "test_timer.h"
@@ -33,7 +33,7 @@ template <template <typename value_t, typename hash_t, typename equal_t, typenam
 bool basic_test() {
 	tpie::hash_map<int, char, tpie::hash<int>, std::equal_to<int>, size_t, table_t> q1(200);
 	map<int, char> q2;
-	boost::rand48 prng(42);
+	std::default_random_engine prng(42);
 	for(int i=0; i < 100; ++i) {
 		int k = (prng()*2) % 250;
 		char v = static_cast<char>(prng() % 265);

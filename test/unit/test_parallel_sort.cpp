@@ -19,7 +19,7 @@
 
 #include "common.h"
 #include <tpie/parallel_sort.h>
-#include <boost/random/linear_congruential.hpp>
+#include <random>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/dummy_progress.h>
@@ -53,7 +53,7 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 	typedef progress_types<Progress> P;
 
 	const size_t stepevery = std::max(static_cast<size_t>(1), elements / 16);
-	boost::rand48 prng(42);
+	std::mt19937 prng(42);
 	std::vector<int> v1(elements);
 	std::vector<int> v2(elements);
 
@@ -124,7 +124,7 @@ void make_bad_case_data(std::vector<int> & v) {
 }
 
 void make_random_data(std::vector<int> & v) {
-	boost::rand48 rng;
+	std::mt19937 rng;
 	std::generate(v.begin(), v.end(), rng);
 }
 
@@ -171,7 +171,7 @@ bool bad_case(const size_t elements, double seconds) {
 }
 
 bool stress_test() {
-	boost::rand48 prng(42);
+	std::mt19937 prng(42);
 	for (size_t size_base = 1024;; size_base *= 2) {
 		for (size_t size = size_base; size < size_base * 2; size += size_base / 4) {
 			std::vector<size_t> v1(size);
@@ -233,7 +233,7 @@ struct padded_item<0> {
 template <typename item>
 bool large_item_test(size_t mb) {
 	size_t items = mb*1024*1024 / sizeof(item);
-	boost::rand48 prng(42);
+	std::mt19937 prng(42);
 	tpie::log_info() << "Generating array of " << items << " items, each size " << sizeof(item) << std::endl;
 	std::vector<item> arr(items);
 	for (size_t i = 0; i < items; ++i) {

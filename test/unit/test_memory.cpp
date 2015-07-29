@@ -22,7 +22,7 @@
 #include <vector>
 #include <tpie/internal_queue.h>
 #include <tpie/internal_vector.h>
-#include <boost/random.hpp>
+#include <random>
 #include <tpie/job.h>
 #include <tpie/cpu_timer.h>
 
@@ -162,8 +162,8 @@ class memory_user : public tpie::job {
 	typedef int test_t;
 	size_t times;
 	tpie::internal_queue<test_t *> pointers;
-	boost::rand48 rnd;
-	boost::uniform_01<double> urnd;
+	std::default_random_engine rnd;
+	std::uniform_real_distribution<double> urnd;
 
 public:
 	memory_user(size_t times, size_t capacity) : times(times), pointers(capacity) {}

@@ -20,7 +20,7 @@
 #include <tpie/tpie.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/parallel_sort.h>
-#include <boost/random.hpp>
+#include <random>
 #include <tpie/sysinfo.h>
 
 using boost::posix_time::time_duration;
@@ -74,7 +74,7 @@ sort_timer * get_sort_timer(size_t stdSortThreshold) {
 
 // fill a vector with random numbers (the same random numbers each time).
 void fill_data(std::vector<test_t> & data) {
-	boost::mt19937 rng; // default seed
+	std::mt19937 rng; // default seed
 	std::generate(data.begin(), data.end(), rng);
 }
 
