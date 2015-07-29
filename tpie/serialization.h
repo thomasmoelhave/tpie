@@ -30,9 +30,7 @@
 #include <utility>
 #include <typeinfo>
 
-#include <boost/type_traits/is_fundamental.hpp>
-#include <boost/type_traits/is_enum.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <type_traits>
 #include <cstdint>
 #include <istream>
 #include <ostream>
@@ -40,19 +38,9 @@
 
 namespace tpie {
 
-#ifndef DOXYGEN
-template <bool b1, bool b2>
-struct _disjunction: public boost::true_type {};
-
-template <>
-struct _disjunction<false, false>: public boost::false_type {};
-#endif
-
 ////////////////////////////////////////////////////////////////////////////////
-/// Class to compute the disjunction between two boost true/false types
+/// Class to compute the disjunction between two std true/false types
 ////////////////////////////////////////////////////////////////////////////////
-template <typename T1, typename T2>
-struct disjunction: public _disjunction<T1::value, T2::value> {};
 
 struct serialization_error: public std::runtime_error {
 	explicit serialization_error(const std::string & what): std::runtime_error(what) {}
@@ -84,7 +72,7 @@ public:
 		return *this;
 	}
 	template <typename T>
-	inline typename boost::enable_if<disjunction<boost::is_fundamental<T>, boost::is_enum<T> > ,
+	inline typename std::enable_if<std::is_fundamental<T>::value || std::is_enum<T>::value,
 									 serializer &>::type operator << (const T & x) {
 		write_type<T>();
 		m_out.write(reinterpret_cast<const char*>(&x), sizeof(T));
@@ -167,7 +155,7 @@ public:
 	}
 
 	template <typename T>
-	inline typename boost::enable_if<disjunction<boost::is_fundamental<T>, boost::is_enum<T> >, unserializer &>::type operator >> (T & x) {
+	inline typename std::enable_if<std::is_fundamental<T>::value || std::is_enum<T>::value, unserializer &>::type operator >> (T & x) {
 		check_type<T>();
 		char * y = reinterpret_cast<char*>(&x);
 		m_in.read(y, sizeof(T));
