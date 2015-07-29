@@ -25,8 +25,7 @@
 
 #include <iostream>
 #include <vector>
-#include <boost/filesystem/operations.hpp>
-#include <boost/array.hpp>
+#include <array>
 #include <random>
 #include <tpie/tpie_log.h>
 #include <tpie/progress_indicator_arrow.h>
@@ -253,7 +252,7 @@ static bool extend_test() {
 }
 
 static bool odd_block_test() {
-	typedef boost::array<char, 17> test_t;
+	typedef std::array<char, 17> test_t;
 	const size_t items = 500000;
 	test_t initial_item;
 	for (size_t i = 0; i < initial_item.size(); ++i) initial_item[i] = static_cast<char>(i+42);

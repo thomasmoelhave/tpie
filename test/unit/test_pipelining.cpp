@@ -20,7 +20,6 @@
 #include "common.h"
 #include <tpie/pipelining.h>
 #include <tpie/file_stream.h>
-#include <boost/filesystem.hpp>
 #include <algorithm>
 #include <cmath>
 #include <tpie/sysinfo.h>
@@ -768,7 +767,7 @@ public:
 	typedef typename dest_t::item_type item_type;
 private:
 	// Type of pointer to dereference.
-	typedef typename boost::remove_reference<item_type>::type * ptr_type;
+	typedef typename std::remove_reference<item_type>::type * ptr_type;
 public:
 	push_zero_t(const dest_t & dest)
 		: dest(dest)
@@ -1434,7 +1433,7 @@ public:
 	class t {
 		typedef typename tpie::pipelining::bits::maybe_add_const_ref<In>::type Out;
 	public:
-		typedef typename boost::enable_if<boost::is_same<Out, Expect>, int>::type u;
+		typedef typename std::enable_if<std::is_same<Out, Expect>::value, int>::type u;
 	};
 };
 
