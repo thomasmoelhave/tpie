@@ -25,7 +25,7 @@
 
 #include <tpie/tpie.h>
 #include <tpie/pipelining.h>
-#include <boost/random.hpp>
+#include <random>
 #include <tpie/file_stream.h>
 #include <iostream>
 #include <sstream>

@@ -20,7 +20,7 @@
 #include "common.h"
 #include <tpie/pipelining.h>
 #include <tpie/serialization_stream.h>
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -142,7 +142,7 @@ public:
 		using namespace boost::posix_time;
 		uint32_t seed = static_cast<uint32_t>
 			(boost::posix_time::microsec_clock::local_time().time_of_day().fractional_seconds());
-		boost::mt19937 rng(seed);
+		std::mt19937 rng(seed);
 		for (stream_size_type i = 0; i < n; ++i) {
 			size_t length = rng() % 10;
 			std::string s(length, '\0');

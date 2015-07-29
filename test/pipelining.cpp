@@ -19,7 +19,7 @@
 
 #include <tpie/tpie.h>
 #include <tpie/pipelining.h>
-#include <boost/random.hpp>
+#include <random>
 #include <tpie/file_stream.h>
 #include <iostream>
 #include <sstream>
@@ -92,8 +92,8 @@ public:
 	}
 
 	virtual void go() override {
-		static boost::mt19937 mt;
-		static boost::uniform_int<> dist(0, nodes-1);
+		static std::mt19937 mt;
+		static std::uniform_int_distribution<> dist(0, nodes-1);
 		dest.begin();
 		for (size_t i = 0; i < nodes; ++i) {
 			dest.push(make_node(i, dist(mt)));

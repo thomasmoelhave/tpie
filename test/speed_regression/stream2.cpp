@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <boost/filesystem/operations.hpp>
-#include <boost/random.hpp>
+#include <random>
 
 #include <tpie/tpie.h>
 #include <tpie/file_stream.h>
@@ -69,7 +69,7 @@ public:
 };
 
 class series_random : public series_crtp<series_random> {
-	boost::mt19937 rng;
+	std::mt19937 rng;
 public:
 	const char * get_name() const { return "random"; }
 

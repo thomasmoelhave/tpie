@@ -21,8 +21,7 @@
 #include <boost/filesystem.hpp>
 #include <tpie/queue.h>
 #include <cmath>
-#include <boost/random/uniform_01.hpp>
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 
 using namespace tpie;
 
@@ -129,8 +128,8 @@ double pop_probability(uint64_t i, uint64_t max_size) {
 }
 
 bool large_test() {
-	boost::mt19937 rng(42);
-	boost::uniform_01<boost::mt19937, double> doublegenerator(rng);
+	std::mt19937 rng(42);
+	std::uniform_real_distribution<double> dist;
 
 	queue<uint64_t> q1;
 	std::queue<uint64_t> q2;
@@ -142,7 +141,7 @@ bool large_test() {
 		if(!q1.empty())
 			TEST_ENSURE_EQUALITY(q1.front(), q2.front(), "front() does not agree with STL queue. Size " << q1.size());
 
-		if(!q1.empty() && doublegenerator() <= pop_probability(i, 1024*1024)) {
+		if(!q1.empty() && dist(rng) <= pop_probability(i, 1024*1024)) {
 			TEST_ENSURE_EQUALITY(q1.pop(), q2.front(), "pop() does not agree with STL queue");
 			q2.pop();
 		}
