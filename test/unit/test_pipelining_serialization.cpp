@@ -21,6 +21,7 @@
 #include <tpie/pipelining.h>
 #include <tpie/serialization_stream.h>
 #include <random>
+#include <ctime>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -139,10 +140,7 @@ public:
 	}
 
 	virtual void go() override {
-		using namespace boost::posix_time;
-		uint32_t seed = static_cast<uint32_t>
-			(boost::posix_time::microsec_clock::local_time().time_of_day().fractional_seconds());
-		std::mt19937 rng(seed);
+		std::mt19937 rng(std::time(0));
 		for (stream_size_type i = 0; i < n; ++i) {
 			size_t length = rng() % 10;
 			std::string s(length, '\0');
