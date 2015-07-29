@@ -125,7 +125,7 @@ public:
 	}
 
 	virtual void go() override {
-		tpie::auto_ptr< ::node> buf(0);
+		tpie::unique_ptr<::node> buf(nullptr);
 		while (byid.can_pull()) {
 			node_output cur = byid.pull();
 			if (buf.get()) {

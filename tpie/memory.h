@@ -390,60 +390,6 @@ inline void tpie_delete_array(T * a, size_t size) throw() {
 	delete[] a;
 }
 
-template <typename T>
-struct auto_ptr_ref {
-	T * m_ptr;
-	explicit auto_ptr_ref(T * ptr) throw(): m_ptr(ptr) {};
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief like std::auto_ptr, but delete the object with tpie_delete.
-/// \tparam T the type of the object.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-class auto_ptr {
-private:
-	T * elm;
-	// auto_ptr(const auto_ptr & o) {unused(o); assert(false);}
-	// auto_ptr & operator = (const auto_ptr & o) {unused(o); assert(false);}
-public:
-	typedef T element_type;
-
-	// D.10.1.1 construct/copy/destroy:
-	explicit auto_ptr(T * o=0) throw(): elm(0){reset(o);}	
-	auto_ptr(auto_ptr & o) throw(): elm(0) {reset(o.release());}
-	template <class Y> 
-	auto_ptr(auto_ptr<Y> & o) throw(): elm(0) {reset(o.release());}
-	
-	auto_ptr & operator =(auto_ptr & o) throw() {reset(o.release()); return *this;}
-	template <class Y>
-	auto_ptr & operator =(auto_ptr<Y> & o) throw() {reset(o.release()); return *this;}
-	auto_ptr & operator =(auto_ptr_ref<T> r) throw() {reset(r.m_ptr); return *this;}
-
-	~auto_ptr() throw() {reset();}
-
-	// D.10.1.2 members:
-	T & operator*() const throw() {return *elm;}
-	T * operator->() const throw() {return elm;}
-	T * get() const throw() {return elm;}	
-	T * release() throw () {T * t=elm; elm=0; return t;}	
-	void reset(T * o=0) throw () {
-		if (o == elm) return;
-		tpie_delete<T>(elm);
-		assert_tpie_ptr(o);
-		elm=o; 
-	}
-
-	// D.10.1.3 conversions:
-	auto_ptr(auto_ptr_ref<T> r) throw(): elm(0)  {reset(r.m_ptr);}
-	
-	template <class Y> 
-		operator auto_ptr_ref<Y>() throw() {return auto_ptr_ref<Y>(release());}
-
-	template<class Y> 
-		operator auto_ptr<Y>() throw() {return auto_ptr<Y>(release());}
-};
-
 struct tpie_deleter {
 	template <typename T>
 	void operator()(T * t) {
@@ -523,14 +469,5 @@ public:
 size_t consecutive_memory_available(size_t granularity=5*1024*1024);
 
 } //namespace tpie
-
-namespace std {
-template <typename T>
-void swap(tpie::auto_ptr<T> & a, tpie::auto_ptr<T> & b) {
-	T * t =a.release();
-	a.reset(b.release());
-	b.reset(t);
-}
-} //namespace std
 
 #endif //__TPIE_MEMORY_H__

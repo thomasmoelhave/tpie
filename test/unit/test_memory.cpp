@@ -93,11 +93,11 @@ bool basic_test() {
 	}
 
 	{
-		//Test auto ptr
+		//Test unique ptr
 		size_t a1 = tpie::get_memory_manager().used();
 		{
-			tpie::auto_ptr<size_t> x(tpie::tpie_new<size_t>(32));
-			tpie::auto_ptr<size_t> y = x;
+			tpie::unique_ptr<size_t> x(tpie::tpie_new<size_t>(32));
+			tpie::unique_ptr<size_t> y = std::move(x);
 			y.reset(tpie::tpie_new<size_t>(54));
 		}
 		size_t a2 = tpie::get_memory_manager().used();

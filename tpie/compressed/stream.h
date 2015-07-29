@@ -254,7 +254,7 @@ protected:
 	/** Number of cheap, unchecked writes we can do next. */
 	memory_size_type m_cachedWrites;
 	/** The anonymous temporary file we have opened (when appropriate). */
-	tpie::auto_ptr<temp_file> m_ownedTempFile;
+	tpie::unique_ptr<temp_file> m_ownedTempFile;
 	/** The temporary file we have opened (when appropriate).
 	 * When m_ownedTempFile.get() != 0, m_tempFile == m_ownedTempFile.get(). */
 	temp_file * m_tempFile;
