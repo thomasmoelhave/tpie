@@ -22,7 +22,7 @@
 #include <tpie/tpie.h>
 #include <map>
 #include <random>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "test_timer.h"
 #include <iomanip>
@@ -107,7 +107,7 @@ void test_speed() {
 		insert_hash_map.stop();
 	
 		insert_unordered_map.start();
-		boost::unordered_map<int, char> q2;
+		std::unordered_map<int, char> q2;
 		for(int i=0; i < gen_t::cnt();++i)
 			q2[gen_t::key(i)] = static_cast<char>(gen_t::value(i));
 		insert_unordered_map.stop();
