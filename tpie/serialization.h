@@ -33,7 +33,7 @@
 #include <boost/type_traits/is_fundamental.hpp>
 #include <boost/type_traits/is_enum.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/cstdint.hpp>
+#include <cstdint>
 #include <istream>
 #include <ostream>
 #include <cstring>
@@ -71,14 +71,14 @@ public:
 	////////////////////////////////////////////////////////////////////////////
 	serializer(std::ostream & out, bool typesafe=false): m_out(out), m_typesafe(false) {
 		*this << "TPIE Serialization" //File header
-			  << (boost::uint16_t)1   //File version
+			  << (uint16_t)1   //File version
 			  << typesafe;            //Do we serialize typeids before each actual item?
 		m_typesafe = typesafe;
 	}
 
 	template <typename T>
 	inline serializer & write(const T * data, size_t l) {
-		*this << (boost::uint16_t)l;
+		*this << (uint16_t)l;
 		for (size_t i=0; i < l; ++i)
 			*this << data[i];
 		return *this;
@@ -100,7 +100,7 @@ public:
 	template <typename T>
 	inline serializer & operator <<(const std::vector<T> & v) {
 		write_type<std::vector<T> >();
-		*this << (boost::uint16_t)v.size();
+		*this << (uint16_t)v.size();
 		for (size_t i=0; i < v.size(); ++i)
 			*this << v[i];
 		return *this;
@@ -134,7 +134,7 @@ public:
 	unserializer(std::istream & in): m_in(in), m_typesafe(false) {
 		//Validate header;
 		*this << "TPIE Serialization" 
-			  << (boost::uint16_t)1;
+			  << (uint16_t)1;
 		bool typesafe;
 		*this >> typesafe;
 		m_typesafe=typesafe;
@@ -157,7 +157,7 @@ public:
 
 	template <typename T>
 	inline unserializer & read(T * array, size_t & size) {
-		boost::uint16_t x;
+		uint16_t x;
 		*this >> x;
 		if (x > size) throw serialization_error("array too short");
 		size=x;
@@ -184,7 +184,7 @@ public:
 	template <typename T>
 	inline unserializer & operator >> (std::vector<T> & v) {
 		check_type<std::vector<T> >();
-		boost::uint16_t size;
+		uint16_t size;
 		*this >> size;
 		v.clear();
 		for (size_t i=0; i < size; ++i) {
@@ -197,7 +197,7 @@ public:
 	inline unserializer & operator >>(std::string & s) {
 		check_type<std::string>();
 		s.clear();
-		boost::uint16_t size;
+		uint16_t size;
 		*this >> size;
 		for (size_t i=0; i < size; ++i) {
 			char x;
