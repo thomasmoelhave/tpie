@@ -1,22 +1,20 @@
 language: cpp
 compiler:
 - gcc
-- clang
 install:
 - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 addons:
   apt:
       sources:
       - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
+      - boost-latest
       packages:
       - gcc-4.8
       - g++-4.8
-      - clang
-      - libboost-date-time-dev
-      - libboost-thread-dev
-      - libboost-filesystem-dev
-      - libboost-system-dev
-      - libboost-regex-dev
+      - libboost-date-time1.55-dev
+      - libboost-filesystem1.55-dev
+      - libboost-system1.55-dev
       - libsnappy-dev
 script: mkdir build && cd build && cmake .. && make -j2 && make test
 sudo: false
