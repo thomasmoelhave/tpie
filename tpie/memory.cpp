@@ -88,7 +88,7 @@ void memory_manager::register_allocation(size_t bytes) {
 
 void memory_manager::register_deallocation(size_t bytes) {
 #ifndef TPIE_NDEBUG
-	size_t usage = m_used.fetch_and_sub(bytes);
+	size_t usage = m_used.fetch_sub(bytes);
 	if (bytes > usage) {
 		log_error() << "Error in deallocation, trying to deallocate " << bytes << " bytes, while only " <<
 			usage << " were allocated" << std::endl;
@@ -184,7 +184,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 
 #ifndef TPIE_NDEBUG
 void memory_manager::register_pointer(void * p, size_t size, const std::type_info & t) {
-	boost::mutex::scoped_lock lock(m_mutex);
+	std::lock_guard<std::mutex> lock(m_mutex);
 	__register_pointer(p, size, t);
 }
 
@@ -198,12 +198,12 @@ void memory_manager::__register_pointer(void * p, size_t size, const std::type_i
 }
 
 void memory_manager::unregister_pointer(void * p, size_t size, const std::type_info & t) {
-	boost::mutex::scoped_lock lock(m_mutex);
+	std::lock_guard<std::mutex> lock(m_mutex);
 	__unregister_pointer(p, size, t);
 }
 
 void memory_manager::__unregister_pointer(void * p, size_t size, const std::type_info & t) {
-	boost::unordered_map<void *, std::pair<size_t, const std::type_info *> >::const_iterator i=m_pointers.find(p);
+	auto  i=m_pointers.find(p);
 	if (i == m_pointers.end()) {
 		log_error() << "Trying to deregister pointer " << p << " of size "
 					<< size << " which was never registered" << std::endl;
@@ -224,7 +224,7 @@ void memory_manager::__unregister_pointer(void * p, size_t size, const std::type
 }
 
 void memory_manager::assert_tpie_ptr(void * p) {
-	boost::mutex::scoped_lock lock(m_mutex);
+	std::lock_guard<std::mutex> lock(m_mutex);
 	__assert_tpie_ptr(p);
 }
 
@@ -235,7 +235,7 @@ void memory_manager::__assert_tpie_ptr(void * p) {
 }
 
 void memory_manager::complain_about_unfreed_memory() {
-	boost::mutex::scoped_lock lock(m_mutex);
+	std::lock_guard<std::mutex> lock(m_mutex);
 	__complain_about_unfreed_memory();
 }
 
@@ -243,9 +243,8 @@ void memory_manager::__complain_about_unfreed_memory() {
 	if(m_pointers.size() == 0) return;
 	log_error() << "The following pointers were either leaked or deleted with delete instead of tpie_delete" << std::endl << std::endl;
 	
-	for(boost::unordered_map<void *, std::pair<size_t, const std::type_info *> >::const_iterator i=m_pointers.begin();
-		i != m_pointers.end(); ++i)
-		log_error() << "  " <<  i->first << ": " << i->second.second->name() << " of " << i->second.first << " bytes" << std::endl;
+	for(const auto & p: m_pointers)
+		log_error() << "  " <<  p.first << ": " << p.second.second->name() << " of " << p.second.first << " bytes" << std::endl;
 }
 #endif
 

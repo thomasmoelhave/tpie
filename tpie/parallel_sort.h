@@ -26,11 +26,9 @@
 #define __TPIE_PARALLEL_SORT_H__
 
 #include <algorithm>
-#include <boost/bind.hpp>
 #include <cstdint>
 #include <boost/iterator/iterator_traits.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/thread.hpp>
+#include <mutex>
 #include <cmath>
 #include <functional>
 #include <tpie/progress_indicator_base.h>
@@ -62,8 +60,8 @@ private:
 		typename P::base * pi;
 		std::uint64_t work_estimate;
 		std::uint64_t total_work_estimate;
-		boost::condition_variable cond;
-		boost::mutex mutex;
+		std::condition_variable cond;
+		std::mutex mutex;
 	};
 
 	/** \brief The type of the values we sort. */
@@ -216,7 +214,7 @@ public:
 			// .join(). It is safer to postpone deletion until our own
 			// deletion.
 			if (!parent) {
-				boost::mutex::scoped_lock lock(progress.mutex);
+				std::lock_guard<std::mutex> lock(progress.mutex);
 				progress.work_estimate = progress.total_work_estimate;
 				progress.cond.notify_one();
 			}
@@ -232,7 +230,7 @@ public:
 		std::vector<qsort_job *> children;
 
 		void add_progress(uint64_t amount) {
-			boost::mutex::scoped_lock lock(progress.mutex);
+			std::lock_guard<std::mutex> lock(progress.mutex);
 			progress.work_estimate += amount;
 			progress.cond.notify_one();
 		}
@@ -262,7 +260,7 @@ public:
 		master->enqueue();
 
 		std::uint64_t prev_work_estimate = 0;
-		boost::mutex::scoped_lock lock(progress.mutex);
+		std::unique_lock<std::mutex> lock(progress.mutex);
 		while (progress.work_estimate < progress.total_work_estimate) {
 			if (progress.pi && progress.work_estimate > prev_work_estimate) progress.pi->step(progress.work_estimate - prev_work_estimate);
 			prev_work_estimate = progress.work_estimate;

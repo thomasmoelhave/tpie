@@ -1498,7 +1498,7 @@ public:
 
 	node_map_tester construct() const {
 		std::vector<node_map_tester *> nodes;
-		std::auto_ptr<node_map_tester> node;
+		std::unique_ptr<node_map_tester> node;
 		for (size_t i = 0; i < this->nodes; ++i) {
 			node.reset(node.get() ? new node_map_tester(*node, nocopy) : new node_map_tester());
 			this->init_node(*node);

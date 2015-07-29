@@ -25,16 +25,17 @@ set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
 	set(Boost_USE_STATIC_LIBS    ON)
 endif(WIN32)
-find_package(Boost COMPONENTS date_time thread filesystem system regex REQUIRED)
+find_package(Boost COMPONENTS date_time filesystem system REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories( ${Boost_LIBRARY_DIRS} )
+
+if(NOT WIN32) 
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif()
 
 if(TPIE_FRACTIONDB_DIR_INL) 
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
 endif(TPIE_FRACTIONDB_DIR_INL)
-
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories ( ${Boost_LIBRARY_DIRS} )
-endif(Boost_FOUND)
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)

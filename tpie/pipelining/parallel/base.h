@@ -205,9 +205,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class state_base {
 public:
-	typedef boost::mutex mutex_t;
-	typedef boost::condition_variable cond_t;
-	typedef boost::unique_lock<boost::mutex> lock_t;
+	typedef std::mutex mutex_t;
+	typedef std::condition_variable cond_t;
+	typedef std::unique_lock<std::mutex> lock_t;
 
 	const options opts;
 
@@ -559,7 +559,7 @@ protected:
 	size_t parId;
 	std::unique_ptr<parallel_input_buffer<T> > m_buffer;
 	array<parallel_input_buffer<T> *> & m_inputBuffers;
-	boost::thread m_worker;
+	std::thread m_worker;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Overridden in subclass to push a buffer of items.
@@ -583,12 +583,16 @@ protected:
 	{
 	}
 
+	~before() {
+		m_worker.join();
+	}
+
 public:
 	typedef T item_type;
 
 	virtual void begin() override {
 		node::begin();
-		boost::thread t(run_worker, this);
+		std::thread t(run_worker, this);
 		m_worker.swap(t);
 	}
 
