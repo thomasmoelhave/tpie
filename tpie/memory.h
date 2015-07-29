@@ -424,10 +424,10 @@ public:
 	typedef typename a_t::const_reference const_reference;
     typedef typename a_t::value_type value_type;
 
-	allocator() throw() {}
-	allocator(const allocator & a) throw() {unused(a);}
+	allocator() noexcept {}
+	allocator(const allocator & ) noexcept {}
 	template <typename T2>
-	allocator(const allocator<T2> & a) throw() {unused(a);}
+	allocator(const allocator<T2> & ) noexcept {}
 
     template <class U> struct rebind {typedef allocator<U> other;};
 
@@ -444,22 +444,23 @@ public:
 		get_memory_manager().register_deallocation(n * sizeof(T));
 		return a.deallocate(p, n);
     }
-    size_t max_size() const {return a.max_size();}
+    size_t max_size() const noexcept {return a.max_size();}
 
 	template <typename U, typename ...TT>
 	void construct(U * p, TT &&...x) {a.construct(p, std::forward<TT>(x)...);}
 
-	void construct(T * p) {
-		new(p) T();
-	}
-    void construct(T * p, const T& val) {a.construct(p, val);}
-    void destroy(T * p) {a.destroy(p);}    
-	pointer address(reference x) const {return &x;}
-	const_pointer address(const_reference x) const {return &x;}
+	// void construct(T * p) {
+	// 	new(p) T();
+	// }
+    // void construct(T * p, const T& val) {a.construct(p, val);}
+	template <typename U>
+    void destroy(U * p) {a.destroy(p);}
+	pointer address(reference x) const noexcept {return &x;}
+	const_pointer address(const_reference x) const noexcept {return &x;}
 
 
-	friend bool operator==(const allocator &, const allocator &) {return true;}
-	friend bool operator!=(const allocator &, const allocator &) {return false;}
+	friend bool operator==(const allocator &, const allocator &) noexcept {return true;}
+	friend bool operator!=(const allocator &, const allocator &) noexcept {return false;}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
