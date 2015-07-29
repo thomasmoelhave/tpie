@@ -70,8 +70,8 @@ namespace tpie {
 		/// \internal \todo Doc: LA: Syntax of comparator for polymorphs? key-based?
 		////////////////////////////////////////////////////////////////////////////
 		template <class T, class M>
-		void merge_sorted_runs(typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator start,
-							   typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator end,
+		void merge_sorted_runs(typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator start,
+							   typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator end,
 							   file_stream<T> *outStream,  M* MergeHeap,
 							   TPIE_OS_OFFSET cutoff=-1, 
 							   progress_indicator_base* indicator = NULL) {
@@ -180,8 +180,8 @@ namespace tpie {
 		/// \internal \todo Check that memory management is done right
 		///////////////////////////////////////////////////////////////////////////
 		template <class T, class CMPR>
-		void ptr_merge_sorted(typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator start,
-							 typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator end,
+		void ptr_merge_sorted(typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator start,
+							 typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator end,
 							 file_stream<T> *outStream, 
 							 CMPR *cmp) {
 

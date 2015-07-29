@@ -46,7 +46,7 @@ static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
 struct movable_file_stream {
-	tpie::auto_ptr<tpie::uncompressed_stream<uint64_t> > fs;
+	tpie::unique_ptr<tpie::uncompressed_stream<uint64_t> > fs;
 	movable_file_stream() {fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());}
 	movable_file_stream(tpie::uncompressed_stream<uint64_t> & with) {
 		fs.reset(tpie::tpie_new<tpie::uncompressed_stream<uint64_t> >());
@@ -67,7 +67,7 @@ bool swap_test();
 template <typename T>
 struct file_colon_colon_stream {
 	tpie::file<T> m_file;
-	tpie::auto_ptr<typename tpie::file<T>::stream> m_stream;
+	tpie::unique_ptr<typename tpie::file<T>::stream> m_stream;
 	typedef typename tpie::file<T>::stream stream_type;
 
 	inline ~file_colon_colon_stream() {
