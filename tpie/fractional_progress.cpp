@@ -26,7 +26,7 @@
 #include <sstream>
 #include <locale>
 #include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 #include <boost/lexical_cast.hpp>
 
 namespace {
@@ -57,11 +57,11 @@ public:
 		f.open(path.c_str(), std::fstream::in | std::fstream::binary);
 		if (f.is_open()) {
 			std::string line;
-			boost::regex lineExp("tpie::update_fractions\\([ ]*\"([^\"]+)\"[ ]*,[ ]*([^, ]+)[ ]*,[ ]*([^\\) ]+)[ ]*\\);.*", boost::regex::extended);
-			boost::smatch matches;
+			std::regex lineExp("tpie::update_fractions\\([ ]*\"([^\"]+)\"[ ]*,[ ]*([^, ]+)[ ]*,[ ]*([^\\) ]+)[ ]*\\);.*", std::regex::extended);
+			std::smatch matches;
 			while (f) {
 				std::getline(f, line);
-				if (boost::regex_match(line, matches, lineExp) && matches.size() == 4) {
+				if (std::regex_match(line, matches, lineExp) && matches.size() == 4) {
 					update(matches.str(1), boost::lexical_cast<float>(matches.str(2)), boost::lexical_cast<stream_size_type>(matches.str(3)));
 				}
 			}

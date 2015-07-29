@@ -27,6 +27,7 @@
 #include <tpie/array.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/compressed/thread.h>
+#include <map>
 #include <memory>
 
 namespace tpie {
