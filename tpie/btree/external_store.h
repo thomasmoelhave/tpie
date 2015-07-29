@@ -25,7 +25,7 @@
 #include <tpie/tpie_assert.h>
 #include <tpie/blocks/block_collection_cache.h>
 #include <tpie/btree/external_store_base.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <cstddef>
 
@@ -67,9 +67,8 @@ public:
 
 	typedef size_t size_type;
 private:
-
-	static const memory_size_type cacheSize = 32;
-	static const memory_size_type blockSize = 7000;
+	constexpr memory_size_type cacheSize() {return 32;}
+	constexpr memory_size_type blockSize() {return 7000;}
 
 	struct internal_content {
 		key_type min_key;
@@ -127,7 +126,8 @@ public:
 	: btree_external_store_base(path)
 	, key_extract(key_extract)
 	{
-		m_collection.reset(new blocks::block_collection_cache(path, blockSize, cacheSize, true));
+		m_collection = std::make_shared<blocks::block_collection_cache>(
+			path, blockSize(), cacheSize(), true);
 	}
 
 	~btree_external_store() {
@@ -135,24 +135,24 @@ public:
 	}
 
 private:
-	static size_t min_internal_size() throw() {
+	constexpr size_t min_internal_size() {
 		return (max_internal_size() + 3) / 4;
 	}
 
-	static size_t max_internal_size() throw() {
+	constexpr size_t max_internal_size() {
 		size_t overhead = sizeof(memory_size_type);
 		size_t factor = sizeof(internal_content);
-		return (blockSize - overhead) / factor;
+		return (blockSize() - overhead) / factor;
 	}
 
-	static size_t min_leaf_size() throw() {
+	constexpr size_t min_leaf_size() {
 		return (max_leaf_size() + 3) / 4;
 	}
 
-	static size_t max_leaf_size() throw() {
+	constexpr size_t max_leaf_size() {
 		size_t overhead = sizeof(memory_size_type);
 		size_t factor = sizeof(T);
-		return (blockSize - overhead) / factor;
+		return (blockSize() - overhead) / factor;
 	}
 	
 	void move(internal_type src, size_t src_i,
@@ -435,7 +435,7 @@ private:
 	}
 
 	K key_extract;
-	boost::shared_ptr<blocks::block_collection_cache> m_collection;
+	std::shared_ptr<blocks::block_collection_cache> m_collection;
 
 	template <typename>
 	friend class btree_node;

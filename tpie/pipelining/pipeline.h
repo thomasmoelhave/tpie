@@ -158,7 +158,7 @@ public:
 		return *this;
 	}
 
-	pipeline(const boost::shared_ptr<bits::pipeline_base> & p): p(p) {}
+	pipeline(const std::shared_ptr<bits::pipeline_base> & p): p(p) {}
 
 	void operator()() {
 		CurrentPipeSetter _(this);
@@ -224,7 +224,7 @@ public:
 	static pipeline * current() {return m_current;}
 private:
 	static pipeline * m_current;
-	boost::shared_ptr<bits::pipeline_base> p;
+	std::shared_ptr<bits::pipeline_base> p;
 };
 
 } // namespace pipelining

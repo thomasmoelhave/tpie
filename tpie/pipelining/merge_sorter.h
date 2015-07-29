@@ -157,7 +157,7 @@ private:
 	static const size_t item_size = specific_store_t::item_size;
 public:
 
-	typedef boost::shared_ptr<merge_sorter> ptr;
+	typedef std::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
 	static const memory_size_type maximumFanout = 250; // arbitrary. TODO: run experiments to find threshold

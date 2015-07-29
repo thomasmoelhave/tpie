@@ -44,7 +44,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 class compressed_stream_base {
 public:
-	typedef boost::shared_ptr<compressor_buffer> buffer_t;
+	typedef std::shared_ptr<compressor_buffer> buffer_t;
 
 protected:
 	struct seek_state {

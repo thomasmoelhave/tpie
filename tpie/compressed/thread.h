@@ -38,7 +38,7 @@ class compressor_thread {
 	impl * pimpl;
 
 public:
-	typedef boost::shared_ptr<compressor_buffer> buffer_t;
+	typedef std::shared_ptr<compressor_buffer> buffer_t;
 	typedef file_accessor::byte_stream_accessor<default_raw_file_accessor> file_accessor_t;
 	typedef boost::mutex mutex_t;
 
