@@ -20,7 +20,6 @@
 #include "common.h"
 #include <tpie/parallel_sort.h>
 #include <random>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/dummy_progress.h>
 #include <tpie/memory.h>
@@ -78,23 +77,23 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 	gen_p.done();
 
 	{
-		boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
+		test_time start=test_now();
 		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, Progress, min_size > s(&par_p);
 		s(v2.begin(), v2.end());
-		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		tpie::log_info() << "Parallel sort took " << end-start << std::endl;
+		test_time end=test_now();
+		tpie::log_info() << "Parallel sort took " << test_millisecs(start, end) << std::endl;
 	}
 
 	std_p.init(1);
 	if (stdsort) {
-		boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
+		test_time start=test_now();
 		#ifdef TPIE_TEST_PARALLEL_SORT
 		__gnu_parallel::sort(v1.begin(), v1.end());
 		#else
 		std::sort(v1.begin(), v1.end());
 		#endif
-		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		tpie::log_info() << "std::sort took " << end-start << std::endl;
+		test_time end=test_now();
+		tpie::log_info() << "std::sort took " << test_millisecs(start, end) << std::endl;
 	}
 	std_p.done();
 
@@ -136,31 +135,31 @@ bool operator()(const size_t n, const double seconds) {
 	tpie::log_debug() << n << " elements" << std::endl;
 	std::vector<int> v(n);
 	size_t iterations;
-	boost::posix_time::time_duration dur;
+	double dur;
 	for (iterations = 1;; iterations += iterations) {
 		tpie::log_debug() << iterations << "..." << std::endl;
-		boost::posix_time::ptime t_begin = boost::posix_time::microsec_clock::local_time();
+		test_time t_begin = test_now();
 		for (size_t i = 0; i < iterations; ++i) {
 			Generator(v);
 			std::sort(v.begin(), v.end());
 		}
-		boost::posix_time::ptime t_end = boost::posix_time::microsec_clock::local_time();
-		dur = t_end-t_begin;
-		if (dur > boost::posix_time::milliseconds(static_cast<size_t>(1000*seconds))) break;
+		test_time t_end = test_now();
+		dur = test_millisecs(t_begin, t_end);
+		if (dur > 1000*seconds) break;
 	}
 	tpie::log_info() << "Doing " << iterations << " iteration(s) of std::sort takes " << dur << std::endl;
 
 	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false> s(0);
-	boost::posix_time::ptime t_begin = boost::posix_time::microsec_clock::local_time();
+	test_time t_begin = test_now();
 	for (size_t i = 0; i < iterations; ++i) {
 		tpie::log_debug() << '.' << std::flush;
 		Generator(v);
 		s(v.begin(), v.end());
 	}
-	boost::posix_time::ptime t_end = boost::posix_time::microsec_clock::local_time();
+	test_time t_end = test_now();
 	tpie::log_debug() << std::endl;
-	tpie::log_info() << "std: " << dur << " ours: " << t_end-t_begin << std::endl;
-	if( dur*3 < (t_end-t_begin) ) {tpie::log_error() << "Too slow" << std::endl; return false;}
+	tpie::log_info() << "std: " << dur << " ours: " << test_millisecs(t_begin, t_end) << std::endl;
+	if( dur*3 < test_millisecs(t_begin, t_end)) {tpie::log_error() << "Too slow" << std::endl; return false;}
 	return true;
 }
 };
@@ -181,20 +180,20 @@ bool stress_test() {
 			}
 			tpie::log_info() << size << " " << std::flush;
 
-			boost::posix_time::time_duration t1;
-			boost::posix_time::time_duration t2;
+			double t1;
+			double t2;
 			{
-				boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
+				test_time start=test_now();
 				std::sort(v1.begin(), v1.end());
-				boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-				tpie::log_info() << "std: " << (t1 = end-start) << std::flush;
+				test_time end=test_now();
+				tpie::log_info() << "std: " << (t1 = test_millisecs(start, end)) << std::flush;
 			}
 			{
-				boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
+				test_time start=test_now();
 				parallel_sort_impl<std::vector<size_t>::iterator, std::less<size_t>, false, 524288/8 > s(0);
 				s(v2.begin(), v2.end());
-				boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-				tpie::log_info() << " ours: " << (t2 = end-start) << std::endl;
+				test_time end=test_now();
+				tpie::log_info() << " ours: " << (t2 = test_millisecs(start, end)) << std::endl;
 			}
 			if( t1*3 < t2  ) {tpie::log_error() << "Too slow" << std::endl; return false;}
 		}

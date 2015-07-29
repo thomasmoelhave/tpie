@@ -19,6 +19,7 @@
 
 #include <tpie/serialization_stream.h>
 #include <tpie/array.h>
+#include <algorithm>
 
 ///////////////////////////////////////////////////////////////////////////////
 // serialization_header {{{
