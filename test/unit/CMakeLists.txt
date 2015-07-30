@@ -157,7 +157,7 @@ add_unittest(pipelining
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
-add_unittest(maybe basic unqiue_ptr)
+add_unittest(maybe basic unique_ptr)
 add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
 add_unittest(node_name gcc msvc)
 add_unittest(snappy basic)
