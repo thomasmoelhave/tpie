@@ -404,6 +404,14 @@ struct tpie_deleter {
 template <typename T>
 using unique_ptr=std::unique_ptr<T, tpie_deleter>;
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a new unique object using tpie::new
+/// \tparam T the type of the object.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T, typename ... TT>
+inline unique_ptr<T> make_unique(TT && ... tt) {
+	return unique_ptr<T>(tpie_new<T>(std::forward<TT>(tt)...));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A allocator object usable in STL containers, using the TPIE
