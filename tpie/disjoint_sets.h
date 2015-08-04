@@ -154,11 +154,12 @@ public:
 	}
 
 	void clear() {
+		std::fill(m_elements.begin(), m_elements.end(), unused);
 		m_size = 0;
 	}
 
 	void resize(size_t size) {
-		m_elements.resize(size);
+		m_elements.resize(size, unused);
 		m_size = 0;
 	}
 };
