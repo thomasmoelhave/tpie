@@ -121,83 +121,162 @@ serialization_output(serialization_writer & wr) {
 
 namespace serialization_bits {
 
-template <typename> class rev_input_t;
-
-template <typename dest_t>
-class rev_output_t : public node {
-	friend class rev_input_t<rev_output_t<dest_t> >;
-
-	dest_t dest;
-	tpie::temp_file * m_stack;
-
-	serialization_reverse_reader rd;
-
+template <typename T>
+class reverser_input_t : public node {
 public:
-	typedef typename push_type<dest_t>::type item_type;
+	typedef T item_type;
 
-	rev_output_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(std::move(dest))
-		, m_stack(0)
-	{
-		this->set_name("Serialization reverse reader");
-		this->add_push_destination(this->dest);
-	}
-
-	virtual void propagate() override {
-		if (m_stack == 0)
-			throw tpie::exception("No one created my stack");
-
-		rd.open(m_stack->path());
-		this->set_steps(rd.size());
-	}
-
-	virtual void go() override {
-		item_type x;
-		stream_size_type bytesRead = 0;
-		while (rd.can_read()) {
-			rd.unserialize(x);
-			dest.push(x);
-
-			stream_size_type bytesRead2 = rd.offset();
-			step(bytesRead2 - bytesRead);
-			bytesRead = bytesRead2;
-		}
-	}
-
-	virtual void end() override {
-		rd.close();
-		delete m_stack;
-	}
-};
-
-typedef factory<rev_output_t> rev_output_factory;
-
-template <typename dest_t>
-class rev_input_t;
-
-template <typename output_dest_t>
-class rev_input_t<rev_output_t<output_dest_t> > : public node {
-	typedef rev_output_t<output_dest_t> dest_t;
-	dest_t dest;
-
-	serialization_reverse_writer wr;
-	stream_size_type items;
-
-public:
-	typedef typename push_type<dest_t>::type item_type;
-
-	rev_input_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(std::move(dest))
+	reverser_input_t(const node_token & token,
+					 std::shared_ptr<node> output=std::shared_ptr<node>())
+		: node(token), output(output)
 		, wr()
 		, items(0)
 	{
 		this->set_name("Serialization reverse writer");
-		this->dest.add_dependency(*this);
+		//TODO memory
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtual void begin() override {
-		dest.m_stack = new tpie::temp_file();
-		wr.open(dest.m_stack->path());
+	void propagate() override {
+		file.construct();
+		forward<tpie::maybe<tpie::temp_file>*>("__srev_file", &file);
+	}
+
+	void begin() override {
+		wr.open(file->path());
+	}
+	
+	void push(const item_type & x) {
+		wr.serialize(x);
+		++items;
+	}
+	
+	void end() override {
+		wr.close();
+		forward<stream_size_type>("items", items);
+	}
+
+private:
+	tpie::maybe<tpie::temp_file> file;
+	std::shared_ptr<node> output;
+	serialization_reverse_writer wr;
+	stream_size_type items;
+};
+
+template <typename dest_t>
+class reverser_output_t : public node {
+public:
+	typedef typename push_type<dest_t>::type item_type;
+
+	reverser_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
+		: dest(std::move(dest))
+	{
+		set_name("Serialization reverse reader");
+		add_dependency(input_token);
+		add_push_destination(this->dest);
+		//TODO memory
+		set_plot_options(PLOT_BUFFERED);
+	}
+
+	void propagate() override {
+		file = fetch<tpie::maybe<tpie::temp_file> *>("__srev_file");
+		if (!file->is_constructed())
+			throw tpie::exception("No one created my file");
+		rd.open((*file)->path());
+		this->set_steps(rd.size());
+	}
+
+	void go() override {
+		item_type x;
+		stream_size_type bytesRead = 0;
+		while (rd.can_read()) {
+			rd.unserialize(x);
+			dest.push(x);
+			
+			stream_size_type bytesRead2 = rd.offset();
+			step(bytesRead2 - bytesRead);
+			bytesRead = bytesRead2;
+		}
+	}
+
+	void end() override {
+		rd.close();
+		file->destruct();
+	}
+private:
+	serialization_reverse_reader rd;
+	tpie::maybe<tpie::temp_file> * file;
+	dest_t dest;
+};
+
+template <typename T>
+class reverser_pull_output_t : public node {
+public:
+	typedef T item_type;
+
+	reverser_pull_output_t(const node_token & input_token)
+		{
+		set_name("Serialization reverse reader");
+		add_dependency(input_token);
+		add_push_destination(this->dest);
+		//TODO memory
+		set_plot_options(PLOT_BUFFERED);
+	}
+
+	void propagate() override {
+		file = fetch<tpie::maybe<tpie::temp_file> *>("__srev_file");
+		if (!file->is_constructed())
+			throw tpie::exception("No one created my file");
+		rd.open((*file)->path());
+		this->set_steps(rd.size());
+	}
+
+	bool can_pull() {
+		return rd.can_read();
+	}
+
+	T pull() {
+		item_type x;
+		stream_size_type bytesRead = rd.offset();
+		rd.unserialize(x);
+		stream_size_type bytesRead2 = rd.offset();
+		step(bytesRead2 - bytesRead);
+		return x;
+	}
+
+	void end() override {
+		rd.close();
+		file->destruct();
+	}
+	
+private:
+	serialization_reverse_reader rd;
+	tpie::maybe<tpie::temp_file> * file;
+};
+
+template <typename T>
+class buffer_input_t : public node {
+public:
+	typedef T item_type;
+
+	buffer_input_t(const node_token & token,
+				   std::shared_ptr<node> output = std::shared_ptr<node>())
+		: node(token)
+		, output(output)
+		, wr()
+		, items(0) {
+		set_name("Serialization buffer writer");
+		//TODO memory
+		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
+	}
+
+	void propagate() override {
+		file.construct();
+		forward<tpie::maybe<tpie::temp_file>*>("__sbuf_file", &file);
+	}
+	
+	void begin() override {
+		wr.open(file->path());
 	}
 
 	void push(const item_type & x) {
@@ -205,48 +284,43 @@ public:
 		++items;
 	}
 
-	virtual void end() override {
+	void end() override {
 		wr.close();
 		this->forward<stream_size_type>("items", items);
 	}
+public:
+	std::shared_ptr<node> output;
+	tpie::maybe<tpie::temp_file> file;
+	serialization_writer wr;
+	stream_size_type items;
 };
 
-typedef factory<rev_input_t> rev_input_factory;
-
-typedef bits::pair_factory<rev_input_factory, rev_output_factory> reverse_factory;
-
-
-
-template <typename> class buffer_input_t;
 
 template <typename dest_t>
 class buffer_output_t : public node {
-	friend class buffer_input_t<buffer_output_t<dest_t> >;
-
-	dest_t dest;
-	tpie::temp_file * m_file;
-
-	serialization_reader rd;
-
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	buffer_output_t(TPIE_TRANSFERABLE(dest_t) dest)
+	buffer_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
 		: dest(std::move(dest))
-		, m_file(0)
 	{
-		this->set_name("Serialization buffer reader");
+		add_dependency(input_token);
+		add_push_destination(this->dest);
+		//TODO MEMORY
+		set_name("Serialization buffer reader");
+		set_plot_options(PLOT_BUFFERED);
 	}
 
-	virtual void propagate() override {
-		if (m_file == 0)
+	void propagate() override {
+		file = fetch<tpie::maybe<tpie::temp_file> *>("__sbuf_file");
+		if (!file->is_constructed())
 			throw tpie::exception("No one created my file");
 
-		rd.open(m_file->path());
-		this->set_steps(rd.size());
+		rd.open((*file)->path());
+		set_steps(rd.size());
 	}
 
-	virtual void go() override {
+	void go() override {
 		item_type x;
 		stream_size_type bytesRead = 0;
 		while (rd.can_read()) {
@@ -259,81 +333,163 @@ public:
 		}
 	}
 
-	virtual void end() override {
+	void end() override {
 		rd.close();
-		delete m_file;
+		file->destruct();
 	}
-};
-
-typedef factory<buffer_output_t> buffer_output_factory;
-
-template <typename dest_t>
-class buffer_input_t;
-
-template <typename output_dest_t>
-class buffer_input_t<buffer_output_t<output_dest_t> > : public node {
-	typedef buffer_output_t<output_dest_t> dest_t;
+private:
+	tpie::maybe<tpie::temp_file> * file;
+	serialization_reader rd;
 	dest_t dest;
-
-	serialization_writer wr;
-	stream_size_type items;
-
-public:
-	typedef typename push_type<dest_t>::type item_type;
-
-	buffer_input_t(TPIE_TRANSFERABLE(dest_t) dest)
-		: dest(std::move(dest))
-		, wr()
-		, items(0)
-	{
-		this->set_name("Serialization buffer writer");
-		this->dest.add_dependency(*this);
-	}
-
-	virtual void begin() override {
-		dest.m_file = new tpie::temp_file();
-		wr.open(dest.m_file->path());
-	}
-
-	void push(const item_type & x) {
-		wr.serialize(x);
-		++items;
-	}
-
-	virtual void end() override {
-		wr.close();
-		this->forward<stream_size_type>("items", items);
-	}
 };
 
-typedef factory<buffer_input_t> buffer_input_factory;
+template <typename T>
+class buffer_pull_output_t: public node {
+public:
+	typedef T item_type;
 
-typedef bits::pair_factory<buffer_input_factory, buffer_output_factory> buffer_factory;
+	buffer_pull_output_t(const node_token & input_token) {
+		add_dependency(input_token);
+		set_name("Fetching items", PRIORITY_SIGNIFICANT);
+		//TODO memory
+		set_plot_options(PLOT_BUFFERED);
+	}
+
+	virtual void propagate() override {
+		file = fetch<tpie::maybe<tpie::temp_file> *>("__sbuf_file");
+		if (!file->is_constructed())
+			throw tpie::exception("No one created my file");
+		rd.open((*file)->path());
+		set_steps(rd.size());
+	}
+
+	bool can_pull() {
+		return rd.can_read();
+	}
+
+	T pull() {
+		item_type x;
+		stream_size_type bytesRead = rd.offset();
+		rd.unserialize(x);
+		stream_size_type bytesRead2 = rd.offset();
+		step(bytesRead2 - bytesRead);
+		return x;
+	}
+
+	void end() override {
+		rd.close();
+		file->destruct();
+	}
+private:
+	tpie::maybe<tpie::temp_file> * file;
+	serialization_reader rd;
+};
 
 
 } // namespace serialization_bits
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A passive serialization reverser stored in external memory. Reverses the input
+/// stream and creates a phase boundary.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class passive_serialization_reverser {
+public:
+	typedef T item_type;
+	typedef serialization_bits::reverser_input_t<T> input_t;
+	typedef serialization_bits::reverser_pull_output_t<T> output_t;
+private:
+	typedef termfactory<input_t,  const node_token &> inputfact_t;
+	typedef termfactory<output_t, const node_token &> outputfact_t;
+	typedef pipe_end<inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
+public:
+	passive_serialization_reverser() {}
+
+	input_t raw_input() {
+		return input_t(input_token);
+	}
+
+	output_t raw_output() {
+		return output_t(input_token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a termfactory for the input nodes
+	///////////////////////////////////////////////////////////////////////////////
+	inputpipe_t input() {
+		return inputfact_t(input_token);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Returns a termfactory for the output nodes
+	///////////////////////////////////////////////////////////////////////////////
+	outputpipe_t output() {
+		return outputfact_t(input_token);
+	}
+private:
+	node_token input_token;
+
+	passive_serialization_reverser(const passive_serialization_reverser &);
+	passive_serialization_reverser & operator=(const passive_serialization_reverser &);
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Serialization stream buffer. Does nothing to the item stream, but
+/// it inserts a phase boundary.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class passive_serialization_buffer {
+public:
+	typedef T item_type;
+	typedef serialization_bits::buffer_input_t<T> input_t;
+	typedef serialization_bits::buffer_pull_output_t<T> output_t;
+private:
+	typedef termfactory<input_t,  const node_token &> inputfact_t;
+	typedef termfactory<output_t, const node_token &> outputfact_t;
+	typedef pipe_end      <inputfact_t>  inputpipe_t;
+	typedef pullpipe_begin<outputfact_t> outputpipe_t;
+
+public:
+	passive_serialization_buffer() {}
+
+	input_t raw_input() {
+		return input_t(input_token);
+	}
+
+	output_t raw_output() {
+		return output_t(input_token);
+	}
+
+	inputpipe_t input() {
+		return inputfact_t(input_token);
+	}
+
+	outputpipe_t output() {
+		return outputfact_t(input_token);
+	}
+
+private:
+	node_token input_token;
+
+	passive_serialization_buffer(const passive_serialization_buffer &);
+	passive_serialization_buffer & operator=(const passive_serialization_buffer &);
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// A pipelining node that reverses serializable items and creates a phase
 /// boundary
 ///////////////////////////////////////////////////////////////////////////////
-pipe_middle<serialization_bits::reverse_factory>
-inline serialization_reverser() {
-	serialization_bits::rev_input_factory i;
-	serialization_bits::rev_output_factory o;
-	return serialization_bits::reverse_factory(i, o);
-}
+typedef pipe_middle<split_factory<serialization_bits::reverser_input_t, node, serialization_bits::reverser_output_t> > serialization_reverser;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// A pipelining node that acts as a buffer for serializable items and creates 
 /// a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
-pipe_middle<serialization_bits::buffer_factory>
-inline serialization_buffer() {
-	serialization_bits::buffer_input_factory i;
-	serialization_bits::buffer_output_factory o;
-	return serialization_bits::buffer_factory(i, o);
-}
+typedef pipe_middle<split_factory<serialization_bits::buffer_input_t, node, serialization_bits::buffer_output_t> > serialization_buffer;
 
 } // namespace pipelining
 
