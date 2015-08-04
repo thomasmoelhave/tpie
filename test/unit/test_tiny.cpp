@@ -195,15 +195,19 @@ int main(int argc, char ** argv) {
 
 #else // TPIE_CPP_TINY
 
-bool basic_test() {
-	tpie::log_warning() << "ut-tiny: Tiny is not supported on this system!" << std::endl;
+bool placeholder_test() {
+	tpie::log_info() << "ut-tiny: Tiny is not supported on this system!" << std::endl;
 	return true;
 }
 
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
-	.test(basic_test, "basic")
-	;
+		.test(placeholder_test, "sort")
+		.test(placeholder_test, "set")
+		.test(placeholder_test, "map")
+		.test(placeholder_test, "multiset")
+		.test(placeholder_test, "multimap")
+		;
 }
 
 #endif // TPIE_CPP_TINY
