@@ -462,7 +462,9 @@ public:
 	// }
     // void construct(T * p, const T& val) {a.construct(p, val);}
 	template <typename U>
-    void destroy(U * p) {a.destroy(p);}
+    void destroy(U * p) {
+        p->~U();
+    }
 	pointer address(reference x) const noexcept {return &x;}
 	const_pointer address(const_reference x) const noexcept {return &x;}
 
