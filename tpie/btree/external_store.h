@@ -67,8 +67,8 @@ public:
 
 	typedef size_t size_type;
 private:
-	constexpr memory_size_type cacheSize() {return 32;}
-	constexpr memory_size_type blockSize() {return 7000;}
+	constexpr memory_size_type cacheSize() const {return 32;}
+	constexpr memory_size_type blockSize() const {return 7000;}
 
 	struct internal_content {
 		key_type min_key;
@@ -135,21 +135,21 @@ public:
 	}
 
 private:
-	constexpr size_t min_internal_size() {
+	constexpr size_t min_internal_size() const {
 		return (max_internal_size() + 3) / 4;
 	}
 
-	constexpr size_t max_internal_size() {
+	constexpr size_t max_internal_size() const {
 		size_t overhead = sizeof(memory_size_type);
 		size_t factor = sizeof(internal_content);
 		return (blockSize() - overhead) / factor;
 	}
 
-	constexpr size_t min_leaf_size() {
+	constexpr size_t min_leaf_size() const {
 		return (max_leaf_size() + 3) / 4;
 	}
 
-	constexpr size_t max_leaf_size() {
+	constexpr size_t max_leaf_size() const {
 		size_t overhead = sizeof(memory_size_type);
 		size_t factor = sizeof(T);
 		return (blockSize() - overhead) / factor;
