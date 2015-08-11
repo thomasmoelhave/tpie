@@ -272,8 +272,8 @@ public:
 	inline id_t id() const { return m_id; }
 
 	inline bits::node_map::ptr map_union(const node_token & with) {
-		if (m_tokens == with.m_tokens) return m_tokens;
-		m_tokens->union_set(with.m_tokens);
+		if (m_tokens != with.m_tokens)
+			m_tokens->union_set(with.m_tokens);
 		return m_tokens = m_tokens->find_authority();
 	}
 
