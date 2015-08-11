@@ -275,15 +275,18 @@ public:
 	}
 
 	void add_to_set(node_set s) {
-		m_add_to_set.push_back(s);
+		if (s)
+			m_add_to_set.push_back(s);
 	}
 
 	void add_dependencies(node_set s) {
-		m_add_relations.push_back(std::make_pair(s,bits::no_forward_depends));
+		if (s)
+			m_add_relations.push_back(std::make_pair(s,bits::no_forward_depends));
 	}
 
 	void add_forwarding_dependencies(node_set s) {
-		m_add_relations.push_back(std::make_pair(s,bits::depends));
+		if (s)
+			m_add_relations.push_back(std::make_pair(s,bits::depends));
 	}
 
 private:
