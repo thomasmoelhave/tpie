@@ -156,9 +156,14 @@ public:
 			hook.index = i;
 			new (this->m_progressIndicators.get(i)) pi_t();
 
+			auto n = fact.construct(after_t(st, i));
+			if (i == 0)
+				n.set_plot_options(node::PLOT_PARALLEL);
+			else
+				n.set_plot_options(node::PLOT_PARALLEL | node::PLOT_SIMPLIFIED_HIDE);
 			this->m_dests[i] =
 				new(m_data.get(i))
-				before_t(st, i, fact.construct(after_t(st, i)));
+				before_t(st, i, std::move(n));
 		}
 	}
 
@@ -436,6 +441,7 @@ public:
 	{
 		state.set_output_ptr(parId, this);
 		set_name("Parallel after", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_PARALLEL | PLOT_SIMPLIFIED_HIDE);
 		if (m_cons == 0) throw tpie::exception("Unexpected nullptr");
 		if (*m_cons != 0) throw tpie::exception("Expected nullptr");
 	}
@@ -573,6 +579,7 @@ protected:
 		, m_inputBuffers(st.m_inputBuffers)
 	{
 		set_name("Parallel before", PRIORITY_INSIGNIFICANT);
+		set_plot_options(PLOT_PARALLEL | PLOT_SIMPLIFIED_HIDE);
 	}
 	// virtual dtor in node
 
@@ -731,6 +738,7 @@ public:
 	{
 		this->add_push_destination(dest);
 		this->set_name("Parallel output", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_PARALLEL | node::PLOT_SIMPLIFIED_HIDE);
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			st->output(i).set_consumer(this);
 		}
@@ -889,6 +897,8 @@ public:
 			this->add_push_destination(st->input(i));
 		}
 		this->set_name("Parallel input", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(PLOT_PARALLEL | PLOT_SIMPLIFIED_HIDE);
+
 		memory_size_type usage =
 			st->opts.numJobs * st->opts.bufSize * (sizeof(T1) + sizeof(T2)) // workers
 			+ st->opts.bufSize * sizeof(item_type) // our buffer
