@@ -167,10 +167,11 @@ public:
 private:
 	typedef termfactory<input_t,  const node_token &> inputfact_t;
 	typedef termfactory<output_t, const node_token &> outputfact_t;
+public:
 	typedef pipe_end      <inputfact_t>  inputpipe_t;
 	typedef pullpipe_begin<outputfact_t> outputpipe_t;
 
-public:
+
 	passive_buffer() {}
 
 	inline input_t raw_input() {
