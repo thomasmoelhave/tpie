@@ -29,9 +29,8 @@ find_package(Boost COMPONENTS date_time filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories( ${Boost_LIBRARY_DIRS} )
 
-if(NOT WIN32) 
-       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-endif()
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 if(TPIE_FRACTIONDB_DIR_INL) 
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
