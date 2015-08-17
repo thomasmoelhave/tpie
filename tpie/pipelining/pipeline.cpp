@@ -73,6 +73,9 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 		if (repr.count(i->first)) continue;
 		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_BUFFERED))
 			out << '"' << name(nodeMap, i->first) << "\" [shape=box];\n";
+		
+		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_PARALLEL))
+			out << '"' << name(nodeMap, i->first) << "\" [shape=polygon];\n";
 		else
 			out << '"' << name(nodeMap, i->first) << "\";\n";
 	}
