@@ -169,6 +169,67 @@ private:
 	friend class invoker;
 };
 
+
+template <typename ...>
+class Args;
+
+///////////////////////////////////////////////////////////////////////////////
+/// \class tfactory
+/// Node factory for variadic argument terminators.
+///////////////////////////////////////////////////////////////////////////////
+template <template <typename dest_t, typename ... X> class R, typename Args, typename... T>
+class tfactory {/*We should never use this*/};
+
+template <template <typename dest_t, typename ... X> class R,
+		  typename ...TT, typename... T>
+class tfactory<R, Args<TT...>, T...> : public factory_base {
+public:
+	tfactory(T... v) : m_v(v...) {}
+	
+	template<typename dest_t>
+	struct constructed {
+		typedef R<typename bits::remove<dest_t>::type, TT...> type;
+	};
+
+	template <typename dest_t>
+	typename constructed<dest_t>::type construct(dest_t && dest) const {
+		return invoker<sizeof...(T)>::go(std::forward<dest_t>(dest), *this);
+	}
+
+private:
+	std::tuple<T...> m_v;
+
+	template <size_t N, size_t... S>
+	class invoker {
+	public:
+		template <typename dest_t>
+		static typename constructed<dest_t>::type
+		go(dest_t && dest, const tfactory & parent) {
+			return invoker<N-1, N-1, S...>::go(std::forward<dest_t>(dest), parent);
+		}
+	};
+
+	template <size_t... S>
+	class invoker<0, S...> {
+	public:
+		template <typename dest_t>
+		static typename constructed<dest_t>::type
+		go(dest_t && dest, const tfactory & parent) {
+			node_token tok = dest.get_token();
+			typename constructed<dest_t>::type
+				r(std::forward<dest_t>(dest), std::get<S>(parent.m_v)...);
+			parent.init_node(r);
+			parent.add_default_edge(r, tok);
+			parent.add_node_set_edges(r);
+			return r;
+		}
+	};
+
+	template <size_t N, size_t... S>
+	friend class invoker;
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Node factory for split nodes, typically used for phase boundary nodes.
 /// \tparam I the type of the input node
