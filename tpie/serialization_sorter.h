@@ -629,9 +629,9 @@ private:
 		m_params.tempDir = tempname::tpie_dir_name();
 		m_files.set_temp_dir(m_params.tempDir);
 
-		log_info() << "Calculated serialization_sorter parameters.\n";
-		m_params.dump(log_info());
-		log_info() << std::flush;
+		log_debug() << "Calculated serialization_sorter parameters.\n";
+		m_params.dump(log_debug());
+		log_debug() << std::flush;
 
 		m_parametersSet = true;
 	}
@@ -644,10 +644,10 @@ public:
 			throw tpie::exception("Bad state in begin");
 		m_state = state_1;
 
-		log_info() << "Before begin; mem usage = "
+		log_debug() << "Before begin; mem usage = "
 			<< get_memory_manager().used() << std::endl;
 		m_sorter.begin(m_params.memoryPhase1 - serialization_writer::memory_usage());
-		log_info() << "After internal sorter begin; mem usage = "
+		log_debug() << "After internal sorter begin; mem usage = "
 			<< get_memory_manager().used() << std::endl;
 		boost::filesystem::create_directory(m_params.tempDir);
 	}
@@ -709,7 +709,7 @@ public:
 			m_reportInternal = false;
 		}
 
-		log_info() << "After internal sorter end; mem usage = "
+		log_debug() << "After internal sorter end; mem usage = "
 			<< get_memory_manager().used() << std::endl;
 
 		m_state = state_2;
