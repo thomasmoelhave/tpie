@@ -110,18 +110,17 @@ class pipeline_impl : public pipeline_base {
 public:
 	typedef typename fact_t::constructed_type gen_t;
 
-	inline pipeline_impl(const fact_t & factory)
+	pipeline_impl(const fact_t & factory)
 		: r(factory.construct())
 	{
 		this->m_memory = factory.memory();
 		this->m_nodeMap = r.get_node_map();
 	}
 
-	inline operator gen_t() {
-		return r;
-	}
+	pipeline_impl(const pipeline_impl &) = delete;
 	pipeline_impl(pipeline_impl &&) = default;
 
+	pipeline_impl & operator=(const pipeline_impl &) = delete;
 	pipeline_impl & operator=(pipeline_impl &&) = default;
 
 
@@ -156,27 +155,15 @@ public:
 	pipeline & operator=(const pipeline &) = default;
 
 	template <typename T>
-	pipeline(const T & from) {
-		*this = from;
-	}
-
-	template <typename T>
-	pipeline(T && from) {
+	pipeline(T from) {
 		*this = std::move(from);
 	}
 
 	template <typename T>
-	pipeline & operator=(const T & from) {
-		p.reset(new T(from));
-		return *this;
-	}
-
-	template <typename T>
-	pipeline & operator=(T && from) {
+	pipeline & operator=(T from) {
 		p.reset(new T(std::move(from)));
 		return *this;
 	}
-
 
 	pipeline(const std::shared_ptr<bits::pipeline_base> & p): p(p) {}
 

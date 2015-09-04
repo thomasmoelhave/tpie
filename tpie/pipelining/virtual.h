@@ -141,11 +141,10 @@ public:
 		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtrecv(const virtrecv & other)
-		: node(other)
-		, m_self(other.m_self)
-		, m_virtdest(other.m_virtdest)
-	{
+	virtrecv(virtrecv && o)
+		: node(std::move(o))
+		, m_self(o.m_self)
+		, m_virtdest(std::move(o.m_virtdest)) {
 		m_self = this;
 	}
 

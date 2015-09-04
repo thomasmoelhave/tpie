@@ -58,7 +58,7 @@ public:
 
 	template <typename dest_t>
 	typename constructed<dest_t>::type
-	construct(const dest_t & dest) const {
+	construct(dest_t dest) const {
 		typedef constructed<dest_t> gen_t;
 
 		typedef typename gen_t::T1 input_type;
@@ -71,9 +71,9 @@ public:
 
 		typename state_t::ptr st(new state_t(opts, fact));
 
-		consumer_t consumer(dest, st);
+		consumer_t consumer(std::move(dest), st);
 		this->init_node(consumer);
-		producer_t producer(st, consumer);
+		producer_t producer(st, std::move(consumer));
 		this->init_node(producer);
 		return producer;
 	}
