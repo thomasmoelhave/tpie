@@ -488,7 +488,7 @@ public:
 		add_push_destination(dest);
 	}
 
-	void prepare() {
+	void prepare() override {
 		set_minimum_memory(settings.minMem1);
 		if (settings.maxMem1 > 0)
 			set_maximum_memory(settings.maxMem1);
@@ -513,7 +513,7 @@ public:
 	{
 	}
 
-	void prepare() {
+	void prepare() override {
 		set_minimum_memory(settings.minMem2);
 		if (settings.maxMem2 > 0)
 			set_maximum_memory(settings.maxMem2);
