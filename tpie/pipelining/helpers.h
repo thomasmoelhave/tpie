@@ -69,44 +69,6 @@ private:
 	bool ended;
 };
 
-template <typename dest_t>
-class identity_t : public node {
-public:
-	typedef typename push_type<dest_t>::type item_type;
-
-	inline identity_t(TPIE_TRANSFERABLE(dest_t) dest) : dest(std::move(dest)) {
-		add_push_destination(this->dest);
-	}
-
-	inline void push(const item_type & item) {
-		dest.push(item);
-	}
-private:
-	dest_t dest;
-};
-
-template <typename source_t>
-class pull_identity_t : public node {
-public:
-	typedef typename pull_type<source_t>::type item_type;
-
-	inline pull_identity_t(TPIE_TRANSFERABLE(source_t) source) : source(std::move(source)) {
-		add_pull_source(this->source);
-		set_name("Identity", PRIORITY_INSIGNIFICANT);
-	}
-
-	inline item_type pull() {
-		return source.pull();
-	}
-
-	inline bool can_pull() {
-		return source.can_pull();
-	}
-
-private:
-	source_t source;
-};
-
 template <typename source_t>
 class pull_peek_t : public node {
 public:
@@ -157,72 +119,6 @@ public:
 		return *buffer;
 	}
 };
-
-template <typename pushfact_t>
-class push_to_pull {
-public:
-
-	template <typename source_t>
-	class puller_t : public node {
-	public:
-
-		typedef typename pull_type<source_t>::type item_type;
-		typedef typename pushfact_t::template constructed<dummydest_t<item_type> >::type pusher_t;
-
-		source_t source;
-		dummydest_t<item_type> dummydest;
-		pusher_t pusher;
-
-		inline puller_t(TPIE_TRANSFERABLE(source_t) source, const pushfact_t & pushfact)
-			: source(std::move(source))
-			, pusher(pushfact.construct(dummydest_t<item_type>(dummydest)))
-		{
-			add_pull_source(this->source);
-			add_push_destination(pusher);
-		}
-
-		inline item_type pull() {
-			pusher.push(source.pull());
-			return dummydest.pull();
-		}
-
-		inline bool can_pull() {
-			return source.can_pull();
-		}
-
-	};
-};
-
-template <typename pullfact_t>
-class pull_to_push {
-public:
-
-	template <typename dest_t>
-	class pusher_t : public node {
-	public:
-		typedef typename push_type<dest_t>::type item_type;
-		typedef typename pullfact_t::template constructed<dummydest_t<item_type> >::type puller_t;
-
-		dest_t dest;
-		dummydest_t<item_type> dummydest;
-		puller_t puller;
-
-		inline pusher_t(TPIE_TRANSFERABLE(dest_t) dest, const pullfact_t & pullfact)
-			: dest(std::move(dest))
-			, puller(pullfact.construct(dummydest_t<item_type>(dummydest)))
-		{
-			add_push_destination(this->dest);
-			add_pull_source(puller);
-		}
-
-		inline void push(const item_type & item) {
-			dummydest.push(item);
-			dest.push(puller.pull());
-		}
-
-	};
-};
-
 
 template <typename fact2_t>
 class fork_t {
@@ -302,7 +198,7 @@ public:
 		type(dest_t dest, IT from, IT to)
 			: i(from)
 			, till(to)
-			, dest(dest)
+			, dest(std::move(dest))
 		{
 			add_push_destination(dest);
 		}
@@ -361,7 +257,7 @@ public:
 	public:
 		type(dest_t dest, IT to)
 			: i(to)
-			, dest(dest)
+			, dest(std::move(dest))
 		{
 			add_pull_source(dest);
 		}
@@ -496,33 +392,10 @@ cout_logger() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief The identity node does nothing but push the items to the next node
-///////////////////////////////////////////////////////////////////////////////
-typedef pipe_middle<factory<bits::identity_t> > identity;
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief A pull-pipe node that does nothing to its items
-///////////////////////////////////////////////////////////////////////////////
-inline pullpipe_middle<factory<bits::push_to_pull<factory<bits::identity_t> >::puller_t, factory<bits::identity_t> > > pull_identity() {
-	return factory<bits::push_to_pull<factory<bits::identity_t> >::puller_t, factory<bits::identity_t> >(factory<bits::identity_t>());
-}
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief A node that allows peeking at the next item in the pipeline
 ///////////////////////////////////////////////////////////////////////////////
 typedef pullpipe_middle<factory<bits::pull_peek_t> > pull_peek;
 
-inline
-pipe_middle<factory<
-	bits::pull_to_push<factory<bits::pull_identity_t> >::pusher_t,
-	factory<bits::pull_identity_t>
-> >
-alt_identity() {
-	return factory<
-		bits::pull_to_push<factory<bits::pull_identity_t> >::pusher_t,
-		factory<bits::pull_identity_t>
-	>(factory<bits::pull_identity_t>());
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create a fork pipe node.

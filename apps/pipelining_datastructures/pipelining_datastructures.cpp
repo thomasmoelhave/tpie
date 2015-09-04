@@ -34,8 +34,8 @@ template <typename dest_t>
 class generator_type : public node {
 public:
 	static const memory_size_type count = 100;
-	generator_type(const dest_t & dest)
-	: dest(dest)
+	generator_type(dest_t dest)
+	: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 		set_name("Generate integers");
@@ -61,8 +61,8 @@ public:
 	typedef int item_type;
 	static const memory_size_type set_size = 20;
 
-	set_filler_type(const dest_t & dest)
-	: dest(dest)
+	set_filler_type(dest_t dest)
+	: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 		set_name("Fill set");
@@ -107,8 +107,8 @@ class sum_differences_type : public node {
 public:
 	typedef int item_type;
 
-	sum_differences_type(const dest_t & dest)
-	: dest(dest)
+	sum_differences_type(dest_t dest)
+	: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 		set_name("Sum differences");

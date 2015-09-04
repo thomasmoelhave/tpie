@@ -122,7 +122,6 @@ add_unittest(pipelining
 	vector
 	filestream
 	fspull
-	fsaltpush
 	merge
 	reverse
 	internal_reverse
@@ -154,6 +153,7 @@ add_unittest(pipelining
 	datastructures
 	phase_priority_test
 	set_flush_priority_test
+	node_map
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)

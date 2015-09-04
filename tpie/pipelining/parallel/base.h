@@ -450,16 +450,15 @@ public:
 		this->add_push_destination(*cons);
 	}
 
-	after(const after & other)
-		: after_base(other)
+	after(after && other)
+		: after_base(std::move(other))
 		, st(other.st)
-		, parId(other.parId)
+		, parId(std::move(other.parId))
 		, m_outputBuffers(other.m_outputBuffers)
-		, m_cons(other.m_cons)
-	{
+		, m_cons(std::move(other.m_cons)) {
 		st.set_output_ptr(parId, this);
-		if (m_cons == 0) throw tpie::exception("Unexpected nullptr in copy");
-		if (*m_cons != 0) throw tpie::exception("Expected nullptr in copy");
+		if (m_cons == 0) throw tpie::exception("Unexpected nullptr in move");
+		if (*m_cons != 0) throw tpie::exception("Expected nullptr in move");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -698,7 +697,7 @@ public:
 						 size_t parId,
 						 dest_t dest)
 		: before<item_type>(st, parId)
-		, dest(dest)
+		, dest(std::move(dest))
 	{
 		this->add_push_destination(dest);
 		st.set_input_ptr(parId, this);
@@ -732,8 +731,8 @@ class consumer_impl : public consumer<typename push_type<dest_t>::type> {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	consumer_impl(const dest_t & dest, stateptr st)
-		: dest(dest)
+	consumer_impl(dest_t dest, stateptr st)
+		: dest(std::move(dest))
 		, st(st)
 	{
 		this->add_push_destination(dest);
@@ -887,10 +886,10 @@ private:
 
 public:
 	template <typename consumer_t>
-	producer(stateptr st, const consumer_t & cons)
+	producer(stateptr st, consumer_t cons)
 		: st(st)
 		, written(0)
-		, cons(new consumer_t(cons))
+		, cons(new consumer_t(std::move(cons)))
 		, m_steps(0)
 	{
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {

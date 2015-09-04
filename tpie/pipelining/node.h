@@ -331,13 +331,15 @@ protected:
 	/// \brief Copy constructor. We need to define this explicitly since the
 	/// node_token needs to know its new owner.
 	///////////////////////////////////////////////////////////////////////////
-	node(const node & other);
+	node(const node & other) = delete;
+	node & operator=(const node & other) = delete;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Move constructor. We need to define this explicitly since the
 	/// node_token needs to know its new owner.
 	///////////////////////////////////////////////////////////////////////////
 	node(node && other);
+	node & operator=(node && other);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor using a given fresh node_token.

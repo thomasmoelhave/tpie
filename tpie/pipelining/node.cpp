@@ -91,23 +91,8 @@ node::node()
 {
 }
 
-node::node(const node & other)
-	: token(other.token, this)
-	, m_parameters(other.m_parameters)
-	, m_availableMemory(other.m_availableMemory)
-	, m_flushPriority(other.m_flushPriority)
-	, m_stepsLeft(other.m_stepsLeft)
-	, m_pi(other.m_pi)
-	, m_state(other.m_state)
-	, m_plotOptions(other.m_plotOptions)
-{
-	if (m_state != STATE_FRESH) 
-		throw call_order_exception(
-			"Tried to copy pipeline node after prepare had been called");
-}
-
 node::node(node && other)
-	: token(std::move(other.token), this)
+	: token(other.token, this)
 	, m_parameters(std::move(other.m_parameters))
 	, m_availableMemory(std::move(other.m_availableMemory))
 	, m_flushPriority(std::move(other.m_flushPriority))
@@ -119,6 +104,12 @@ node::node(node && other)
 	if (m_state != STATE_FRESH)
 		throw call_order_exception(
 			"Tried to move pipeline node after prepare had been called");
+}
+
+node & node::operator=(node && other) {
+	this->~node();
+	new (this)node(std::move(other));
+	return *this;
 }
 
 node::node(const node_token & token)

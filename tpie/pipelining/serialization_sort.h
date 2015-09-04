@@ -75,6 +75,11 @@ public:
 		set_memory_fraction(0);
 		m_propagate_called = true;
 	}
+
+	void add_calc_dependency(node_token tkn) {
+		add_dependency(tkn);
+	}
+
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
@@ -84,6 +89,12 @@ protected:
 
 	sort_output_base(pred_type pred)
 		: m_sorter(new sorter_t(sizeof(item_type), pred))
+		, m_propagate_called(false)
+	{
+	}
+
+	sort_output_base(sorterptr p)
+		: m_sorter(p)
 		, m_propagate_called(false)
 	{
 	}
@@ -103,8 +114,8 @@ public:
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	sort_pull_output_t(pred_type pred)
-		: sort_output_base<Traits>(pred)
+	sort_pull_output_t(sorterptr sorter)
+		: sort_output_base<Traits>(sorter)
 	{
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
@@ -144,9 +155,9 @@ public:
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	sort_output_t(const dest_t & dest, pred_type pred)
+	sort_output_t(dest_t dest, pred_type pred)
 		: p_t(pred)
-		, dest(dest)
+		, dest(std::move(dest))
 	{
 		this->add_push_destination(dest);
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
@@ -178,25 +189,19 @@ public:
 
 	typedef sort_output_base<Traits> Output;
 
-	sort_calc_t(const sort_calc_t & other)
-		: node(other)
-		, m_sorter(other.m_sorter)
-		, m_propagate_called(false)
-		, dest(other.dest)
-	{
-	}
+	sort_calc_t(sort_calc_t && other) = default;
 
 	template <typename dest_t>
 	sort_calc_t(dest_t dest)
-		: dest(new dest_t(dest))
-	{
+		: dest(new dest_t(std::move(dest)))
+		{
 		m_sorter = this->dest->get_sorter();
-		this->dest->set_calc_node(*this);
+		this->dest->add_calc_dependency(this->get_token());
 		init();
 	}
 
-	sort_calc_t(sorterptr sorter)
-		: m_sorter(sorter)
+	sort_calc_t(sorterptr sorter, node_token tkn)
+		: node(tkn), m_sorter(sorter)
 	{
 		init();
 	}
@@ -266,7 +271,7 @@ public:
 
 	sort_input_t(sort_calc_t<Traits> dest)
 		: m_sorter(dest.get_sorter())
-		, dest(dest)
+		, dest(std::move(dest))
 	{
 		this->dest.set_input_node(*this);
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
@@ -278,7 +283,7 @@ public:
 	virtual void propagate() override {
 		m_propagate_called = true;
 	}
-	
+
 	virtual void begin() override {
 		m_sorter->begin();
 	}
@@ -328,15 +333,15 @@ public:
 	};
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(const dest_t & dest) const {
+	typename constructed<dest_t>::type construct(dest_t dest) const {
 		typedef typename push_type<dest_t>::type item_type;
 		typedef typename constructed<dest_t>::Traits Traits;
 
-		sort_output_t<Traits, dest_t> output(dest, self().template get_pred<item_type>());
+		sort_output_t<Traits, dest_t> output(std::move(dest), self().template get_pred<item_type>());
 		this->init_sub_node(output);
-		sort_calc_t<Traits> calc(output);
+		sort_calc_t<Traits> calc(std::move(output));
 		this->init_sub_node(calc);
-		sort_input_t<Traits> input(calc);
+		sort_input_t<Traits> input(std::move(calc));
 		this->init_sub_node(input);
 
 		return input;
@@ -416,7 +421,7 @@ namespace serialization_bits {
 /// \brief Factory for the passive sorter input node.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Traits>
-class passive_sorter_factory : public factory_base {
+class passive_sorter_factory_input : public factory_base {
 public:
 	typedef sort_pull_output_t<Traits> output_t;
 	typedef sort_calc_t<Traits> calc_t;
@@ -425,43 +430,48 @@ public:
 	typedef typename Traits::sorter_t sorter_t;
 	typedef typename Traits::sorterptr sorterptr;
 
-	passive_sorter_factory(output_t & output)
-		: output(&output)
-	{
-	}
+	passive_sorter_factory_input(sorterptr sorter, node_token calc_token)
+		: m_sorter(sorter)
+		, m_calc_token(calc_token) {}
 
 	constructed_type construct() const {
-		calc_t calc(output->get_sorter());
-		output->set_calc_node(calc);
+		calc_t calc(m_sorter, m_calc_token);
 		this->init_node(calc);
-		input_t input(calc);
+		input_t input(std::move(calc));
 		this->init_node(input);
 		return input;
 	}
 
 private:
-	output_t * output;
+	sorterptr m_sorter;
+	node_token m_calc_token;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory for the passive sorter output node.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename pred_t>
-class passive_sorter_factory_2 : public factory_base {
-	typedef serialization_bits::sorter_traits<T, pred_t> Traits;
+template <typename Traits>
+class passive_sorter_factory_output : public factory_base {
 public:
 	typedef sort_pull_output_t<Traits> output_t;
+	typedef typename Traits::sorterptr sorterptr;
 	typedef output_t constructed_type;
 
-	passive_sorter_factory_2(const serialization_passive_sorter<T, pred_t> & sorter)
+	passive_sorter_factory_output(sorterptr sorter, node_token calc_token)
 		: m_sorter(sorter)
-	{
+		, m_calc_token(calc_token)
+		{}
+
+	constructed_type construct() const {
+		constructed_type res(m_sorter);
+		res.add_calc_dependency(m_calc_token);
+		init_node(res);
+		return res;
 	}
 
-	constructed_type construct() const;
-
 private:
-	const serialization_passive_sorter<T, pred_t> & m_sorter;
+	sorterptr m_sorter;
+	node_token m_calc_token;
 };
 
 } // namespace serialization_bits
@@ -487,48 +497,37 @@ public:
 	/** Type of pipe sorter output. */
 	typedef serialization_bits::sort_pull_output_t<Traits> output_t;
 
+	typedef pipe_end<serialization_bits::passive_sorter_factory_input<Traits> > input_pipe_t;
+	typedef pullpipe_begin<serialization_bits::passive_sorter_factory_output<Traits> > output_pipe_t;
+
 	serialization_passive_sorter(pred_t pred = pred_t())
 		: m_sorter(new sorter_t())
-		, pred(pred)
-		, m_output(pred)
 	{
 	}
+
+	serialization_passive_sorter(const serialization_passive_sorter &) = delete;
+	serialization_passive_sorter & operator=(const serialization_passive_sorter &) = delete;
+	serialization_passive_sorter(serialization_passive_sorter && ) = default;
+	serialization_passive_sorter & operator=(serialization_passive_sorter &&) = default;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
-	pipe_end<serialization_bits::passive_sorter_factory<Traits> > input() {
-		return serialization_bits::passive_sorter_factory<Traits>(m_output);
+	input_pipe_t input() {
+		return input_pipe_t(m_sorter, m_calc_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
-	pullpipe_begin<serialization_bits::passive_sorter_factory_2<T, pred_t> > output() {
-		return serialization_bits::passive_sorter_factory_2<T, pred_t>(*this);
+	output_pipe_t output() {
+		return output_pipe_t(m_sorter, m_calc_token);
 	}
 
 private:
 	sorterptr m_sorter;
-	pred_t pred;
-	output_t m_output;
-	serialization_passive_sorter(const serialization_passive_sorter &);
-	serialization_passive_sorter & operator=(const serialization_passive_sorter &);
-
-	friend class serialization_bits::passive_sorter_factory_2<T, pred_t>;
+	node_token m_calc_token;
 };
-
-namespace serialization_bits {
-
-template <typename T, typename pred_t>
-typename passive_sorter_factory_2<T, pred_t>::constructed_type
-passive_sorter_factory_2<T, pred_t>::construct() const {
-	constructed_type res = m_sorter.m_output;
-	init_node(res);
-	return res;
-}
-
-} // namespace serialization_bits
 
 } // namespace pipelining
 

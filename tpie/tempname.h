@@ -29,6 +29,7 @@
 #include <tpie/stats.h>
 #include <stdexcept>
 #include <boost/intrusive_ptr.hpp>
+#include <string>
  // The name of the environment variable pointing to a tmp directory.
 #define TMPDIR_ENV "TMPDIR"
 

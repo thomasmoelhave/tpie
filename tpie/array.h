@@ -29,6 +29,7 @@
 #include <tpie/array_view_base.h>
 #include <type_traits>
 #include <cassert>
+#include <ostream>
 
 namespace tpie {
 

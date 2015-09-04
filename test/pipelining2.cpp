@@ -50,7 +50,7 @@ public:
 		typedef int item_type;
 
 		type(dest_t dest, src_pipe_t srcpipe)
-			: dest(dest)
+			: dest(std::move(dest))
 			, src(srcpipe.factory.construct())
 		{
 			add_push_destination(dest);
