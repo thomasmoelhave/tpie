@@ -122,7 +122,6 @@ add_unittest(pipelining
 	vector
 	filestream
 	fspull
-	fsaltpush
 	merge
 	reverse
 	internal_reverse
