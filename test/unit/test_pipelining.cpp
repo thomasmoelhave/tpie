@@ -1870,7 +1870,7 @@ int main(int argc, char ** argv) {
 	.test(vector_multiply_test, "vector")
 	.test(file_stream_test, "filestream", "n", static_cast<stream_size_type>(3))
 	.test(file_stream_pull_test, "fspull")
-	.test(file_stream_alt_push_test, "fsaltpush")
+		//.test(file_stream_alt_push_test, "fsaltpush")
 	.test(merge_test, "merge")
 	.test(reverse_test, "reverse")
 	.test(internal_reverse_test, "internal_reverse")
