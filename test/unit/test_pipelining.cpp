@@ -146,7 +146,7 @@ bool file_stream_pull_test() {
 		in.open(input_file.path());
 		file_stream<test_t> out;
 		out.open(output_file.path());
-		pipeline p = (pull_input(in) | pull_identity() | pull_output(out));
+		pipeline p = (pull_input(in) | pull_output(out));
 		p.get_node_map()->dump(log_info());
 		p.plot(log_info());
 		p();
@@ -176,7 +176,7 @@ bool file_stream_alt_push_test() {
 		in.open(input_file.path());
 		file_stream<test_t> out;
 		out.open(output_file.path());
-		pipeline p = (input(in) | alt_identity() | output(out));
+		pipeline p = (input(in) | output(out));
 		p.plot(log_info());
 		p();
 	}
