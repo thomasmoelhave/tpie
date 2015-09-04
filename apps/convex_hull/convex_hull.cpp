@@ -79,8 +79,8 @@ class graham_scan_reconstruct_type : public P::node {
 public:
 	typedef Pt item_type;
 
-	graham_scan_reconstruct_type(const dest_t & dest)
-		: dest(dest)
+	graham_scan_reconstruct_type(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 		set_minimum_memory(sizeof(TP::temp_file)
@@ -146,8 +146,8 @@ class graham_scan_type<graham_scan_reconstruct_type<rdest_t> > : public P::node 
 public:
 	typedef Pt item_type;
 
-	graham_scan_type(const dest_t & dest)
-		: dest(dest)
+	graham_scan_type(dest_t dest)
+		: dest(std::move(dest))
 	{
 		this->dest.set_predecessor(*this);
 		set_minimum_memory(sizeof(TP::temp_file)
@@ -236,7 +236,7 @@ public:
 
 	make_points_type(dest_t dest)
 		: flag(false)
-		, dest(dest)
+		, dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}

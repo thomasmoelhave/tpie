@@ -36,8 +36,8 @@ template <typename dest_t>
 struct multiply_t : public node {
 	typedef test_t item_type;
 
-	inline multiply_t(const dest_t & dest, uint64_t factor)
-		: dest(dest)
+	inline multiply_t(dest_t dest, uint64_t factor)
+		: dest(std::move(dest))
 		, factor(factor)
 	{
 		set_minimum_memory(17000000);
@@ -264,8 +264,8 @@ public:
 		typename factory_type::constructed_type pullSource;
 		typedef uint64_t item_type;
 
-		type(const dest_t & dest, const factory_type & factory)
-		: dest(dest)
+		type(dest_t dest, const factory_type & factory)
+		: dest(std::move(dest))
 		, pullSource(factory.construct())
 		{
 			add_push_destination(dest);
@@ -323,8 +323,8 @@ template <typename dest_t>
 struct sequence_generator_type : public node {
 	typedef size_t item_type;
 
-	sequence_generator_type(const dest_t & dest, size_t elements, bool reverse)
-		: dest(dest)
+	sequence_generator_type(dest_t dest, size_t elements, bool reverse)
+		: dest(std::move(dest))
 		, elements(elements)
 		, reverse(reverse)
 	{
@@ -481,8 +481,8 @@ class memtest_1 : public node {
 	memtest & settings;
 
 public:
-	memtest_1(const dest_t & dest, memtest & settings)
-		: dest(dest)
+	memtest_1(dest_t dest, memtest & settings)
+		: dest(std::move(dest))
 		, settings(settings)
 	{
 		add_push_destination(dest);
@@ -628,8 +628,8 @@ template <typename dest_t>
 struct buffer_node_t : public node {
 	typedef typename dest_t::item_type item_type;
 
-	inline buffer_node_t(const dest_t & dest)
-		: dest(dest)
+	inline buffer_node_t(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_dependency(dest);
 	}
@@ -701,7 +701,7 @@ struct my_item {
 template <typename dest_t>
 struct FF1 : public node {
 	dest_t dest;
-	FF1(const dest_t & dest) : dest(dest) {
+	FF1(dest_t dest) : dest(std::move(dest)) {
 		add_push_destination(dest);
 	}
 	virtual void propagate() override {
@@ -716,7 +716,7 @@ struct FF1 : public node {
 template <typename dest_t>
 struct FF2 : public node {
 	dest_t dest;
-	FF2(const dest_t & dest) : dest(dest) {
+	FF2(dest_t dest) : dest(std::move(dest)) {
 		add_push_destination(dest);
 	}
 };
@@ -769,8 +769,8 @@ private:
 	// Type of pointer to dereference.
 	typedef typename std::remove_reference<item_type>::type * ptr_type;
 public:
-	push_zero_t(const dest_t & dest)
-		: dest(dest)
+	push_zero_t(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}
@@ -863,7 +863,7 @@ public:
 	typedef void * item_type;
 
 	prepare_begin_type(dest_t dest, prepare_result & r)
-		: dest(dest)
+		: dest(std::move(dest))
 		, r(r)
 	{
 		add_push_destination(dest);
@@ -912,7 +912,7 @@ public:
 	typedef void * item_type;
 
 	prepare_middle_type(dest_t dest, prepare_result & r)
-		: dest(dest)
+		: dest(std::move(dest))
 		, r(r)
 	{
 		add_push_destination(dest);
@@ -1067,7 +1067,7 @@ class end_type : public node {
 	dest_t dest;
 
 public:
-	end_type(dest_t dest, result & r) : r(r), dest(dest) {
+	end_type(dest_t dest, result & r) : r(r), dest(std::move(dest)) {
 		add_pull_source(dest);
 	}
 
@@ -1127,8 +1127,8 @@ class multiplicative_inverter_type : public node {
 public:
 	typedef size_t item_type;
 
-	multiplicative_inverter_type(const dest_t & dest, size_t p)
-		: dest(dest)
+	multiplicative_inverter_type(dest_t dest, size_t p)
+		: dest(std::move(dest))
 		, p(p)
 	{
 		add_push_destination(dest);
@@ -1175,8 +1175,8 @@ class Monotonic : public node {
 	test_t chunkSize;
 public:
 	typedef test_t item_type;
-	Monotonic(const dest_t & dest, test_t sum, test_t chunkSize)
-		: dest(dest)
+	Monotonic(dest_t dest, test_t sum, test_t chunkSize)
+		: dest(std::move(dest))
 		, sum(sum)
 		, chunkSize(chunkSize)
 	{
@@ -1202,8 +1202,8 @@ class Splitter : public node {
 	dest_t dest;
 public:
 	typedef test_t item_type;
-	Splitter(const dest_t & dest)
-		: dest(dest)
+	Splitter(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}
@@ -1259,7 +1259,7 @@ public:
 	typedef test_t item_type;
 
 	buffering_accumulator_type(dest_t dest)
-		: dest(dest)
+		: dest(std::move(dest))
 		, inputs(0)
 	{
 		add_push_destination(dest);
@@ -1306,8 +1306,8 @@ template <typename dest_t>
 class noop_initiator_type : public node {
 	dest_t dest;
 public:
-	noop_initiator_type(const dest_t & dest)
-		: dest(dest)
+	noop_initiator_type(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}
@@ -1325,8 +1325,8 @@ class push_in_end_type : public node {
 public:
 	typedef test_t item_type;
 
-	push_in_end_type(const dest_t & dest)
-		: dest(dest)
+	push_in_end_type(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}
@@ -1367,7 +1367,7 @@ public:
 	typedef typename dest_t::item_type item_type;
 
 	step_begin_type(dest_t dest)
-		: dest(dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}
@@ -1393,7 +1393,7 @@ public:
 	typedef typename dest_t::item_type item_type;
 
 	step_middle_type(dest_t dest)
-		: dest(dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 	}
@@ -1638,8 +1638,8 @@ class datastructuretest_1 : public node {
 	datastructuretest & settings;
 
 public:
-	datastructuretest_1(const dest_t & dest, datastructuretest & settings)
-		: dest(dest)
+	datastructuretest_1(dest_t dest, datastructuretest & settings)
+		: dest(std::move(dest))
 		, settings(settings)
 	{
 		add_push_destination(dest);
@@ -1780,8 +1780,8 @@ class flush_priority_test_node_t : public node {
 public:
 	typedef int item_type;
 
-	flush_priority_test_node_t(const dest_t & dest, size_t flushPriority, size_t & returnedValue)
-		: dest(dest)
+	flush_priority_test_node_t(dest_t dest, size_t flushPriority, size_t & returnedValue)
+		: dest(std::move(dest))
 		, returnedValue(returnedValue)
 	{
 		add_push_destination(dest);
@@ -1824,8 +1824,8 @@ class reference_incrementer_type : public node {
 public:
 	typedef int item_type;
 
-	reference_incrementer_type(const dest_t & dest, size_t flush_priority, size_t & counter, size_t & incremented_to, std::string name)
-	: dest(dest)
+	reference_incrementer_type(dest_t dest, size_t flush_priority, size_t & counter, size_t & incremented_to, std::string name)
+	: dest(std::move(dest))
 	, counter(counter)
 	, incremented_to(incremented_to)
 	{

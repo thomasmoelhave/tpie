@@ -34,8 +34,8 @@ class Generator : public node {
 public:
 	typedef int item_type;
 
-	Generator(const dest_t & dest, int n)
-		: dest(dest)
+	Generator(dest_t dest, int n)
+		: dest(std::move(dest))
 		, n(n)
 	{
 		add_push_destination(dest);
@@ -61,8 +61,8 @@ class AddOne : public node {
 public:
 	typedef int item_type;
 
-	AddOne(const dest_t & dest)
-		: dest(dest)
+	AddOne(dest_t dest)
+		: dest(std::move(dest))
 	{
 		add_push_destination(dest);
 		set_name("AddOne");
@@ -87,8 +87,8 @@ public:
 	public:
 		typedef int item_type;
 
-		type(const dest_t & dest, const source_t & src)
-			: dest(dest)
+		type(dest_t dest, const source_t & src)
+			: dest(std::move(dest))
 			, puller(src.construct())
 		{
 			add_push_destination(dest);

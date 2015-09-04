@@ -205,8 +205,8 @@ public:
 	}
 
 	template <typename dest_t>
-	inline sort_calc_t(dest_t dest)
-		: dest(new dest_t(dest))
+	sort_calc_t(dest_t dest)
+		: dest(new dest_t(std::move(dest)))
 	{
 		m_sorter = this->dest->get_sorter();
 		this->dest->set_calc_node(*this);
@@ -285,7 +285,7 @@ public:
 	inline sort_input_t(sort_calc_t<T, pred_t, store_t> dest)
 		: m_sorter(dest.get_sorter())
 		, m_propagate_called(false)
-		, dest(dest)
+		, dest(std::move(dest))
 	{
 		this->dest.set_input_node(*this);
 		set_minimum_memory(sorter_t::minimum_memory_phase_1());
