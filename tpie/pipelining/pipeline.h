@@ -120,6 +120,10 @@ public:
 	inline operator gen_t() {
 		return r;
 	}
+	pipeline_impl(pipeline_impl &&) = default;
+
+	pipeline_impl & operator=(pipeline_impl &&) = default;
+
 
 private:
 	gen_t r;
@@ -146,6 +150,10 @@ private:
 	};
 public:
 	pipeline() {}
+	pipeline(pipeline &&) = default;
+	pipeline(const pipeline &) = default;
+	pipeline & operator=(pipeline &&) = default;
+	pipeline & operator=(const pipeline &) = default;
 
 	template <typename T>
 	pipeline(const T & from) {
@@ -153,10 +161,22 @@ public:
 	}
 
 	template <typename T>
+	pipeline(T && from) {
+		*this = std::move(from);
+	}
+
+	template <typename T>
 	pipeline & operator=(const T & from) {
 		p.reset(new T(from));
 		return *this;
 	}
+
+	template <typename T>
+	pipeline & operator=(T && from) {
+		p.reset(new T(std::move(from)));
+		return *this;
+	}
+
 
 	pipeline(const std::shared_ptr<bits::pipeline_base> & p): p(p) {}
 

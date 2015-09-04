@@ -1447,27 +1447,20 @@ bool virtual_cref_item_type_test() {
 	return t1 + t2 + t3 + t4 + t5 > 0;
 }
 
-enum nocopy_tag { nocopy };
+struct no_move_tag {};
 
 class node_map_tester : public node {
 	friend class node_map_tester_factory;
 
 	std::unique_ptr<node_map_tester> dest;
-
 public:
+
 	node_map_tester() {
 		set_name("Node map tester leaf");
 	}
 
-	node_map_tester(const node_map_tester & copy)
-		: node(copy)
-	{
-		if (copy.dest.get())
-			dest.reset(new node_map_tester(*copy.dest));
-	}
-
-	node_map_tester(node_map_tester & copy, nocopy_tag)
-		: dest(new node_map_tester(copy))
+	node_map_tester(node_map_tester && copy, no_move_tag)
+		: dest(new node_map_tester(std::move(copy)))
 	{
 		set_name("Node map tester non-leaf");
 	}
@@ -1498,12 +1491,14 @@ public:
 
 	node_map_tester construct() const {
 		std::vector<node_map_tester *> nodes;
-		std::unique_ptr<node_map_tester> node;
-		for (size_t i = 0; i < this->nodes; ++i) {
-			node.reset(node.get() ? new node_map_tester(*node, nocopy) : new node_map_tester());
-			this->init_node(*node);
+		node_map_tester node;
+		this->init_node(node);
+		for (size_t i = 1; i < this->nodes; ++i) {
+			node_map_tester n2(std::move(node), no_move_tag());
+			node = std::move(n2);
+			this->init_node(node);
 		}
-		node->add(nodes);
+		node.add(nodes);
 		for (size_t i = 0, idx = 0; i < this->nodes; ++i) {
 			for (size_t j = 0; j < this->nodes; ++j, ++idx) {
 				switch (edges[idx]) {
@@ -1525,7 +1520,7 @@ public:
 				}
 			}
 		}
-		return *node;
+		return node;
 	}
 };
 

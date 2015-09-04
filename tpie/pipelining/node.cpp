@@ -121,6 +121,12 @@ node::node(node && other)
 			"Tried to move pipeline node after prepare had been called");
 }
 
+node & node::operator=(node && other) {
+	this->~node();
+	new (this)node(std::move(other));
+	return *this;
+}
+
 node::node(const node_token & token)
 	: token(token, this, true)
 	, m_parameters()
