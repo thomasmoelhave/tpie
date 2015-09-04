@@ -178,13 +178,7 @@ public:
 
 	typedef sort_output_base<Traits> Output;
 
-	sort_calc_t(const sort_calc_t & other)
-		: node(other)
-		, m_sorter(other.m_sorter)
-		, m_propagate_called(false)
-		, dest(other.dest)
-	{
-	}
+	sort_calc_t(sort_calc_t && other) = default;
 
 	template <typename dest_t>
 	sort_calc_t(dest_t dest)
@@ -328,15 +322,15 @@ public:
 	};
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(const dest_t & dest) const {
+	typename constructed<dest_t>::type construct(dest_t dest) const {
 		typedef typename push_type<dest_t>::type item_type;
 		typedef typename constructed<dest_t>::Traits Traits;
 
-		sort_output_t<Traits, dest_t> output(dest, self().template get_pred<item_type>());
+		sort_output_t<Traits, dest_t> output(std::move(dest), self().template get_pred<item_type>());
 		this->init_sub_node(output);
-		sort_calc_t<Traits> calc(output);
+		sort_calc_t<Traits> calc(std::move(output));
 		this->init_sub_node(calc);
-		sort_input_t<Traits> input(calc);
+		sort_input_t<Traits> input(std::move(calc));
 		this->init_sub_node(input);
 
 		return input;

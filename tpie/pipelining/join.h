@@ -45,6 +45,8 @@ public:
 		{
 		}
 
+		source_base(source_base &&) = default;
+		
 		virtual void push(const T & v) = 0;
 
 	protected:
@@ -62,6 +64,8 @@ public:
 			this->set_name("Join source", PRIORITY_INSIGNIFICANT);
 			this->add_push_destination(this->dest);
 		}
+
+		source_impl(source_impl &&) = default;
 
 		virtual void prepare() override {
 			if (*the_source != NULL && *the_source != this) {

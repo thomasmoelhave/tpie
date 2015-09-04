@@ -59,10 +59,6 @@ public:
 		return m_sorter;
 	}
 
-	void set_calc_node(node & calc) {
-		add_dependency(calc);
-	}
-
 	virtual void propagate() override {
 		set_steps(m_sorter->item_count());
 		forward("items", static_cast<stream_size_type>(m_sorter->item_count()));
@@ -73,6 +69,10 @@ public:
 		m_propagate_called = true;
 	}
 
+	void add_calc_dependency(node_token tkn) {
+		add_dependency(tkn);
+	}
+		
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
 		node::set_available_memory(availableMemory);
@@ -80,8 +80,8 @@ protected:
 			m_sorter->set_phase_3_memory(availableMemory);
 	}
 
-	sort_output_base(pred_t pred, store_t store)
-		: m_sorter(new sorter_t(pred, store))
+	sort_output_base(sorterptr sorter)
+		: m_sorter(sorter)
 		, m_propagate_called(false)
 	{
 	}
@@ -106,8 +106,8 @@ public:
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	sort_pull_output_t(pred_t pred, store_t store)
-		: sort_output_base<T, pred_t, store_t>(pred, store)
+	sort_pull_output_t(sorterptr sorter)
+		: sort_output_base<T, pred_t, store_t>(sorter)
 	{
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
@@ -155,9 +155,9 @@ public:
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_output_t(const dest_t & dest, pred_t pred, store_t store)
-		: p_t(pred, store)
-		, dest(dest)
+	inline sort_output_t(dest_t dest, sorterptr sorter)
+		: p_t(sorter)
+		, dest(std::move(dest))
 	{
 		this->add_push_destination(dest);
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
@@ -196,25 +196,19 @@ public:
 
 	typedef sort_output_base<T, pred_t, store_t> Output;
 
-	inline sort_calc_t(const sort_calc_t & other)
-		: node(other)
-		, m_sorter(other.m_sorter)
-		, m_propagate_called(other.m_propagate_called)
-		, dest(other.dest)
-	{
-	}
+	sort_calc_t(sort_calc_t && other) = default;
 
 	template <typename dest_t>
 	sort_calc_t(dest_t dest)
 		: dest(new dest_t(std::move(dest)))
 	{
 		m_sorter = this->dest->get_sorter();
-		this->dest->set_calc_node(*this);
+		this->dest->add_calc_dependency(this->get_token());
 		init();
 	}
 
-	inline sort_calc_t(sorterptr sorter)
-		: m_sorter(sorter)
+	sort_calc_t(sorterptr sorter, node_token tkn)
+		: node(tkn), m_sorter(sorter)
 	{
 		init();
 	}
@@ -350,22 +344,23 @@ public:
 	};
 	
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(const dest_t & dest) const {
+	typename constructed<dest_t>::type construct(dest_t dest) const {
 		typedef typename push_type<dest_t>::type item_type;
 		typedef typename store_t::template element_type<item_type>::type element_type;
 		typedef typename constructed<dest_t>::pred_type pred_type;
 
 		sort_output_t<pred_type, dest_t, store_t> output(
-			dest, 
-			self().template get_pred<element_type>(), 
-			m_store);
+			std::move(dest),
+			std::make_shared<merge_sorter<item_type, true, pred_type, store_t> > (
+				self().template get_pred<element_type>(), 
+				m_store));
 		this->init_sub_node(output);
-		sort_calc_t<item_type, pred_type, store_t> calc(output);
+		sort_calc_t<item_type, pred_type, store_t> calc(std::move(output));
 		this->init_sub_node(calc);
-		sort_input_t<item_type, pred_type, store_t> input(calc);
+		sort_input_t<item_type, pred_type, store_t> input(std::move(calc));
 		this->init_sub_node(input);
 
-		return input;
+		return std::move(input);
 	}
 
 	sort_factory_base(store_t store): m_store(store) {}
@@ -475,53 +470,56 @@ namespace bits {
 /// \brief Factory for the passive sorter input node.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t, typename store_t>
-class passive_sorter_factory : public factory_base {
+class passive_sorter_factory_input : public factory_base {
 public:
-	typedef sort_pull_output_t<T, pred_t, store_t> output_t;
 	typedef sort_calc_t<T, pred_t, store_t> calc_t;
 	typedef sort_input_t<T, pred_t, store_t> input_t;
 	typedef input_t constructed_type;
 	typedef merge_sorter<T, true, pred_t, store_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
-
-	passive_sorter_factory(output_t & output)
-		: output(&output)
-	{
-	}
+	
+	passive_sorter_factory_input(sorterptr sorter, node_token calc_token)
+		: m_sorter(sorter)
+		, m_calc_token(calc_token) {}
 
 	constructed_type construct() const {
-		calc_t calc(output->get_sorter());
-		output->set_calc_node(calc);
+		calc_t calc(m_sorter, m_calc_token);
 		this->init_node(calc);
-		input_t input(calc);
+		input_t input(std::move(calc));
 		this->init_node(input);
 		return input;
 	}
 
 private:
-	output_t * output;
+	sorterptr m_sorter;
+	node_token m_calc_token;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory for the passive sorter output node.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t, typename store_t>
-class passive_sorter_factory_2 : public factory_base {
+class passive_sorter_factory_output : public factory_base {
 public:
-	typedef sort_pull_output_t<T, pred_t, store_t> output_t;
-	typedef output_t constructed_type;
-
-	passive_sorter_factory_2(const passive_sorter<T, pred_t, store_t> & sorter)
+	typedef merge_sorter<T, true, pred_t, store_t> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
+	typedef bits::sort_pull_output_t<T, pred_t, store_t> constructed_type;
+	
+	passive_sorter_factory_output(sorterptr sorter, node_token calc_token)
 		: m_sorter(sorter)
-	{
+		, m_calc_token(calc_token)
+		{}
+
+	constructed_type construct() const {
+		constructed_type res(m_sorter);
+		res.add_calc_dependency(m_calc_token);
+		init_node(res);
+		return res;
 	}
-
-	constructed_type construct() const;
-
 private:
-	const passive_sorter<T, pred_t, store_t> & m_sorter;
+	sorterptr m_sorter;
+	node_token m_calc_token;
 };
-
 
 } // namespace bits
 
@@ -545,51 +543,39 @@ public:
 	/** Type of pipe sorter output. */
 	typedef bits::sort_pull_output_t<item_type, pred_t, store_t> output_t;
 
-	inline passive_sorter(pred_t pred = pred_t(),
+	passive_sorter(pred_t pred = pred_t(),
 						  store_t store = store_t())
-		: m_sorter(new sorter_t())
-		, m_output(pred, store)
-	{
-	}
+		: m_sorter(std::make_shared<sorter_t>(pred, store))
+		{}
 
-	typedef pipe_end<bits::passive_sorter_factory<item_type, pred_t, store_t> > input_pipe_t;
-	typedef pullpipe_begin<bits::passive_sorter_factory_2<item_type, pred_t, store_t> > output_pipe_t;
+	passive_sorter(const passive_sorter &) = delete;
+	passive_sorter & operator=(const passive_sorter &) = delete;
+	passive_sorter(passive_sorter && ) = default;
+	passive_sorter & operator=(passive_sorter &&) = default;
+	
+	typedef pipe_end<bits::passive_sorter_factory_input<item_type, pred_t, store_t> > input_pipe_t;
+	typedef pullpipe_begin<bits::passive_sorter_factory_output<item_type, pred_t, store_t> > output_pipe_t;
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
-	inline input_pipe_t input() {
-		return bits::passive_sorter_factory<item_type, pred_t, store_t>(m_output);
+	input_pipe_t input() {
+		return bits::passive_sorter_factory_input<item_type, pred_t, store_t>(
+			m_sorter, m_calc_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
-	inline output_pipe_t output() {
-		return bits::passive_sorter_factory_2<item_type, pred_t, store_t>(*this);
+	output_pipe_t output() {
+		return bits::passive_sorter_factory_output<item_type, pred_t, store_t>(
+			m_sorter, m_calc_token);
 	}
 	
 private:
 	sorterptr m_sorter;
-	output_t m_output;
-	passive_sorter(const passive_sorter &);
-	passive_sorter & operator=(const passive_sorter &);
-
-	friend class bits::passive_sorter_factory_2<T, pred_t, store_t>;
+	node_token m_calc_token;
 };
-
-
-namespace bits {
-
-template <typename T, typename pred_t, typename store_t>
-typename passive_sorter_factory_2<T, pred_t, store_t>::constructed_type
-passive_sorter_factory_2<T, pred_t, store_t>::construct() const {
-	constructed_type res = m_sorter.m_output;
-	init_node(res);
-	return res;
-}
-
-} // namespace bits
 
 } // namespace pipelining
 

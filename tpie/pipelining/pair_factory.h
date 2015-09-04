@@ -74,7 +74,7 @@ public:
 	/// node_maps for a later connectivity check.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename pipe_t>
-	pipe_t record(size_t idx, const pipe_t & pipe) const {
+	pipe_t record(size_t idx, pipe_t && pipe) const {
 		m_maps[idx] = pipe.get_node_map();
 		if (idx == 0 && m_final) {
 			// Now is the opportunity to check that the constructed pipeline is
@@ -82,7 +82,7 @@ public:
 			assert_connected();
 			self().recursive_connected_check();
 		}
-		return pipe;
+		return std::move(pipe);
 	}
 
 	void assert_connected() const {
