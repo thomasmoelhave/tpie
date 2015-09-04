@@ -698,7 +698,7 @@ public:
 						 size_t parId,
 						 dest_t dest)
 		: before<item_type>(st, parId)
-		, dest(dest)
+		, dest(std::move(dest))
 	{
 		this->add_push_destination(dest);
 		st.set_input_ptr(parId, this);
@@ -732,8 +732,8 @@ class consumer_impl : public consumer<typename push_type<dest_t>::type> {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	consumer_impl(const dest_t & dest, stateptr st)
-		: dest(dest)
+	consumer_impl(dest_t dest, stateptr st)
+		: dest(std::move(dest))
 		, st(st)
 	{
 		this->add_push_destination(dest);

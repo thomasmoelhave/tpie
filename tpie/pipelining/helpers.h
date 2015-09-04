@@ -302,7 +302,7 @@ public:
 		type(dest_t dest, IT from, IT to)
 			: i(from)
 			, till(to)
-			, dest(dest)
+			, dest(std::move(dest))
 		{
 			add_push_destination(dest);
 		}
@@ -361,7 +361,7 @@ public:
 	public:
 		type(dest_t dest, IT to)
 			: i(to)
-			, dest(dest)
+			, dest(std::move(dest))
 		{
 			add_pull_source(dest);
 		}

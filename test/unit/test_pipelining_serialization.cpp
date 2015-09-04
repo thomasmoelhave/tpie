@@ -132,8 +132,8 @@ class random_strings_type : public node {
 	stream_size_type n;
 
 public:
-	random_strings_type(const dest_t & dest, stream_size_type n)
-		: dest(dest)
+	random_strings_type(dest_t dest, stream_size_type n)
+		: dest(std::move(dest))
 		, n(n)
 	{
 		add_push_destination(dest);

@@ -29,8 +29,8 @@ class line_reader_type : public tp::node {
 	dest_t dest;
 
 public:
-	line_reader_type(const dest_t & dest)
-		: dest(dest)
+	line_reader_type(dest_t dest)
+		: dest(std::move(dest))
 	{
 		this->add_push_destination(dest);
 	}
