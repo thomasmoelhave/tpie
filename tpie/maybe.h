@@ -43,7 +43,11 @@ public:
 	/// \brief If o is constructed throw an exception otherwise do nothing.
 	///////////////////////////////////////////////////////////////////////////////
 	maybe(const maybe<T> & o) : m_constructed(false) {
-		o.assert_not_constructed(); 
+		o.assert_not_constructed();
+	}
+
+	maybe(maybe<T> && o) : m_constructed(false) {
+		o.assert_not_constructed();
 	}
 
 private:
@@ -57,8 +61,15 @@ public:
 	/// \brief If o is constructed throw an exception otherwise return *this.
 	///////////////////////////////////////////////////////////////////////////////
 	maybe & operator=(const maybe<T> &o) {
-		o.assert_not_constructed(); 
-		assert_not_constructed(); 
+		o.assert_not_constructed();
+		assert_not_constructed();
+
+		return *this;
+	}
+
+	maybe & operator==(maybe<T> &o) {
+		o.assert_not_constructed();
+		assert_not_constructed();
 
 		return *this;
 	}
@@ -67,11 +78,11 @@ public:
 	/// \return Whether the object contained is constructed or not.
 	///////////////////////////////////////////////////////////////////////////////
 	bool is_constructed() const {
-		return m_constructed; 
-	}		
+		return m_constructed;
+	}
 
 	///////////////////////////////////////////////////////////////////////////////
-	/// \brief Contains an element of the type given as template parameter and 
+	/// \brief Contains an element of the type given as template parameter and
 	/// disallows copy constructing of the maybe class when the object is allocated.
 	///
 	///
@@ -85,38 +96,38 @@ public:
 
 	template <typename ... T_ARGS>
 	void construct(T_ARGS && ... t) {
-		assert_not_constructed(); 
+		assert_not_constructed();
 
 		new(&object) T(std::forward<T_ARGS>(t)...);
-		m_constructed = true; 
+		m_constructed = true;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \return A reference to the object contained.
 	///////////////////////////////////////////////////////////////////////////////
 	T & operator*() {
-		return object; 
+		return object;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \return A const reference to the object contained.
 	///////////////////////////////////////////////////////////////////////////////
 	const T & operator*() const {
-		return object; 
+		return object;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \return A pointer to the object contained.
 	///////////////////////////////////////////////////////////////////////////////
 	T * operator->() {
-		return &object; 
+		return &object;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \return A const pointer to the object contained.
 	///////////////////////////////////////////////////////////////////////////////
 	const T * operator->() const {
-		return &object; 
+		return &object;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -124,9 +135,9 @@ public:
 	///////////////////////////////////////////////////////////////////////////////
 	void destruct() {
 		if(!m_constructed)
-			return; 
+			return;
 
-		object.~T(); 
+		object.~T();
 		m_constructed = false;
 	}
 
@@ -138,7 +149,7 @@ public:
 	}
 private:
 	union { T object; };
-	bool m_constructed; 
+	bool m_constructed;
 };
 } // namespace tpie
 
