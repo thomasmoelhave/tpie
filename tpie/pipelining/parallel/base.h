@@ -131,7 +131,7 @@ private:
 	aligned_before_t m_data;
 
 public:
-	threads_impl(fact_t fact,
+	threads_impl(fact_t && fact,
 						state<T1, T2> & st)
 		: numJobs(st.opts.numJobs)
 	{
@@ -156,7 +156,7 @@ public:
 			hook.index = i;
 			new (this->m_progressIndicators.get(i)) pi_t();
 
-			auto n = fact.construct(after_t(st, i));
+			auto n = fact.construct_copy(after_t(st, i));
 			if (i == 0)
 				n.set_plot_options(node::PLOT_PARALLEL);
 			else
@@ -396,14 +396,14 @@ public:
 	std::unique_ptr<threads<T1, T2> > pipes;
 
 	template <typename fact_t>
-	state(const options opts, const fact_t & fact)
+	state(const options opts, fact_t && fact)
 		: state_base(opts)
 		, m_inputBuffers(opts.numJobs)
 		, m_outputBuffers(opts.numJobs)
 		, m_cons(0)
 	{
 		typedef threads_impl<T1, T2, fact_t> pipes_impl_t;
-		pipes.reset(new pipes_impl_t(fact, *this));
+		pipes.reset(new pipes_impl_t(std::move(fact), *this));
 	}
 
 	void set_consumer_ptr(consumer<T2> * cons) {
