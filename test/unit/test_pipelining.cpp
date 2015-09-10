@@ -264,7 +264,7 @@ public:
 		typename factory_type::constructed_type pullSource;
 		typedef uint64_t item_type;
 
-		type(dest_t dest, const factory_type & factory)
+		type(dest_t dest, factory_type && factory)
 		: dest(std::move(dest))
 		, pullSource(factory.construct())
 		{
@@ -279,9 +279,9 @@ public:
 };
 
 template <typename pipe_type>
-tpie::pipelining::pipe_middle<tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type> >
-add_pairs(const pipe_type &pipe) {
-	return tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type>(pipe.factory);
+tpie::pipelining::pipe_middle<tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type &&> >
+add_pairs(pipe_type && pipe) {
+	return tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type &&>(std::move(pipe.factory));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
