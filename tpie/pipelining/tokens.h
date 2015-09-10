@@ -187,9 +187,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Compute the transitive closure of the given node in the item
-	/// flow graph.
+	/// flow graph. The given vector is filled with nodes and the distances 
+	/// to nodes
 	///////////////////////////////////////////////////////////////////////////
-	void get_successors(id_t from, std::vector<id_t> & successors, bool forward_only=false);
+	void get_successors(id_t from, std::vector<std::pair<id_t, memory_size_type>> & successors, bool forward_only=false);
 
 
 	friend void intrusive_ptr_add_ref(node_map * m) {
