@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2011, 2012, 2013, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -46,6 +46,12 @@ namespace bits {
 template <typename child_t>
 class pipe_base {
 public:
+	pipe_base() = default;
+	pipe_base(pipe_base & other) = delete;
+	pipe_base(pipe_base && other) = default;
+	pipe_base & operator=(pipe_base & other) = delete;
+	pipe_base & operator=(pipe_base && other) = default;
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Set memory fraction for this node in the pipeline phase.
 	///
@@ -83,9 +89,9 @@ public:
 	///
 	/// \sa factory_base::name
 	///////////////////////////////////////////////////////////////////////////
-	inline child_t & name(const std::string & n, priority_type p = PRIORITY_USER) {
+	child_t name(const std::string & n, priority_type p = PRIORITY_USER) {
 		self().factory.name(n, p);
-		return self();
+		return std::move(self());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -99,7 +105,7 @@ public:
 		self().factory.add_to_set(s);
 		return self();
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Add a depencency to a referenced node.
 	///
@@ -108,8 +114,8 @@ public:
 	inline child_t & add_dependencies(node_set s) {
 		self().factory.add_dependencies(s);
 		return self();
-	}		
-	
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Add a forwarding dependency to a referenced node.
 	///
@@ -118,7 +124,7 @@ public:
 	inline child_t & add_forwarding_dependencies(node_set s) {
 		self().factory.add_forwarding_dependencies(s);
 		return self();
-	}		
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Set a prefix for the name of this node.
@@ -158,6 +164,12 @@ public:
 template <typename child_t>
 class pipe_nonterm_base : public pipe_base<child_t> {
 public:
+	pipe_nonterm_base() = default;
+	pipe_nonterm_base(const pipe_nonterm_base &) = delete;
+	pipe_nonterm_base(pipe_nonterm_base &&) = default;
+	pipe_nonterm_base & operator=(const pipe_nonterm_base &) = delete;
+	pipe_nonterm_base & operator=(pipe_nonterm_base &&) = default;
+
 	template <typename dest_t>
 	struct constructed {
 		typedef typename child_t::factory_type::template constructed<dest_t>::type type;
@@ -176,16 +188,10 @@ class pipe_end : public bits::pipe_term_base<pipe_end<fact_t>, fact_t> {
 public:
 	typedef fact_t factory_type;
 
-	pipe_end(const pipe_end & other) : factory(other.factory) {}
-	pipe_end(pipe_end & other) : factory(other.factory) {}
-	pipe_end(pipe_end && other) : factory(std::move(other.factory)) {}
-
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Forwards the arguments given to the constructor of the factory.
 	///
-	/// The implementation either usesvariadic template(if supported by the
-	/// compiler) or a bunch of overloads to support a variable number of
-	/// constructor parameters.
+	/// The implementation either usesvariadic templates.
 	///
 	/// \tparam Args the variadic number of types of constructor parameters.
 	/// \param args the variadic number of arguments to pass to the constructor of
@@ -193,7 +199,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
 	inline pipe_end(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
-	
+
 	fact_t factory;
 };
 
@@ -210,9 +216,17 @@ class pipe_middle : public bits::pipe_nonterm_base<pipe_middle<fact_t> > {
 public:
 	typedef fact_t factory_type;
 
-	pipe_middle(const pipe_middle & other) : factory(other.factory) {}
-	pipe_middle(pipe_middle & other) : factory(other.factory) {}
-	pipe_middle(pipe_middle && other) : factory(std::move(other.factory)) {}
+	pipe_middle(const pipe_middle &) = delete;
+	pipe_middle(pipe_middle &&) = default;
+	pipe_middle & operator=(const pipe_middle &) = delete;
+	pipe_middle & operator=(pipe_middle &&) = default;
+
+	pipe_middle(const fact_t && o) = delete;
+	pipe_middle(fact_t && o): factory(std::move(o)) {}
+	pipe_middle & operator=(const fact_t &) = delete;
+	pipe_middle & operator=(fact_t && o) {factory = std::move(o);}
+
+
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Forwards the arguments given to the constructor of the factory.
@@ -226,16 +240,16 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pipe_middle(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	pipe_middle(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// The pipe operator combines this generator/filter with another filter.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact2_t>
-	inline pipe_middle<bits::pair_factory<fact_t, fact2_t> >
-	operator|(const pipe_middle<fact2_t> & r) {
+	pipe_middle<bits::pair_factory<fact_t, fact2_t> >
+	operator|(pipe_middle<fact2_t> && r) {
 		factory.set_destination_kind_push();
-		return bits::pair_factory<fact_t, fact2_t>(factory, r.factory);
+		return bits::pair_factory<fact_t, fact2_t>(std::move(factory), std::move(r.factory));
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -243,10 +257,10 @@ public:
 	/// make a pipeline.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact2_t>
-	inline pipe_end<bits::termpair_factory<fact_t, fact2_t> >
-	operator|(const pipe_end<fact2_t> & r) {
+	pipe_end<bits::termpair_factory<fact_t, fact2_t> >
+	operator|(pipe_end<fact2_t> && r) {
 		factory.set_destination_kind_push();
-		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory);
+		return bits::termpair_factory<fact_t, fact2_t>(std::move(factory), std::move(r.factory));
 	}
 
 	fact_t factory;
@@ -255,11 +269,16 @@ public:
 template <typename fact_t>
 class pipe_begin : public bits::pipe_nonterm_base<pipe_begin<fact_t> > {
 public:
+	pipe_begin(const pipe_begin<fact_t> &) = default;
+	pipe_begin(pipe_begin<fact_t> &&) = default;
+	pipe_begin & operator=(const pipe_begin<fact_t> &) = delete;
+	pipe_begin & operator=(pipe_begin<fact_t> &&) = default;
+
+	pipe_begin(fact_t && f): factory(std::move(f)) {}
+
 	typedef fact_t factory_type;
 
-	pipe_begin(const pipe_begin & other) : factory(other.factory) {}
-	pipe_begin(pipe_begin & other) : factory(other.factory) {}
-	pipe_begin(pipe_begin && other) : factory(std::move(other.factory)) {}
+	//pipe_begin(fact_t && f) : factory(std::move(f)) {};
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Forwards the arguments given to the constructor of the factory.
@@ -272,21 +291,25 @@ public:
 	/// \param args the variadic number of arguments to pass to the constructor of
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
+	// template <typename T1, typename ... T_ARGS, typename = typename std::enable_if<!std::is_same<pipe_begin, T1>::value, T1>::type>
+	// explicit inline pipe_begin(T1 && t1, T_ARGS && ... t) : factory(std::forward(t1), std::forward<T_ARGS>(t)...) {}
+
 	template <typename ... T_ARGS>
-	inline pipe_begin(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	explicit pipe_begin(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+
 
 	template <typename fact2_t>
-	inline pipe_begin<bits::pair_factory<fact_t, fact2_t> >
-	operator|(const pipe_middle<fact2_t> & r) {
+	pipe_begin<bits::pair_factory<fact_t, fact2_t> >
+	operator|(pipe_middle<fact2_t> && r) {
 		factory.set_destination_kind_push();
-		return bits::pair_factory<fact_t, fact2_t>(factory, r.factory);
+		return bits::pair_factory<fact_t, fact2_t>(std::move(factory), std::move(r.factory));
 	}
 
 	template <typename fact2_t>
-	inline bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
-	operator|(const pipe_end<fact2_t> & r) {
+	bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
+	operator|(pipe_end<fact2_t> && r) {
 		factory.set_destination_kind_push();
-		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory).finalize();
+		return bits::termpair_factory<fact_t, fact2_t>(std::move(factory), std::move(r.factory)).finalize();
 	}
 
 	fact_t factory;
@@ -296,10 +319,6 @@ template <typename fact_t>
 class pullpipe_end : public bits::pipe_nonterm_base<pullpipe_end<fact_t> > {
 public:
 	typedef fact_t factory_type;
-
-	pullpipe_end(const pullpipe_end & other) : factory(other.factory) {}
-	pullpipe_end(pullpipe_end & other) : factory(other.factory) {}
-	pullpipe_end(pullpipe_end && other) : factory(std::move(other.factory)) {}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Forwards the arguments given to the constructor of the factory.
@@ -323,10 +342,6 @@ class pullpipe_middle : public bits::pipe_nonterm_base<pullpipe_middle<fact_t> >
 public:
 	typedef fact_t factory_type;
 
-	pullpipe_middle(const pullpipe_middle & other) : factory(other.factory) {}
-	pullpipe_middle(pullpipe_middle & other) : factory(other.factory) {}
-	pullpipe_middle(pullpipe_middle && other) : factory(std::move(other.factory)) {}
-
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Forwards the arguments given to the constructor of the factory.
 	///
@@ -342,19 +357,19 @@ public:
 	inline pullpipe_middle(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
 
 	template <typename fact2_t>
-	inline pullpipe_middle<bits::pair_factory<fact2_t, fact_t> >
-	operator|(const pipe_middle<fact2_t> & r) {
-		fact2_t f = r.factory;
+	pullpipe_middle<bits::pair_factory<fact2_t, fact_t> >
+	operator|(pipe_middle<fact2_t> && r) {
+		fact2_t f = std::move(r.factory);
 		f.set_destination_kind_pull();
-		return bits::pair_factory<fact2_t, fact_t>(f, factory);
+		return bits::pair_factory<fact2_t, fact_t>(std::move(f), std::move(factory));
 	}
 
 	template <typename fact2_t>
-	inline pullpipe_end<bits::termpair_factory<fact2_t, fact_t> >
-	operator|(const pipe_end<fact2_t> & r) {
-		fact2_t f = r.factory;
+	pullpipe_end<bits::termpair_factory<fact2_t, fact_t> >
+	operator|(pipe_end<fact2_t> && r) {
+		fact2_t f = std::move(r.factory);
 		f.set_destination_kind_pull();
-		return bits::termpair_factory<fact2_t, fact_t>(f, factory);
+		return bits::termpair_factory<fact2_t, fact_t>(std::move(f), std::move(factory));
 	}
 
 	fact_t factory;
@@ -364,10 +379,6 @@ template <typename fact_t>
 class pullpipe_begin : public bits::pipe_term_base<pullpipe_begin<fact_t>, fact_t> {
 public:
 	typedef fact_t factory_type;
-
-	pullpipe_begin(const pullpipe_begin & other) : factory(other.factory) {}
-	pullpipe_begin(pullpipe_begin & other) : factory(other.factory) {}
-	pullpipe_begin(pullpipe_begin && other) : factory(std::move(other.factory)) {}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Forwards the arguments given to the constructor of the factory.
@@ -384,19 +395,19 @@ public:
 	inline pullpipe_begin(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
 
 	template <typename fact2_t>
-	inline pullpipe_begin<bits::termpair_factory<fact2_t, fact_t> >
-	operator|(const pullpipe_middle<fact2_t> & r) {
-		fact2_t f = r.factory;
+	pullpipe_begin<bits::termpair_factory<fact2_t, fact_t> >
+	operator|(pullpipe_middle<fact2_t> && r) {
+		fact2_t f = std::move(r.factory);
 		f.set_destination_kind_pull();
-		return bits::termpair_factory<fact2_t, fact_t>(f, factory);
+		return bits::termpair_factory<fact2_t, fact_t>(std::move(f), std::move(factory));
 	}
 
 	template <typename fact2_t>
-	inline bits::pipeline_impl<bits::termpair_factory<fact2_t, fact_t> >
-	operator|(const pullpipe_end<fact2_t> & r) {
-		fact2_t f = r.factory;
+	bits::pipeline_impl<bits::termpair_factory<fact2_t, fact_t> >
+	operator|(pullpipe_end<fact2_t> && r) {
+		fact2_t f = std::move(r.factory);
 		f.set_destination_kind_pull();
-		return bits::termpair_factory<fact2_t, fact_t>(f, factory).finalize();
+		return bits::termpair_factory<fact2_t, fact_t>(std::move(f), std::move(factory)).finalize();
 	}
 
 	fact_t factory;

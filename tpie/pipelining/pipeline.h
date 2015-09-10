@@ -110,7 +110,7 @@ class pipeline_impl : public pipeline_base {
 public:
 	typedef typename fact_t::constructed_type gen_t;
 
-	pipeline_impl(const fact_t & factory)
+	pipeline_impl(fact_t & factory)
 		: r(factory.construct())
 	{
 		this->m_memory = factory.memory();
