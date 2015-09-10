@@ -44,7 +44,7 @@ class input_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	input_t(TPIE_TRANSFERABLE(dest_t) dest, serialization_reader * rd)
+	input_t(dest_t dest, serialization_reader * rd)
 		: dest(std::move(dest))
 		, rd(rd)
 	{
@@ -168,7 +168,7 @@ class reverser_output_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	reverser_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
+	reverser_output_t(dest_t dest, const node_token & input_token)
 		: dest(std::move(dest))
 	{
 		set_name("Serialization reverse reader");
@@ -301,7 +301,7 @@ class buffer_output_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	buffer_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
+	buffer_output_t(dest_t dest, const node_token & input_token)
 		: dest(std::move(dest))
 	{
 		add_dependency(input_token);

@@ -56,7 +56,7 @@ public:
 	template <typename dest_t>
 	class source_impl : public source_base {
 	public:
-		source_impl(TPIE_TRANSFERABLE(dest_t) dest, node_token token, source_base ** the_source)
+		source_impl(dest_t dest, node_token token, source_base ** the_source)
 			: source_base(token)
 			, the_source(the_source)
 			, dest(std::move(dest))

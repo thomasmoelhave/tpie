@@ -102,7 +102,7 @@ private:
 	dest_t dest;
 
 public:
-	virtsrc_impl(TPIE_TRANSFERABLE(dest_t) dest)
+	virtsrc_impl(dest_t dest)
 		: dest(std::move(dest))
 	{
 		node::add_push_destination(this->dest);
