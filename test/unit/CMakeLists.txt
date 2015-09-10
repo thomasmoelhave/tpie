@@ -134,6 +134,7 @@ add_unittest(pipelining
 	memory
 	fork
 	merger_memory
+	bound_fetch_forward_test
 	fetch_forward
 	virtual
 	virtual_cref_item_type

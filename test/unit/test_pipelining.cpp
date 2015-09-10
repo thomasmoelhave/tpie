@@ -758,6 +758,74 @@ bool fetch_forward_test() {
 	return true;
 }
 
+template <typename dest_t>
+struct FFB1 : public node {
+	dest_t dest;
+	FFB1(dest_t dest) : dest(std::move(dest)) {
+		add_push_destination(dest);
+	}
+	virtual void propagate() override {
+		forward("my_item", 42, 2);
+	}
+	virtual void go() override {
+	}
+};
+
+bool bound_fetch_forward_result;
+
+template <typename dest_t>
+struct FFB2 : public node {
+	FFB2() {}
+
+	virtual void propagate() override {
+		if (!can_fetch("my_item")) {
+			log_error() << "Cannot fetch my_item" << std::endl;
+			bound_fetch_forward_result = false;
+			return;
+		}
+		int i = fetch<int>("my_item");
+		if (i != 42) {
+			log_error() << "Wrong answer" << std::endl;
+			bound_fetch_forward_result = false;
+			return;
+		}
+	}
+};
+
+template <typename dest_t>
+struct FFB3 : public node {
+	dest_t dest;
+	FFB3(dest_t dest) : dest(std::move(dest)) {
+		add_push_destination(dest);
+	}
+
+	virtual void propagate() override {
+		if (can_fetch("my_item")) {
+			log_error() << "Should not be able to fetch my_item" << std::endl;
+			bound_fetch_forward_result = false;
+			return;
+		}
+	}
+};
+
+bool bound_fetch_forward_test() {
+	bound_fetch_forward_result = true;
+	pipeline p = make_pipe_begin<FFB1>()
+		| make_pipe_middle<FF2>()
+		| make_pipe_middle<FF2>()
+		| make_pipe_end<FF3>()
+		;
+	p.plot(log_info());
+	p.forward<int>("test", 7);
+	p();
+	if (!bound_fetch_forward_result) return false;
+	if (p.fetch<int>("test") != 7) {
+		log_error() << "Something went wrong" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 // Assume that dest_t::item_type is a reference type.
 // Push a dereferenced zero pointer to the destination.
 template <typename dest_t>
@@ -1885,6 +1953,7 @@ int main(int argc, char ** argv) {
 	.test(fork_test, "fork")
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
+	.test(bound_fetch_forward_test, "bound_fetch_forward")
 	.test(virtual_test, "virtual")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
