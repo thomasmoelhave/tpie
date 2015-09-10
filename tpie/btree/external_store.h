@@ -140,9 +140,7 @@ private:
 	}
 
 	constexpr size_t max_internal_size() const {
-		size_t overhead = sizeof(memory_size_type);
-		size_t factor = sizeof(internal_content);
-		return (blockSize() - overhead) / factor;
+		return (blockSize() - sizeof(memory_size_type)) / sizeof(internal_content);
 	}
 
 	constexpr size_t min_leaf_size() const {
@@ -150,9 +148,7 @@ private:
 	}
 
 	constexpr size_t max_leaf_size() const {
-		size_t overhead = sizeof(memory_size_type);
-		size_t factor = sizeof(T);
-		return (blockSize() - overhead) / factor;
+		return (blockSize() - sizeof(memory_size_type)) / sizeof(T);
 	}
 	
 	void move(internal_type src, size_t src_i,
