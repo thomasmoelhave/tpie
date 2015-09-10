@@ -106,7 +106,7 @@ struct output_factory {
 ///////////////////////////////////////////////////////////////////////////////
 pipe_begin<serialization_bits::input_factory>
 inline serialization_input(serialization_reader & rd) {
-	return serialization_bits::input_factory(&rd);
+	return pipe_begin<serialization_bits::input_factory>(&rd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,12 +145,12 @@ public:
 	void begin() override {
 		wr.open(file->path());
 	}
-	
+
 	void push(const item_type & x) {
 		wr.serialize(x);
 		++items;
 	}
-	
+
 	void end() override {
 		wr.close();
 		forward<stream_size_type>("items", items);
@@ -192,7 +192,7 @@ public:
 		while (rd.can_read()) {
 			rd.unserialize(x);
 			dest.push(x);
-			
+
 			stream_size_type bytesRead2 = rd.offset();
 			step(bytesRead2 - bytesRead);
 			bytesRead = bytesRead2;
@@ -248,7 +248,7 @@ public:
 		rd.close();
 		file->destruct();
 	}
-	
+
 private:
 	serialization_reverse_reader rd;
 	tpie::maybe<tpie::temp_file> * file;
@@ -274,7 +274,7 @@ public:
 		file.construct();
 		forward<tpie::maybe<tpie::temp_file>*>("__sbuf_file", &file);
 	}
-	
+
 	void begin() override {
 		wr.open(file->path());
 	}
@@ -486,7 +486,7 @@ private:
 typedef pipe_middle<split_factory<serialization_bits::reverser_input_t, node, serialization_bits::reverser_output_t> > serialization_reverser;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// A pipelining node that acts as a buffer for serializable items and creates 
+/// A pipelining node that acts as a buffer for serializable items and creates
 /// a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<split_factory<serialization_bits::buffer_input_t, node, serialization_bits::buffer_output_t> > serialization_buffer;
