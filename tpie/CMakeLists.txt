@@ -55,6 +55,7 @@ set (HEADERS
 		memory.h
 		persist.h
 		pipelining/buffer.h
+		pipelining/container.h
 		pipelining/exception.h
 		pipelining/factory_base.h
 		pipelining/factory_helpers.h
