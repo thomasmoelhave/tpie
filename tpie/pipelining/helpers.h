@@ -404,9 +404,9 @@ typedef pullpipe_middle<factory<bits::pull_peek_t> > pull_peek;
 /// to the destination and then to "to"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-inline pipe_middle<tempfactory<bits::fork_t<fact_t>, const fact_t &> >
-fork(const pipe_end<fact_t> & to) {
-	return tempfactory<bits::fork_t<fact_t>, const fact_t &>(to.factory);
+pipe_middle<tempfactory<bits::fork_t<fact_t>, fact_t &&> >
+fork(pipe_end<fact_t> && to) {
+	return tempfactory<bits::fork_t<fact_t>, fact_t &&>(std::move(to.factory));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -416,9 +416,9 @@ fork(const pipe_end<fact_t> & to) {
 /// a is pushed to its destination, and then b is pushed to "to"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-inline pipe_middle<tempfactory<bits::unzip_t<fact_t>, const fact_t &> >
-unzip(const pipe_end<fact_t> & to) {
-	return tempfactory<bits::unzip_t<fact_t>, const fact_t &>(to.factory);
+pipe_middle<tempfactory<bits::unzip_t<fact_t>, fact_t &&> >
+unzip(pipe_end<fact_t> && to) {
+	return tempfactory<bits::unzip_t<fact_t>, fact_t &&>(std::move(to.factory));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -429,9 +429,9 @@ unzip(const pipe_end<fact_t> & to) {
 /// and std::make_pair(a,b) is pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-inline pipe_middle<tempfactory<bits::zip_t<fact_t>, const fact_t &> >
-zip(const pullpipe_begin<fact_t> & from) {
-	return tempfactory<bits::zip_t<fact_t>, const fact_t &>(from.factory);
+pipe_middle<tempfactory<bits::zip_t<fact_t>, fact_t &&> >
+zip(pullpipe_begin<fact_t> && from) {
+	return tempfactory<bits::zip_t<fact_t>, fact_t &&>(std::move(from.factory));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -455,17 +455,17 @@ zero_source() {return termfactory<bits::zero_source_t<T> >();}
 
 template <template <typename dest_t> class Fact, typename... T>
 pipe_begin<factory<Fact, T...> > make_pipe_begin(T... t) {
-	return {t...};
+	return pipe_begin<factory<Fact, T...> >(factory<Fact, T...>(t...));
 }
 
 template <template <typename dest_t> class Fact, typename... T>
 pipe_middle<factory<Fact, T...> > make_pipe_middle(T... t) {
-	return {t...};
+	return pipe_middle<factory<Fact, T...> >(factory<Fact, T...>(t...));
 }
 
 template <typename Fact, typename... T>
 pipe_end<termfactory<Fact, T...> > make_pipe_end(T ... t) {
-	return {t...};
+	return pipe_end<termfactory<Fact, T...> >(termfactory<Fact, T...>(t...));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
