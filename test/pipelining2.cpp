@@ -64,9 +64,9 @@ public:
 };
 
 template <typename src_pipe_t>
-inline pipe_middle<tempfactory<add_t<src_pipe_t>, src_pipe_t> >
-add(src_pipe_t srcpipe) {
-	return tempfactory<add_t<src_pipe_t>, src_pipe_t>(srcpipe);
+pipe_middle<tempfactory<add_t<src_pipe_t>, src_pipe_t> >
+add(src_pipe_t && srcpipe) {
+	return tempfactory<add_t<src_pipe_t>, src_pipe_t>(std::forward<src_pipe_t>(srcpipe));
 }
 
 void go() {
