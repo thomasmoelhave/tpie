@@ -37,7 +37,7 @@ class input_vector_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline input_vector_t(TPIE_TRANSFERABLE(dest_t) dest, const std::vector<item_type> & input) : dest(std::move(dest)), input(input) {
+	inline input_vector_t(dest_t dest, const std::vector<item_type> & input) : dest(std::move(dest)), input(input) {
 		add_push_destination(this->dest);
 	}
 
@@ -81,7 +81,7 @@ public:
 	public:
 		typedef typename F::argument_type item_type;
 		
-		type(TPIE_TRANSFERABLE(dest_t) dest, const F & f): f(f), dest(std::move(dest)) {
+		type(dest_t && dest, const F & f): f(f), dest(std::move(dest)) {
 		}
 		
 		void push(const item_type & item) {
@@ -101,7 +101,7 @@ public:
 	public:
 		typedef typename F::argument_type item_type;
 		
-		type(TPIE_TRANSFERABLE(dest_t) dest, const F & f): f(f), dest(std::move(dest)) {
+		type(dest_t && dest, const F & f): f(f), dest(std::move(dest)) {
 		}
 		
 		void push(const item_type & item) {

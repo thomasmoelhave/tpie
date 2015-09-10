@@ -35,7 +35,7 @@ public:
 	typedef typename push_type<dest_t>::type item_type;
 	typedef std::vector<std::pair<std::string, boost::any> > values_t;
 	
-	Forwarder(TPIE_TRANSFERABLE(dest_t) dest, values_t values)
+	Forwarder(dest_t && dest, values_t values)
 		: values(std::move(values)), dest(std::move(dest)) {}
 
 	void prepare() override {

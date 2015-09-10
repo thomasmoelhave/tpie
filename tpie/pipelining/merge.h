@@ -47,7 +47,7 @@ public:
 	public:
 		typedef typename push_type<dest_t>::type item_type;
 
-		inline type(TPIE_TRANSFERABLE(dest_t) dest, const fact_t & fact) : dest(std::move(dest)), with(fact.construct()) {
+		type(dest_t dest, fact_t && fact) : dest(std::move(dest)), with(fact.construct()) {
 			add_push_destination(this->dest);
 			add_pull_source(with);
 		}
