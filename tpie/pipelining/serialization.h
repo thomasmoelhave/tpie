@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2013, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -44,7 +44,7 @@ class input_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	input_t(TPIE_TRANSFERABLE(dest_t) dest, serialization_reader * rd)
+	input_t(dest_t dest, serialization_reader * rd)
 		: dest(std::move(dest))
 		, rd(rd)
 	{
@@ -106,7 +106,7 @@ struct output_factory {
 ///////////////////////////////////////////////////////////////////////////////
 pipe_begin<serialization_bits::input_factory>
 inline serialization_input(serialization_reader & rd) {
-	return serialization_bits::input_factory(&rd);
+	return pipe_begin<serialization_bits::input_factory>(&rd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,12 +145,12 @@ public:
 	void begin() override {
 		wr.open(file->path());
 	}
-	
+
 	void push(const item_type & x) {
 		wr.serialize(x);
 		++items;
 	}
-	
+
 	void end() override {
 		wr.close();
 		forward<stream_size_type>("items", items);
@@ -168,7 +168,7 @@ class reverser_output_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	reverser_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
+	reverser_output_t(dest_t dest, const node_token & input_token)
 		: dest(std::move(dest))
 	{
 		set_name("Serialization reverse reader");
@@ -192,7 +192,7 @@ public:
 		while (rd.can_read()) {
 			rd.unserialize(x);
 			dest.push(x);
-			
+
 			stream_size_type bytesRead2 = rd.offset();
 			step(bytesRead2 - bytesRead);
 			bytesRead = bytesRead2;
@@ -248,7 +248,7 @@ public:
 		rd.close();
 		file->destruct();
 	}
-	
+
 private:
 	serialization_reverse_reader rd;
 	tpie::maybe<tpie::temp_file> * file;
@@ -274,7 +274,7 @@ public:
 		file.construct();
 		forward<tpie::maybe<tpie::temp_file>*>("__sbuf_file", &file);
 	}
-	
+
 	void begin() override {
 		wr.open(file->path());
 	}
@@ -301,7 +301,7 @@ class buffer_output_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	buffer_output_t(TPIE_TRANSFERABLE(dest_t) dest, const node_token & input_token)
+	buffer_output_t(dest_t dest, const node_token & input_token)
 		: dest(std::move(dest))
 	{
 		add_dependency(input_token);
@@ -486,7 +486,7 @@ private:
 typedef pipe_middle<split_factory<serialization_bits::reverser_input_t, node, serialization_bits::reverser_output_t> > serialization_reverser;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// A pipelining node that acts as a buffer for serializable items and creates 
+/// A pipelining node that acts as a buffer for serializable items and creates
 /// a phase boundary
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<split_factory<serialization_bits::buffer_input_t, node, serialization_bits::buffer_output_t> > serialization_buffer;

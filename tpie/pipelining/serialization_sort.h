@@ -500,10 +500,13 @@ public:
 	typedef pipe_end<serialization_bits::passive_sorter_factory_input<Traits> > input_pipe_t;
 	typedef pullpipe_begin<serialization_bits::passive_sorter_factory_output<Traits> > output_pipe_t;
 
-	serialization_passive_sorter(pred_t pred = pred_t())
+	serialization_passive_sorter(pred_t)
 		: m_sorter(new sorter_t())
-	{
-	}
+	{}
+
+	serialization_passive_sorter()
+		: m_sorter(new sorter_t())
+	{}
 
 	serialization_passive_sorter(const serialization_passive_sorter &) = delete;
 	serialization_passive_sorter & operator=(const serialization_passive_sorter &) = delete;

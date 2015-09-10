@@ -115,8 +115,8 @@ public:
 };
 
 template <typename source_t>
-inline pipe_begin<tempfactory<AddPairwise<source_t>, source_t> > addPairwise(const source_t & source) {
-	return {source};
+inline pipe_begin<tempfactory<AddPairwise<source_t>, source_t> > addPairwise(source_t && source) {
+	return pipe_begin<tempfactory<AddPairwise<source_t>, source_t> >(std::forward<source_t>(source));
 }
 
 void go() {

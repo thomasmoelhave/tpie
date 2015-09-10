@@ -62,7 +62,7 @@ public:
 	public:
 		typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
 
-		type(TPIE_TRANSFERABLE(dest_t) dest, const F & functor):
+		type(dest_t && dest, const F & functor):
 			functor(functor), dest(std::move(dest)) {
 			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 		}

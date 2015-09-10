@@ -31,8 +31,6 @@
 #define TPIE_FRACTIONDB_DIR_INL "${TPIE_FRACTIONDB_DIR_INL}"
 #endif
 
-#define TPIE_TRANSFERABLE(T) T
-
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings
 	#define _CRT_SECURE_NO_DEPRECATE 

@@ -167,9 +167,9 @@ public:
 		typedef count_t<dest_t, byid_gen_t, byparent_gen_t> type;
 	};
 
-	count_factory(byid_t byid, byparent_t byparent)
-		: m_byid(byid.factory)
-		, m_byparent(byparent.factory)
+	count_factory(byid_t && byid, byparent_t && byparent)
+		: m_byid(std::move(byid.factory))
+		, m_byparent(std::move(byparent.factory))
 	{
 	}
 
@@ -186,9 +186,9 @@ private:
 };
 
 template <typename byid_t, typename byparent_t>
-inline P::pipe_begin<count_factory<byid_t, byparent_t> >
-count(const byid_t & byid, const byparent_t & byparent) {
-	return count_factory<byid_t, byparent_t>(byid, byparent);
+P::pipe_begin<count_factory<byid_t, byparent_t> >
+count(byid_t && byid, byparent_t && byparent) {
+	return count_factory<byid_t, byparent_t>(std::forward<byid_t>(byid), std::forward<byparent_t>(byparent));
 }
 
 class output_count_t : public P::node {
