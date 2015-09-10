@@ -335,8 +335,8 @@ public:
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk_end(const pipe_end<fact_t> & pipe, virtual_container * ctr = 0) {
-		*this = pipe;
+	virtual_chunk_end(pipe_end<fact_t> && pipe, virtual_container * ctr = 0) {
+		*this = std::forward<pipe_end<fact_t>>(pipe);
 		set_container(ctr);
 	}
 
@@ -353,7 +353,7 @@ public:
 	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk_end & operator=(const pipe_end<fact_t> & pipe) {
+	virtual_chunk_end & operator=(pipe_end<fact_t> && pipe) {
 		if (this->m_node) {
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
@@ -396,8 +396,8 @@ public:
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk(const pipe_middle<fact_t> & pipe, virtual_container * ctr = 0) {
-		*this = pipe;
+	virtual_chunk(pipe_middle<fact_t> && pipe, virtual_container * ctr = 0) {
+		*this = std::forward<pipe_middle<fact_t>>(pipe);
 		set_container(ctr);
 	}
 
@@ -428,7 +428,7 @@ public:
 	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk & operator=(const pipe_middle<fact_t> & pipe) {
+	virtual_chunk & operator=(pipe_middle<fact_t> && pipe) {
 		if (this->m_node) {
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
@@ -436,7 +436,7 @@ public:
 		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
 		this->m_nodeMap = temp.get_node_map();
-		fact_t f = pipe.factory;
+		fact_t f = std::move(pipe.factory);
 		f.set_destination_kind_push();
 		m_src = new bits::virtsrc_impl<constructed_type>(f.construct(std::move(temp)));
 		this->m_node = bits::virt_node::take_own(m_src);
@@ -509,8 +509,8 @@ public:
 	/// ownership of it.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk_begin(const pipe_begin<fact_t> & pipe, virtual_container * ctr = 0) {
-		*this = pipe;
+	virtual_chunk_begin(pipe_begin<fact_t> && pipe, virtual_container * ctr = 0) {
+		*this = std::forward<pipe_begin<fact_t>>(pipe);
 		set_container(ctr);
 	}
 
@@ -532,7 +532,7 @@ public:
 	/// \brief Construct a node and assign it to this virtual chunk.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename fact_t>
-	virtual_chunk_begin & operator=(const pipe_begin<fact_t> & pipe) {
+	virtual_chunk_begin & operator=(pipe_begin<fact_t> && pipe) {
 		if (this->m_node) {
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
@@ -540,7 +540,7 @@ public:
 		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
 		recv_type temp(m_recv);
 		this->m_nodeMap = m_recv->get_node_map();
-		fact_t f = pipe.factory;
+		fact_t f = std::move(pipe.factory);
 		f.set_destination_kind_push();
 		this->m_node = bits::virt_node::take_own(new constructed_type(f.construct(std::move(temp))));
 		return *this;
@@ -602,7 +602,7 @@ public:
 	public:
 		typedef T item_type;
 
-		type(TPIE_TRANSFERABLE(dest_t) dest, virtual_chunk_end<T> out)
+		type(dest_t && dest, virtual_chunk_end<T> out)
 			: vnode(out.get_node())
 			, dest2(bits::access::get_source(out))
 			, dest(std::move(dest))
