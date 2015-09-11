@@ -87,7 +87,7 @@ public:
 	public:
 		typedef int item_type;
 
-		type(dest_t dest, const source_t & src)
+		type(dest_t dest, source_t src)
 			: dest(std::move(dest))
 			, puller(src.construct())
 		{
@@ -115,8 +115,8 @@ public:
 };
 
 template <typename source_t>
-inline pipe_begin<tempfactory<AddPairwise<source_t>, source_t> > addPairwise(source_t && source) {
-	return pipe_begin<tempfactory<AddPairwise<source_t>, source_t> >(std::forward<source_t>(source));
+inline pipe_begin<tempfactory<AddPairwise<source_t>, source_t> > addPairwise(source_t source) {
+	return {std::move(source)};
 }
 
 void go() {

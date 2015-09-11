@@ -62,9 +62,9 @@ public:
 	///
 	/// \sa factory_base::memory(double)
 	///////////////////////////////////////////////////////////////////////////
-	inline child_t & memory(double amount) {
+	child_t memory(double amount) {
 		self().factory.memory(amount);
-		return self();
+		return std::move(self());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -101,9 +101,9 @@ public:
 	///
 	/// \sa factory_base::ref
 	///////////////////////////////////////////////////////////////////////////
-	inline child_t & add_to_set(node_set s) {
+	child_t add_to_set(node_set s) {
 		self().factory.add_to_set(s);
-		return self();
+		return std::move(self());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -111,9 +111,9 @@ public:
 	///
 	/// \sa factory_base::ref
 	///////////////////////////////////////////////////////////////////////////
-	inline child_t & add_dependencies(node_set s) {
+	child_t add_dependencies(node_set s) {
 		self().factory.add_dependencies(s);
-		return self();
+		return std::move(self());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -121,9 +121,9 @@ public:
 	///
 	/// \sa factory_base::ref
 	///////////////////////////////////////////////////////////////////////////
-	inline child_t & add_forwarding_dependencies(node_set s) {
+	child_t add_forwarding_dependencies(node_set s) {
 		self().factory.add_forwarding_dependencies(s);
-		return self();
+		return std::move(self());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -133,9 +133,9 @@ public:
 	///
 	/// \sa factory_base::push_breadcrumb
 	///////////////////////////////////////////////////////////////////////////
-	inline child_t & breadcrumb(const std::string & n) {
+	child_t breadcrumb(const std::string & n) {
 		self().factory.push_breadcrumb(n);
-		return self();
+		return std::move(self());
 	}
 
 protected:
@@ -153,7 +153,7 @@ class pipe_term_base : public pipe_base<child_t> {
 public:
 	typedef typename fact_t::constructed_type constructed_type;
 
-	constructed_type construct() const {
+	constructed_type construct() {
 		return this->self().factory.construct();
 	}
 };
@@ -176,7 +176,7 @@ public:
 	};
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(const dest_t & dest) const {
+	typename constructed<dest_t>::type construct(const dest_t & dest) {
 		return this->self().factory.construct(dest);
 	}
 };

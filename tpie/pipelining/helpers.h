@@ -324,7 +324,7 @@ struct zip_t {
 	public:
 		typedef typename push_type<dest_t>::type::first_type item_type;
 		
-		type(dest_t dest, const src_fact_t & src_fact)
+		type(dest_t dest, src_fact_t src_fact)
 			: src(src_fact.construct()), dest(std::move(dest)) {
 			add_push_destination(this->dest);
 			add_pull_source(src);
