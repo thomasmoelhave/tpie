@@ -60,7 +60,7 @@ public:
 	}
 
 	void end() override {
-		forward("stack", &m_stack);
+		forward("stack", &m_stack, 1);
 	}
 private:
 	tpie::maybe<stack<item_type> > m_stack;
@@ -86,7 +86,7 @@ public:
 
 	virtual void propagate() override {
 		m_stack = tpie_new<std::stack<item_type> >();
-		forward("stack", m_stack);
+		forward("stack", m_stack, 1);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////

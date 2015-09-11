@@ -81,7 +81,7 @@ public:
 
 	virtual void propagate() override {
 		m_queue = tpie::tpie_new<internal_queue<item_type> >(size);
-		forward("queue", m_queue);
+		forward("queue", m_queue, 1);
 	}
 
 	void push(const T & item) {

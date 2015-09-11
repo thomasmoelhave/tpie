@@ -101,7 +101,7 @@ public:
 	}
 
 	void end() override {
-		forward("queue", &m_queue);
+		forward("queue", &m_queue, 1);
 	}
 
 private:

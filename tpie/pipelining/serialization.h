@@ -139,7 +139,7 @@ public:
 
 	void propagate() override {
 		file.construct();
-		forward<tpie::maybe<tpie::temp_file>*>("__srev_file", &file);
+		forward<tpie::maybe<tpie::temp_file>*>("__srev_file", &file, 1);
 	}
 
 	void begin() override {
@@ -272,7 +272,7 @@ public:
 
 	void propagate() override {
 		file.construct();
-		forward<tpie::maybe<tpie::temp_file>*>("__sbuf_file", &file);
+		forward<tpie::maybe<tpie::temp_file>*>("__sbuf_file", &file, 1);
 	}
 
 	void begin() override {
