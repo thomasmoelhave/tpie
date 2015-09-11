@@ -501,7 +501,7 @@ public:
 	typedef pullpipe_begin<serialization_bits::passive_sorter_factory_output<Traits> > output_pipe_t;
 
 	serialization_passive_sorter(pred_t pred = pred_t())
-		: m_sorter(new sorter_t())
+		: m_sorter(new sorter_t(sizeof(T), pred))
 	{
 	}
 
