@@ -186,10 +186,10 @@ public:
 	void dump(std::ostream & os = std::cout) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Compute the transitive closure of the given node in the item
-	/// flow graph.
+	/// \brief  Compute the set of nodes within k distance of the given node in
+	/// the item flow graph.
 	///////////////////////////////////////////////////////////////////////////
-	void get_successors(id_t from, std::vector<id_t> & successors, bool forward_only=false);
+	void get_successors(id_t from, std::vector<id_t> & successors, memory_size_type k, bool forward_only=false);
 
 
 	friend void intrusive_ptr_add_ref(node_map * m) {

@@ -30,6 +30,7 @@
 #include <tpie/pipelining/node_name.h>
 #include <tpie/pipelining/node_traits.h>
 #include <tpie/flags.h>
+#include <limits>
 
 namespace tpie {
 
@@ -407,6 +408,11 @@ public:
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
+	/// \param key The key of forwarded data
+	/// \param value The value of forwarded data
+	/// \param k The maximum distance to forward the distance. If there are
+	/// more than k nodes between the forwarding nodes and another node b.
+	/// b will not be able to fetch the data. Defaults to infinity.
 	///////////////////////////////////////////////////////////////////////////
 	// Implementation note: If the type of the `value` parameter is changed
 	// from `T` to `const T &`, this will yield linker errors if an application
@@ -415,14 +421,14 @@ public:
 	// See http://stackoverflow.com/a/5392050
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	void forward(std::string key, T value) {
-		forward_any(key, boost::any(value));
+	void forward(std::string key, T value, memory_size_type k = std::numeric_limits<memory_size_type>::max()) {
+		forward_any(key, boost::any(value), k);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief See \ref node::forward.
 	///////////////////////////////////////////////////////////////////////////
-	void forward_any(std::string key, boost::any value);
+	void forward_any(std::string key, boost::any value, memory_size_type k = std::numeric_limits<memory_size_type>::max());
 
 private:
 	///////////////////////////////////////////////////////////////////////////

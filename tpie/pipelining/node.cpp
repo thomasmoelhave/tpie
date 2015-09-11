@@ -187,7 +187,7 @@ void node::set_available_memory(memory_size_type availableMemory) {
 	m_availableMemory = availableMemory;
 }
 
-void node::forward_any(std::string key, boost::any value) {
+void node::forward_any(std::string key, boost::any value, memory_size_type k) {
 	switch (get_state()) {
 		case STATE_FRESH:
 		case STATE_IN_PREPARE:
@@ -216,9 +216,9 @@ void node::forward_any(std::string key, boost::any value) {
 
 	typedef node_token::id_t id_t;
 	std::vector<id_t> successors;
-	nodeMap->get_successors(get_id(), successors, true);
-	for (size_t i = 0; i < successors.size(); ++i) {
-		nodeMap->get(successors[i])->add_forwarded_data(key, value, false);
+	nodeMap->get_successors(get_id(), successors, k, true);
+	for (auto i : successors) {
+		nodeMap->get(i)->add_forwarded_data(key, value, false);
 	}
 }
 
