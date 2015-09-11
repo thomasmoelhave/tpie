@@ -31,8 +31,6 @@
 using namespace tpie;
 using namespace tpie::test;
 
-const size_t default_mb=10240;
-
 typedef tpie::uint64_t count_t;
 typedef tpie::uint64_t test_t;
 
