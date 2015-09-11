@@ -73,6 +73,21 @@ public:
 	};
 };
 
+template <typename item_type, typename F>
+class map_sink_t: public node {
+private:
+	F functor;
+public:
+	map_sink_t(const F & functor):
+		functor(functor) {
+		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+	}
+	
+	void push(const item_type & item) {
+		functor(item);
+	}
+};
+
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,6 +98,11 @@ public:
 template <typename F>
 pipe_middle<tempfactory<bits::map_t<F>, F> > map(const F & functor) {
 	return tempfactory<bits::map_t<F>, F >(functor);
+}
+
+template <typename item_type, typename F>
+pipe_end<termfactory<bits::map_sink_t<item_type, F>, F> > map_sink(const F & functor) {
+	return termfactory<bits::map_sink_t<item_type, F>, F >(functor);
 }
 
 } //namespace pipelining
