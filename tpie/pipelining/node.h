@@ -124,6 +124,14 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of memory assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_used_memory() const {
+		if (!m_usedMemory) return 0;
+		return *m_usedMemory;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Set the memory priority of this node. Memory is distributed
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
@@ -626,8 +634,14 @@ public:
 		m_flushPriority = flushPriority;
 	}
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Return an allocator that counts memory usage within the node
+	///////////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	allocator<T> allocator() {return allocator<T>(&m_usedMemory);}
+	tpie::allocator<T> allocator() {
+		if (!m_usedMemory) m_usedMemory.reset(new std::atomic_size_t(0));
+		return tpie::allocator<T>(m_usedMemory.get());
+	}
 	
 	friend class bits::memory_runtime;
 
@@ -641,7 +655,7 @@ private:
 
 	node_parameters m_parameters;
 	memory_size_type m_availableMemory;
-	std::atomic_size_t m_usedMemory;
+	std::unique_ptr<std::atomic_size_t> m_usedMemory; 
 
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
