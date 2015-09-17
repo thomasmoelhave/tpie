@@ -626,6 +626,9 @@ public:
 		m_flushPriority = flushPriority;
 	}
 
+	template <typename T>
+	allocator<T> allocator() {return allocator<T>(&m_usedMemory);}
+	
 	friend class bits::memory_runtime;
 
 	friend class bits::datastructure_runtime;
@@ -633,13 +636,12 @@ public:
 	friend class factory_base;
 
 	friend class bits::pipeline_base;
-
-
 private:
 	node_token token;
 
 	node_parameters m_parameters;
 	memory_size_type m_availableMemory;
+	std::atomic_size_t m_usedMemory;
 
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;

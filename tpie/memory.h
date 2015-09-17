@@ -423,6 +423,7 @@ class allocator {
 private:
     typedef std::allocator<T> a_t;
     a_t a;
+	std::atomic_size_t * cntr;
 public:
     typedef typename a_t::size_type size_type;
     typedef typename a_t::difference_type difference_type;
@@ -432,15 +433,17 @@ public:
 	typedef typename a_t::const_reference const_reference;
     typedef typename a_t::value_type value_type;
 
-	allocator() noexcept {}
-	allocator(const allocator & ) noexcept {}
+	allocator() noexcept : cntr(nullptr) {}
+	explicit allocator(std::atomic_size_t * cntr) noexcept {}
+	allocator(const allocator & o) noexcept : cntr(o.cntr) {}
 	template <typename T2>
-	allocator(const allocator<T2> & ) noexcept {}
+	allocator(const allocator<T2> & o) noexcept : cntr(o.cntr) {}
 
     template <class U> struct rebind {typedef allocator<U> other;};
 
     T * allocate(size_t size, const void * hint=0) {
 		get_memory_manager().register_allocation(size * sizeof(T));
+		if (cntr) *cntr += size;
 		T * res = a.allocate(size, hint);
 		__register_pointer(res, size, typeid(T));
 		return res;
@@ -448,6 +451,7 @@ public:
 
     void deallocate(T * p, size_t n) {
 		if (p == 0) return;
+		if (cntr) *cntr -= n * sizeof(T);
 		__unregister_pointer(p, n, typeid(T));
 		get_memory_manager().register_deallocation(n * sizeof(T));
 		return a.deallocate(p, n);
@@ -471,6 +475,9 @@ public:
 
 	friend bool operator==(const allocator &, const allocator &) noexcept {return true;}
 	friend bool operator!=(const allocator &, const allocator &) noexcept {return false;}
+
+	template <typename U>
+	friend class allocator;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
