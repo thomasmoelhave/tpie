@@ -290,6 +290,9 @@ The method \c fetch takes a required template parameter which is the type of
 data to fetch. Internally, metadata is stored using \c boost::any,
 and the method \c fetch_any fetches metadata just like \c fetch, except it
 returns the \c boost::any object directly without using \c boost::any_cast.
+An optional third argument \c k may be passed as well. This determines the
+maximum distance that the item should be forwarded. This lets the framework
+avoid doing extra work if the data is only needed in the next few nodes.
 
 Using \c forward, a node may forward metadata to its successors in the item flow graph.
 That is, metadata is sent from item sources to item sinks; this is the actor
