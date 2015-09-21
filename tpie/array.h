@@ -410,6 +410,13 @@ public:
 		): m_elements(0), m_size(0), m_tss_used(false), m_allocator(alloc)
 		{resize(s, value);}
 
+	array(size_type s, memory_bucket * bucket):
+		m_elements(0), m_size(0), m_tss_used(false), m_allocator(bucket)
+		{resize(s);}
+
+	array(memory_bucket * bucket):
+		m_elements(0), m_size(0), m_tss_used(false), m_allocator(bucket) {}
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
 	///
@@ -577,6 +584,10 @@ struct allocator_usage<T, allocator<T> > {
 	static void alloc_copy(array<T, allocator<T> > & host, const T * copy_from) {
 		host.m_elements = host.m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(host.m_size)) : 0;
 		host.m_tss_used = true;
+
+		if (host.m_allocator.bucket)
+			host.m_allocator.bucket->count += sizeof(T) * host.m_size;
+			
 		std::uninitialized_copy(copy_from+0, copy_from+host.m_size, host.m_elements+0);
 	}
 
@@ -584,6 +595,9 @@ struct allocator_usage<T, allocator<T> > {
 		host.m_elements = host.m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(host.m_size)) : 0;
 		host.m_tss_used = true;
 
+		if (host.m_allocator.bucket)
+			host.m_allocator.bucket->count += sizeof(T) * host.m_size;
+		
 		// call copy constructors manually
 		std::uninitialized_fill(host.m_elements+0, host.m_elements+host.m_size, elm);
 	}
@@ -591,9 +605,15 @@ struct allocator_usage<T, allocator<T> > {
 	static void alloc_dfl(array<T, allocator<T> > & host) {
 		host.m_elements = host.m_size ? tpie_new_array<T>(host.m_size) : 0;
 		host.m_tss_used = false;
+		
+		if (host.m_allocator.bucket)
+			host.m_allocator.bucket->count += sizeof(T) * host.m_size;
 	}
 
 	static void destruct_and_dealloc(array<T, allocator<T> > & host) {
+		if (host.m_allocator.bucket)
+			host.m_allocator.bucket->count -= sizeof(T) * host.m_size;
+		
 		if (!host.m_tss_used) {
 			// calls destructors
 			tpie_delete_array(host.m_elements, host.m_size);

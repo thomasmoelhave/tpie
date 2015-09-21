@@ -115,6 +115,10 @@ public:
 		this->set_memory_fraction(1.0);
 		this->set_plot_options(node::PLOT_BUFFERED);
 	}
+	
+	void begin() override {
+		this->m_sorter->set_owner(this);
+	}
 
 	bool can_pull() const {
 		return this->m_sorter->can_pull();
@@ -167,6 +171,10 @@ public:
 		this->set_plot_options(node::PLOT_BUFFERED);
 	}
 
+	void begin() override {
+		this->m_sorter->set_owner(this);
+	}
+	
 	virtual void go() override {
 		while (this->m_sorter->can_pull()) {
 			item_type && y=this->m_sorter->pull();
@@ -224,6 +232,10 @@ public:
 	virtual void propagate() override {
 		set_steps(1000);
 		m_propagate_called = true;
+	}
+
+	void begin() override {
+		this->m_sorter->set_owner(this);
 	}
 
 	virtual void go() override {
@@ -302,10 +314,16 @@ public:
 	void push(const item_type & item) {
 		m_sorter->push(item);
 	}
+
+	void begin() override {
+		m_sorter->set_owner(this);
+	}
+
 	
 	virtual void end() override {
 		node::end();
 		m_sorter->end();
+		m_sorter.reset();
 	}
 
 	virtual bool can_evacuate() override {

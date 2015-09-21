@@ -127,12 +127,14 @@ public:
 	/// \brief Get the amount of memory assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_used_memory() const {
-		if (!m_usedMemory) return 0;
-		return *m_usedMemory;
+		memory_size_type ans=0;
+		for (const auto & p: m_buckets)
+			if (p) ans += p->count;
+		return ans;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set the memory priority of this node. Memory is distributed
+	/// \Brief Set the memory priority of this node. Memory is distributed
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
 	void set_memory_fraction(double f);
@@ -410,7 +412,6 @@ protected:
 	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void set_available_memory(memory_size_type availableMemory);
-
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
@@ -635,12 +636,24 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Count the number of memory buckets
+	///////////////////////////////////////////////////////////////////////////////	
+	size_t buckets() const {return m_buckets.size();}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Access a memory bucket
+	///////////////////////////////////////////////////////////////////////////////
+	std::unique_ptr<memory_bucket> & bucket(size_t i) {
+		if (m_buckets.size() <= i) m_buckets.resize(i+1);
+		if (!m_buckets[i]) m_buckets[i].reset(new memory_bucket());
+		return m_buckets[i];
+	}
+		
+	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Return an allocator that counts memory usage within the node
 	///////////////////////////////////////////////////////////////////////////////
-	template <typename T>
-	tpie::allocator<T> allocator() {
-		if (!m_usedMemory) m_usedMemory.reset(new std::atomic_size_t(0));
-		return tpie::allocator<T>(m_usedMemory.get());
+	tpie::memory_bucket * allocator(size_t i=0) {
+		return bucket(i).get();
 	}
 	
 	friend class bits::memory_runtime;
@@ -655,8 +668,8 @@ private:
 
 	node_parameters m_parameters;
 	memory_size_type m_availableMemory;
-	std::unique_ptr<std::atomic_size_t> m_usedMemory; 
-
+	std::vector<std::unique_ptr<memory_bucket> > m_buckets;
+	
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 

@@ -42,14 +42,18 @@ public:
     /// \brief Construct a priority queue.
     /// \param max_size Maximum size of queue.
 	///////////////////////////////////////////////////////////////////////////
-    internal_priority_queue(size_type max_size, comp_t c=comp_t()): pq(max_size), sz(0), comp(c) {}
+    internal_priority_queue(size_type max_size, comp_t c=comp_t(),
+							memory_bucket * bucket = nullptr)
+		: pq(max_size, bucket), sz(0), comp(c) {}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a priority queue with given elements.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	internal_priority_queue(size_type max_size, const IT & start, const IT & end,
-							comp_t c=comp_t()): pq(max_size), sz(0), comp(c) {
+							comp_t c=comp_t(),
+							memory_bucket * bucket = nullptr)
+		: pq(max_size, bucket), sz(0), comp(c) {
 		insert(start, end);
 	}
 

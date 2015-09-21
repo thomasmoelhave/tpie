@@ -414,6 +414,17 @@ inline unique_ptr<T> make_unique(TT && ... tt) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Bucket used for memory counting
+///////////////////////////////////////////////////////////////////////////////
+class memory_bucket {
+public:
+	memory_bucket(): count(0) {}
+	
+	std::atomic_size_t count;
+	std::string name;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief A allocator object usable in STL containers, using the TPIE
 /// memory manager.
 /// \tparam T The type of the elements that can be allocated.
@@ -423,8 +434,9 @@ class allocator {
 private:
     typedef std::allocator<T> a_t;
     a_t a;
-	std::atomic_size_t * cntr;
 public:
+	memory_bucket * bucket;
+
     typedef typename a_t::size_type size_type;
     typedef typename a_t::difference_type difference_type;
 	typedef typename a_t::pointer pointer;
@@ -433,17 +445,17 @@ public:
 	typedef typename a_t::const_reference const_reference;
     typedef typename a_t::value_type value_type;
 
-	allocator() noexcept : cntr(nullptr) {}
-	explicit allocator(std::atomic_size_t * cntr) noexcept {}
-	allocator(const allocator & o) noexcept : cntr(o.cntr) {}
+	allocator() noexcept : bucket(nullptr) {}
+	allocator(memory_bucket * bucket) noexcept : bucket(bucket) {}
+	allocator(const allocator & o) noexcept : bucket(o.bucket) {}
 	template <typename T2>
-	allocator(const allocator<T2> & o) noexcept : cntr(o.cntr) {}
+	allocator(const allocator<T2> & o) noexcept : bucket(o.bucket) {}
 
     template <class U> struct rebind {typedef allocator<U> other;};
 
     T * allocate(size_t size, const void * hint=0) {
 		get_memory_manager().register_allocation(size * sizeof(T));
-		if (cntr) *cntr += size;
+		if (bucket) bucket->count += size * sizeof(T);
 		T * res = a.allocate(size, hint);
 		__register_pointer(res, size, typeid(T));
 		return res;
@@ -451,7 +463,7 @@ public:
 
     void deallocate(T * p, size_t n) {
 		if (p == 0) return;
-		if (cntr) *cntr -= n * sizeof(T);
+		if (bucket) bucket->count -= n * sizeof(T);
 		__unregister_pointer(p, n, typeid(T));
 		get_memory_manager().register_deallocation(n * sizeof(T));
 		return a.deallocate(p, n);

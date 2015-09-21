@@ -23,6 +23,7 @@
 #include <tpie/compressed/stream.h>
 #include <tpie/pipelining/sort_parameters.h>
 #include <tpie/pipelining/merger.h>
+#include <tpie/pipelining/node.h>
 #include <tpie/pipelining/exception.h>
 #include <tpie/dummy_progress.h>
 #include <tpie/array_view.h>
@@ -163,17 +164,20 @@ public:
 	static const memory_size_type maximumFanout = 250; // arbitrary. TODO: run experiments to find threshold
 
 	inline merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
-		: m_state(stParameters)
+		: m_bucketPtr(new memory_bucket())
+ 		, m_bucket(m_bucketPtr.get())
+		, m_state(stParameters)
 		, p()
 		, m_parametersSet(false)
 		, m_store(store.template get_specific<element_type>())
-		, m_merger(pred, m_store)
+		, m_merger(pred, m_store, m_bucket)
+		, m_currentRunItems(m_bucket)
 		, pred(pred)
 		, m_evacuated(false)
 		, m_finalMergeInitialized(false)
-	{
-	}
-
+		, m_owning_node(nullptr)
+		{}
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Enable setting run length and fanout manually (for testing
 	/// purposes).
@@ -242,6 +246,7 @@ public:
 		tp_assert(m_state == stParameters, "Merge sorting already begun");
 		if (!m_parametersSet) throw merge_sort_not_ready();
 		log_debug() << "Start forming input runs" << std::endl;
+		m_currentRunItems = array<store_type>(0, allocator<store_type>(m_bucket));
 		m_currentRunItems.resize((size_t)p.runLength);
 		m_runFiles.resize(p.fanout*2);
 		m_currentRunItemCount = 0;
@@ -755,6 +760,15 @@ public:
 		}
 	}
 
+	void set_owner(tpie::pipelining::node * n) {
+		if (m_owning_node != nullptr)
+			m_bucketPtr = std::move(m_owning_node->bucket(0));
+
+		if (n != nullptr)
+			n->bucket(0) = std::move(m_bucketPtr);
+
+		m_owning_node = n;
+	}
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Figure out the index in m_runFiles of the given run.
@@ -800,6 +814,9 @@ private:
 	};
 
 
+	std::unique_ptr<memory_bucket> m_bucketPtr;
+	memory_bucket * m_bucket;
+
 	array<temp_file> m_runFiles;
 
 	state_type m_state;
@@ -838,6 +855,8 @@ private:
 	memory_size_type m_finalMergeLevel;
 	memory_size_type m_finalRunCount;
 	memory_size_type m_finalMergeSpecialRunNumber;
+
+	tpie::pipelining::node * m_owning_node;
 };
 
 } // namespace tpie
