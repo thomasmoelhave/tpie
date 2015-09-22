@@ -68,8 +68,11 @@ public:
 	/// \param n The maximal number of sets to support
 	/// \param u A value you guarentee not to use.
 	/////////////////////////////////////////////////////////
-	disjoint_sets(size_type n=0, value_t u = default_unused<value_t>::v()): m_elements(n, u), m_unused(u), m_size(0) {}	
+	disjoint_sets(size_type n=0, value_t u = default_unused<value_t>::v(), tpie::memory_bucket * b = nullptr): m_elements(n, u, b), m_unused(u), m_size(0) {}	
 
+
+	disjoint_sets(tpie::memory_bucket * b): m_elements(b), m_unused(default_unused<value_t>::v()), m_size(0) {}
+	
 	/////////////////////////////////////////////////////////
 	/// \brief Make a singleton set
 	///

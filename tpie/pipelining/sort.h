@@ -182,6 +182,11 @@ public:
 			this->step();
 		}
 	}
+
+	void end() override {
+		this->m_sorter.reset();
+	}
+
 private:
 	dest_t dest;
 };
@@ -237,6 +242,8 @@ public:
 	void begin() override {
 		this->m_sorter->set_owner(this);
 	}
+
+	void end() override {}
 
 	virtual void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
@@ -323,7 +330,6 @@ public:
 	virtual void end() override {
 		node::end();
 		m_sorter->end();
-		m_sorter.reset();
 	}
 
 	virtual bool can_evacuate() override {
