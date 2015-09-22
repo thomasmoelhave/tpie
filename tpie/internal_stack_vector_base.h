@@ -66,7 +66,7 @@ public:
 	///
 	/// \param size  Capacity of the structure.
 	///////////////////////////////////////////////////////////////////////////
-	internal_stack_vector_base(size_t size=0, tpie::memory_bucket * b=nullptr):
+	internal_stack_vector_base(size_t size=0, tpie::memory_bucket_ref b=memory_bucket_ref()):
 		m_elements(size, b), m_size(0) {}
 
 	///////////////////////////////////////////////////////////////////////////

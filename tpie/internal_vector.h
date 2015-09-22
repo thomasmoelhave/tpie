@@ -46,10 +46,11 @@ public:
 	/// \brief Construct structure with given capacity.
 	/// \copydetails tpie::internal_stack_vector_base::internal_stack_vector_base
 	///////////////////////////////////////////////////////////////////////////
-	internal_vector(size_t size=0, tpie::memory_bucket * bucket = nullptr): parent_t(size, bucket){}
+	internal_vector(size_t size=0, tpie::memory_bucket_ref bucket = memory_bucket_ref())
+					: parent_t(size, bucket){}
 
 	
-	internal_vector(tpie::memory_bucket * bucket): parent_t(0, bucket){}
+	internal_vector(tpie::memory_bucket_ref bucket): parent_t(0, bucket){}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Element access. No range checking is done.

@@ -35,7 +35,8 @@ private:
 
 	typedef bits::store_pred<pred_t, specific_store_t> store_pred_t;
 public:
-	inline merger(pred_t pred, specific_store_t store, memory_bucket * bucket = nullptr)
+	inline merger(pred_t pred, specific_store_t store,
+				  memory_bucket_ref bucket = memory_bucket_ref())
 		: pq(0, predwrap(store_pred_t(pred)), bucket)
 		, in(bucket)
 		, itemsRead(bucket)

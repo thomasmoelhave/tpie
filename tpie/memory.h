@@ -425,6 +425,28 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Class storring a reference to a memory bucket
+///
+/// We do not use raw pointers manly because the go into overloading resolution
+/// with 0.
+///////////////////////////////////////////////////////////////////////////////
+class memory_bucket_ref {
+public:
+	explicit memory_bucket_ref(memory_bucket * b=nullptr) noexcept: bucket(b) {}
+	explicit operator bool() const noexcept {return bucket != nullptr;}
+	memory_bucket_ref(const memory_bucket_ref & o) = default;
+	memory_bucket_ref(memory_bucket_ref && o) = default;
+	memory_bucket_ref & operator=(const memory_bucket_ref & o) = default;
+	memory_bucket_ref & operator=(memory_bucket_ref && o) = default;
+	memory_bucket & operator*() noexcept {return *bucket;} 
+	const memory_bucket & operator*() const noexcept {return *bucket;} 
+	memory_bucket * operator->() noexcept {return bucket;} 
+	const memory_bucket * operator->() const noexcept {return bucket;} 
+private:
+	memory_bucket * bucket;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief A allocator object usable in STL containers, using the TPIE
 /// memory manager.
 /// \tparam T The type of the elements that can be allocated.
@@ -435,7 +457,7 @@ private:
     typedef std::allocator<T> a_t;
     a_t a;
 public:
-	memory_bucket * bucket;
+	memory_bucket_ref bucket;
 
     typedef typename a_t::size_type size_type;
     typedef typename a_t::difference_type difference_type;
@@ -445,8 +467,8 @@ public:
 	typedef typename a_t::const_reference const_reference;
     typedef typename a_t::value_type value_type;
 
-	allocator() noexcept : bucket(nullptr) {}
-	allocator(memory_bucket * bucket) noexcept : bucket(bucket) {}
+	allocator() = default;
+	allocator(memory_bucket_ref bucket) noexcept : bucket(bucket) {}
 	allocator(const allocator & o) noexcept : bucket(o.bucket) {}
 	template <typename T2>
 	allocator(const allocator<T2> & o) noexcept : bucket(o.bucket) {}

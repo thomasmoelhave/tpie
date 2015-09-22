@@ -165,7 +165,7 @@ public:
 
 	inline merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
 		: m_bucketPtr(new memory_bucket())
- 		, m_bucket(m_bucketPtr.get())
+ 		, m_bucket(memory_bucket_ref(m_bucketPtr.get()))
 		, m_state(stParameters)
 		, p()
 		, m_parametersSet(false)
@@ -815,7 +815,7 @@ private:
 
 
 	std::unique_ptr<memory_bucket> m_bucketPtr;
-	memory_bucket * m_bucket;
+	memory_bucket_ref m_bucket;
 
 	array<temp_file> m_runFiles;
 

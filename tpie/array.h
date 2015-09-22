@@ -410,11 +410,11 @@ public:
 		): m_elements(0), m_size(0), m_tss_used(false), m_allocator(alloc)
 		{resize(s, value);}
 
-	array(size_type s, memory_bucket * bucket):
+	array(size_type s, memory_bucket_ref bucket):
 		m_elements(0), m_size(0), m_tss_used(false), m_allocator(bucket)
 		{resize(s);}
 
-	array(memory_bucket * bucket):
+	array(memory_bucket_ref bucket):
 		m_elements(0), m_size(0), m_tss_used(false), m_allocator(bucket) {}
 	
 	///////////////////////////////////////////////////////////////////////////

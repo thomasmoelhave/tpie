@@ -652,8 +652,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Return an allocator that counts memory usage within the node
 	///////////////////////////////////////////////////////////////////////////////
-	tpie::memory_bucket * allocator(size_t i=0) {
-		return bucket(i).get();
+	tpie::memory_bucket_ref allocator(size_t i=0) {
+		return tpie::memory_bucket_ref(bucket(i).get());
 	}
 	
 	friend class bits::memory_runtime;

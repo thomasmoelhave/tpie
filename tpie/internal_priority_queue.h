@@ -43,7 +43,7 @@ public:
     /// \param max_size Maximum size of queue.
 	///////////////////////////////////////////////////////////////////////////
     internal_priority_queue(size_type max_size, comp_t c=comp_t(),
-							memory_bucket * bucket = nullptr)
+							memory_bucket_ref bucket = memory_bucket_ref())
 		: pq(max_size, bucket), sz(0), comp(c) {}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ public:
 	template <typename IT>
 	internal_priority_queue(size_type max_size, const IT & start, const IT & end,
 							comp_t c=comp_t(),
-							memory_bucket * bucket = nullptr)
+							memory_bucket_ref bucket = memory_bucket_ref())
 		: pq(max_size, bucket), sz(0), comp(c) {
 		insert(start, end);
 	}
