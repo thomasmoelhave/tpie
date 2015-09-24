@@ -129,6 +129,10 @@ public:
 		return this->m_sorter->pull();
 	}
 
+	void end() override {
+		this->m_sorter.reset();
+	}
+
 	// Despite this go() implementation, a sort_pull_output_t CANNOT be used as
 	// an initiator node. Normally, it is a type error to have a phase without
 	// an initiator, but with a passive_sorter you can circumvent this
@@ -243,7 +247,10 @@ public:
 		this->m_sorter->set_owner(this);
 	}
 
-	void end() override {}
+	void end() override {
+		m_weakSorter = m_sorter;
+		m_sorter.reset();
+	}
 
 	virtual void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
@@ -255,7 +262,8 @@ public:
 	}
 
 	virtual void evacuate() override {
-		m_sorter->evacuate_before_reporting();
+		sorterptr sorter = m_weakSorter.lock();
+		if (sorter) sorter->evacuate_before_reporting();
 	}
 
 	sorterptr get_sorter() const {
@@ -275,6 +283,7 @@ protected:
 
 private:
 	sorterptr m_sorter;
+	std::weak_ptr<typename sorterptr::element_type> m_weakSorter;
 	bool m_propagate_called;
 	std::shared_ptr<Output> dest;
 };
@@ -330,6 +339,8 @@ public:
 	virtual void end() override {
 		node::end();
 		m_sorter->end();
+		m_weakSorter = m_sorter;
+		m_sorter.reset();
 	}
 
 	virtual bool can_evacuate() override {
@@ -337,7 +348,8 @@ public:
 	}
 
 	virtual void evacuate() override {
-		m_sorter->evacuate_before_merging();
+		sorterptr sorter = m_weakSorter.lock();
+		if (sorter) sorter->evacuate_before_merging();
 	}
 
 protected:
@@ -348,6 +360,7 @@ protected:
 	}
 private:
 	sorterptr m_sorter;
+	std::weak_ptr<typename sorterptr::element_type> m_weakSorter;
 	bool m_propagate_called;
 	sort_calc_t<T, pred_t, store_t> dest;
 };
@@ -506,8 +519,8 @@ public:
 		: m_sorter(sorter)
 		, m_calc_token(calc_token) {}
 
-	constructed_type construct() const {
-		calc_t calc(m_sorter, m_calc_token);
+	constructed_type construct() {
+		calc_t calc(std::move(m_sorter), m_calc_token);
 		this->init_node(calc);
 		input_t input(std::move(calc));
 		this->init_node(input);
@@ -534,8 +547,8 @@ public:
 		, m_calc_token(calc_token)
 		{}
 
-	constructed_type construct() const {
-		constructed_type res(m_sorter);
+	constructed_type construct() {
+		constructed_type res(std::move(m_sorter));
 		res.add_calc_dependency(m_calc_token);
 		init_node(res);
 		return res;
@@ -568,8 +581,9 @@ public:
 	typedef bits::sort_pull_output_t<item_type, pred_t, store_t> output_t;
 
 	passive_sorter(pred_t pred = pred_t(),
-						  store_t store = store_t())
-		: m_sorter(std::make_shared<sorter_t>(pred, store))
+				   store_t store = store_t())
+		: m_sorterInput(std::make_shared<sorter_t>(pred, store))
+		, m_sorterOutput(m_sorterInput)
 		{}
 
 	passive_sorter(const passive_sorter &) = delete;
@@ -584,20 +598,24 @@ public:
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
 	input_pipe_t input() {
-		return bits::passive_sorter_factory_input<item_type, pred_t, store_t>(
-			m_sorter, m_calc_token);
+		tp_assert(m_sorterInput, "Output called more then once");
+		auto ret = bits::passive_sorter_factory_input<item_type, pred_t, store_t>(
+			std::move(m_sorterInput), m_calc_token);
+		return std::move(ret);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
 	output_pipe_t output() {
-		return bits::passive_sorter_factory_output<item_type, pred_t, store_t>(
-			m_sorter, m_calc_token);
+		tp_assert(m_sorterOutput, "Output called more then once");
+		auto ret =  bits::passive_sorter_factory_output<item_type, pred_t, store_t>(
+			std::move(m_sorterOutput), m_calc_token);
+		return std::move(ret);
 	}
 	
 private:
-	sorterptr m_sorter;
+	sorterptr m_sorterInput, m_sorterOutput;
 	node_token m_calc_token;
 };
 

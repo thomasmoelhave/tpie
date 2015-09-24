@@ -175,7 +175,7 @@ public:
 
 	template <typename dest_t>
 	count_t<dest_t, byid_gen_t, byparent_gen_t>
-	construct(dest_t dest) const {
+	construct(dest_t dest) {
 		return count_t<dest_t, byid_gen_t, byparent_gen_t>
 			(std::move(dest), m_byid.construct(), m_byparent.construct());
 	}
