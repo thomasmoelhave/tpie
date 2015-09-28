@@ -76,6 +76,15 @@ public:
 		m_propagate_called = true;
 	}
 
+	void begin() override {
+		m_sorter->set_owner(this);
+	}
+
+	void end() override {
+		m_sorter->set_owner(nullptr);
+		m_sorter.reset();
+	}
+
 	void add_calc_dependency(node_token tkn) {
 		add_dependency(tkn);
 	}
@@ -218,6 +227,10 @@ public:
 		m_propagate_called = true;
 	}
 
+	void begin() override {
+		m_sorter->set_owner(this);
+	}
+
 	virtual void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
 		log_debug() << "TODO: Progress information during merging." << std::endl;
@@ -227,12 +240,18 @@ public:
 		pi->done();
 	}
 
+	void end() override {
+		m_weak_sorter = m_sorter;
+		m_sorter.reset();
+	}
+
 	virtual bool can_evacuate() override {
 		return true;
 	}
 
 	virtual void evacuate() override {
-		m_sorter->evacuate();
+		auto p = m_weak_sorter.lock();
+		if (p) p->evacuate();
 	}
 
 	sorterptr get_sorter() const {
@@ -252,6 +271,7 @@ protected:
 
 private:
 	sorterptr m_sorter;
+	std::weak_ptr<typename sorterptr::element_type> m_weak_sorter;
 	bool m_propagate_called;
 	std::shared_ptr<Output> dest;
 };
@@ -285,6 +305,7 @@ public:
 	}
 
 	virtual void begin() override {
+		m_sorter->set_owner(this);
 		m_sorter->begin();
 	}
 
@@ -294,6 +315,8 @@ public:
 
 	virtual void end() override {
 		m_sorter->end();
+		m_weak_sorter = m_sorter;
+		m_sorter.reset();
 	}
 
 	virtual bool can_evacuate() override {
@@ -301,7 +324,8 @@ public:
 	}
 
 	virtual void evacuate() override {
-		m_sorter->evacuate();
+		auto p = m_weak_sorter.lock();
+		if (p) p->evacuate();
 	}
 
 protected:
@@ -313,6 +337,7 @@ protected:
 
 private:
 	sorterptr m_sorter;
+	std::weak_ptr<typename sorterptr::element_type> m_weak_sorter;
 	sort_calc_t<Traits> dest;
 	bool m_propagate_called;
 };
@@ -434,12 +459,12 @@ public:
 		: m_sorter(sorter)
 		, m_calc_token(calc_token) {}
 
-	constructed_type construct() const {
-		calc_t calc(m_sorter, m_calc_token);
+	constructed_type construct() {
+		calc_t calc(std::move(m_sorter), m_calc_token);
 		this->init_node(calc);
 		input_t input(std::move(calc));
 		this->init_node(input);
-		return input;
+		return std::move(input);
 	}
 
 private:
@@ -462,11 +487,11 @@ public:
 		, m_calc_token(calc_token)
 		{}
 
-	constructed_type construct() const {
-		constructed_type res(m_sorter);
+	constructed_type construct() {
+		constructed_type res(std::move(m_sorter));
 		res.add_calc_dependency(m_calc_token);
 		init_node(res);
-		return res;
+		return std::move(res);
 	}
 
 private:
@@ -501,7 +526,8 @@ public:
 	typedef pullpipe_begin<serialization_bits::passive_sorter_factory_output<Traits> > output_pipe_t;
 
 	serialization_passive_sorter(pred_t pred = pred_t())
-		: m_sorter(new sorter_t(sizeof(T), pred))
+		: m_sorter_input(new sorter_t(sizeof(T), pred))
+		, m_sorter_output(m_sorter_input)
 	{
 	}
 
@@ -514,18 +540,21 @@ public:
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
 	input_pipe_t input() {
-		return input_pipe_t(m_sorter, m_calc_token);
+		assert(m_sorter_input);
+		return input_pipe_t(std::move(m_sorter_input), m_calc_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
 	output_pipe_t output() {
-		return output_pipe_t(m_sorter, m_calc_token);
+		assert(m_sorter_output);
+		return output_pipe_t(std::move(m_sorter_output), m_calc_token);
 	}
 
 private:
-	sorterptr m_sorter;
+	sorterptr m_sorter_input;
+	sorterptr m_sorter_output;
 	node_token m_calc_token;
 };
 
