@@ -380,6 +380,39 @@ public:
 	};
 };
 
+template <typename fact_t>
+class pull_source_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	public:
+		typedef typename fact_t::constructed_type source_t;
+		typedef typename push_type<dest_t>::type item_type;
+
+		type(dest_t && dest, fact_t && fact) 
+			: dest(std::move(dest)), src(std::move(fact.construct())) {
+			add_push_destination(dest);
+			add_pull_source(src);
+		}
+
+		void propagate() override {
+			size_t size = fetch<stream_size_type>("items");
+			set_steps(size);
+		}
+
+		void go() override {
+			while (src.can_pull()) {
+				dest.push(src.pull());
+				step();
+			}
+		}
+
+	private:
+		dest_t dest;
+		source_t src;
+	};
+};
+
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -556,6 +589,16 @@ pipe_middle<tempfactory<bits::item_type_t<T> > > item_type() {
 	return tempfactory<bits::item_type_t<T> >();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A node that pulls items from source and push them into dest
+///
+/// \param The pull source, and the source forwards the number of items, "items"
+///////////////////////////////////////////////////////////////////////////////
+template <typename fact_t>
+pipe_begin<tempfactory<bits::pull_source_t<fact_t>, fact_t &&> > 
+pull_source(pullpipe_begin<fact_t> && from) {
+	return tempfactory<bits::pull_source_t<fact_t>, fact_t &&>(std::move(from.factory));
+}
 
 }
 
