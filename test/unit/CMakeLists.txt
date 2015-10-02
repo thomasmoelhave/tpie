@@ -54,7 +54,7 @@ add_unittest(compressed_stream
 	odd_block_size
 	write_peek
 )
-add_unittest(btree internal_basic internal_iterator internal_key_and_compare internal_augment external_basic external_iterator external_key_and_compare external_augment internal_build_test)
+add_unittest(btree internal_basic internal_iterator internal_key_and_compare internal_augment external_basic external_iterator external_key_and_compare external_augment internal_build_test external_build_test)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic empty_size sized large)
