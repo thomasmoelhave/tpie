@@ -67,8 +67,8 @@ public:
 
 	typedef size_t size_type;
 private:
-	constexpr memory_size_type cacheSize() const {return 32;}
-	constexpr memory_size_type blockSize() const {return 7000;}
+	static constexpr memory_size_type cacheSize() {return 32;}
+	static constexpr memory_size_type blockSize() {return 7000;}
 
 	struct internal_content {
 		key_type min_key;
@@ -135,19 +135,19 @@ public:
 	}
 
 private:
-	constexpr size_t min_internal_size() const {
+	static constexpr size_t min_internal_size() {
 		return (max_internal_size() + 3) / 4;
 	}
 
-	constexpr size_t max_internal_size() const {
+	static constexpr size_t max_internal_size() {
 		return (blockSize() - sizeof(memory_size_type)) / sizeof(internal_content);
 	}
 
-	constexpr size_t min_leaf_size() const {
+	static constexpr size_t min_leaf_size() {
 		return (max_leaf_size() + 3) / 4;
 	}
 
-	constexpr size_t max_leaf_size() const {
+	static constexpr size_t max_leaf_size() {
 		return (blockSize() - sizeof(memory_size_type)) / sizeof(T);
 	}
 	
@@ -372,13 +372,21 @@ private:
 	}
 
 	void set_augment(leaf_type child, internal_type node, augment_type augment) {
+		set_augment(child, node, augment, min_key(child));
+	}
+
+	void set_augment(internal_type child, internal_type node, augment_type augment) {
+		set_augment(child, node, augment, min_key(child));
+	}
+
+	void set_augment(leaf_type child, internal_type node, augment_type augment, key_type min_key) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
 			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key(child);
+				nodeInter.values[i].min_key = min_key;
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;
@@ -389,14 +397,14 @@ private:
 		__builtin_unreachable();
 	}
 
-	void set_augment(internal_type child, internal_type node, augment_type augment) {
+	void set_augment(internal_type child, internal_type node, augment_type augment, key_type min_key) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
 			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key(child);
+				nodeInter.values[i].min_key = min_key;
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;

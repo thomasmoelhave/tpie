@@ -94,11 +94,11 @@ private:
 	typedef internal * internal_type;
 	typedef leaf * leaf_type;
 
-	static size_t min_internal_size() {return a;}
-	static size_t max_internal_size() {return b;}
+	static constexpr size_t min_internal_size() {return a;}
+	static constexpr size_t max_internal_size() {return b;}
 
-	static size_t min_leaf_size() {return a;}
-	static size_t max_leaf_size() {return b;}
+	static constexpr size_t min_leaf_size() {return a;}
+	static constexpr size_t max_leaf_size() {return b;}
 	
 	void move(internal_type src, size_t src_i,
 			  internal_type dst, size_t dst_i) {
@@ -212,16 +212,23 @@ private:
 	}
 
 	void set_augment(leaf_type l, internal_type p, augment_type ag) {
-		size_t idx=index(l, p);
-		p->values[idx].min_key = min_key(l);
-		p->values[idx].augment = ag;
-		
+        set_augment(l, p, ag, min_key(l));
 	}
 
 	void set_augment(internal_type l, internal_type p, augment_type ag) {
+        set_augment(l, p, ag, min_key(l));
+	}
+
+	void set_augment(leaf_type l, internal_type p, augment_type ag, key_type min_key) {
 		size_t idx=index(l, p);
-		p->values[idx].min_key = min_key(l);
 		p->values[idx].augment = ag;
+		p->values[idx].min_key = min_key;
+	}
+
+	void set_augment(internal_type l, internal_type p, augment_type ag, key_type min_key) {
+		size_t idx=index(l, p);
+		p->values[idx].augment = ag;
+		p->values[idx].min_key = min_key;
 	}
 
 	const augment_type & augment(internal_type p, size_t i) const {
