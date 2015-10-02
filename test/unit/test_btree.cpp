@@ -22,6 +22,7 @@
 #include <tpie/btree/internal_store.h>
 #include <tpie/btree/external_store.h>
 #include <tpie/btree/btree.h>
+#include <tpie/btree/btree_builder.h>
 #include <tpie/tempname.h>
 #include <algorithm>
 #include <set>
@@ -379,6 +380,23 @@ bool external_augment_test() {
 	return augment_test(external_store_constructor<btree_external_store<int, ss_augment> >(tmp.path()));
 }
 
+bool internal_build_test() {
+    btree_builder<btree_internal_store<int>> builder;
+	set<int> tree2;
+
+	for (size_t i=0; i < 10000; ++i) {
+		builder.push(i);
+		tree2.insert(i);
+	}
+
+	btree<btree_internal_store<int>> tree(builder.build());
+
+    TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size");
+    TEST_ENSURE(compare(tree, tree2), "Compare failed");
+
+	return true;
+}
+
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
@@ -389,7 +407,8 @@ int main(int argc, char **argv) {
 		.test(external_basic_test, "external_basic")
 		.test(external_iterator_test, "external_iterator")
 		.test(external_key_and_comparator_test, "external_key_and_compare")
-		.test(external_augment_test, "external_augment");
+		.test(external_augment_test, "external_augment")
+        .test(internal_build_test, "internal_build_test");
 }
 
 
