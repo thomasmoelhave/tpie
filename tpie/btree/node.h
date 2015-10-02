@@ -195,6 +195,9 @@ private:
 	template <typename, typename, typename>
 	friend class btree;
 
+	template <typename, typename, typename>
+	friend class btree_builder;
+
 	template <typename>
 	friend class btree_iterator;
 };

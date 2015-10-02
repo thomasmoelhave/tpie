@@ -74,5 +74,17 @@ template <typename S,
           typename A=empty_augmenter>
 class btree;
 
+/**
+ * \brief Augmented btree builder
+ *
+ * The fanout and location of nodes is decided by the store type S
+ * C is the item comparator type
+ * A is the type of the augmentation computation fuctor
+ */
+template <typename S,
+          typename C=std::less<typename S::key_type>,
+          typename A=empty_augmenter>
+class btree_builder;
+
 } //namespace tpie
 #endif /*_TPIE_BTREE_BASE_H_*/

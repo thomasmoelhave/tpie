@@ -15,6 +15,7 @@ set (HEADERS
 		btree/external_store_base.h
 		btree/node.h
 		btree/btree.h
+        btree/btree_builder.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h

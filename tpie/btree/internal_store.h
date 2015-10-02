@@ -264,6 +264,9 @@ private:
 
 	template <typename, typename, typename>
 	friend class btree;
+
+    template<typename, typename, typename>
+    friend class btree_builder;
 };
 
 } //namespace tpie
