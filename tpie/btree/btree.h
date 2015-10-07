@@ -92,8 +92,8 @@ private:
 		return m_store.get_child_leaf(node, i);
 	}
 
-	template <bool upper_bound = false>
-	leaf_type find_leaf(std::vector<internal_type> & path, key_type k) const {
+	template <bool upper_bound = false, typename K>
+	leaf_type find_leaf(std::vector<internal_type> & path, K k) const {
 		path.clear();
 		if (m_store.height() == 1) return m_store.get_root_leaf();
 		internal_type n = m_store.get_root_internal();
@@ -361,7 +361,8 @@ public:
 	/**
 	 * \brief Return an iterator to the first item with the given key
 	 */
-	iterator find(key_type v) const {
+	template <typename K>
+	iterator find(K v) const {
 		iterator itr(&m_store);
 
 		if(m_store.height() == 0) {
@@ -391,7 +392,8 @@ public:
 	 * \brief Return an interator to the first element that is "not less" than
 	 * the given key
 	 */
-	iterator lower_bound(key_type v) const {
+	template <typename K>
+	iterator lower_bound(K v) const {
 		iterator itr(&m_store);
 		if (m_store.height() == 0) {
 			itr.goto_end();
@@ -416,7 +418,8 @@ public:
 	 * \brief Return an interator to the first element that is "greater" than
 	 * the given key
 	 */
-	iterator upper_bound(key_type v) const {
+	template <typename K>
+	iterator upper_bound(K v) const {
 		iterator itr(&m_store);
 		if (m_store.height() == 0) {
 			itr.goto_end();
