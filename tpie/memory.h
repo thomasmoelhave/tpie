@@ -434,14 +434,16 @@ class memory_bucket_ref {
 public:
 	explicit memory_bucket_ref(memory_bucket * b=nullptr) noexcept: bucket(b) {}
 	explicit operator bool() const noexcept {return bucket != nullptr;}
-	memory_bucket_ref(const memory_bucket_ref & o) = default;
+	memory_bucket_ref(const memory_bucket_ref & o)  = default;
 	memory_bucket_ref(memory_bucket_ref && o) = default;
 	memory_bucket_ref & operator=(const memory_bucket_ref & o) = default;
 	memory_bucket_ref & operator=(memory_bucket_ref && o) = default;
 	memory_bucket & operator*() noexcept {return *bucket;} 
 	const memory_bucket & operator*() const noexcept {return *bucket;} 
 	memory_bucket * operator->() noexcept {return bucket;} 
-	const memory_bucket * operator->() const noexcept {return bucket;} 
+	const memory_bucket * operator->() const noexcept {return bucket;}
+	friend bool operator ==(const memory_bucket_ref & l, const memory_bucket_ref & r) noexcept {return l.bucket == r.bucket;}
+	friend bool operator !=(const memory_bucket_ref & l, const memory_bucket_ref & r) noexcept {return l.bucket != r.bucket;}
 private:
 	memory_bucket * bucket;
 };
@@ -467,6 +469,10 @@ public:
 	typedef typename a_t::const_reference const_reference;
     typedef typename a_t::value_type value_type;
 
+	typedef std::true_type propagate_on_container_copy_assignment;
+	typedef std::true_type propagate_on_container_move_assignment;
+	typedef std::true_type propagate_on_container_swap;
+	
 	allocator() = default;
 	allocator(memory_bucket_ref bucket) noexcept : bucket(bucket) {}
 	allocator(const allocator & o) noexcept : bucket(o.bucket) {}
@@ -507,11 +513,13 @@ public:
 	const_pointer address(const_reference x) const noexcept {return &x;}
 
 
-	friend bool operator==(const allocator &, const allocator &) noexcept {return true;}
-	friend bool operator!=(const allocator &, const allocator &) noexcept {return false;}
+	friend bool operator==(const allocator & l, const allocator & r) noexcept {return l.bucket == r.bucket;}
+	friend bool operator!=(const allocator & l, const allocator & r) noexcept {return l.bucket != r.bucket;}
 
 	template <typename U>
 	friend class allocator;
+
+		
 };
 
 ///////////////////////////////////////////////////////////////////////////////
