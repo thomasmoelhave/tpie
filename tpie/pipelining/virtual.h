@@ -608,12 +608,12 @@ public:
 			, dest(std::move(dest))
 		{
 			add_push_destination(this->dest);
-			add_push_destination(*dest2);
+			if (dest2) add_push_destination(*dest2);
 		}
 
 		void push(T v) {
 			dest.push(v);
-			dest2->push(v);
+			if (dest2) dest2->push(v);
 		}
 
 	private:
@@ -634,7 +634,8 @@ pipe_middle<tempfactory<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_vi
 }
 
 template <typename T>
-virtual_chunk<T, T> vfork(const virtual_chunk_end<T> & out) {
+virtual_chunk<T> vfork(const virtual_chunk_end<T> & out) {
+	if (out.empty()) return virtual_chunk<T>();
 	return fork_to_virtual(out);
 }
 
