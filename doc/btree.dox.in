@@ -58,4 +58,18 @@ tree.insert(std::make_pair(1, 3));
 tree.insert(std::make_pair(3, 9));
 \endcode
 
+\section sec_btree_builder Btree builder
+Constructing a btree in external memory by inserting elements one by one is not optimal, since sorting the elements and then constructing a btree in a bottom-up fashion is faster. This method is used in the class \c btree_builder implemented in \ref btree/btree_builder.h. Items are pushed to the class in sorted ordered. The usage of the class is demonstrated in the following example.
+
+
+\code
+temp_file file;
+btree_external_store<int> store(file.path());
+btree_builder<btree_external_store<int>> builder(store);
+for(int i = 0; i < 100000; ++i)
+	builder.push(i);
+
+btree<btree_external_store<int>> tree(builder.build());
+\endcode
+
 */
