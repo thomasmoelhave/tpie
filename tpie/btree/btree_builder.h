@@ -122,34 +122,38 @@ private:
         m_internal_nodes[level+1].push_back(internal);
     }
 
+	/**
+	* \brief The desired number of children for each leaf node.
+	*/
     static constexpr size_t desired_leaf_size() {
         return (S::min_leaf_size() + S::max_leaf_size()) / 2;
     }
 
+	/**
+	* \brief The maximum number of items to be kept in memory.
+	*/
     static constexpr size_t leaf_tipping_point() {
         return desired_leaf_size() + S::min_leaf_size();
     }
 
+	/**
+	* \brief The desired number of children for each internal node.
+	*/
     static constexpr size_t desired_internal_size() {
         return (S::min_internal_size() + S::max_internal_size()) / 2;
     }
 
+	/**
+	* \brief The maximum number of children to be kept in memory at each level.
+	*/
     static constexpr size_t internal_tipping_point() {
         return desired_internal_size() + S::min_internal_size();
     }
-public:
-    btree_builder(S store=S(), C comp=C(), A augmenter=A())
-        : m_store(store)
-        , m_comp(comp)
-        , m_augmenter(augmenter)
-    {}
 
-    void push(value_type v) {
-        m_items.push_back(v);
-        m_store.set_size(m_store.size() + 1);
-
-        // try to construct a new leaf from items if possible
-        if(m_items.size() < leaf_tipping_point()) return;
+	/**
+	* \brief Constructs a leaf. If possible, also constructs internal nodes.
+	*/
+	void extract_nodes() {
         construct_leaf(desired_leaf_size());
 
         if(m_leaves.size() < internal_tipping_point()) return;
@@ -162,8 +166,33 @@ public:
             // we have enough nodes to construct a new node.
             construct_internal_from_internal(desired_internal_size(), i);
         }
+	}
+public:
+	/**
+	* \brief Construct a btree builder with the given storage
+	*/
+    btree_builder(S store=S(), C comp=C(), A augmenter=A())
+        : m_store(store)
+        , m_comp(comp)
+        , m_augmenter(augmenter)
+    {}
+
+	/**
+	* \brief Push a value to the builder. Values are expected to be received in order
+	* \param v The value to be pushed
+	*/
+    void push(value_type v) {
+        m_items.push_back(v);
+        m_store.set_size(m_store.size() + 1);
+
+        // try to construct nodes from items if possible
+        if(m_items.size() < leaf_tipping_point()) return;
+		extract_nodes();
     }
 
+	/**
+	* \brief Constructs and returns a btree from the value that was pushed to the builder. The btree builder should not be used again after this point.
+	*/
     tree_type build() {
         // finish building the tree by traversing all levels and constructing leaves/nodes
 
