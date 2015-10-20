@@ -582,6 +582,7 @@ private:
 	void truncate_zero() {
 		// No need to flush block
 		m_buffer.reset();
+		m_response.clear_block_info();
 		compressor_thread_lock l(compressor());
 		finish_requests(l);
 		get_buffer(l, 0);
