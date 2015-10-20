@@ -91,27 +91,11 @@ node::node()
 {
 }
 
-node::node(const node & other)
-	: token(other.token, this)
-	, m_parameters(other.m_parameters)
-	, m_availableMemory(other.m_availableMemory)
-	, m_flushPriority(other.m_flushPriority)
-	, m_stepsLeft(other.m_stepsLeft)
-	, m_pi(other.m_pi)
-	, m_state(other.m_state)
-	, m_plotOptions(other.m_plotOptions)
-{
-	if (m_state != STATE_FRESH) 
-		throw call_order_exception(
-			"Tried to copy pipeline node after prepare had been called");
-}
-
-#ifdef TPIE_CPP_RVALUE_REFERENCE
-
 node::node(node && other)
-	: token(std::move(other.token), this)
+	: token(other.token, this)
 	, m_parameters(std::move(other.m_parameters))
 	, m_availableMemory(std::move(other.m_availableMemory))
+	, m_buckets(std::move(other.m_buckets))
 	, m_flushPriority(std::move(other.m_flushPriority))
 	, m_stepsLeft(std::move(other.m_stepsLeft))
 	, m_pi(std::move(other.m_pi))
@@ -123,7 +107,11 @@ node::node(node && other)
 			"Tried to move pipeline node after prepare had been called");
 }
 
-#endif // TPIE_CPP_RVALUE_REFERENCE
+node & node::operator=(node && other) {
+	this->~node();
+	new (this)node(std::move(other));
+	return *this;
+}
 
 node::node(const node_token & token)
 	: token(token, this, true)
@@ -200,7 +188,7 @@ void node::set_available_memory(memory_size_type availableMemory) {
 	m_availableMemory = availableMemory;
 }
 
-void node::forward_any(std::string key, boost::any value) {
+void node::forward_any(std::string key, boost::any value, memory_size_type k) {
 	switch (get_state()) {
 		case STATE_FRESH:
 		case STATE_IN_PREPARE:
@@ -229,9 +217,9 @@ void node::forward_any(std::string key, boost::any value) {
 
 	typedef node_token::id_t id_t;
 	std::vector<id_t> successors;
-	nodeMap->get_successors(get_id(), successors, true);
-	for (size_t i = 0; i < successors.size(); ++i) {
-		nodeMap->get(successors[i])->add_forwarded_data(key, value, false);
+	nodeMap->get_successors(get_id(), successors, k, true);
+	for (auto i : successors) {
+		nodeMap->get(i)->add_forwarded_data(key, value, false);
 	}
 }
 

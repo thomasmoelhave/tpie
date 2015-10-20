@@ -19,9 +19,8 @@
 
 #include <tpie/pipelining/pipeline.h>
 #include <tpie/pipelining/node.h>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <iostream>
-#include <boost/unordered_set.hpp>
 #include <tpie/pipelining/runtime.h>
 
 namespace {
@@ -50,7 +49,7 @@ namespace pipelining {
 
 namespace bits {
 
-typedef boost::unordered_map<const node *, size_t> nodes_t;
+typedef std::unordered_map<const node *, size_t> nodes_t;
 
 void pipeline_base::plot_impl(std::ostream & out, bool full) {
 	typedef tpie::pipelining::bits::node_map::id_t id_t;
@@ -58,7 +57,7 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 	node_map::ptr nodeMap = m_nodeMap->find_authority();
 	const node_map::relmap_t & relations = nodeMap->get_relations();
 	
-	boost::unordered_map<id_t, id_t> repr;
+	std::unordered_map<id_t, id_t> repr;
 	if (!full) {
 	 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
 			id_t s = i->first;
@@ -74,6 +73,9 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 		if (repr.count(i->first)) continue;
 		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_BUFFERED))
 			out << '"' << name(nodeMap, i->first) << "\" [shape=box];\n";
+		
+		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_PARALLEL))
+			out << '"' << name(nodeMap, i->first) << "\" [shape=polygon];\n";
 		else
 			out << '"' << name(nodeMap, i->first) << "\";\n";
 	}

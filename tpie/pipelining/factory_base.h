@@ -78,6 +78,11 @@ public:
 	factory_base() : m_amount(0), m_set(false), m_destinationKind(destination_kind::none) {
 	}
 
+	factory_base(const factory_base & other) = delete;
+	factory_base(factory_base &&) = default;
+	factory_base & operator=(const factory_base & other) = delete;
+	factory_base & operator=(factory_base &&) = default;
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \copybrief bits::pipe_base::memory(double)
 	/// \copydetails bits::pipe_base::memory(double)

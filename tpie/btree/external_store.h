@@ -25,7 +25,7 @@
 #include <tpie/tpie_assert.h>
 #include <tpie/blocks/block_collection_cache.h>
 #include <tpie/btree/external_store_base.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <cstddef>
 
@@ -67,9 +67,8 @@ public:
 
 	typedef size_t size_type;
 private:
-
-	static const memory_size_type cacheSize = 32;
-	static const memory_size_type blockSize = 7000;
+	static constexpr memory_size_type cacheSize() {return 32;}
+	static constexpr memory_size_type blockSize() {return 7000;}
 
 	struct internal_content {
 		key_type min_key;
@@ -127,7 +126,8 @@ public:
 	: btree_external_store_base(path)
 	, key_extract(key_extract)
 	{
-		m_collection.reset(new blocks::block_collection_cache(path, blockSize, cacheSize, true));
+		m_collection = std::make_shared<blocks::block_collection_cache>(
+			path, blockSize(), cacheSize(), true);
 	}
 
 	~btree_external_store() {
@@ -135,24 +135,20 @@ public:
 	}
 
 private:
-	static size_t min_internal_size() throw() {
+	static constexpr size_t min_internal_size() {
 		return (max_internal_size() + 3) / 4;
 	}
 
-	static size_t max_internal_size() throw() {
-		size_t overhead = sizeof(memory_size_type);
-		size_t factor = sizeof(internal_content);
-		return (blockSize - overhead) / factor;
+	static constexpr size_t max_internal_size() {
+		return (blockSize() - sizeof(memory_size_type)) / sizeof(internal_content);
 	}
 
-	static size_t min_leaf_size() throw() {
+	static constexpr size_t min_leaf_size() {
 		return (max_leaf_size() + 3) / 4;
 	}
 
-	static size_t max_leaf_size() throw() {
-		size_t overhead = sizeof(memory_size_type);
-		size_t factor = sizeof(T);
-		return (blockSize - overhead) / factor;
+	static constexpr size_t max_leaf_size() {
+		return (blockSize() - sizeof(memory_size_type)) / sizeof(T);
 	}
 	
 	void move(internal_type src, size_t src_i,
@@ -376,13 +372,21 @@ private:
 	}
 
 	void set_augment(leaf_type child, internal_type node, augment_type augment) {
+		set_augment(child, node, augment, min_key(child));
+	}
+
+	void set_augment(internal_type child, internal_type node, augment_type augment) {
+		set_augment(child, node, augment, min_key(child));
+	}
+
+	void set_augment(leaf_type child, internal_type node, augment_type augment, key_type min_key) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
 			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key(child);
+				nodeInter.values[i].min_key = min_key;
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;
@@ -393,14 +397,14 @@ private:
 		__builtin_unreachable();
 	}
 
-	void set_augment(internal_type child, internal_type node, augment_type augment) {
+	void set_augment(internal_type child, internal_type node, augment_type augment, key_type min_key) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
 			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key(child);
+				nodeInter.values[i].min_key = min_key;
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;
@@ -435,7 +439,7 @@ private:
 	}
 
 	K key_extract;
-	boost::shared_ptr<blocks::block_collection_cache> m_collection;
+	std::shared_ptr<blocks::block_collection_cache> m_collection;
 
 	template <typename>
 	friend class btree_node;
@@ -445,6 +449,9 @@ private:
 
 	template <typename, typename, typename>
 	friend class btree;
+
+    template <typename, typename, typename>
+    friend class btree_builder;
 };
 
 } //namespace tpie

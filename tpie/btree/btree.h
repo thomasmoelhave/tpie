@@ -92,7 +92,8 @@ private:
 		return m_store.get_child_leaf(node, i);
 	}
 
-	leaf_type find_leaf(std::vector<internal_type> & path, key_type k) const {
+	template <bool upper_bound = false, typename K>
+	leaf_type find_leaf(std::vector<internal_type> & path, K k) const {
 		path.clear();
 		if (m_store.height() == 1) return m_store.get_root_leaf();
 		internal_type n = m_store.get_root_internal();
@@ -100,7 +101,8 @@ private:
 			path.push_back(n);
 			for (size_t j=0; ; ++j) {
  				if (j+1 == m_store.count(n) ||
-					m_comp(k, m_store.min_key(n, j+1))) {
+					(!upper_bound && m_comp(k, m_store.min_key(n, j+1))) ||
+					(upper_bound && !m_comp(m_store.min_key(n, j+1), k))) {
 					if (i == m_store.height()) return m_store.get_child_leaf(n, j);
 					n = m_store.get_child_internal(n, j);
 					break;
@@ -359,7 +361,8 @@ public:
 	/**
 	 * \brief Return an iterator to the first item with the given key
 	 */
-	iterator find(key_type v) const {
+	template <typename K>
+	iterator find(K v) const {
 		iterator itr(&m_store);
 
 		if(m_store.height() == 0) {
@@ -384,7 +387,59 @@ public:
 		itr.goto_item(path, l, i);
 		return itr;
 	}
+
+	/**
+	 * \brief Return an interator to the first element that is "not less" than
+	 * the given key
+	 */
+	template <typename K>
+	iterator lower_bound(K v) const {
+		iterator itr(&m_store);
+		if (m_store.height() == 0) {
+			itr.goto_end();
+			return itr;
+		}
+
+		std::vector<internal_type> path;
+		leaf_type l = find_leaf(path, v);
+		
+		size_t z = m_store.count(l);
+		for (size_t i = 0 ; i < z ; ++i) {
+			if (m_comp(v, m_store.min_key(l, i))) {
+				itr.goto_item(path, l, i);
+				return itr;
+			}
+		}
+		itr.goto_item(path, l, z-1);
+		return ++itr;
+	}
 	
+	/**
+	 * \brief Return an interator to the first element that is "greater" than
+	 * the given key
+	 */
+	template <typename K>
+	iterator upper_bound(K v) const {
+		iterator itr(&m_store);
+		if (m_store.height() == 0) {
+			itr.goto_end();
+			return itr;
+		}
+
+		std::vector<internal_type> path;
+		leaf_type l = find_leaf<true>(path, v);
+		
+		size_t z = m_store.count(l);
+		for (size_t i = 0 ; i < z ; ++i) {
+			if (!m_comp(m_store.min_key(l, i), v)) {
+				itr.goto_item(path, l, i);
+				return itr;
+			}
+		}
+		itr.goto_end();
+		return itr;
+	}
+
 	/**
 	 * \brief remove item at iterator
 	 */

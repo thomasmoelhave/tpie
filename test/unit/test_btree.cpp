@@ -22,6 +22,7 @@
 #include <tpie/btree/internal_store.h>
 #include <tpie/btree/external_store.h>
 #include <tpie/btree/btree.h>
+#include <tpie/btree/btree_builder.h>
 #include <tpie/tempname.h>
 #include <algorithm>
 #include <set>
@@ -322,6 +323,26 @@ bool augment_test(store_constructor constructor) {
 	return true;
 }
 
+template<typename store_constructor_t>
+bool build_test(store_constructor_t store_constructor) {
+    std::less<int> c;
+    ss_augmenter a;
+    btree_builder<typename store_constructor_t::build_type, std::less<int>, ss_augmenter> builder(store_constructor.construct(), c, a);
+	set<int> tree2;
+
+	for (size_t i=0; i < 50000; ++i) {
+		builder.push(i);
+		tree2.insert(i);
+	}
+
+	btree<typename store_constructor_t::build_type, std::less<int>, ss_augmenter> tree(builder.build());
+
+    TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size");
+    TEST_ENSURE(compare(tree, tree2), "Compare failed");
+
+	return true;
+}
+
 template <typename T>
 struct internal_store_constructor {
 	typedef T build_type;
@@ -345,6 +366,10 @@ bool internal_key_and_comparator_test() {
 
 bool internal_augment_test() {
 	return augment_test(internal_store_constructor<btree_internal_store<int, ss_augment> >());
+}
+
+bool internal_build_test() {
+    return build_test(internal_store_constructor<btree_internal_store<int, ss_augment>>());
 }
 
 template <typename T>
@@ -379,6 +404,10 @@ bool external_augment_test() {
 	return augment_test(external_store_constructor<btree_external_store<int, ss_augment> >(tmp.path()));
 }
 
+bool external_build_test() {
+    temp_file tmp;
+    return build_test(external_store_constructor<btree_external_store<int, ss_augment>>(tmp.path()));
+}
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
@@ -386,10 +415,12 @@ int main(int argc, char **argv) {
 		.test(internal_iterator_test, "internal_iterator")
 		.test(internal_key_and_comparator_test, "internal_key_and_compare")
 		.test(internal_augment_test, "internal_augment")
+        .test(internal_build_test, "internal_build_test")
 		.test(external_basic_test, "external_basic")
 		.test(external_iterator_test, "external_iterator")
 		.test(external_key_and_comparator_test, "external_key_and_compare")
-		.test(external_augment_test, "external_augment");
+		.test(external_augment_test, "external_augment")
+        .test(external_build_test, "external_build_test");
 }
 
 

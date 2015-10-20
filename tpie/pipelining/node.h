@@ -30,6 +30,7 @@
 #include <tpie/pipelining/node_name.h>
 #include <tpie/pipelining/node_traits.h>
 #include <tpie/flags.h>
+#include <limits>
 
 namespace tpie {
 
@@ -74,7 +75,8 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	enum PLOT {
 		PLOT_SIMPLIFIED_HIDE=1,
-		PLOT_BUFFERED=2
+		PLOT_BUFFERED=2,
+		PLOT_PARALLEL=4
 	};
 
 	///////////////////////////////////////////////////////////////////////////
@@ -122,7 +124,17 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set the memory priority of this node. Memory is distributed
+	/// \brief Get the amount of memory assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_used_memory() const {
+		memory_size_type ans=0;
+		for (const auto & p: m_buckets)
+			if (p) ans += p->count;
+		return ans;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \Brief Set the memory priority of this node. Memory is distributed
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
 	void set_memory_fraction(double f);
@@ -330,15 +342,15 @@ protected:
 	/// \brief Copy constructor. We need to define this explicitly since the
 	/// node_token needs to know its new owner.
 	///////////////////////////////////////////////////////////////////////////
-	node(const node & other);
+	node(const node & other) = delete;
+	node & operator=(const node & other) = delete;
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Move constructor. We need to define this explicitly since the
 	/// node_token needs to know its new owner.
 	///////////////////////////////////////////////////////////////////////////
 	node(node && other);
-#endif // TPIE_CPP_RVALUE_REFERENCE
+	node & operator=(node && other);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor using a given fresh node_token.
@@ -400,12 +412,16 @@ protected:
 	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void set_available_memory(memory_size_type availableMemory);
-
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
+	/// \param key The key of forwarded data
+	/// \param value The value of forwarded data
+	/// \param k The maximum distance to forward the distance. If there are
+	/// more than k nodes between the forwarding nodes and another node b.
+	/// b will not be able to fetch the data. Defaults to infinity.
 	///////////////////////////////////////////////////////////////////////////
 	// Implementation note: If the type of the `value` parameter is changed
 	// from `T` to `const T &`, this will yield linker errors if an application
@@ -414,14 +430,14 @@ public:
 	// See http://stackoverflow.com/a/5392050
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	void forward(std::string key, T value) {
-		forward_any(key, boost::any(value));
+	void forward(std::string key, T value, memory_size_type k = std::numeric_limits<memory_size_type>::max()) {
+		forward_any(key, boost::any(value), k);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief See \ref node::forward.
 	///////////////////////////////////////////////////////////////////////////
-	void forward_any(std::string key, boost::any value);
+	void forward_any(std::string key, boost::any value, memory_size_type k = std::numeric_limits<memory_size_type>::max());
 
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -619,6 +635,27 @@ public:
 		m_flushPriority = flushPriority;
 	}
 
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Count the number of memory buckets
+	///////////////////////////////////////////////////////////////////////////////	
+	size_t buckets() const {return m_buckets.size();}
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Access a memory bucket
+	///////////////////////////////////////////////////////////////////////////////
+	std::unique_ptr<memory_bucket> & bucket(size_t i) {
+		if (m_buckets.size() <= i) m_buckets.resize(i+1);
+		if (!m_buckets[i]) m_buckets[i].reset(new memory_bucket());
+		return m_buckets[i];
+	}
+		
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Return an allocator that counts memory usage within the node
+	///////////////////////////////////////////////////////////////////////////////
+	tpie::memory_bucket_ref allocator(size_t i=0) {
+		return tpie::memory_bucket_ref(bucket(i).get());
+	}
+	
 	friend class bits::memory_runtime;
 
 	friend class bits::datastructure_runtime;
@@ -626,14 +663,13 @@ public:
 	friend class factory_base;
 
 	friend class bits::pipeline_base;
-
-
 private:
 	node_token token;
 
 	node_parameters m_parameters;
 	memory_size_type m_availableMemory;
-
+	std::vector<std::unique_ptr<memory_bucket> > m_buckets;
+	
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 
