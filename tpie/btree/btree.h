@@ -101,8 +101,9 @@ private:
 			path.push_back(n);
 			for (size_t j=0; ; ++j) {
  				if (j+1 == m_store.count(n) ||
-					(!upper_bound && m_comp(k, m_store.min_key(n, j+1))) ||
-					(upper_bound && !m_comp(m_store.min_key(n, j+1), k))) {
+					(upper_bound
+					 ? m_comp(k, m_store.min_key(n, j+1))
+					 : !m_comp(m_store.min_key(n, j+1), k))) {
 					if (i == m_store.height()) return m_store.get_child_leaf(n, j);
 					n = m_store.get_child_internal(n, j);
 					break;
@@ -403,9 +404,9 @@ public:
 		std::vector<internal_type> path;
 		leaf_type l = find_leaf(path, v);
 		
-		size_t z = m_store.count(l);
+		const size_t z = m_store.count(l);
 		for (size_t i = 0 ; i < z ; ++i) {
-			if (m_comp(v, m_store.min_key(l, i))) {
+			if (!m_comp(m_store.min_key(l, i), v)) {
 				itr.goto_item(path, l, i);
 				return itr;
 			}
@@ -429,15 +430,15 @@ public:
 		std::vector<internal_type> path;
 		leaf_type l = find_leaf<true>(path, v);
 		
-		size_t z = m_store.count(l);
+		const size_t z = m_store.count(l);
 		for (size_t i = 0 ; i < z ; ++i) {
-			if (!m_comp(m_store.min_key(l, i), v)) {
+			if (m_comp(v, m_store.min_key(l, i))) {
 				itr.goto_item(path, l, i);
 				return itr;
 			}
 		}
-		itr.goto_end();
-		return itr;
+		itr.goto_item(path, l, z-1);
+		return ++itr;
 	}
 
 	/**
