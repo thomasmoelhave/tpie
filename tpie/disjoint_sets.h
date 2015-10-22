@@ -162,7 +162,7 @@ public:
 	/// \brief Clears all sets contained in the datastructure.
 	///////////////////////////////////////////////////////////////////////////////
 	void clear() {
-		std::fill(m_elements.begin(), m_elements.end(), unused);
+		std::fill(m_elements.begin(), m_elements.end(), m_unused);
 		m_size = 0;
 	}
 
@@ -171,7 +171,7 @@ public:
 	/// All elements are lost.
 	/////////////////////////////////////////////////////////
 	void resize(size_t size) {
-		m_elements.resize(size, unused);
+		m_elements.resize(size, m_unused);
 		m_size = 0;
 	}
 };
