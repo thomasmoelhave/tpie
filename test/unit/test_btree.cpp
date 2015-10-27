@@ -343,6 +343,50 @@ bool build_test(store_constructor_t store_constructor) {
 	return true;
 }
 
+template<typename store_constructor_t>
+bool bound_test(store_constructor_t store_constructor) {
+	btree<typename store_constructor_t::build_type> tree(store_constructor.construct());
+	set<int> tree2;
+
+	std::vector<int> x;
+    for (int i=0; i < 1234; ++i) {
+        x.push_back(i);
+	}
+	std::random_shuffle(x.begin(), x.end());
+
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.insert(x[i]);
+		tree2.insert(x[i]);
+
+		int r1 = (x.size() * 23) % x.size();
+		int r2 = (x.size() * 61) % x.size();
+
+		TEST_ENSURE((tree.lower_bound(r1) == tree.end()) == (tree2.lower_bound(r1) == tree2.end()), "Lower bound compare failed during insert stage");
+		TEST_ENSURE(tree.lower_bound(r1) == tree.end() || *tree.lower_bound(r1) ==  *tree2.lower_bound(r1), "Lower bound compare failed during insert stage.");
+
+		TEST_ENSURE((tree.upper_bound(r2) == tree.end()) == (tree2.upper_bound(r2) == tree2.end()), "Upper bound compare failed during insert stage");
+		TEST_ENSURE(tree.upper_bound(r2) == tree.end() || *tree.upper_bound(r2) ==  *tree2.upper_bound(r2), "Upper bound compare failed during insert stage.");
+	}
+
+	std::random_shuffle(x.begin(), x.end());
+
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.erase(x[i]);
+		tree2.erase(x[i]);
+
+		int r1 = (x.size() * 23) % x.size();
+		int r2 = (x.size() * 61) % x.size();
+
+		TEST_ENSURE((tree.lower_bound(r1) == tree.end()) == (tree2.lower_bound(r1) == tree2.end()), "Lower bound compare failed during insert stage");
+		TEST_ENSURE(tree.lower_bound(r1) == tree.end() || *tree.lower_bound(r1) ==  *tree2.lower_bound(r1), "Lower bound compare failed during insert stage.");
+
+		TEST_ENSURE((tree.upper_bound(r2) == tree.end()) == (tree2.upper_bound(r2) == tree2.end()), "Upper bound compare failed during insert stage");
+		TEST_ENSURE(tree.upper_bound(r2) == tree.end() || *tree.upper_bound(r2) ==  *tree2.upper_bound(r2), "Upper bound compare failed during insert stage.");
+	}
+
+	return true;
+}
+
 template <typename T>
 struct internal_store_constructor {
 	typedef T build_type;
@@ -370,6 +414,10 @@ bool internal_augment_test() {
 
 bool internal_build_test() {
     return build_test(internal_store_constructor<btree_internal_store<int, ss_augment>>());
+}
+
+bool internal_bound_test() {
+	return bound_test(internal_store_constructor<btree_internal_store<int>>());
 }
 
 template <typename T>
@@ -409,18 +457,25 @@ bool external_build_test() {
     return build_test(external_store_constructor<btree_external_store<int, ss_augment>>(tmp.path()));
 }
 
+bool external_bound_test() {
+	temp_file tmp;
+	return bound_test(external_store_constructor<btree_external_store<int>>(tmp.path()));
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(internal_basic_test, "internal_basic")
 		.test(internal_iterator_test, "internal_iterator")
 		.test(internal_key_and_comparator_test, "internal_key_and_compare")
 		.test(internal_augment_test, "internal_augment")
-        .test(internal_build_test, "internal_build_test")
+        .test(internal_build_test, "internal_build")
+		.test(internal_bound_test, "internal_bound")
 		.test(external_basic_test, "external_basic")
 		.test(external_iterator_test, "external_iterator")
 		.test(external_key_and_comparator_test, "external_key_and_compare")
 		.test(external_augment_test, "external_augment")
-        .test(external_build_test, "external_build_test");
+        .test(external_build_test, "external_build")
+		.test(external_bound_test, "external_bound");
 }
 
 
