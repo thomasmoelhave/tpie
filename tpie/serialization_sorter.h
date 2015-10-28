@@ -74,7 +74,7 @@ void set_owner(memory_bucket_ref b, T & item) {
 }
 
 template <typename T>
-void unset_owner(memory_bucket_ref b, T & item) {}
+void unset_owner(memory_bucket_ref /*b*/, T & /*item*/) {}
 
 template <typename T, typename pred_t>
 class internal_sort {

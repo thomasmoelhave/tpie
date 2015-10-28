@@ -85,7 +85,7 @@ size_t find_threshold(size_t center, size_t radius, std::vector<test_t> & data) 
 	size_t hi = lo + 2*radius;
 
 	size_t best = 0;
-	double besttime;
+	double besttime = std::numeric_limits<double>::max();
 	for (size_t attempt = lo; attempt <= hi; attempt += inc) {
 		sort_timer * t = get_sort_timer(attempt);
 		fill_data(data);
