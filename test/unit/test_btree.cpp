@@ -61,24 +61,21 @@ bool basic_test(store_constructor constructor) {
 	btree<typename store_constructor::build_type> tree(constructor.construct());
 	set<int> tree2;
 	
-	std::vector<int> x;
-    for (int i=0; i < 1234; ++i) {
-        x.push_back(i);
-	}
+	std::vector<int> x(12); //34);
+	std::iota(x.begin(), x.end(), 0);
 	std::random_shuffle(x.begin(), x.end());
-	
-	for (size_t i=0; i < x.size(); ++i) {
-		tree.insert(x[i]);
-		tree2.insert(x[i]);
+
+	for (size_t v: x) {
+		tree.insert(v);
+		tree2.insert(v);
 		TEST_ENSURE(compare(tree, tree2), "Compare failed on during insert stage.");
 		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during insert stage.");
 	}
 
 	std::random_shuffle(x.begin(), x.end());
-	
-	for (size_t i=0; i < x.size(); ++i) {
-		tree.erase(x[i]);
-		tree2.erase(x[i]);
+	for (size_t v: x) {
+		tree.erase(v);
+		tree2.erase(v);
 		TEST_ENSURE(compare(tree, tree2), "Compare failed on during erase stage.");
 		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during erase stage.");
 	}
@@ -133,6 +130,9 @@ template <typename T>
 class uncomparable {
 public:
 	T value;
+	friend std::ostream & operator<<(std::ostream & o, const uncomparable & u) {
+		return o << u.value;
+	}
 private:
 	bool operator <(const T & other) const;
 	bool operator <=(const T & other) const;

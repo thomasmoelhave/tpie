@@ -372,8 +372,8 @@ public:
 		}
 
 		std::vector<internal_type> path;
-		leaf_type l = find_leaf(path, v);
-
+		leaf_type l = find_leaf<true>(path, v);
+	
 		size_t i=0;
 		size_t z = m_store.count(l);
 		while (true) {
