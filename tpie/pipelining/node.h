@@ -471,7 +471,8 @@ public:
 		if (m_values.count(key) == 0) {
 			std::stringstream ss;
 			ss << "Tried to fetch nonexistent key '" << key
-			   << "' of type " << typeid(T).name();
+			   << "' of type " << typeid(T).name()
+			   << " in " << get_name() << " of type " << typeid(*this).name();
 			throw invalid_argument_exception(ss.str());
 		}
 		try {
