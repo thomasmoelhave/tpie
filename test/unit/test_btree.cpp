@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <set>
 #include <map>
+#include <numeric>
 using namespace tpie;
 using namespace std;
 
