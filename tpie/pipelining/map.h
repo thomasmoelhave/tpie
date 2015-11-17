@@ -73,11 +73,13 @@ public:
 	};
 };
 
-template <typename item_type, typename F>
+template <typename IT, typename F>
 class map_sink_t: public node {
 private:
 	F functor;
 public:
+	typedef IT item_type;
+
 	map_sink_t(const F & functor):
 		functor(functor) {
 		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
