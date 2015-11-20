@@ -104,6 +104,49 @@ public:
 	file_stream<T> & fs;
 };
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \class named_output_t
+///
+/// file_stream output terminator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class named_pull_input_t : public node {
+public:
+	typedef T item_type;
+
+	named_pull_input_t(std::string path): path(std::move(path)) {
+		set_name("Read", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(file_stream<T>::memory_usage());
+	}
+
+	virtual void propagate() override {
+		fs.construct();
+		fs->open(path, access_read);
+		forward("items", fs->size());
+		set_steps(fs->size());
+	}
+
+	T pull() {
+		step();
+		return fs->read();
+	}
+
+	bool can_pull() {
+		return fs->can_read();
+	}
+
+	void end() override {
+		fs->close();
+		fs.destruct();
+	}
+private:
+	maybe<file_stream<T> > fs;
+	std::string path;
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class output_t
 ///
@@ -257,6 +300,16 @@ inline pullpipe_begin<termfactory<bits::pull_input_t<T>, file_stream<T> &> > pul
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining pull-node that reads items from the given file_stream
+/// \param fs The file stream from which it reads items.
+///////////////////////////////////////////////////////////////////////////////
+template<typename T>
+inline pullpipe_begin<termfactory<bits::named_pull_input_t<T>, std::string> > named_pull_input(std::string name) {
+	return {std::move(name)};
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining node that writes the pushed items to a file stream.
 /// \param fs The file stream that items should be written to
 ///////////////////////////////////////////////////////////////////////////////
@@ -270,8 +323,8 @@ inline pipe_end<termfactory<bits::output_t<T>, file_stream<T> &> > output(file_s
 /// \param path The path of where to write the firestream
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pipe_end<termfactory<bits::named_output_t<T>, std::string> > named_output(const std::string & path) {
-	return termfactory<bits::named_output_t<T>, std::string>(path);
+inline pipe_end<termfactory<bits::named_output_t<T>, std::string> > named_output(std::string path) {
+	return {std::move(path)}; 
 }
 
 
