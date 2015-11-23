@@ -297,6 +297,8 @@ class access {
 	friend class pipelining::virtual_chunk_begin;
 	template <typename>
 	friend class vfork_node;
+	template <typename>
+	friend class vpush_node;
 
 	template <typename Input>
 	static virtsrc<Input> * get_source(const virtual_chunk_end<Input> &);
@@ -626,6 +628,29 @@ public:
 	};
 };
 
+
+template <typename T>
+class vpush_node : public node {
+public:
+	typedef T item_type;
+
+	vpush_node(virtual_chunk_end<T> out)
+		: vnode(out.get_node())
+		, dest(bits::access::get_source(out))
+	{
+		if (dest) add_push_destination(*dest);
+	}
+
+	void push(T v) {
+		if (dest) dest->push(v);
+	}
+
+private:
+	// This counted reference ensures dest is not deleted prematurely.
+	virt_node::ptr vnode;
+	virtsrc<T> * dest;
+};
+
 } // namespace bits
 
 template <typename T>
@@ -633,6 +658,11 @@ pipe_middle<tempfactory<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_vi
 	return out;
 }
 
+template <typename T>
+pipe_end<termfactory<bits::vpush_node<T>, virtual_chunk_end<T> > > push_to_virtual(const virtual_chunk_end<T> & out) {
+	return out;
+}
+	
 template <typename T>
 virtual_chunk<T> vfork(const virtual_chunk_end<T> & out) {
 	if (out.empty()) return virtual_chunk<T>();
