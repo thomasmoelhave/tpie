@@ -34,6 +34,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <tpie/is_simple_iterator.h>
+#include <array>
 
 namespace tpie {
 
@@ -207,6 +208,42 @@ template <typename D, typename T>
 void unserialize(D & dst, T start, T end) {
 	bits::array_decode_magic<D, T> magic;
 	magic(dst, start, end);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for fixed-length C-style arrays of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T, std::size_t size>
+void serialize(D & dst, const T (&x)[size]) {
+	using tpie::serialize;
+	serialize(dst, x, &x[size]);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for fixed-length C-style arrays unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T, std::size_t size>
+void unserialize(S & src, T (&x)[size]) {
+	using tpie::unserialize;
+	unserialize(src, x, &x[size]);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for std::arrays of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T, std::size_t size>
+void serialize(D & dst, const std::array<T, size> & v) {
+	using tpie::serialize;
+	serialize(dst, v.begin(), v.end());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for std::arrays of unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T, std::size_t size>
+void unserialize(S & src, std::array<T, size> & v) {
+	using tpie::unserialize;
+	unserialize(src, v.begin(), v.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
