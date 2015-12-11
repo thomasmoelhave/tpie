@@ -92,10 +92,10 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Concrete implementation of virtsrc.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename dest_t>
-class virtsrc_impl : public virtsrc<typename push_type<dest_t>::type> {
+template <typename dest_t, typename T>
+class virtsrc_impl : public virtsrc<T> {
 public:
-	typedef typename push_type<dest_t>::type item_type;
+	typedef T item_type;
 
 private:
 	typedef typename maybe_add_const_ref<item_type>::type input_type;
@@ -362,7 +362,7 @@ public:
 		}
 
 		typedef typename fact_t::constructed_type constructed_type;
-		m_src = new bits::virtsrc_impl<constructed_type>(pipe.factory.construct());
+		m_src = new bits::virtsrc_impl<constructed_type, Input>(pipe.factory.construct());
 		this->m_node = bits::virt_node::take_own(m_src);
 		this->m_nodeMap = m_src->get_node_map();
 
@@ -440,7 +440,7 @@ public:
 		this->m_nodeMap = temp.get_node_map();
 		fact_t f = std::move(pipe.factory);
 		f.set_destination_kind_push();
-		m_src = new bits::virtsrc_impl<constructed_type>(f.construct(std::move(temp)));
+		m_src = new bits::virtsrc_impl<constructed_type, Input>(f.construct(std::move(temp)));
 		this->m_node = bits::virt_node::take_own(m_src);
 
 		return *this;
