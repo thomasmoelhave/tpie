@@ -51,6 +51,8 @@ node_parameters::node_parameters()
 	, memoryFraction(0.0)
 	, name()
 	, namePriority(PRIORITY_NO_NAME)
+	, phaseName()
+	, phaseNamePriority(PRIORITY_NO_NAME)
 	, stepsTotal(0)
 {
 }
@@ -79,6 +81,16 @@ void node::set_name(const std::string & name, priority_type priority) {
 	m_parameters.name = name;
 	m_parameters.namePriority = priority;
 }
+
+const std::string & node::get_phase_name() {
+	return m_parameters.phaseName;
+}
+
+void node::set_phase_name(const std::string & name, priority_type priority) {
+	m_parameters.phaseName = name;
+	m_parameters.phaseNamePriority = priority;
+}
+
 
 node::node()
 	: token(this)

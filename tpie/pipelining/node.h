@@ -59,6 +59,9 @@ struct node_parameters {
 	std::string name;
 	priority_type namePriority;
 
+	std::string phaseName;
+	priority_type phaseNamePriority;
+
 	stream_size_type stepsTotal;
 };
 
@@ -262,6 +265,27 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void set_name(const std::string & name, priority_type priority = PRIORITY_USER);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the priority of this node's pdane name. For purposes of
+	/// pipeline debugging and phase naming for progress indicator breadcrumbs.
+	///////////////////////////////////////////////////////////////////////////
+	inline priority_type get_phase_name_priority() {
+		return m_parameters.phaseNamePriority;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get this node's phase name. For purposes of pipeline debugging and
+	/// phase naming for progress indicator breadcrumbs.
+	///////////////////////////////////////////////////////////////////////////
+	const std::string & get_phase_name();
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Set this node's phase name. For purposes of pipeline debugging and
+	/// phase naming for progress indicator breadcrumbs.
+	///////////////////////////////////////////////////////////////////////////
+	void set_phase_name(const std::string & name, priority_type priority = PRIORITY_USER);
+
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally when a pair_factory has a name set.
 	///////////////////////////////////////////////////////////////////////////

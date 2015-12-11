@@ -95,6 +95,19 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Set name for this phase.
+	///
+	/// The maximal priority phase name given for a phase wins.
+	///
+	/// \sa factory_base::phase_name
+	///////////////////////////////////////////////////////////////////////////
+	child_t phase_name(const std::string & n, priority_type p = PRIORITY_USER) {
+		self().factory.phase_name(n, p);
+		return std::move(self());
+	}
+
+	
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get a refenerce to this node.
 	///
 	/// This reference can be used to call add_dependency on another node

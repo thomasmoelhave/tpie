@@ -264,17 +264,19 @@ public:
 	}
 
 private:
-	std::string get_phase_uid(const std::vector<node *> & phase) {
-		std::stringstream uid;
-		for (size_t i = 0; i < phase.size(); ++i) {
-			uid << typeid(*phase[i]).name() << ':';
-		}
-		return uid.str();
-	}
-
 	std::string get_phase_name(const std::vector<node *> & phase) {
 		priority_type highest = std::numeric_limits<priority_type>::min();
 		size_t highest_node = 0;
+		for (size_t i = 0; i < phase.size(); ++i) {
+			if (phase[i]->get_phase_name_priority() > highest) {
+				highest_node = i;
+				highest = phase[i]->get_phase_name_priority();
+			}
+		}
+		std::string n = phase[highest_node]->get_phase_name();
+		if (!n.empty()) return n;
+
+		highest_node = 0;
 		for (size_t i = 0; i < phase.size(); ++i) {
 			if (phase[i]->get_name_priority() > highest) {
 				highest_node = i;

@@ -147,6 +147,9 @@ public:
 		if (!m_name.empty()) {
 			r.set_name(m_name, m_namePriority);
 		}
+		if (!m_phaseName.empty()) {
+			r.set_phase_name(m_phaseName, m_phaseNamePriority);
+		}
 		if (!m_breadcrumbs.empty()) {
 			r.set_breadcrumb(m_breadcrumbs);
 		}
@@ -253,6 +256,18 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief bits::pipe_base::phase_name
+	/// \copydetails bits::pipe_base::phase_name
+	///
+	/// \sa bits::pipe_base::phase_name
+	///////////////////////////////////////////////////////////////////////////
+	inline void phase_name(const std::string & n, priority_type p) {
+		m_phaseName = n;
+		m_phaseNamePriority = p;
+	}
+
+	
+	///////////////////////////////////////////////////////////////////////////
 	/// \copybrief bits::pipe_base::breadcrumb
 	/// \copydetails bits::pipe_base::breadcrumb
 	///
@@ -306,9 +321,9 @@ private:
 	double m_amount;
 	bool m_set;
 	destination_kind::type m_destinationKind;
-	std::string m_name;
+	std::string m_name, m_phaseName;
 	std::string m_breadcrumbs;
-	priority_type m_namePriority;
+	priority_type m_namePriority, m_phaseNamePriority;
 	std::vector<factory_init_hook *> m_hooks;
 	std::vector<node_set> m_add_to_set;
 	std::vector<std::pair<node_set, bits::node_relation> > m_add_relations;
