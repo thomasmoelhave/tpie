@@ -171,7 +171,7 @@ public:
 	void operator()() {
 		CurrentPipeSetter _(this);
 		progress_indicator_null pi;
-		(*p)(1, pi, get_memory_manager().available(), "", "");
+		(*p)(1, pi, get_memory_manager().available(), nullptr, nullptr);
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,

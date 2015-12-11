@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/fractional_progress.h>
+#include <tpie/progress_indicator_null.h>
 #include <tpie/disjoint_sets.h>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/node.h>
@@ -221,8 +222,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class progress_indicators {
 public:
-	progress_indicators() {
-	}
+	progress_indicators(): fp(nullptr) {}
 
 	~progress_indicators() {
 		if (fp) fp->done();
@@ -231,7 +231,7 @@ public:
 		}
 		m_progressIndicators.resize(0);
 		delete fp;
-		fp = NULL;
+		fp = nullptr;
 	}
 
 	void init(stream_size_type n,
@@ -239,16 +239,23 @@ public:
 			  const std::vector<std::vector<node *> > & phases,
 			  const char * file,
 			  const char * function) {
-		fp = new fractional_progress(&pi);
 		const size_t N = phases.size();
 		m_progressIndicators.resize(N);
-
+		fp = nullptr;
+		if (!file|| !function) {
+			for (size_t i = 0; i < N; ++i) 
+				m_progressIndicators[i] = new progress_indicator_null();
+			return;
+		}
+		
+		fp = new fractional_progress(&pi);
 		std::size_t uuid = 0;
 		for (size_t i = 0; i < N; ++i) {
 			for (node * n: phases[i])
 				boost::hash_combine(uuid, n->get_name());
 			std::string name = get_phase_name(phases[i]);
 			char id[128];
+			// since an int like i cannot be 17 chars long, this cannot overflow
 			sprintf(id, "p%03d:%.100s:%08llX", (int)i, name.c_str(), (unsigned long long)uuid);
 			m_progressIndicators[i] = new fractional_subindicator(
 				*fp, id, file, function, n, name.c_str());
@@ -280,7 +287,7 @@ private:
 	friend class phase_progress_indicator;
 
 	fractional_progress * fp;
-	std::vector<fractional_subindicator *> m_progressIndicators;
+	std::vector<progress_indicator_base *> m_progressIndicators;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -304,12 +311,12 @@ public:
 		m_pi->done();
 	}
 
-	fractional_subindicator & get() {
+	progress_indicator_base & get() {
 		return *m_pi;
 	}
 
 private:
-	fractional_subindicator * m_pi;
+	progress_indicator_base * m_pi;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
