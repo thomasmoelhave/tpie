@@ -247,7 +247,7 @@ int main(int argc, char ** argv) {
 		p1.plot();
 		if (progress) {
 			TP::progress_indicator_arrow pi("Test", nodes);
-			p1(nodes, pi);
+			p1(nodes, pi, TPIE_FSI);
 		} else {
 			p1();
 		}

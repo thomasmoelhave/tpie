@@ -22,6 +22,7 @@
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/runtime.h>
+#include <boost/functional/hash.hpp>
 
 namespace tpie {
 
@@ -235,15 +236,22 @@ public:
 
 	void init(stream_size_type n,
 			  progress_indicator_base & pi,
-			  const std::vector<std::vector<node *> > & phases) {
+			  const std::vector<std::vector<node *> > & phases,
+			  const char * file,
+			  const char * function) {
 		fp = new fractional_progress(&pi);
 		const size_t N = phases.size();
 		m_progressIndicators.resize(N);
+
+		std::size_t uuid = 0;
 		for (size_t i = 0; i < N; ++i) {
-			std::string uid = get_phase_uid(phases[i]);
+			for (node * n: phases[i])
+				boost::hash_combine(uuid, n->get_name());
 			std::string name = get_phase_name(phases[i]);
+			char id[128];
+			sprintf(id, "p%03d:%.100s:%08llX", (int)i, name.c_str(), (unsigned long long)uuid);
 			m_progressIndicators[i] = new fractional_subindicator(
-				*fp, uid.c_str(), TPIE_FSI, n, name.c_str());
+				*fp, id, file, function, n, name.c_str());
 		}
 		fp->init();
 	}
@@ -622,8 +630,9 @@ void runtime::get_flush_priorities(const std::map<node *, size_t> & phaseMap, st
 
 void runtime::go(stream_size_type items,
 				 progress_indicator_base & progress,
-				 memory_size_type memory)
-{
+				 memory_size_type memory,
+				 const char * file,
+				 const char * function) {
 	if (get_node_count() == 0)
 		throw tpie::exception("no nodes in pipelining graph");
 
@@ -686,7 +695,7 @@ void runtime::go(stream_size_type items,
 	// Construct fractional progress indicators:
 	// Get the name of each phase and call init() on the given indicator.
 	progress_indicators pi;
-	pi.init(items, progress, phases);
+	pi.init(items, progress, phases, file, function);
 
 	for (size_t i = 0; i < phases.size(); ++i) {
 		// Run each phase:

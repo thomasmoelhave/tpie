@@ -41,7 +41,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem);
+	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+					const char * file, const char * function);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz plot of the pipeline
@@ -170,17 +171,19 @@ public:
 	void operator()() {
 		CurrentPipeSetter _(this);
 		progress_indicator_null pi;
-		(*p)(1, pi, get_memory_manager().available());
+		(*p)(1, pi, get_memory_manager().available(), "", "");
 	}
 
-	void operator()(stream_size_type items, progress_indicator_base & pi) {
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
-		(*p)(items, pi, get_memory_manager().available());
+		(*p)(items, pi, get_memory_manager().available(), file, function);
 	}
 
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem) {
+	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
-		(*p)(items, pi, mem);
+		(*p)(items, pi, mem, file, function);
 	}
 	
 	void plot(std::ostream & os = std::cout) {

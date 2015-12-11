@@ -104,10 +104,12 @@ void pipeline_base::plot_impl(std::ostream & out, bool full) {
 	out << '}' << std::endl;
 }
 
-void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi, const memory_size_type initialMemory) {
+void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi,
+							   const memory_size_type initialMemory,
+							   const char * file, const char * function) {
 	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
-	rt.go(items, pi, initialMemory);
+	rt.go(items, pi, initialMemory, file, function);
 
 	/*
 	typedef std::vector<phase> phases_t;

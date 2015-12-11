@@ -539,7 +539,7 @@ bool memory_test(memtest settings) {
 	pipeline p =
 		make_pipe_begin<memtest_1, memtest &>(settings)
 		| make_pipe_end<memtest_2, memtest &>(settings);
-	p(0, pi, settings.totalMemory);
+	p(0, pi, settings.totalMemory, TPIE_FSI);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
 	            << "minMem1     " << settings.minMem1 << '\n'
@@ -1216,7 +1216,7 @@ bool parallel_test(size_t modulo) {
 		| sequence_verifier(modulo-1, &result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);
-	p(modulo-1, pi);
+	p(modulo-1, pi, TPIE_FSI);
 	return result;
 }
 
@@ -1227,7 +1227,7 @@ bool parallel_ordered_test(size_t modulo) {
 		| sequence_verifier(modulo-1, &result);
 	p.plot(log_info());
 	tpie::progress_indicator_arrow pi("Parallel", 1);
-	p(modulo-1, pi);
+	p(modulo-1, pi, TPIE_FSI);
 	return result;
 }
 
@@ -1486,7 +1486,7 @@ typedef pipe_end<termfactory<step_end_type> > step_end;
 bool parallel_step_test() {
 	pipeline p = step_begin() | parallel(step_middle()) | step_end();
 	progress_indicator_arrow pi("Test", 0);
-	p(get_memory_manager().available(), pi);
+	p(get_memory_manager().available(), pi, TPIE_FSI);
 	return true;
 }
 
@@ -1755,7 +1755,7 @@ bool datastructure_test(datastructuretest settings) {
 	pipeline p =
 		make_pipe_begin<datastructuretest_1, datastructuretest &>(settings)
 		| make_pipe_end<datastructuretest_2, datastructuretest &>(settings);
-	p(0, pi, settings.totalMemory);
+	p(0, pi, settings.totalMemory, TPIE_FSI);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
 	            << "minMem1     " << settings.minMem1 << '\n'
