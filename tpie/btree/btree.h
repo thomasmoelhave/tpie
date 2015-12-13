@@ -29,18 +29,37 @@
 
 namespace tpie {
 
+
 /**
  * \brief External or internal augmented btree
  *
- * S is the type of the storage object
- * C is the comparator used to compare keys
- * A is the functor used to computed an augmented value
  */
-template <typename S,
-		  typename C,
-		  typename A>
-class btree {
+template <typename T, typename O>
+class btree_ {
 public:
+	static const bool is_internal = O::O & bbits::f_internal;
+
+	typedef typename O::K keyextract_type;
+
+	typedef typename O::C C;
+	
+	/**
+	 * \brief Type of augmenter
+	 */
+	typedef typename O::A augmenter_type;
+
+	
+	typedef typename O::A A;
+
+	typedef typename std::decay<decltype( (*(A*)nullptr)(*(T*)nullptr) )>::type augment_type;
+
+
+	typedef typename std::conditional<
+		is_internal,
+		btree_internal_store<T, augment_type, keyextract_type>,
+		btree_external_store<T, augment_type, keyextract_type> >::type S;
+		
+	
 	/**
 	 * \brief The type of key used
 	 */
@@ -55,11 +74,6 @@ public:
 	 * \brief Type of value stored
 	 */
 	typedef typename S::value_type value_type;
-
-	/**
-	 * \brief Type of augmenter
-	 */
-	typedef A augmenter_type;
 
 
 	/**
@@ -570,8 +584,16 @@ public:
 	/**
 	 * Construct a btree with the given storage
 	 */
-	btree(S store=S(), C comp=C(), A augmenter=A()): 
+	explicit btree_(S store, C comp=C(), A augmenter=A()): 
 		m_store(store), 
+		m_comp(comp), 
+		m_augmenter(augmenter) {}
+
+	/**
+	 * Construct a btree with the given storage
+	 */
+	explicit btree_(C comp=C(), A augmenter=A()): 
+		m_store(S()), 
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
 
@@ -580,6 +602,10 @@ private:
 	C m_comp;
 	A m_augmenter;
 };
+
+
+template <typename T, typename ... Opts>
+using btree = btree_<T, typename bbits::OptComp<Opts...>::type>;
 
 } //namespace tpie
 #endif /*_TPIE_BTREE_TREE_H_*/

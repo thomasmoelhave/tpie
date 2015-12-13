@@ -192,11 +192,11 @@ private:
 	leaf_type m_leaf;
 	bool m_is_leaf;
 
-	template <typename, typename, typename>
-	friend class btree;
+	template <typename, typename>
+	friend class btree_;
 
-	template <typename, typename, typename>
-	friend class btree_builder;
+	template <typename, typename>
+	friend class btree_builder_;
 
 	template <typename>
 	friend class btree_iterator;
@@ -218,8 +218,8 @@ private:
 	size_t m_index;
 	leaf_type m_leaf;
 
-	template <typename, typename, typename>
-	friend class btree;
+	template <typename, typename>
+	friend class btree_;
 
 	btree_iterator(const S * store): m_store(store) {}
 

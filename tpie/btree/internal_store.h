@@ -38,10 +38,10 @@ namespace tpie {
  * \tparam b the maximum fanout of a node
  */
 template <typename T,
-		  typename A=empty_augment,
-		  typename K=identity_key<T>,
-		  std::size_t a=2,
-		  std::size_t b=4
+		  typename A/*=empty_augment*/,
+		  typename K/*=identity_key*/,
+		  std::size_t a/*=2*/,
+		  std::size_t b/*=4*/
 		  >
 class btree_internal_store {
 public:
@@ -63,7 +63,7 @@ public:
 	/**
 	 * \brief Type of key
 	 */
-	typedef typename K::value_type key_type;
+	typedef typename std::decay<decltype( (*static_cast<K*>(nullptr))( *static_cast<value_type*>(nullptr) ) )>::type key_type;
 
 	typedef size_t size_type;
 	
@@ -262,11 +262,11 @@ private:
 	template <typename>
 	friend class btree_iterator;
 
-	template <typename, typename, typename>
-	friend class btree;
+	template <typename, typename>
+	friend class btree_;
 
-    template<typename, typename, typename>
-    friend class btree_builder;
+    template<typename, typename>
+    friend class btree_builder_;
 };
 
 } //namespace tpie

@@ -37,11 +37,12 @@ namespace tpie {
  * 
  * \tparam T the type of value stored
  * \tparam A the type of augmentation
+
  * \tparam K the functor used to extract the key from a given value
  */
 template <typename T,
-		  typename A=empty_augment,
-		  typename K=identity_key<T>
+		  typename A/*=empty_augment*/,
+		  typename K/*=identity_key*/
 		  >
 class btree_external_store : public bits::btree_external_store_base {
 public:
@@ -60,10 +61,11 @@ public:
 	 */
 	typedef K key_extract_type;
 
+
 	/**
 	 * \brief Type of key
 	 */
-	typedef typename K::value_type key_type;
+	typedef typename std::decay<decltype( (*static_cast<K*>(nullptr))( *static_cast<value_type*>(nullptr) ) )>::type key_type;
 
 	typedef size_t size_type;
 private:
@@ -447,11 +449,11 @@ private:
 	template <typename>
 	friend class btree_iterator;
 
-	template <typename, typename, typename>
-	friend class btree;
+	template <typename, typename>
+	friend class btree_;
 
-    template <typename, typename, typename>
-    friend class btree_builder;
+    template <typename, typename>
+    friend class btree_builder_;
 };
 
 } //namespace tpie

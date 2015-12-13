@@ -30,24 +30,33 @@
 
 namespace tpie {
 
-template <typename S, typename C, typename A>
-class btree_builder {
+
+template <typename T, typename O>
+class btree_builder_ {
 private:
-	typedef typename S::key_type key_type;
+	typedef btree_<T, O> tree_type;
 
-	typedef typename S::value_type value_type;
 
-    typedef typename S::augment_type augment_type;
+	typedef typename tree_type::key_type key_type;
+	
+	typedef T value_type;
 
-	typedef typename S::size_type size_type;
+	typedef typename O::C C;
+	typedef typename O::A A;
+	
+    typedef typename tree_type::augment_type augment_type;
 
+	typedef typename tree_type::size_type size_type;
+
+	typedef typename tree_type::S store_type;
+	
+	typedef typename tree_type::S S;
+	
     typedef typename S::leaf_type leaf_type;
 
     typedef typename S::internal_type internal_type;
 
     typedef btree_node<S> node_type;
-
-	typedef btree<S, C, A> tree_type;
 
     // Keeps the same information that the parent of a leaf keeps
     struct leaf_summary {
@@ -171,8 +180,15 @@ public:
 	/**
 	* \brief Construct a btree builder with the given storage
 	*/
-    btree_builder(S store=S(), C comp=C(), A augmenter=A())
+    explicit btree_builder_(S store, C comp=C(), A augmenter=A())
         : m_store(store)
+        , m_comp(comp)
+        , m_augmenter(augmenter)
+    {}
+
+
+	explicit btree_builder_(C comp=C(), A augmenter=A())
+        : m_store(S())
         , m_comp(comp)
         , m_augmenter(augmenter)
     {}
@@ -246,6 +262,10 @@ private:
     C m_comp;
     A m_augmenter;
 };
+
+template <typename T, typename ... Opts>
+using btree_builder = btree_builder_<T, typename bbits::OptComp<Opts...>::type>;
+
 
 } //namespace tpie
 #endif /*_TPIE_BTREE_BTREE_BUILDER_H_*/
