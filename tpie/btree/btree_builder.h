@@ -34,6 +34,8 @@ namespace bbits {
 template <typename T, typename O>
 class builder {
 private:
+	static const bool is_internal = O::O & bbits::f_internal;
+	
 	typedef bbits::tree<T, O> tree_type;
 
 
@@ -180,14 +182,15 @@ public:
 	/**
 	* \brief Construct a btree builder with the given storage
 	*/
-    explicit builder(S store, C comp=C(), A augmenter=A())
-        : m_store(store)
+	template <typename X=enab>
+	explicit builder(std::string path, C comp=C(), A augmenter=A(), enable<X, !is_internal> =enab() )
+        : m_store(path)
         , m_comp(comp)
         , m_augmenter(augmenter)
     {}
 
-
-	explicit builder(C comp=C(), A augmenter=A())
+	template <typename X=enab>
+	explicit builder(C comp=C(), A augmenter=A(), enable<X, is_internal> =enab() )
         : m_store(S())
         , m_comp(comp)
         , m_augmenter(augmenter)
@@ -250,7 +253,7 @@ public:
                 m_store.set_root(m_internal_nodes.back().front().internal);
         }
 
-        return tree_type(m_store, m_comp, m_augmenter);
+        return tree_type(std::move(m_store), std::move(m_comp), std::move(m_augmenter));
     }
 
 private:

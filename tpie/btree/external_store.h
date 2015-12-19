@@ -69,7 +69,7 @@ public:
 	typedef typename std::decay<decltype( (*static_cast<K*>(nullptr))( *static_cast<value_type*>(nullptr) ) )>::type key_type;
 
 	typedef size_t size_type;
-private:
+
 	static constexpr memory_size_type cacheSize() {return 32;}
 	static constexpr memory_size_type blockSize() {return 7000;}
 
@@ -120,12 +120,11 @@ private:
 			return handle == other.handle;
 		}
 	};
-public:
 
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	external_store(const std::string & path, K key_extract=K())
+	explicit external_store(const std::string & path, K key_extract=K())
 	: external_store_base(path)
 	, key_extract(key_extract)
 	{
@@ -137,7 +136,7 @@ public:
 		m_collection.reset();
 	}
 
-private:
+
 	static constexpr size_t min_internal_size() {
 		return (max_internal_size() + 3) / 4;
 	}

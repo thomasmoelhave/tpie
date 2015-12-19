@@ -67,15 +67,16 @@ public:
 	typedef typename std::decay<decltype( (*static_cast<K*>(nullptr))( *static_cast<value_type*>(nullptr) ) )>::type key_type;
 
 	typedef size_t size_type;
-	
+
+private:	
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	internal_store(K key_extract=K()): 
+	explicit internal_store(K key_extract=K()): 
 		m_root(NULL), key_extract(key_extract),
 		m_height(0), m_size(0) {}
 
-private:
+
 	struct internal_content {
 		key_type min_key;
 		void * ptr;

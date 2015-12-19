@@ -180,6 +180,19 @@ class internal_store;
 template <typename T, typename A=empty_augment, typename K=identity_key>
 class external_store;
 
+
+
+struct enab {};
+
+template <typename X, bool b>
+struct Enable {};
+
+template <>
+struct Enable<enab, true> {typedef enab type;};
+
+template <typename X, bool b>
+using enable = typename Enable<X,b>::type;
+
 } //namespace bbits
 
 

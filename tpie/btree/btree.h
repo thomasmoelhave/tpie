@@ -580,24 +580,36 @@ public:
 	bool empty() const throw() {
 		return m_store.size() == 0;
 	}
-
+	
 	/**
 	 * Construct a btree with the given storage
 	 */
-	explicit tree(S store, C comp=C(), A augmenter=A()): 
-		m_store(store), 
+	template <typename X=enab>
+	explicit tree(std::string path, C comp=C(), A augmenter=A(), enable<X, !is_internal> =enab() ): 
+		m_store(path), 
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
 
 	/**
 	 * Construct a btree with the given storage
 	 */
-	explicit tree(C comp=C(), A augmenter=A()): 
-		m_store(S()), 
+	template <typename X=enab>
+	explicit tree(C comp=C(), A augmenter=A(), enable<X, is_internal> =enab() ): 
+		m_store(), 
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
 
+
+	
+	friend class bbits::builder<T, O>;
+	
 private:
+	explicit tree(S store, C comp, A augmenter):
+		m_store(std::move(store)), 
+		m_comp(comp), 
+		m_augmenter(augmenter) {}
+
+	
 	S m_store;
 	C m_comp;
 	A m_augmenter;
