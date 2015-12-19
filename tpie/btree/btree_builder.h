@@ -29,12 +29,12 @@
 #include <vector>
 
 namespace tpie {
-
+namespace bbits {
 
 template <typename T, typename O>
-class btree_builder_ {
+class builder {
 private:
-	typedef btree_<T, O> tree_type;
+	typedef bbits::tree<T, O> tree_type;
 
 
 	typedef typename tree_type::key_type key_type;
@@ -180,14 +180,14 @@ public:
 	/**
 	* \brief Construct a btree builder with the given storage
 	*/
-    explicit btree_builder_(S store, C comp=C(), A augmenter=A())
+    explicit builder(S store, C comp=C(), A augmenter=A())
         : m_store(store)
         , m_comp(comp)
         , m_augmenter(augmenter)
     {}
 
 
-	explicit btree_builder_(C comp=C(), A augmenter=A())
+	explicit builder(C comp=C(), A augmenter=A())
         : m_store(S())
         , m_comp(comp)
         , m_augmenter(augmenter)
@@ -263,9 +263,10 @@ private:
     A m_augmenter;
 };
 
-template <typename T, typename ... Opts>
-using btree_builder = btree_builder_<T, typename bbits::OptComp<Opts...>::type>;
+} //namespace bbits
 
+template <typename T, typename ... Opts>
+using btree_builder = bbits::builder<T, typename bbits::OptComp<Opts...>::type>;
 
 } //namespace tpie
 #endif /*_TPIE_BTREE_BTREE_BUILDER_H_*/

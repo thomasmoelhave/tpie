@@ -151,6 +151,8 @@ class btree_node;
 template <typename S>
 class btree_iterator;
 
+namespace bbits {
+
 /**
  * \brief Augmented btree
  * 
@@ -160,7 +162,7 @@ class btree_iterator;
  */
 template <typename T,
           typename O>
-class btree_;
+class tree;
 
 /**
  * \brief Augmented btree builder
@@ -170,13 +172,15 @@ class btree_;
  * A is the type of the augmentation computation fuctor
  */
 template <typename T, typename O>
-class btree_builder_;
+class builder;
 
 template <typename T, typename A=empty_augment, typename K=identity_key, std::size_t a=2, std::size_t b=4>
-class btree_internal_store;
+class internal_store;
 
 template <typename T, typename A=empty_augment, typename K=identity_key>
-class btree_external_store;
+class external_store;
+
+} //namespace bbits
 
 
 } //namespace tpie

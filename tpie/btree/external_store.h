@@ -30,6 +30,7 @@
 #include <cstddef>
 
 namespace tpie {
+namespace bbits {
 
 /**
  * \brief Storage used for an external btree. Note that a user of a btree should
@@ -41,10 +42,10 @@ namespace tpie {
  * \tparam K the functor used to extract the key from a given value
  */
 template <typename T,
-		  typename A/*=empty_augment*/,
-		  typename K/*=identity_key*/
+		  typename A,
+		  typename K
 		  >
-class btree_external_store : public bits::btree_external_store_base {
+class external_store : public external_store_base {
 public:
 	/**
 	 * \brief Type of value of items stored
@@ -124,15 +125,15 @@ public:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	btree_external_store(const std::string & path, K key_extract=K())
-	: btree_external_store_base(path)
+	external_store(const std::string & path, K key_extract=K())
+	: external_store_base(path)
 	, key_extract(key_extract)
 	{
 		m_collection = std::make_shared<blocks::block_collection_cache>(
 			path, blockSize(), cacheSize(), true);
 	}
 
-	~btree_external_store() {
+	~external_store() {
 		m_collection.reset();
 	}
 
@@ -450,11 +451,12 @@ private:
 	friend class btree_iterator;
 
 	template <typename, typename>
-	friend class btree_;
+	friend class bbits::tree;
 
     template <typename, typename>
-    friend class btree_builder_;
+    friend class bbits::builder;
 };
 
+} //namespace bbits
 } //namespace tpie
 #endif /*_TPIE_BTREE_EXTERNAL_STORE_H_*/

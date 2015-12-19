@@ -28,18 +28,17 @@
 #include <cstddef>
 
 namespace tpie {
+namespace bbits {
 
-namespace bits {
-
-class btree_external_store_base {
+class external_store_base {
 public:
 
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	btree_external_store_base(const std::string & path);
+	external_store_base(const std::string & path);
 
-	~btree_external_store_base();
+	~external_store_base();
 
 protected:
 	blocks::block_handle m_root;	
@@ -48,7 +47,6 @@ protected:
 	size_t m_size;
 };
 
-} //namespace bits
-
+} //namespace bbits
 } //namespace tpie
 #endif /*_TPIE_BTREE_EXTERNAL_STORE_BASE_H_*/

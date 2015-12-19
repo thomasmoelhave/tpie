@@ -28,14 +28,14 @@
 #include <vector>
 
 namespace tpie {
-
+namespace bbits {
 
 /**
  * \brief External or internal augmented btree
  *
  */
 template <typename T, typename O>
-class btree_ {
+class tree {
 public:
 	static const bool is_internal = O::O & bbits::f_internal;
 
@@ -56,8 +56,8 @@ public:
 
 	typedef typename std::conditional<
 		is_internal,
-		btree_internal_store<T, augment_type, keyextract_type>,
-		btree_external_store<T, augment_type, keyextract_type> >::type S;
+		bbits::internal_store<T, augment_type, keyextract_type>,
+		bbits::external_store<T, augment_type, keyextract_type> >::type S;
 		
 	
 	/**
@@ -584,7 +584,7 @@ public:
 	/**
 	 * Construct a btree with the given storage
 	 */
-	explicit btree_(S store, C comp=C(), A augmenter=A()): 
+	explicit tree(S store, C comp=C(), A augmenter=A()): 
 		m_store(store), 
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
@@ -592,7 +592,7 @@ public:
 	/**
 	 * Construct a btree with the given storage
 	 */
-	explicit btree_(C comp=C(), A augmenter=A()): 
+	explicit tree(C comp=C(), A augmenter=A()): 
 		m_store(S()), 
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
@@ -603,9 +603,10 @@ private:
 	A m_augmenter;
 };
 
+} //namespace bbits
 
 template <typename T, typename ... Opts>
-using btree = btree_<T, typename bbits::OptComp<Opts...>::type>;
+using btree = bbits::tree<T, typename bbits::OptComp<Opts...>::type>;
 
 } //namespace tpie
 #endif /*_TPIE_BTREE_TREE_H_*/

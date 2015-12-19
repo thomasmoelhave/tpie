@@ -26,6 +26,7 @@
 #include <cstddef>
 
 namespace tpie {
+namespace bbits {
 
 /**
  * \brief Storage used for an internal btree. Note that a user of a btree should
@@ -38,12 +39,12 @@ namespace tpie {
  * \tparam b the maximum fanout of a node
  */
 template <typename T,
-		  typename A/*=empty_augment*/,
-		  typename K/*=identity_key*/,
-		  std::size_t a/*=2*/,
-		  std::size_t b/*=4*/
+		  typename A,
+		  typename K,
+		  std::size_t a,
+		  std::size_t b
 		  >
-class btree_internal_store {
+class internal_store {
 public:
 	/**
 	 * \brief Type of value of items stored
@@ -70,7 +71,7 @@ public:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	btree_internal_store(K key_extract=K()): 
+	internal_store(K key_extract=K()): 
 		m_root(NULL), key_extract(key_extract),
 		m_height(0), m_size(0) {}
 
@@ -263,11 +264,12 @@ private:
 	friend class btree_iterator;
 
 	template <typename, typename>
-	friend class btree_;
+	friend class bbits::tree;
 
     template<typename, typename>
-    friend class btree_builder_;
+    friend class bbits::builder;
 };
 
+} //namespace bbits
 } //namespace tpie
 #endif /*_TPIE_BTREE_INTERNAL_STORE_H_*/
