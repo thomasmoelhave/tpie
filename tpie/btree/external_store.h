@@ -58,7 +58,7 @@ public:
 
 	static constexpr memory_size_type cacheSize() {return 32;}
 	static constexpr memory_size_type blockSize() {return 7000;}
-
+	
 	struct internal_content {
 		blocks::block_handle handle;
 		A augment;
@@ -330,39 +330,31 @@ public:
 		tp_assert(false, "Node not found");
 		__builtin_unreachable();
 	}
-
-	void set_augment(leaf_type child, internal_type node, augment_type augment) {
+	
+	void set_augment(blocks::block_handle child, internal_type node, augment_type augment) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
-			if (nodeInter.values[i].handle == child.handle) {
+			if (nodeInter.values[i].handle == child) {
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;
 			}
 		}
 
-		tp_assert(false, "Leaf not found");
+		tp_assert(false, "Not found");
 		__builtin_unreachable();
+	}
+	
+
+	void set_augment(leaf_type child, internal_type node, augment_type augment) {
+		set_augment(child.handle, node, augment);
 	}
 
 	void set_augment(internal_type child, internal_type node, augment_type augment) {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		internal nodeInter(nodeBlock);
-
-		for (size_t i=0; i < *(nodeInter.count); ++i)
-		{
-			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].augment = augment;
-				m_collection->write_block(node.handle);
-				return;
-			}
-		}
-		
-		tp_assert(false, "Node not found");
-		__builtin_unreachable();
+		set_augment(child.handle, node, augment);
 	}
 
 	const augment_type & augment(internal_type node, size_t i) const {

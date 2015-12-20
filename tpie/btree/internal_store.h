@@ -166,27 +166,14 @@ private:
 		return static_cast<leaf_type>(node->values[i].ptr);
 	}
 
-	size_t index(leaf_type child, internal_type node) const {
+	size_t index(void * child, internal_type node) const {
 		for (size_t i=0; i < node->count; ++i)
 			if (node->values[i].ptr == child) return i;
-		tp_assert(false, "Leaf not found");
+		tp_assert(false, "Not found");
 		tpie_unreachable();
 	}
 
-	size_t index(internal_type child, internal_type node) const {
-		for (size_t i=0; i < node->count; ++i)
-			if (node->values[i].ptr == child) return i;
-		tp_assert(false, "Node nout found");
-		tpie_unreachable();
-	}
-
-
-	void set_augment(leaf_type l, internal_type p, augment_type ag) {
-		size_t idx=index(l, p);
-		p->values[idx].augment = ag;
-	}
-
-	void set_augment(internal_type l, internal_type p, augment_type ag) {
+	void set_augment(void * l, internal_type p, augment_type ag) {
 		size_t idx=index(l, p);
 		p->values[idx].augment = ag;
 	}
