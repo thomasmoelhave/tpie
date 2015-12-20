@@ -174,10 +174,10 @@ class tree;
 template <typename T, typename O>
 class builder;
 
-template <typename T, typename A=empty_augment, typename K=identity_key, std::size_t a=2, std::size_t b=4>
+template <typename T, typename A=empty_augment, std::size_t a=2, std::size_t b=4>
 class internal_store;
 
-template <typename T, typename A=empty_augment, typename K=identity_key>
+template <typename T, typename A=empty_augment>
 class external_store;
 
 struct enab {};
@@ -192,7 +192,7 @@ template <typename X, bool b>
 using enable = typename Enable<X,b>::type;
 
 template <typename T, typename O>
-class tree_config {
+class tree_state {
 public:
 	static const bool is_internal = O::O & bbits::f_internal;
 
@@ -205,11 +205,85 @@ public:
 	typedef typename std::decay<decltype(std::declval<augmenter_type>()(std::declval<value_type>()))>::type augment_type;
 
 	typedef typename std::decay<decltype(std::declval<keyextract_type>()(std::declval<value_type>()))>::type key_type;
+
+	struct key_augment {
+		key_type key;
+	};
+
+	struct combined_augment
+		: public key_augment
+		, public augment_type {};
+
+
+	struct combined_augmenter {
+		template <typename N>
+		combined_augment operator()(const N & node) {
+			combined_augment ans;
+			*static_cast<augment_type*>(&ans) = m_augmenter(node);
+
+			static_cast<key_augment*>(&ans)->key =
+				node.is_leaf()
+				? m_key_extract(node.value(0))
+				: static_cast<const key_augment*>(&node.get_combined_augmentation(0))->key;
+			return ans;
+		}
+
+		combined_augmenter(
+			augmenter_type a,
+			keyextract_type key_extract)
+			: m_key_extract(std::move(key_extract))
+			, m_augmenter(std::move(a)) {}
+
+		keyextract_type m_key_extract; 
+		augmenter_type m_augmenter;
+	};
 	
 	typedef typename std::conditional<
 		is_internal,
-		bbits::internal_store<value_type, augment_type, keyextract_type>,
-		bbits::external_store<value_type, augment_type, keyextract_type> >::type store_type;
+		bbits::internal_store<value_type, combined_augment>,
+		bbits::external_store<value_type, combined_augment> >::type store_type;
+
+	typedef typename store_type::internal_type internal_type;
+	typedef typename store_type::leaf_type leaf_type;
+	
+	key_type min_key(internal_type node, size_t i) const {
+		return static_cast<const key_augment*>(&m_store.augment(node, i))->key;
+	}
+
+	key_type min_key(leaf_type node, size_t i) const {
+		return m_augmenter.m_key_extract(m_store.get(node, i));
+	}
+
+	key_type min_key(T v) const {
+		return m_augmenter.m_key_extract(v);
+	}
+
+	key_type min_key(internal_type v) const {
+		return min_key(v, 0);
+	}
+
+	key_type min_key(leaf_type v) const {
+		return min_key(v, 0);
+	}
+
+	const store_type & store() const {
+		return m_store;
+	}
+
+	store_type & store() {
+		return m_store;
+	}
+
+	static const augment_type & user_augment(const combined_augment & a) {
+		return *static_cast<const augment_type *>(&a);
+	}
+
+	tree_state(store_type store, augmenter_type augmenter, keyextract_type keyextract)
+		: m_augmenter(std::move(augmenter), std::move(keyextract))
+		, m_store(std::move(store)) {}
+
+	combined_augmenter m_augmenter;
+	store_type m_store;
 };
 
 

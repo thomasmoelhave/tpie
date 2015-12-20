@@ -34,13 +34,11 @@ namespace bbits {
  *
  * \tparam T the type of value stored
  * \tparam A the type of augmentation
- * \tparam K the functor used to extract the key from a given value
  * \tparam a the minimum fanout of a node
  * \tparam b the maximum fanout of a node
  */
 template <typename T,
 		  typename A,
-		  typename K,
 		  std::size_t a,
 		  std::size_t b
 		  >
@@ -56,15 +54,6 @@ public:
 	 */
 	typedef A augment_type;
 
-	/**
-	 * \brief Type of functer used to extract a key from a value
-	 */
-	typedef K key_extract_type;
-
-	/**
-	 * \brief Type of key
-	 */
-	typedef typename std::decay<decltype( (*static_cast<K*>(nullptr))( *static_cast<value_type*>(nullptr) ) )>::type key_type;
 
 	typedef size_t size_type;
 
@@ -72,13 +61,11 @@ private:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit internal_store(K key_extract=K()): 
-		m_root(NULL), key_extract(key_extract),
-		m_height(0), m_size(0) {}
+	explicit internal_store(): 
+		m_root(NULL), m_height(0), m_size(0) {}
 
 
 	struct internal_content {
-		key_type min_key;
 		void * ptr;
 		A augment;
 	};
@@ -152,26 +139,6 @@ private:
 		node->count = i;
 	}
 
-	key_type min_key(internal_type node, size_t i) const {
-		return node->values[i].min_key;
-	}
-
-	key_type min_key(leaf_type node, size_t i) const {
-		return key_extract(node->values[i]);
-	}
-
-	key_type min_key(T v) const {
-		return key_extract(v);
-	}
-
-	key_type min_key(internal_type v) const {
-		return min_key(v, 0);
-	}
-
-	key_type min_key(leaf_type v) const {
-		return min_key(v, 0);
-	}
-
 	leaf_type create_leaf() {return new leaf();}
 	leaf_type create(leaf_type) {return create_leaf();}
 	internal_type create_internal() {return new internal();}
@@ -213,24 +180,15 @@ private:
 		tpie_unreachable();
 	}
 
+
 	void set_augment(leaf_type l, internal_type p, augment_type ag) {
-        set_augment(l, p, ag, min_key(l));
+		size_t idx=index(l, p);
+		p->values[idx].augment = ag;
 	}
 
 	void set_augment(internal_type l, internal_type p, augment_type ag) {
-        set_augment(l, p, ag, min_key(l));
-	}
-
-	void set_augment(leaf_type l, internal_type p, augment_type ag, key_type min_key) {
 		size_t idx=index(l, p);
 		p->values[idx].augment = ag;
-		p->values[idx].min_key = min_key;
-	}
-
-	void set_augment(internal_type l, internal_type p, augment_type ag, key_type min_key) {
-		size_t idx=index(l, p);
-		p->values[idx].augment = ag;
-		p->values[idx].min_key = min_key;
 	}
 
 	const augment_type & augment(internal_type p, size_t i) const {
@@ -254,7 +212,6 @@ private:
 	}
 
 	void * m_root;
-	K key_extract;
 	size_t m_height;
 	size_t m_size;
 
@@ -266,6 +223,9 @@ private:
 
 	template <typename, typename>
 	friend class bbits::tree;
+
+	template <typename, typename>
+	friend class bbits::tree_state;
 
     template<typename, typename>
     friend class bbits::builder;

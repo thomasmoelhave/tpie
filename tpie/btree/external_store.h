@@ -38,12 +38,9 @@ namespace bbits {
  * 
  * \tparam T the type of value stored
  * \tparam A the type of augmentation
-
- * \tparam K the functor used to extract the key from a given value
  */
 template <typename T,
-		  typename A,
-		  typename K
+		  typename A
 		  >
 class external_store : public external_store_base {
 public:
@@ -57,24 +54,12 @@ public:
 	 */
 	typedef A augment_type;
 
-	/**
-	 * \brief Type of functer used to extract a key from a value
-	 */
-	typedef K key_extract_type;
-
-
-	/**
-	 * \brief Type of key
-	 */
-	typedef typename std::decay<decltype( (*static_cast<K*>(nullptr))( *static_cast<value_type*>(nullptr) ) )>::type key_type;
-
 	typedef size_t size_type;
 
 	static constexpr memory_size_type cacheSize() {return 32;}
 	static constexpr memory_size_type blockSize() {return 7000;}
 
 	struct internal_content {
-		key_type min_key;
 		blocks::block_handle handle;
 		A augment;
 	};
@@ -124,9 +109,8 @@ public:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit external_store(const std::string & path, K key_extract=K())
+	explicit external_store(const std::string & path)
 	: external_store_base(path)
-	, key_extract(key_extract)
 	{
 		m_collection = std::make_shared<blocks::block_collection_cache>(
 			path, blockSize(), cacheSize(), true);
@@ -263,32 +247,6 @@ public:
 		m_collection->write_block(node.handle);
 	}
 
-	key_type min_key(internal_type node, size_t i) const {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		internal nodeInter(nodeBlock);
-
-		return nodeInter.values[i].min_key;
-	}
-
-	key_type min_key(leaf_type node, size_t i) const {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		leaf nodeInter(nodeBlock);
-
-		return key_extract(nodeInter.values[i]);
-	}
-
-	key_type min_key(T v) const {
-		return key_extract(v);
-	}
-
-	key_type min_key(internal_type v) const {
-		return min_key(v, 0);
-	}
-
-	key_type min_key(leaf_type v) const {
-		return min_key(v, 0);
-	}
-
 	leaf_type create_leaf() {
 		blocks::block_handle h = m_collection->get_free_block();
 		blocks::block * b = m_collection->read_block(h);
@@ -374,21 +332,12 @@ public:
 	}
 
 	void set_augment(leaf_type child, internal_type node, augment_type augment) {
-		set_augment(child, node, augment, min_key(child));
-	}
-
-	void set_augment(internal_type child, internal_type node, augment_type augment) {
-		set_augment(child, node, augment, min_key(child));
-	}
-
-	void set_augment(leaf_type child, internal_type node, augment_type augment, key_type min_key) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
 			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key;
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;
@@ -399,14 +348,13 @@ public:
 		__builtin_unreachable();
 	}
 
-	void set_augment(internal_type child, internal_type node, augment_type augment, key_type min_key) {
+	void set_augment(internal_type child, internal_type node, augment_type augment) {
 		blocks::block * nodeBlock = m_collection->read_block(node.handle);
 		internal nodeInter(nodeBlock);
 
 		for (size_t i=0; i < *(nodeInter.count); ++i)
 		{
 			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key;
 				nodeInter.values[i].augment = augment;
 				m_collection->write_block(node.handle);
 				return;
@@ -440,7 +388,6 @@ public:
 		m_size = size;
 	}
 
-	K key_extract;
 	std::shared_ptr<blocks::block_collection_cache> m_collection;
 
 	template <typename>
@@ -449,6 +396,9 @@ public:
 	template <typename>
 	friend class btree_iterator;
 
+	template <typename, typename>
+	friend class bbits::tree_state;
+	
 	template <typename, typename>
 	friend class bbits::tree;
 
