@@ -180,8 +180,6 @@ class internal_store;
 template <typename T, typename A=empty_augment, typename K=identity_key>
 class external_store;
 
-
-
 struct enab {};
 
 template <typename X, bool b>
@@ -192,6 +190,28 @@ struct Enable<enab, true> {typedef enab type;};
 
 template <typename X, bool b>
 using enable = typename Enable<X,b>::type;
+
+template <typename T, typename O>
+class tree_config {
+public:
+	static const bool is_internal = O::O & bbits::f_internal;
+
+	typedef typename O::K keyextract_type;
+
+	typedef typename O::A augmenter_type;
+	
+	typedef T value_type;
+
+	typedef typename std::decay<decltype(std::declval<augmenter_type>()(std::declval<value_type>()))>::type augment_type;
+
+	typedef typename std::decay<decltype(std::declval<keyextract_type>()(std::declval<value_type>()))>::type key_type;
+	
+	typedef typename std::conditional<
+		is_internal,
+		bbits::internal_store<value_type, augment_type, keyextract_type>,
+		bbits::external_store<value_type, augment_type, keyextract_type> >::type store_type;
+};
+
 
 } //namespace bbits
 

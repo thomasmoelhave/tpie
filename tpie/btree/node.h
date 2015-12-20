@@ -33,24 +33,30 @@ namespace tpie {
  *
  * S is the type of the store used
  */
-template <typename S>
+template <typename C>
 class btree_node {
 public:
+	typedef C config_type;
+
+	
 	/**
 	 * \brief Type of the key of a value
 	 */
-	typedef typename S::key_type key_type;
+	typedef typename C::key_type key_type;
 
 	/**
 	 * \brief Type of the augment of a set of nodes/values
 	 */
-	typedef typename S::augment_type augment_type;
+	typedef typename C::augment_type augment_type;
 
 	/**
 	 * \brief Type of values
 	 */
-	typedef typename S::value_type value_type;
+	typedef typename C::value_type value_type;
 
+
+	typedef typename C::store_type store_type;
+	
 	/**
 	 * \brief Check if this node has a parent
 	 *
@@ -169,25 +175,25 @@ public:
 		return m_store->index(m_path.back(), m_path[m_path.size()-2]);
 	}
 	
-	btree_node(): m_store(NULL) {}
+	btree_node(): m_store(nullptr) {}
 private:
-	typedef typename S::leaf_type leaf_type;
-	typedef typename S::internal_type internal_type;
+	typedef typename store_type::leaf_type leaf_type;
+	typedef typename store_type::internal_type internal_type;
 
-	btree_node(const S * store, leaf_type root)
+	btree_node(const store_type * store, leaf_type root)
 		: m_store(store), m_leaf(root), m_is_leaf(true) {
 	}
 
-	btree_node(const S * store, internal_type root)
+	btree_node(const store_type * store, internal_type root)
 		: m_store(store), m_is_leaf(false) {
 		m_path.push_back(root);
 	}
 
-	btree_node(const S * store, std::vector<internal_type> path, leaf_type leaf)
+	btree_node(const store_type * store, std::vector<internal_type> path, leaf_type leaf)
 		: m_store(store), m_path(path), m_leaf(leaf), m_is_leaf(true) {
 	}
 
-	const S * m_store;
+	const store_type * m_store;
 	std::vector<internal_type> m_path;
 	leaf_type m_leaf;
 	bool m_is_leaf;
@@ -202,18 +208,19 @@ private:
 	friend class btree_iterator;
 };
 
-template <typename S>
+template <typename C>
 class btree_iterator: public boost::iterator_facade<
-	btree_iterator<S>,
-	typename S::value_type const,
+	btree_iterator<C>,
+	typename C::value_type const,
 	boost::bidirectional_traversal_tag> {
 private:
-	typedef typename S::internal_type internal_type;
-	typedef typename S::leaf_type leaf_type;
-	typedef typename S::value_type value_type;
-	typedef typename S::key_type key_type;
+	typedef typename C::store_type store_type;
+	typedef typename store_type::internal_type internal_type;
+	typedef typename store_type::leaf_type leaf_type;
+	typedef typename C::value_type value_type;
+	typedef typename C::key_type key_type;
 
-	const S * m_store;
+	const store_type * m_store;
 	std::vector<internal_type> m_path;
 	size_t m_index;
 	leaf_type m_leaf;
@@ -221,7 +228,7 @@ private:
 	template <typename, typename>
 	friend class bbits::tree;
 
-	btree_iterator(const S * store): m_store(store) {}
+	btree_iterator(const store_type * store): m_store(store) {}
 
 	void goto_item(const std::vector<internal_type> & p, leaf_type l, size_t i) {
 		m_path = p;
@@ -289,8 +296,8 @@ public:
 	
 	size_t index() const {return m_index;}
 
-	btree_node<S> is_leaf() const {
-		return btree_node<S>(m_store, m_path, m_leaf);
+	btree_node<C> is_leaf() const {
+		return btree_node<C>(m_store, m_path, m_leaf);
 	}
 	
 	void decrement() {

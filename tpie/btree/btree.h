@@ -37,20 +37,32 @@ namespace bbits {
 template <typename T, typename O>
 class tree {
 public:
-	static const bool is_internal = O::O & bbits::f_internal;
+	typedef tree_config<T, O> config_type;
 
-	typedef typename O::K keyextract_type;
+	static const bool is_internal = config_type::is_internal;
+	typedef typename config_type::augmenter_type augmenter_type;
+
+	/**
+	 * \brief Type of value stored
+	 */
+	typedef typename config_type::value_type value_type;
+	typedef typename config_type::keyextract_type keyextract_type;
+
+	typedef typename config_type::augment_type augment_type;
+
+	/**
+	 * \brief The type of key used
+	 */
+	typedef typename config_type::key_type key_type;
+	
 
 	typedef typename O::C C;
-	
-	/**
-	 * \brief Type of augmenter
-	 */
-	typedef typename O::A augmenter_type;
-
-	
 	typedef typename O::A A;
 
+	typedef typename config_type::store_type store_type;
+
+	/*
+	
 	typedef typename std::decay<decltype( (*(A*)nullptr)(*(T*)nullptr) )>::type augment_type;
 
 
@@ -58,36 +70,25 @@ public:
 		is_internal,
 		bbits::internal_store<T, augment_type, keyextract_type>,
 		bbits::external_store<T, augment_type, keyextract_type> >::type S;
-		
-	
-	/**
-	 * \brief The type of key used
-	 */
-	typedef typename S::key_type key_type;
+	*/	
 
 	/**
 	 * \brief Type of node wrapper
 	 */
-	typedef btree_node<S> node_type;
-
-	/**
-	 * \brief Type of value stored
-	 */
-	typedef typename S::value_type value_type;
-
+	typedef btree_node<config_type> node_type;
 
 	/**
 	 * \brief Type of the size
 	 */
-	typedef typename S::size_type size_type;
+	typedef typename store_type::size_type size_type;
 
 	/**
 	 * \brief Iterator type
 	 */
-	typedef btree_iterator<S> iterator;
+	typedef btree_iterator<config_type> iterator;
 private:
-	typedef typename S::leaf_type leaf_type;
-	typedef typename S::internal_type internal_type;
+	typedef typename store_type::leaf_type leaf_type;
+	typedef typename store_type::internal_type internal_type;
 
 	
 	size_t count_child(internal_type node, size_t i, leaf_type) const {
@@ -604,13 +605,12 @@ public:
 	friend class bbits::builder<T, O>;
 	
 private:
-	explicit tree(S store, C comp, A augmenter):
+	explicit tree(store_type store, C comp, A augmenter):
 		m_store(std::move(store)), 
 		m_comp(comp), 
 		m_augmenter(augmenter) {}
-
 	
-	S m_store;
+	store_type m_store;
 	C m_comp;
 	A m_augmenter;
 };

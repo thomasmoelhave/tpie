@@ -34,13 +34,13 @@ namespace bbits {
 template <typename T, typename O>
 class builder {
 private:
-	static const bool is_internal = O::O & bbits::f_internal;
-	
 	typedef bbits::tree<T, O> tree_type;
+	typedef bbits::tree_config<T, O> config_type;
 
+	typedef typename config_type::key_type key_type;
 
-	typedef typename tree_type::key_type key_type;
-	
+	static const bool is_internal = config_type::is_internal;
+
 	typedef T value_type;
 
 	typedef typename O::C C;
@@ -50,15 +50,15 @@ private:
 
 	typedef typename tree_type::size_type size_type;
 
-	typedef typename tree_type::S store_type;
+	typedef typename config_type::store_type store_type;
 	
-	typedef typename tree_type::S S;
+	typedef typename config_type::store_type S;
 	
     typedef typename S::leaf_type leaf_type;
 
     typedef typename S::internal_type internal_type;
 
-    typedef btree_node<S> node_type;
+    typedef btree_node<config_type> node_type;
 
     // Keeps the same information that the parent of a leaf keeps
     struct leaf_summary {
