@@ -50,27 +50,16 @@ public:
 
 	typedef typename state_type::augment_type augment_type;
 
+
 	/**
 	 * \brief The type of key used
 	 */
 	typedef typename state_type::key_type key_type;
-	
 
-	typedef typename O::C C;
-	typedef typename O::A A;
+	typedef typename O::C comp_type;
 
 	typedef typename state_type::store_type store_type;
 
-	/*
-	
-	typedef typename std::decay<decltype( (*(A*)nullptr)(*(T*)nullptr) )>::type augment_type;
-
-
-	typedef typename std::conditional<
-		is_internal,
-		bbits::internal_store<T, augment_type, keyextract_type>,
-		bbits::external_store<T, augment_type, keyextract_type> >::type S;
-	*/	
 
 	/**
 	 * \brief Type of node wrapper
@@ -586,7 +575,7 @@ public:
 	 * Construct a btree with the given storage
 	 */
 	template <typename X=enab>
-	explicit tree(std::string path, C comp=C(), A augmenter=A(), enable<X, !is_internal> =enab() ): 
+	explicit tree(std::string path, comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, !is_internal> =enab() ): 
 		m_state(store_type(path), std::move(augmenter), keyextract_type()),
 		m_comp(comp) {}
 
@@ -594,19 +583,19 @@ public:
 	 * Construct a btree with the given storage
 	 */
 	template <typename X=enab>
-	explicit tree(C comp=C(), A augmenter=A(), enable<X, is_internal> =enab() ): 
+	explicit tree(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, is_internal> =enab() ): 
 		m_state(store_type(), std::move(augmenter), keyextract_type()),
 		m_comp(comp) {}
 	
 	friend class bbits::builder<T, O>;
 	
 private:
-	explicit tree(state_type state, C comp):
+	explicit tree(state_type state, comp_type comp):
 		m_state(std::move(state)),
 		m_comp(comp) {}
 
 	state_type m_state;
-	C m_comp;
+	comp_type m_comp;
 };
 
 } //namespace bbits

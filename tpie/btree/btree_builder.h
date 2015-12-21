@@ -43,8 +43,9 @@ private:
 
 	typedef T value_type;
 
-	typedef typename O::C C;
-	typedef typename O::A A;
+	typedef typename O::C comp_type;
+
+	typedef typename O::A augmenter_type;
 	
     typedef typename tree_type::augment_type augment_type;
 
@@ -179,13 +180,13 @@ public:
 	* \brief Construct a btree builder with the given storage
 	*/
 	template <typename X=enab>
-	explicit builder(std::string path, C comp=C(), A augmenter=A(), enable<X, !is_internal> =enab() )
+	explicit builder(std::string path, comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, !is_internal> =enab() )
         : m_state(store_type(path), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
     {}
 
 	template <typename X=enab>
-	explicit builder(C comp=C(), A augmenter=A(), enable<X, is_internal> =enab() )
+	explicit builder(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, is_internal> =enab() )
 		: m_state(store_type(), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
     {}
@@ -196,7 +197,7 @@ public:
 	*/
     void push(value_type v) {
         m_items.push_back(v);
-        m_state.store().set_size(m_state.store().size() + 1);
+        m_state.store().set_size(m_state.store().size() + 1); //TODO we should just set the size in the end
 
         // try to construct nodes from items if possible
         if(m_items.size() < leaf_tipping_point()) return;
@@ -260,7 +261,7 @@ private:
     std::vector<std::deque<internal_summary>> m_internal_nodes;
 
 	state_type m_state;
-    C m_comp;
+    comp_type m_comp;
 };
 
 } //namespace bbits
