@@ -115,14 +115,13 @@ private:
         // take nodes from internal_nodes[level] and construct a new node in internal_nodes[level+1]
         internal_summary internal;
         internal.internal = m_state.store().create_internal();
+		m_state.store().set_count(internal.internal, size);
         for(size_t i = 0; i < size; ++i) {
             internal_summary child = m_internal_nodes[level].front();
             m_state.store().set(internal.internal, i, child.internal);
             m_state.store().set_augment(child.internal, internal.internal, child.augment);
             m_internal_nodes[level].pop_front();
         }
-
-        m_state.store().set_count(internal.internal, size);
         internal.augment = m_state.m_augmenter(node_type(&m_state, internal.internal));
 
         // push the internal node to the deque of nodes
@@ -133,28 +132,28 @@ private:
 	/**
 	* \brief The desired number of children for each leaf node.
 	*/
-    static constexpr size_t desired_leaf_size() {
+    static constexpr size_t desired_leaf_size() noexcept {
         return (S::min_leaf_size() + S::max_leaf_size()) / 2;
     }
 
 	/**
 	* \brief The maximum number of items to be kept in memory.
 	*/
-    static constexpr size_t leaf_tipping_point() {
+    static constexpr size_t leaf_tipping_point() noexcept {
         return desired_leaf_size() + S::min_leaf_size();
     }
 
 	/**
 	* \brief The desired number of children for each internal node.
 	*/
-    static constexpr size_t desired_internal_size() {
+    static constexpr size_t desired_internal_size() noexcept {
         return (S::min_internal_size() + S::max_internal_size()) / 2;
     }
 
 	/**
 	* \brief The maximum number of children to be kept in memory at each level.
 	*/
-    static constexpr size_t internal_tipping_point() {
+    static constexpr size_t internal_tipping_point() noexcept {
         return desired_internal_size() + S::min_internal_size();
     }
 
@@ -220,6 +219,8 @@ public:
         // if there already exists internal nodes and there are leaves left: construct a new internal node(since there is guaranteed to be atleast S::min_internal_size leaves)
         // if there do not exist internal nodes, then only construct an internal node if there is more than one leaf
         if((m_internal_nodes.size() == 0 && m_leaves.size() > 1) || (m_internal_nodes.size() > 0 && m_leaves.size() > 0)) {
+            if(m_leaves.size() > 2*S::max_internal_size() ) // construct two nodes if necessary
+                construct_internal_from_leaves(m_leaves.size()/3);
             if(m_leaves.size() > S::max_internal_size()) // construct two nodes if necessary
                 construct_internal_from_leaves(m_leaves.size()/2);
             construct_internal_from_leaves(m_leaves.size()); // construct a node from the remaining leaves
@@ -230,6 +231,8 @@ public:
             // if there do not exist internal nodes at a higher level, then only construct an internal nodes at that level if there are more than one node at this level.
             if((m_internal_nodes.size() == i+1 && m_internal_nodes[i].size() > 1)
                 || (m_internal_nodes.size() > i+1 && m_internal_nodes[i].size() > 0)) {
+                if(m_internal_nodes[i].size() > 2*S::max_internal_size())
+                    construct_internal_from_internal(m_internal_nodes[i].size()/3, i);
                 if(m_internal_nodes[i].size() > S::max_internal_size())
                     construct_internal_from_internal(m_internal_nodes[i].size()/2, i);
                 construct_internal_from_internal(m_internal_nodes[i].size(), i);
