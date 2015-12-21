@@ -64,6 +64,7 @@ template <int i>
 struct int_opt {static const int O=i;};
 
 static const int f_internal = 1;
+static const int f_static = 2;
 
 } //namespace bbits
 
@@ -84,6 +85,9 @@ struct btree_fanout {
 
 using btree_internal = bbits::int_opt<bbits::f_internal>;
 using btree_external = bbits::int_opt<0>;
+
+using btree_static = bbits::int_opt<bbits::f_static>;
+using btree_dynamic = bbits::int_opt<0>;
 
 namespace bbits {
 
@@ -177,6 +181,9 @@ class builder;
 template <typename T, typename A=empty_augment, std::size_t a=2, std::size_t b=4>
 class internal_store;
 
+template <typename T, typename A=empty_augment, std::size_t a=2>
+class static_internal_store;
+
 template <typename T, typename A=empty_augment>
 class external_store;
 
@@ -195,7 +202,11 @@ template <typename T, typename O>
 class tree_state {
 public:
 	static const bool is_internal = O::O & bbits::f_internal;
+	
+	static const bool is_static = O::O & bbits::f_static;
 
+	static_assert(is_internal || !is_static, "Currently static requires internal");
+	
 	typedef typename O::K keyextract_type;
 
 	typedef typename O::A augmenter_type;

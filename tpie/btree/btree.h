@@ -40,6 +40,8 @@ public:
 	typedef tree_state<T, O> state_type;
 
 	static const bool is_internal = state_type::is_internal;
+	static const bool is_static = state_type::is_static;
+	
 	typedef typename state_type::augmenter_type augmenter_type;
 
 	/**
@@ -278,7 +280,8 @@ public:
 	/**
 	 * \brief Insert given value into the btree
 	 */
-	void insert(value_type v) {
+	template <typename X=enab>
+	void insert(value_type v, enable<X, !is_static> =enab()) {
 		m_state.store().set_size(m_state.store().size() + 1);
 
 		// Handle the special case of the empty tree
@@ -448,7 +451,8 @@ public:
 	/**
 	 * \brief remove item at iterator
 	 */
-	void erase(const iterator & itr) {
+	template <typename X=enab>
+	void erase(const iterator & itr, enable<X, !is_static> =enab()) {
 		std::vector<internal_type> path=itr.m_path;
 		leaf_type l = itr.m_leaf;
 
@@ -536,7 +540,8 @@ public:
 	/**
 	 * \brief remove all items with given key
 	 */
-	size_type erase(key_type v) {
+	template <typename X=enab>
+	size_type erase(key_type v, enable<X, !is_static> =enab()) {
 		size_type count = 0;
 		iterator i = find(v);
 		while(i != end()) {

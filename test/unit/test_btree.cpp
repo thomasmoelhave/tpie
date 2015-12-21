@@ -415,7 +415,11 @@ bool internal_augment_test() {
 bool internal_build_test() {
 	return build_test(TA<btree_internal>());
 }
-	
+
+bool internal_static_test() {
+	return build_test(TA<btree_internal, btree_static>());
+}
+
 bool internal_bound_test() {
 	return bound_test(TA<btree_internal>());
 }
@@ -457,6 +461,7 @@ int main(int argc, char **argv) {
 		.test(internal_key_and_comparator_test, "internal_key_and_compare")
 		.test(internal_augment_test, "internal_augment")
         .test(internal_build_test, "internal_build")
+		.test(internal_static_test, "internal_static")
 		.test(internal_bound_test, "internal_bound")
 		.test(external_basic_test, "external_basic")
 		.test(external_iterator_test, "external_iterator")

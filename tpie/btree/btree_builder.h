@@ -41,6 +41,8 @@ private:
 
 	static const bool is_internal = state_type::is_internal;
 
+	static const bool is_static = state_type::is_static;
+
 	typedef T value_type;
 
 	typedef typename O::C comp_type;
@@ -134,7 +136,9 @@ private:
 	* \brief The desired number of children for each leaf node.
 	*/
     static constexpr size_t desired_leaf_size() noexcept {
-        return (S::min_leaf_size() + S::max_leaf_size()) / 2;
+        return is_static
+			? S::max_leaf_size()
+			: ((S::min_leaf_size() + S::max_leaf_size()) / 2);
     }
 
 	/**
@@ -148,7 +152,9 @@ private:
 	* \brief The desired number of children for each internal node.
 	*/
     static constexpr size_t desired_internal_size() noexcept {
-        return (S::min_internal_size() + S::max_internal_size()) / 2;
+        return is_static
+			? S::max_internal_size()
+			: ((S::min_internal_size() + S::max_internal_size()) / 2);
     }
 
 	/**
