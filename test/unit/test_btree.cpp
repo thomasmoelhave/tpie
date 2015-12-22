@@ -342,9 +342,31 @@ bool build_test(TA<TT...>, A && ... a) {
 		tree2.insert(i);
 	}
 
+	auto tree = builder.build();
+    TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size");
+    TEST_ENSURE(compare(tree, tree2), "Compare failed");
+
+	return true;
+}
+
+
+template<typename ... TT, typename ... A>
+bool unordered_test(TA<TT...>, A && ... a) {
+	struct item {
+		size_t v;
+		bool operator==(const item & o) const noexcept {return v == o.v;}
+		bool operator!=(const item & o) const noexcept {return v != o.v;}
+	};
+	
+    btree_builder<item, btree_unordered, TT...> builder(std::forward<A>(a)...);
+	std::vector<item> tree2;
+
+	for (size_t i=0; i < 50000; ++i) {
+		builder.push(item{i});
+		tree2.push_back(item{i});
+	}
 
 	auto tree = builder.build();
-
     TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size");
     TEST_ENSURE(compare(tree, tree2), "Compare failed");
 
@@ -420,6 +442,10 @@ bool internal_static_test() {
 	return build_test(TA<btree_internal, btree_static>());
 }
 
+bool internal_unordered_test() {
+	return unordered_test(TA<btree_internal>());
+}
+
 bool internal_bound_test() {
 	return bound_test(TA<btree_internal>());
 }
@@ -462,6 +488,7 @@ int main(int argc, char **argv) {
 		.test(internal_augment_test, "internal_augment")
         .test(internal_build_test, "internal_build")
 		.test(internal_static_test, "internal_static")
+		.test(internal_unordered_test, "internal_unordered")
 		.test(internal_bound_test, "internal_bound")
 		.test(external_basic_test, "external_basic")
 		.test(external_iterator_test, "external_iterator")

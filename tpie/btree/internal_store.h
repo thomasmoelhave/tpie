@@ -252,6 +252,8 @@ private:
 
     template<typename, typename>
     friend class bbits::builder;
+
+	
 };
 
 } //namespace bbits

@@ -41,6 +41,7 @@ public:
 
 	static const bool is_internal = state_type::is_internal;
 	static const bool is_static = state_type::is_static;
+	static const bool is_ordered = state_type::is_ordered;
 	
 	typedef typename state_type::augmenter_type augmenter_type;
 
@@ -369,8 +370,8 @@ public:
 	/**
 	 * \brief Return an iterator to the first item with the given key
 	 */
-	template <typename K>
-	iterator find(K v) const {
+	template <typename K, typename X=enab>
+	iterator find(K v, enable<X, is_ordered> =enab()) const {
 		iterator itr(&m_state);
 
 		if(m_state.store().height() == 0) {
@@ -400,8 +401,8 @@ public:
 	 * \brief Return an interator to the first element that is "not less" than
 	 * the given key
 	 */
-	template <typename K>
-	iterator lower_bound(K v) const {
+	template <typename K, typename X=enab>
+	iterator lower_bound(K v, enable<X, is_ordered> =enab()) const {
 		iterator itr(&m_state);
 		if (m_state.store().height() == 0) {
 			itr.goto_end();
@@ -426,8 +427,8 @@ public:
 	 * \brief Return an interator to the first element that is "greater" than
 	 * the given key
 	 */
-	template <typename K>
-	iterator upper_bound(K v) const {
+	template <typename K, typename X=enab>
+	iterator upper_bound(K v, enable<X, is_ordered> =enab()) const {
 		iterator itr(&m_state);
 		if (m_state.store().height() == 0) {
 			itr.goto_end();
@@ -541,7 +542,7 @@ public:
 	 * \brief remove all items with given key
 	 */
 	template <typename X=enab>
-	size_type erase(key_type v, enable<X, !is_static> =enab()) {
+	size_type erase(key_type v, enable<X, !is_static && is_ordered> =enab()) {
 		size_type count = 0;
 		iterator i = find(v);
 		while(i != end()) {

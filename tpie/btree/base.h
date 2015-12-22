@@ -57,7 +57,12 @@ struct default_comp {
 	}
 };
 
+struct empty_key {};
 
+struct no_key {
+	template <typename T>
+	empty_key operator()(const T &) const noexcept {return empty_key{};};
+};
 
 namespace bbits {
 template <int i>
@@ -65,6 +70,7 @@ struct int_opt {static const int O=i;};
 
 static const int f_internal = 1;
 static const int f_static = 2;
+static const int f_unordered = 4;
 
 } //namespace bbits
 
@@ -88,6 +94,9 @@ using btree_external = bbits::int_opt<0>;
 
 using btree_static = bbits::int_opt<bbits::f_static>;
 using btree_dynamic = bbits::int_opt<0>;
+
+using btree_unordered = bbits::int_opt<bbits::f_unordered>;
+using btree_ordered = bbits::int_opt<0>;
 
 namespace bbits {
 
@@ -202,12 +211,13 @@ template <typename T, typename O>
 class tree_state {
 public:
 	static const bool is_internal = O::O & bbits::f_internal;
-	
 	static const bool is_static = O::O & bbits::f_static;
+	static const bool is_ordered = ! (O::O & bbits::f_unordered);
 
-	static_assert(is_internal || !is_static, "Currently static requires internal");
-	
-	typedef typename O::K keyextract_type;
+	typedef typename std::conditional<
+		is_ordered,
+		typename O::K,
+		no_key>::type keyextract_type;
 
 	typedef typename O::A augmenter_type;
 	
@@ -253,7 +263,7 @@ public:
 		is_internal,
 		bbits::internal_store<value_type, combined_augment>,
 		bbits::external_store<value_type, combined_augment> >::type store_type;
-
+	
 	typedef typename store_type::internal_type internal_type;
 	typedef typename store_type::leaf_type leaf_type;
 	
