@@ -57,14 +57,33 @@ public:
 
 	typedef size_t size_type;
 
+
+	internal_store(const internal_store & o) = delete;
+	internal_store & operator=(const internal_store & o) = delete;
+
+	internal_store(internal_store && o)
+		: m_root(o.m_root)
+		, m_height(o.m_height)
+		, m_size(o.m_size) {
+		o.m_root = nullptr;
+		o.m_size = 0;
+		o.m_height = 0;
+	}
+		
+	internal_store & operator=(internal_store && o) {
+		this->~internal_store();
+		new (this) internal_store(o);
+		return this;
+	}
+	
 private:	
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
 	explicit internal_store(): 
-		m_root(NULL), m_height(0), m_size(0) {}
+		m_root(nullptr), m_height(0), m_size(0) {}
 
-
+	
 	struct internal_content {
 		void * ptr;
 		A augment;
@@ -82,7 +101,24 @@ private:
 
 	typedef internal * internal_type;
 	typedef leaf * leaf_type;
-
+	
+	void dispose(void * node, size_t depth) {
+		if (depth + 1 == m_height) {
+			delete static_cast<leaf *>(node);
+			return;
+		}
+		internal * in = static_cast<internal*>(node);
+		for (size_t i=0; i != in->count; ++i)
+			dispose(in->values[i].ptr, depth + 1);
+		delete in;
+	}
+	
+	~internal_store() {
+		if (!m_root || !m_height) return;
+		dispose(m_root, 0);
+		m_root = nullptr;
+	}
+	
 	static constexpr size_t min_internal_size() {return a;}
 	static constexpr size_t max_internal_size() {return b;}
 
