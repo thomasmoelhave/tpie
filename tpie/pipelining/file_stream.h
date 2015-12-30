@@ -104,7 +104,37 @@ public:
 	file_stream<T> & fs;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \class pull_reverse_input_t
+///
+/// file_stream pull input generator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class pull_reverse_input_t : public node {
+public:
+	typedef T item_type;
 
+	inline pull_reverse_input_t(file_stream<T> & fs) : fs(fs) {
+		set_name("Read", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(fs.memory_usage());
+	}
+
+	virtual void propagate() override {
+		forward("items", fs.size());
+		set_steps(fs.size());
+	}
+
+	inline T pull() {
+		step();
+		return fs.read_back();
+	}
+
+	inline bool can_pull() {
+		return fs.can_read_back();
+	}
+
+	file_stream<T> & fs;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class named_output_t
@@ -297,6 +327,16 @@ inline pipe_begin<factory<bits::input_t, file_stream<T> &> > input(file_stream<T
 template<typename T>
 inline pullpipe_begin<termfactory<bits::pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
 	return termfactory<bits::pull_input_t<T>, file_stream<T> &>(fs);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining pull-node that reads items in reverse order from the
+/// given file_stream
+/// \param fs The file stream from which it reads items.
+///////////////////////////////////////////////////////////////////////////////
+template<typename T>
+inline pullpipe_begin<termfactory<bits::pull_reverse_input_t<T>, file_stream<T> &> > pull_reverse_input(file_stream<T> & fs) {
+	return termfactory<bits::pull_reverse_input_t<T>, file_stream<T> &>(fs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
