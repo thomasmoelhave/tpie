@@ -30,6 +30,7 @@
 #include <cstddef>
 
 namespace tpie {
+namespace bbits {
 
 /**
  * \brief Storage used for an external btree. Note that a user of a btree should
@@ -37,13 +38,11 @@ namespace tpie {
  * 
  * \tparam T the type of value stored
  * \tparam A the type of augmentation
- * \tparam K the functor used to extract the key from a given value
  */
 template <typename T,
-		  typename A=empty_augment,
-		  typename K=identity_key<T>
+		  typename A
 		  >
-class btree_external_store : public bits::btree_external_store_base {
+class external_store : public external_store_base {
 public:
 	/**
 	 * \brief Type of value of items stored
@@ -55,23 +54,12 @@ public:
 	 */
 	typedef A augment_type;
 
-	/**
-	 * \brief Type of functer used to extract a key from a value
-	 */
-	typedef K key_extract_type;
-
-	/**
-	 * \brief Type of key
-	 */
-	typedef typename K::value_type key_type;
-
 	typedef size_t size_type;
-private:
+
 	static constexpr memory_size_type cacheSize() {return 32;}
 	static constexpr memory_size_type blockSize() {return 7000;}
-
+	
 	struct internal_content {
-		key_type min_key;
 		blocks::block_handle handle;
 		A augment;
 	};
@@ -117,24 +105,22 @@ private:
 			return handle == other.handle;
 		}
 	};
-public:
 
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	btree_external_store(const std::string & path, K key_extract=K())
-	: btree_external_store_base(path)
-	, key_extract(key_extract)
+	explicit external_store(const std::string & path)
+	: external_store_base(path)
 	{
 		m_collection = std::make_shared<blocks::block_collection_cache>(
 			path, blockSize(), cacheSize(), true);
 	}
 
-	~btree_external_store() {
+	~external_store() {
 		m_collection.reset();
 	}
 
-private:
+
 	static constexpr size_t min_internal_size() {
 		return (max_internal_size() + 3) / 4;
 	}
@@ -261,32 +247,6 @@ private:
 		m_collection->write_block(node.handle);
 	}
 
-	key_type min_key(internal_type node, size_t i) const {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		internal nodeInter(nodeBlock);
-
-		return nodeInter.values[i].min_key;
-	}
-
-	key_type min_key(leaf_type node, size_t i) const {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		leaf nodeInter(nodeBlock);
-
-		return key_extract(nodeInter.values[i]);
-	}
-
-	key_type min_key(T v) const {
-		return key_extract(v);
-	}
-
-	key_type min_key(internal_type v) const {
-		return min_key(v, 0);
-	}
-
-	key_type min_key(leaf_type v) const {
-		return min_key(v, 0);
-	}
-
 	leaf_type create_leaf() {
 		blocks::block_handle h = m_collection->get_free_block();
 		blocks::block * b = m_collection->read_block(h);
@@ -370,49 +330,31 @@ private:
 		tp_assert(false, "Node not found");
 		__builtin_unreachable();
 	}
+	
+	void set_augment(blocks::block_handle child, internal_type node, augment_type augment) {
+		blocks::block * nodeBlock = m_collection->read_block(node.handle);
+		internal nodeInter(nodeBlock);
+
+		for (size_t i=0; i < *(nodeInter.count); ++i)
+		{
+			if (nodeInter.values[i].handle == child) {
+				nodeInter.values[i].augment = augment;
+				m_collection->write_block(node.handle);
+				return;
+			}
+		}
+
+		tp_assert(false, "Not found");
+		__builtin_unreachable();
+	}
+	
 
 	void set_augment(leaf_type child, internal_type node, augment_type augment) {
-		set_augment(child, node, augment, min_key(child));
+		set_augment(child.handle, node, augment);
 	}
 
 	void set_augment(internal_type child, internal_type node, augment_type augment) {
-		set_augment(child, node, augment, min_key(child));
-	}
-
-	void set_augment(leaf_type child, internal_type node, augment_type augment, key_type min_key) {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		internal nodeInter(nodeBlock);
-
-		for (size_t i=0; i < *(nodeInter.count); ++i)
-		{
-			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key;
-				nodeInter.values[i].augment = augment;
-				m_collection->write_block(node.handle);
-				return;
-			}
-		}
-
-		tp_assert(false, "Leaf not found");
-		__builtin_unreachable();
-	}
-
-	void set_augment(internal_type child, internal_type node, augment_type augment, key_type min_key) {
-		blocks::block * nodeBlock = m_collection->read_block(node.handle);
-		internal nodeInter(nodeBlock);
-
-		for (size_t i=0; i < *(nodeInter.count); ++i)
-		{
-			if (nodeInter.values[i].handle == child.handle) {
-				nodeInter.values[i].min_key = min_key;
-				nodeInter.values[i].augment = augment;
-				m_collection->write_block(node.handle);
-				return;
-			}
-		}
-		
-		tp_assert(false, "Node not found");
-		__builtin_unreachable();
+		set_augment(child.handle, node, augment);
 	}
 
 	const augment_type & augment(internal_type node, size_t i) const {
@@ -438,7 +380,6 @@ private:
 		m_size = size;
 	}
 
-	K key_extract;
 	std::shared_ptr<blocks::block_collection_cache> m_collection;
 
 	template <typename>
@@ -447,12 +388,16 @@ private:
 	template <typename>
 	friend class btree_iterator;
 
-	template <typename, typename, typename>
-	friend class btree;
+	template <typename, typename>
+	friend class bbits::tree_state;
+	
+	template <typename, typename>
+	friend class bbits::tree;
 
-    template <typename, typename, typename>
-    friend class btree_builder;
+    template <typename, typename>
+    friend class bbits::builder;
 };
 
+} //namespace bbits
 } //namespace tpie
 #endif /*_TPIE_BTREE_EXTERNAL_STORE_H_*/

@@ -29,73 +29,85 @@
 #include <vector>
 
 namespace tpie {
+namespace bbits {
 
-template <typename S, typename C, typename A>
-class btree_builder {
+template <typename T, typename O>
+class builder {
 private:
-	typedef typename S::key_type key_type;
+	typedef bbits::tree<T, O> tree_type;
+	typedef bbits::tree_state<T, O> state_type;
 
-	typedef typename S::value_type value_type;
+	typedef typename state_type::key_type key_type;
 
-    typedef typename S::augment_type augment_type;
+	static const bool is_internal = state_type::is_internal;
 
-	typedef typename S::size_type size_type;
+	static const bool is_static = state_type::is_static;
 
+	typedef T value_type;
+
+	typedef typename O::C comp_type;
+
+	typedef typename O::A augmenter_type;
+	
+    typedef typename tree_type::augment_type augment_type;
+
+	typedef typename tree_type::size_type size_type;
+
+	typedef typename state_type::combined_augment combined_augment;
+	
+	typedef typename state_type::store_type store_type;
+	
+	typedef typename state_type::store_type S;
+	
     typedef typename S::leaf_type leaf_type;
 
     typedef typename S::internal_type internal_type;
 
-    typedef btree_node<S> node_type;
-
-	typedef btree<S, C, A> tree_type;
+    typedef btree_node<state_type> node_type;
 
     // Keeps the same information that the parent of a leaf keeps
     struct leaf_summary {
         leaf_type leaf;
-        key_type min_key;
-        augment_type augment;
+        combined_augment augment;
     };
 
     // Keeps the same information that the parent of a node keeps
     struct internal_summary {
         internal_type internal;
-        key_type min_key;
-        augment_type augment;
+        combined_augment augment;
     };
 
     // Construct a leaf from m
     void construct_leaf(size_t size) {
         leaf_summary leaf;
-        leaf.leaf = m_store.create_leaf();
+        leaf.leaf = m_state.store().create_leaf();
 
-        m_store.set_count(leaf.leaf, size);
+        m_state.store().set_count(leaf.leaf, size);
 
         for(size_t i = 0; i < size; ++i) {
-            m_store.set(leaf.leaf, i, m_items.front());
+            m_state.store().set(leaf.leaf, i, m_items.front());
             m_items.pop_front();
         }
 
-        leaf.min_key = m_store.min_key(leaf.leaf);
-        leaf.augment = m_augmenter(node_type(&m_store, leaf.leaf));
+		leaf.augment = m_state.m_augmenter(node_type(&m_state, leaf.leaf));
 
         m_leaves.push_back(leaf);
     }
 
     void construct_internal_from_leaves(size_t size) {
         internal_summary internal;
-        internal.internal = m_store.create_internal();
+        internal.internal = m_state.store().create_internal();
 
-        m_store.set_count(internal.internal, size);
+        m_state.store().set_count(internal.internal, size);
 
         for(size_t i = 0; i < size; ++i) {
             leaf_summary child = m_leaves.front();
-            m_store.set(internal.internal, i, child.leaf);
-            m_store.set_augment(child.leaf, internal.internal, child.augment, child.min_key);
+            m_state.store().set(internal.internal, i, child.leaf);
+            m_state.store().set_augment(child.leaf, internal.internal, child.augment);
             m_leaves.pop_front();
         }
 
-        internal.min_key = m_store.min_key(internal.internal);
-        internal.augment = m_augmenter(node_type(&m_store, internal.internal));
+        internal.augment = m_state.m_augmenter(node_type(&m_state, internal.internal));
 
         // push the internal node to the deque of nodes
         if(m_internal_nodes.size() < 1) m_internal_nodes.push_back(std::deque<internal_summary>());
@@ -105,17 +117,15 @@ private:
     void construct_internal_from_internal(size_t size, size_t level) {
         // take nodes from internal_nodes[level] and construct a new node in internal_nodes[level+1]
         internal_summary internal;
-        internal.internal = m_store.create_internal();
+        internal.internal = m_state.store().create_internal();
+		m_state.store().set_count(internal.internal, size);
         for(size_t i = 0; i < size; ++i) {
             internal_summary child = m_internal_nodes[level].front();
-            m_store.set(internal.internal, i, child.internal);
-            m_store.set_augment(child.internal, internal.internal, child.augment, child.min_key);
+            m_state.store().set(internal.internal, i, child.internal);
+            m_state.store().set_augment(child.internal, internal.internal, child.augment);
             m_internal_nodes[level].pop_front();
         }
-
-        m_store.set_count(internal.internal, size);
-        internal.min_key = m_store.min_key(internal.internal);
-        internal.augment = m_augmenter(node_type(&m_store, internal.internal));
+        internal.augment = m_state.m_augmenter(node_type(&m_state, internal.internal));
 
         // push the internal node to the deque of nodes
         if(m_internal_nodes.size() < level+2) m_internal_nodes.push_back(std::deque<internal_summary>());
@@ -125,28 +135,32 @@ private:
 	/**
 	* \brief The desired number of children for each leaf node.
 	*/
-    static constexpr size_t desired_leaf_size() {
-        return (S::min_leaf_size() + S::max_leaf_size()) / 2;
+    static constexpr size_t desired_leaf_size() noexcept {
+        return is_static
+			? S::max_leaf_size()
+			: ((S::min_leaf_size() + S::max_leaf_size()) / 2);
     }
 
 	/**
 	* \brief The maximum number of items to be kept in memory.
 	*/
-    static constexpr size_t leaf_tipping_point() {
+    static constexpr size_t leaf_tipping_point() noexcept {
         return desired_leaf_size() + S::min_leaf_size();
     }
 
 	/**
 	* \brief The desired number of children for each internal node.
 	*/
-    static constexpr size_t desired_internal_size() {
-        return (S::min_internal_size() + S::max_internal_size()) / 2;
+    static constexpr size_t desired_internal_size() noexcept {
+        return is_static
+			? S::max_internal_size()
+			: ((S::min_internal_size() + S::max_internal_size()) / 2);
     }
 
 	/**
 	* \brief The maximum number of children to be kept in memory at each level.
 	*/
-    static constexpr size_t internal_tipping_point() {
+    static constexpr size_t internal_tipping_point() noexcept {
         return desired_internal_size() + S::min_internal_size();
     }
 
@@ -171,10 +185,16 @@ public:
 	/**
 	* \brief Construct a btree builder with the given storage
 	*/
-    btree_builder(S store=S(), C comp=C(), A augmenter=A())
-        : m_store(store)
+	template <typename X=enab>
+	explicit builder(std::string path, comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, !is_internal> =enab() )
+        : m_state(store_type(path), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
-        , m_augmenter(augmenter)
+    {}
+
+	template <typename X=enab>
+	explicit builder(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, is_internal> =enab() )
+		: m_state(store_type(), std::move(augmenter), typename state_type::keyextract_type())
+        , m_comp(comp)
     {}
 
 	/**
@@ -183,7 +203,7 @@ public:
 	*/
     void push(value_type v) {
         m_items.push_back(v);
-        m_store.set_size(m_store.size() + 1);
+        m_state.store().set_size(m_state.store().size() + 1); //TODO we should just set the size in the end
 
         // try to construct nodes from items if possible
         if(m_items.size() < leaf_tipping_point()) return;
@@ -206,6 +226,8 @@ public:
         // if there already exists internal nodes and there are leaves left: construct a new internal node(since there is guaranteed to be atleast S::min_internal_size leaves)
         // if there do not exist internal nodes, then only construct an internal node if there is more than one leaf
         if((m_internal_nodes.size() == 0 && m_leaves.size() > 1) || (m_internal_nodes.size() > 0 && m_leaves.size() > 0)) {
+            if(m_leaves.size() > 2*S::max_internal_size() ) // construct two nodes if necessary
+                construct_internal_from_leaves(m_leaves.size()/3);
             if(m_leaves.size() > S::max_internal_size()) // construct two nodes if necessary
                 construct_internal_from_leaves(m_leaves.size()/2);
             construct_internal_from_leaves(m_leaves.size()); // construct a node from the remaining leaves
@@ -216,6 +238,8 @@ public:
             // if there do not exist internal nodes at a higher level, then only construct an internal nodes at that level if there are more than one node at this level.
             if((m_internal_nodes.size() == i+1 && m_internal_nodes[i].size() > 1)
                 || (m_internal_nodes.size() > i+1 && m_internal_nodes[i].size() > 0)) {
+                if(m_internal_nodes[i].size() > 2*S::max_internal_size())
+                    construct_internal_from_internal(m_internal_nodes[i].size()/3, i);
                 if(m_internal_nodes[i].size() > S::max_internal_size())
                     construct_internal_from_internal(m_internal_nodes[i].size()/2, i);
                 construct_internal_from_internal(m_internal_nodes[i].size(), i);
@@ -225,16 +249,16 @@ public:
         // find the root and set it as such
 
         if(m_internal_nodes.size() == 0 && m_leaves.size() == 0) // no items were pushed
-            m_store.set_height(0);
+            m_state.store().set_height(0);
         else {
-            m_store.set_height(m_internal_nodes.size() + 1);
+            m_state.store().set_height(m_internal_nodes.size() + 1);
             if(m_leaves.size() == 1)
-                m_store.set_root(m_leaves.front().leaf);
+                m_state.store().set_root(m_leaves.front().leaf);
             else
-                m_store.set_root(m_internal_nodes.back().front().internal);
+                m_state.store().set_root(m_internal_nodes.back().front().internal);
         }
 
-        return tree_type(m_store, m_comp, m_augmenter);
+        return tree_type(std::move(m_state), std::move(m_comp));
     }
 
 private:
@@ -242,10 +266,14 @@ private:
     std::deque<leaf_summary> m_leaves;
     std::vector<std::deque<internal_summary>> m_internal_nodes;
 
-    S m_store;
-    C m_comp;
-    A m_augmenter;
+	state_type m_state;
+    comp_type m_comp;
 };
+
+} //namespace bbits
+
+template <typename T, typename ... Opts>
+using btree_builder = bbits::builder<T, typename bbits::OptComp<Opts...>::type>;
 
 } //namespace tpie
 #endif /*_TPIE_BTREE_BTREE_BUILDER_H_*/

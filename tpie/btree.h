@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2014 The TPIE development team
+// Copyright 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,36 +17,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef _TPIE_BTREE_EXTERNAL_STORE_BASE_H_
-#define _TPIE_BTREE_EXTERNAL_STORE_BASE_H_
+#ifndef __TPIE_BTREE_H__
+#define __TPIE_BTREE_H__
 
-#include <tpie/portability.h>
 #include <tpie/btree/base.h>
-#include <tpie/tpie_assert.h>
-#include <tpie/blocks/block_collection_cache.h>
+#include <tpie/btree/internal_store.h>
+#include <tpie/btree/external_store.h>
+#include <tpie/btree/btree.h>
+#include <tpie/btree/btree_builder.h>
 
-#include <cstddef>
-
-namespace tpie {
-namespace bbits {
-
-class external_store_base {
-public:
-
-	/**
-	 * \brief Construct a new empty btree storage
-	 */
-	external_store_base(const std::string & path);
-
-	~external_store_base();
-
-protected:
-	blocks::block_handle m_root;	
-	std::string m_path;
-	size_t m_height;
-	size_t m_size;
-};
-
-} //namespace bbits
-} //namespace tpie
-#endif /*_TPIE_BTREE_EXTERNAL_STORE_BASE_H_*/
+#endif //__TPIE_BTREE_H__

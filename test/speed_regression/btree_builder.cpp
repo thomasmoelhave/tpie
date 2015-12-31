@@ -60,11 +60,10 @@ void test(size_t mb, size_t times) {
 		getTestRealtime(start);
 		{
             temp_file tmp;
-            btree_external_store<int> store(tmp.path());
-            btree_builder<btree_external_store<int>> builder(store);
+            btree_builder<int, btree_external> builder(tmp.path());
             for(count_t i = 0; i < count; ++i)
                 builder.push(i);
-            btree<btree_external_store<int>> tree(builder.build());
+            auto tree(builder.build());
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
@@ -72,8 +71,7 @@ void test(size_t mb, size_t times) {
 		getTestRealtime(start);
 		{
             temp_file tmp;
-            btree_external_store<int> store(tmp.path());
-            btree<btree_external_store<int>> tree(store);
+			btree<int, btree_external> tree(tmp.path());
             for(count_t i = 0; i < count; ++i)
                 tree.insert(i);
 		}
