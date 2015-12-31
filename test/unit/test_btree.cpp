@@ -19,10 +19,7 @@
 
 #include "common.h"
 #include <tpie/tpie.h>
-#include <tpie/btree/internal_store.h>
-#include <tpie/btree/external_store.h>
-#include <tpie/btree/btree.h>
-#include <tpie/btree/btree_builder.h>
+#include <tpie/btree.h>
 #include <tpie/tempname.h>
 #include <algorithm>
 #include <set>
