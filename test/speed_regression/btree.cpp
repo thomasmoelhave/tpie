@@ -75,7 +75,7 @@ void test(size_t times, size_t size) {
 		// searching
 		getTestRealtime(start);
 		for(size_t i = 0; i < count; ++i) {
-			tree.find(i);
+			tree.find((int)i);
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
