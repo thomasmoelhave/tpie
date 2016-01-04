@@ -187,13 +187,10 @@ class tree;
 template <typename T, typename O>
 class builder;
 
-template <typename T, typename A=empty_augment, std::size_t a=2, std::size_t b=4>
+template <typename T, typename A, std::size_t a, std::size_t b>
 class internal_store;
 
-template <typename T, typename A=empty_augment, std::size_t a=2>
-class static_internal_store;
-
-template <typename T, typename A=empty_augment>
+template <typename T, typename A, std::size_t a, std::size_t b>
 class external_store;
 
 struct enab {};
@@ -254,15 +251,15 @@ public:
 			keyextract_type key_extract)
 			: m_key_extract(std::move(key_extract))
 			, m_augmenter(std::move(a)) {}
-
+ 
 		keyextract_type m_key_extract; 
 		augmenter_type m_augmenter;
 	};
-	
+
 	typedef typename std::conditional<
 		is_internal,
-		bbits::internal_store<value_type, combined_augment>,
-		bbits::external_store<value_type, combined_augment> >::type store_type;
+		bbits::internal_store<value_type, combined_augment, O::a, O::b>,
+		bbits::external_store<value_type, combined_augment, O::a, O::b> >::type store_type;
 	
 	typedef typename store_type::internal_type internal_type;
 	typedef typename store_type::leaf_type leaf_type;

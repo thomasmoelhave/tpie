@@ -40,8 +40,9 @@ namespace bbits {
  * \tparam A the type of augmentation
  */
 template <typename T,
-		  typename A
-		  >
+		  typename A,
+		  std::size_t fanout_a,
+		  std::size_t fanout_b>
 class external_store : public external_store_base {
 public:
 	/**
@@ -120,21 +121,20 @@ public:
 		m_collection.reset();
 	}
 
-
 	static constexpr size_t min_internal_size() {
-		return (max_internal_size() + 3) / 4;
+		return fanout_a?fanout_a:(max_internal_size() + 3) / 4;
 	}
 
 	static constexpr size_t max_internal_size() {
-		return (blockSize() - sizeof(memory_size_type)) / sizeof(internal_content);
+		return fanout_b?fanout_b:(blockSize() - sizeof(memory_size_type)) / sizeof(internal_content);
 	}
 
 	static constexpr size_t min_leaf_size() {
-		return (max_leaf_size() + 3) / 4;
+		return fanout_a?fanout_a:(max_leaf_size() + 3) / 4;
 	}
 
 	static constexpr size_t max_leaf_size() {
-		return (blockSize() - sizeof(memory_size_type)) / sizeof(T);
+		return fanout_b?fanout_b:(blockSize() - sizeof(memory_size_type)) / sizeof(T);
 	}
 	
 	void move(internal_type src, size_t src_i,

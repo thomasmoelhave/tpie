@@ -39,11 +39,14 @@ namespace bbits {
  */
 template <typename T,
 		  typename A,
-		  std::size_t a,
-		  std::size_t b
+		  std::size_t a_,
+		  std::size_t b_
 		  >
 class internal_store {
 public:
+	static const size_t a = a_?a_:2;
+	static const size_t b = b_?b_:4;
+	
 	/**
 	 * \brief Type of value of items stored
 	 */
