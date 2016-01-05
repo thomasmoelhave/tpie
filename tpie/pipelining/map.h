@@ -31,25 +31,28 @@ namespace pipelining {
 namespace bits {
 
 template <typename T>
-struct unary_traits: public unary_traits<decltype(&T::operator()) > {};
+struct unary_traits_imp;
 
 template <typename C, typename R, typename A>
-struct unary_traits<R(C::*)(A)> {
+struct unary_traits_imp<R(C::*)(A)> {
 	typedef A argument_type;
 	typedef R return_type;
 };
 
 template <typename C, typename R, typename A>
-struct unary_traits<R(C::*)(A) const > {
+struct unary_traits_imp<R(C::*)(A) const > {
 	typedef A argument_type;
 	typedef R return_type;
 };
 
 template <typename R, typename A>
-struct unary_traits<R(*)(A)> {
+struct unary_traits_imp<R(*)(A)> {
 	typedef A argument_type;
 	typedef R return_type;
 };
+
+template <typename T>
+struct unary_traits: public unary_traits_imp<decltype(&T::operator()) > {};
 
 template <typename F>
 class map_t {
@@ -73,6 +76,28 @@ public:
 	};
 };
 
+template <typename F>
+class map_temp_t {
+public:
+	template <typename dest_t>
+	class type: public node {
+	private:
+		F functor;
+		dest_t dest;
+	public:
+		type(dest_t dest, const F & functor):
+			functor(functor), dest(std::move(dest)) {
+			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+		}
+
+		template <typename T>
+		void push(const T & item) {
+			dest.push(functor(item));
+		}
+	};
+};
+
+
 template <typename IT, typename F>
 class map_sink_t: public node {
 private:
@@ -90,6 +115,23 @@ public:
 	}
 };
 
+template <typename T>
+struct has_argument_type {
+	typedef char yes[1];
+	typedef char no[2];
+
+	// This does not seem to work as well as it should
+	// template <typename C>
+	// static yes& test(typename unary_traits_imp<decltype(&C::operator())>::argument_type *);
+
+	template <typename C>
+	static yes& test(decltype(&C::operator()) *);
+
+	template <typename>
+	static no& test(...);
+	static const bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+};
+
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,9 +139,14 @@ public:
 /// the stream.
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
-template <typename F>
+template <typename F, typename = typename std::enable_if<bits::has_argument_type<F>::value>::type>
 pipe_middle<tempfactory<bits::map_t<F>, F> > map(const F & functor) {
 	return tempfactory<bits::map_t<F>, F >(functor);
+}
+
+template <typename F, typename = typename std::enable_if<!bits::has_argument_type<F>::value>::type>
+pipe_middle<tempfactory<bits::map_temp_t<F>, F> > map(const F & functor) {
+	return tempfactory<bits::map_temp_t<F>, F >(functor);
 }
 
 template <typename item_type, typename F>
