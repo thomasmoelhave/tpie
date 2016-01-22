@@ -69,7 +69,7 @@ public:
 	}
 	
 	void go() override {
-		const item_type *item;
+		item_type *item;
 		while (stack.pop(&item) == tpie::ami::NO_ERROR) {
 			dest.push(*item);
 			step(1);
@@ -80,33 +80,6 @@ private:
 
 	typename tpie::ami::stack<item_type> & stack;
 	dest_t dest;
-};
-
-template <typename T>
-class pull_input_ami_stack_t : public node {
-public:
-	typedef T item_type;
-	pull_input_ami_stack_t(tpie::ami::stack<item_type> & stack) 
-		: stack(stack) {}
-	
-	void propagate() override {
-		forward("items", (stream_size_type) stack.size());
-		set_steps(stack.size());
-	}
-
-	bool can_pull() {
-		return !stack.is_empty();
-	}
-	
-	T pull() {
-		item_type *item;
-		stack.pop(&item);
-		return *item;
-	}
-
-private:
-
-	typename tpie::ami::stack<item_type> & stack;
 };
 
 } // namespace bits
@@ -132,19 +105,6 @@ inline pipe_begin<factory<bits::input_ami_stack_t, tpie::ami::stack<T> &> >
 input_ami_stack(tpie::ami::stack<T> & input) {
 	return factory<bits::input_ami_stack_t, tpie::ami::stack<T> &>(input);
 }
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief A pipelining pull-node that reads items from the given ami::stack
-/// \param fs The ami::stack from which it reads items.
-///////////////////////////////////////////////////////////////////////////////
-template<typename T>
-inline pullpipe_begin<termfactory<bits::pull_input_t<T>, tpie::ami::stack<T> &> > 
-pull_input_ami_stack(tpie::ami::stack<T> & fs) {
-	return termfactory<bits::pull_input_t<T>, tpie::ami::stack<T> &>(fs);
-}
-
-
-
 } // namespace pipelining
 
 } // namespace tpie
