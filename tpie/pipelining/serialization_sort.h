@@ -231,6 +231,8 @@ public:
 		m_sorter->set_owner(this);
 	}
 
+	virtual bool is_go_free() const override {return m_sorter->is_merge_runs_free();}
+
 	virtual void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
 		log_debug() << "TODO: Progress information during merging." << std::endl;

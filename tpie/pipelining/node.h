@@ -204,6 +204,8 @@ public:
 	virtual void begin() {
 	}
 
+	virtual bool is_go_free() const {return false;}
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief For initiator nodes, execute this phase by pushing all items
 	/// to be pushed. For non-initiator nodes, the default implementation

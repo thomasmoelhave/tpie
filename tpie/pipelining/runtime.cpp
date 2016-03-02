@@ -251,10 +251,12 @@ public:
 		m_progressIndicators.resize(N);
 		fp = nullptr;
 		if (!file|| !function) {
+			m_nulls = true;
 			for (size_t i = 0; i < N; ++i) 
 				m_progressIndicators[i] = new progress_indicator_null();
 			return;
 		}
+		m_nulls = false;
 		
 		fp = new fractional_progress(&pi);
 		std::size_t uuid = 0;
@@ -297,6 +299,7 @@ private:
 	friend class phase_progress_indicator;
 
 	fractional_progress * fp;
+	bool m_nulls;
 	std::vector<progress_indicator_base *> m_progressIndicators;
 };
 
@@ -319,9 +322,11 @@ public:
 	}
 
 	phase_progress_indicator(progress_indicators & pi, size_t phaseNumber,
-							 const std::vector<node *> & nodes)
+							 const std::vector<node *> & nodes, bool emptyFace)
 		: m_pi(pi.m_progressIndicators[phaseNumber])
 	{
+		if (emptyFace && !pi.m_nulls)
+			static_cast<fractional_subindicator*>(m_pi)->set_crumb("");
 		stream_size_type steps = 0;
 		for (size_t j = 0; j < nodes.size(); ++j) {
 			steps += nodes[j]->get_steps();
@@ -775,8 +780,15 @@ void runtime::go_until(gocontext * gc, node * node) {
 		propagate_all(gc->itemFlow[gc->i]);
 		// reassign memory to all nodes in the phase
 		reassign_memory(gc->phases, gc->i, gc->memory, gc->drt);
+
+		bool emptyFace = true;
+		for (auto n: gc->phases[gc->i])
+			if (is_initiator(n) && !n->is_go_free())
+				emptyFace = false;
+		
 		// sum number of steps and call pi.init()
-		gc->phaseProgress = phase_progress_indicator(gc->pi, gc->i, gc->phases[gc->i]);
+		gc->phaseProgress = phase_progress_indicator(gc->pi, gc->i, gc->phases[gc->i], emptyFace);
+		
 		// set progress indicators on each node
 		set_progress_indicators(gc->phases[gc->i], gc->phaseProgress.get());
 		// call begin in leaf to root actor order

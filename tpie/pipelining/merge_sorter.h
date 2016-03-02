@@ -325,6 +325,11 @@ public:
 		m_state = stMerge;
 	}
 
+	inline bool is_calc_free() const {
+		tp_assert(m_state == stMerge, "Wrong phase");
+		return m_reportInternal || m_finishedRuns <= p.fanout;
+	}
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Perform phase 2: Performing all merges in the merge tree except
 	/// the last one.

@@ -784,6 +784,25 @@ public:
 		return 0;
 	}
 
+
+	bool is_merge_runs_free() {
+		if (m_state != state_2)
+			throw tpie::exception("Bad state in end");
+		if (m_reportInternal) return true;
+
+		memory_size_type largestItem = m_sorter.get_largest_item_size();
+		memory_size_type fanoutMemory = m_params.memoryPhase2 - serialization_writer::memory_usage();
+		memory_size_type perFanout = largestItem + serialization_reader::memory_usage();
+		memory_size_type fanout = fanoutMemory / perFanout;
+		
+		memory_size_type finalFanoutMemory = m_params.memoryPhase3;
+		memory_size_type finalFanout =
+			std::min(fanout,
+					 finalFanoutMemory / perFanout);
+
+		return m_files.next_level_runs() <= finalFanout;
+	}
+	
 	void merge_runs() {
 		if (m_state != state_2)
 			throw tpie::exception("Bad state in end");

@@ -252,6 +252,8 @@ public:
 		m_sorter.reset();
 	}
 
+	virtual bool is_go_free() const override {return m_sorter->is_calc_free();}
+	
 	virtual void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
 		m_sorter->calc(*pi);
