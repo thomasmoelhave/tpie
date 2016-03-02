@@ -224,6 +224,14 @@ class progress_indicators {
 public:
 	progress_indicators(): fp(nullptr) {}
 
+	progress_indicators(const progress_indicators & o) = delete;
+	progress_indicators & operator =(const progress_indicators & o) = delete;
+	progress_indicators & operator =(const progress_indicators && o) = delete;
+	progress_indicators(progress_indicators && o): fp(o.fp), m_progressIndicators(std::move(o.m_progressIndicators)) {
+		o.fp = nullptr;
+		o.m_progressIndicators.clear();
+	}
+
 	~progress_indicators() {
 		if (fp) fp->done();
 		for (size_t i = 0; i < m_progressIndicators.size(); ++i) {
@@ -298,6 +306,18 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class phase_progress_indicator {
 public:
+	phase_progress_indicator() : m_pi(nullptr) {}
+	phase_progress_indicator(const phase_progress_indicator &) = delete;
+	phase_progress_indicator(phase_progress_indicator && o): m_pi(o.m_pi) {o.m_pi = nullptr;}
+
+	phase_progress_indicator & operator=(const phase_progress_indicator &) = delete;
+	phase_progress_indicator & operator=(phase_progress_indicator && o) {
+		if (m_pi) m_pi->done(); 
+		m_pi = o.m_pi;
+		o.m_pi = nullptr;
+		return *this;
+	}
+
 	phase_progress_indicator(progress_indicators & pi, size_t phaseNumber,
 							 const std::vector<node *> & nodes)
 		: m_pi(pi.m_progressIndicators[phaseNumber])
@@ -310,7 +330,7 @@ public:
 	}
 
 	~phase_progress_indicator() {
-		m_pi->done();
+		if (m_pi) m_pi->done();
 	}
 
 	progress_indicator_base & get() {
@@ -566,14 +586,21 @@ void datastructure_runtime::assign_memory() {
 	}
 }
 
-runtime::runtime(node_map::ptr nodeMap)
-	: m_nodeMap(*nodeMap)
-{
-}
-
-size_t runtime::get_node_count() {
-	return m_nodeMap.size();
-}
+struct gocontext {
+	std::map<node *, size_t> phaseMap;
+	std::vector<size_t> flushPriorities;
+	graph<size_t> phaseGraph;
+	graph<size_t> orderedPhaseGraph;
+	std::vector<std::vector<node *> > phases;
+	std::vector<bool> evacuateWhenDone;
+	std::vector<graph<node *> > itemFlow;
+	std::vector<graph<node *> > actor;
+	datastructure_runtime drt;
+	progress_indicators pi;
+	size_t i;
+	memory_size_type memory;
+	phase_progress_indicator phaseProgress;
+};
 
 size_t calculate_recursive_flush_priority(size_t phase, std::vector<std::pair<size_t, bool> > & mem, const std::vector<size_t> & flushPriorities, const graph<size_t> & phaseGraph) {
 	if(mem[phase].second)
@@ -603,6 +630,17 @@ public:
 private:
 	const std::vector<std::pair<size_t, bool> > & m_priorities;
 };
+
+	
+runtime::runtime(node_map::ptr nodeMap)
+	: m_nodeMap(*nodeMap)
+{
+}
+
+size_t runtime::get_node_count() {
+	return m_nodeMap.size();
+}
+
 
 void runtime::get_ordered_graph(const std::vector<size_t> & flushPriorities, const graph<size_t> & phaseGraph, graph<size_t> & orderedPhaseGraph) {
 	std::vector<std::pair<size_t, bool> > recursiveFlushPriorites;
@@ -637,11 +675,12 @@ void runtime::get_flush_priorities(const std::map<node *, size_t> & phaseMap, st
 	}
 }
 
-void runtime::go(stream_size_type items,
-				 progress_indicator_base & progress,
-				 memory_size_type memory,
-				 const char * file,
-				 const char * function) {
+void gocontextdel::operator()(void * p) {delete static_cast<gocontext*>(p);}
+	
+gocontext_ptr runtime::go_init(stream_size_type items,
+							 progress_indicator_base & progress,
+							 memory_size_type memory,
+							 const char * file, const char * function) {
 	if (get_node_count() == 0)
 		throw tpie::exception("no nodes in pipelining graph");
 
@@ -675,10 +714,7 @@ void runtime::go(stream_size_type items,
 	get_item_flow_graphs(phases, itemFlow);
 	std::vector<graph<node *> > actor;
 	get_actor_graphs(phases, actor);
-
-	// Check that each phase has at least one initiator
-	ensure_initiators(phases);
-
+	
 	// Toposort item flow graph for each phase
 	// and call node::prepare in item source to item sink order
 	prepare_all(itemFlow);
@@ -706,28 +742,72 @@ void runtime::go(stream_size_type items,
 	progress_indicators pi;
 	pi.init(items, progress, phases, file, function);
 
-	for (size_t i = 0; i < phases.size(); ++i) {
+	return gocontext_ptr(new gocontext{
+			std::move(phaseMap),
+				std::move(flushPriorities),
+				std::move(phaseGraph),
+				std::move(orderedPhaseGraph),
+				std::move(phases),
+				std::move(evacuateWhenDone),
+				std::move(itemFlow),
+				std::move(actor),
+				std::move(drt),
+				std::move(pi),
+				0,
+				memory,
+				phase_progress_indicator()});
+}
+	
+
+void runtime::go_until(gocontext * gc, node * node) {
+	if (gc->i > gc->phases.size()) return;
+	
+	if (gc->i != 0) {
+		begin_end beginEnd(gc->actor[gc->i-1]);
+		beginEnd.end();
+	}
+
+	for (; gc->i < gc->phases.size(); ++gc->i) {
 		// Run each phase:
 		// Evacuate previous if necessary
-		if (i > 0 && evacuateWhenDone[i-1]) evacuate_all(phases[i-1]);
+		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(gc->phases[gc->i-1]);
 		// call propagate in item source to item sink order
-		propagate_all(itemFlow[i]);
+		propagate_all(gc->itemFlow[gc->i]);
 		// reassign memory to all nodes in the phase
-		reassign_memory(phases, i, memory, drt);
+		reassign_memory(gc->phases, gc->i, gc->memory, gc->drt);
 		// sum number of steps and call pi.init()
-		phase_progress_indicator phaseProgress(pi, i, phases[i]);
+		gc->phaseProgress = phase_progress_indicator(gc->pi, gc->i, gc->phases[gc->i]);
 		// set progress indicators on each node
-		set_progress_indicators(phases[i], phaseProgress.get());
+		set_progress_indicators(gc->phases[gc->i], gc->phaseProgress.get());
 		// call begin in leaf to root actor order
-		begin_end beginEnd(actor[i]);
+		begin_end beginEnd(gc->actor[gc->i]);
 		beginEnd.begin();
+		
 		// call go on initiators
-		go_initiators(phases[i]);
+		for (auto n: gc->phases[gc->i])
+			if (n == node) {
+				gc->i++;
+				return;
+			}
+		go_initiators(gc->phases[gc->i]);
+
 		// call end in root to leaf actor order
 		beginEnd.end();
 		// call pi.done in ~phase_progress_indicator
 	}
 	// call fp->done in ~progress_indicators
+	gc->i++;
+}
+		
+void runtime::go(stream_size_type items,
+				 progress_indicator_base & progress,
+				 memory_size_type memory,
+				 const char * file,
+				 const char * function) {
+	gocontext_ptr gc = go_init(items, progress, memory, file, function);
+	// Check that each phase has at least one initiator
+	ensure_initiators(gc->phases);
+	go_until(gc.get(), nullptr);
 }
 
 void runtime::get_item_sources(std::vector<node *> & itemSources) {

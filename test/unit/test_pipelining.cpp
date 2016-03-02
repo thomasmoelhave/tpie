@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include <tpie/pipelining.h>
+#include <tpie/pipelining/subpipeline.h>
 #include <tpie/file_stream.h>
 #include <algorithm>
 #include <cmath>
@@ -1926,6 +1927,71 @@ bool phase_priority_test() {
 	return true;
 }
 
+template <typename dest_t>
+class subpipe_tester_type: public node {
+public:
+	struct dest_pusher: public node {
+		dest_pusher(dest_t & dest, int first): first(first), dest(dest) {}
+		void push(int second) {
+			dest.push(std::make_pair(first, second));
+		}					  
+		int first;
+		dest_t & dest;
+	};
+		
+	subpipeline<int> sp;
+	int first;
+	subpipe_tester_type(dest_t dest): dest(std::move(dest)) {
+		set_memory_fraction(2);
+	}
+
+	void prepare() override {
+		first = 1234;
+	}
+	
+	void push(std::pair<int, int> i) {
+		if (i.first != first) {
+			if (first != 1234)
+				sp.end();
+			first = i.first;
+			sp = sort() | pipe_end<termfactory<dest_pusher, dest_t &, int>>(dest, first);
+			sp.begin(get_available_memory());
+		}
+		sp.push(i.second);
+	}
+
+	void end() override {
+		if (first != 1234)
+			sp.end();
+	}
+		
+	dest_t dest;
+};
+
+typedef pipe_middle<factory<subpipe_tester_type> > subpipe_tester;
+
+bool subpipeline_test() {
+	constexpr int outer_size = 10;
+	constexpr int inner_size = 3169; //Must be prime
+	std::vector<std::pair<int, int> > items;
+	for (int i=0; i < outer_size; ++i) {
+		for (int j=0; j < inner_size; ++j)
+			items.push_back(std::make_pair(i, (j*13) % inner_size));
+	}
+
+	std::vector<std::pair<int, int> > items2;
+	
+	pipeline p = input_vector(items) | subpipe_tester() | output_vector(items2);
+	p();
+	if (items2.size() != items.size()) return false;
+
+	int cnt=0;
+	for (int i=0; i < outer_size; ++i)
+		for (int j=0; j < inner_size; ++j) 
+			if (items2[cnt++] != std::make_pair(i, j)) return false;
+		
+	return true;
+}
 
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
@@ -1963,6 +2029,7 @@ int main(int argc, char ** argv) {
 	.test(parallel_own_buffer_test, "parallel_own_buffer")
 	.test(parallel_push_in_end_test, "parallel_push_in_end")
 	.test(join_test, "join")
+	.test(subpipeline_test, "subpipeline")
 	.multi_test(node_map_multi_test, "node_map")
 	.test(copy_ctor_test, "copy_ctor")
 	.test(set_flush_priority_test, "set_flush_priority_test")

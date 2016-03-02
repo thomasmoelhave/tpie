@@ -34,6 +34,13 @@ template <typename T>
 class graph;
 class memory_runtime;
 class datastructure_runtime;
+
+struct gocontext;
+struct gocontextdel {
+	void operator()(void *);
+};
+typedef std::unique_ptr<gocontext, gocontextdel> gocontext_ptr;
+
 	
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Execute the pipeline contained in a node_map.
@@ -55,6 +62,13 @@ public:
 	/// Returns m_nodeMap.size().
 	///////////////////////////////////////////////////////////////////////////
 	size_t get_node_count();
+
+	gocontext_ptr go_init(stream_size_type items,
+						 progress_indicator_base & progress,
+						 memory_size_type memory,
+						 const char * file, const char * function);
+	
+	void go_until(gocontext * gc, node * node=nullptr);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Execute the pipeline.

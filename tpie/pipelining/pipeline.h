@@ -34,16 +34,10 @@ namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline_base
-/// Virtual superclass for pipelines implementing the function call operator.
+/// Virtual superclass for pipelines and subpipelines
 ///////////////////////////////////////////////////////////////////////////////
-class pipeline_base {
+class pipeline_base_base {
 public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Invoke the pipeline.
-	///////////////////////////////////////////////////////////////////////////
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
-					const char * file, const char * function);
-
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz plot of the pipeline
 	///
@@ -73,32 +67,50 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void plot_full(std::ostream & out) {plot_impl(out, true);}
 
-	double memory() const {
-		return m_memory;
-	}
-
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
-	virtual ~pipeline_base() {}
+	virtual ~pipeline_base_base() {}
+
+	void forward_any(std::string key, const boost::any & value);
+	
+	bool can_fetch(std::string key);
+
+	boost::any fetch_any(std::string key);
 
 	node_map::ptr get_node_map() const {
 		return m_nodeMap;
 	}
 
-	void forward_any(std::string key, const boost::any & value);
+	void output_memory(std::ostream & o) const;	
+protected:
+	node_map::ptr m_nodeMap;	
 
-	bool can_fetch(std::string key);
+private:
+	void plot_impl(std::ostream & out, bool full);	
+};
+	
 
-	boost::any fetch_any(std::string key);
+///////////////////////////////////////////////////////////////////////////////
+/// \class pipeline_base
+/// Virtual superclass for pipelines implementing the function call operator.
+///////////////////////////////////////////////////////////////////////////////
+class pipeline_base: public pipeline_base_base {
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Invoke the pipeline.
+	///////////////////////////////////////////////////////////////////////////
+	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+					const char * file, const char * function);
+
+
+	double memory() const {
+		return m_memory;
+	}
 
 	void order_before(pipeline_base & other);
-
 protected:
-	node_map::ptr m_nodeMap;
 	double m_memory;
-private:
-	void plot_impl(std::ostream & out, bool full);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -197,7 +209,8 @@ public:
 	inline double memory() const {
 		return p->memory();
 	}
-	inline bits::node_map::ptr get_node_map() const {
+
+	bits::node_map::ptr get_node_map() const {
 		return p->get_node_map();
 	}
 
@@ -229,7 +242,7 @@ public:
 		return other;
 	}
 
-	void output_memory(std::ostream & o) const;
+	void output_memory(std::ostream & o) const {p->output_memory(o);}
 
 	static pipeline * current() {return m_current;}
 private:
