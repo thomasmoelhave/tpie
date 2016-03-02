@@ -794,6 +794,8 @@ void runtime::go_until(gocontext * gc, node * node) {
 		// call end in root to leaf actor order
 		beginEnd.end();
 		// call pi.done in ~phase_progress_indicator
+
+		gc->phaseProgress = phase_progress_indicator();
 	}
 	// call fp->done in ~progress_indicators
 	gc->i++;
