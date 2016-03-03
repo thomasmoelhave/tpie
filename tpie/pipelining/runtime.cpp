@@ -222,12 +222,12 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 class progress_indicators {
 public:
-	progress_indicators(): fp(nullptr) {}
+	progress_indicators(): fp(nullptr), m_nulls(false) {}
 
 	progress_indicators(const progress_indicators & o) = delete;
 	progress_indicators & operator =(const progress_indicators & o) = delete;
 	progress_indicators & operator =(const progress_indicators && o) = delete;
-	progress_indicators(progress_indicators && o): fp(o.fp), m_progressIndicators(std::move(o.m_progressIndicators)) {
+	progress_indicators(progress_indicators && o): fp(o.fp), m_nulls(o.m_nulls), m_progressIndicators(std::move(o.m_progressIndicators)) {
 		o.fp = nullptr;
 		o.m_progressIndicators.clear();
 	}
