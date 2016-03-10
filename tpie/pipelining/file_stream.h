@@ -73,6 +73,43 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \class input_t
+///
+/// file_stream input generator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename dest_t>
+class named_input_t : public node {
+public:
+	typedef typename push_type<dest_t>::type item_type;
+
+	inline named_input_t(dest_t dest, std::string path) : dest(std::move(dest)), path(path) {
+		add_push_destination(this->dest);
+		set_name("Read", PRIORITY_INSIGNIFICANT);
+		set_minimum_memory(file_stream<item_type>::memory_usage());
+	}
+
+	virtual void propagate() override {
+		fs.construct();
+		fs->open(path, access_read);
+		forward("items", fs->size());
+		set_steps(fs->size());
+	}
+
+	virtual void go() override {
+		while (fs->can_read()) {
+			dest.push(fs->read());
+			step();
+		}
+		fs.destruct();
+	}
+private:
+	dest_t dest;
+	maybe<file_stream<item_type> > fs;
+	std::string path;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// \class pull_input_t
 ///
 /// file_stream pull input generator.
@@ -319,6 +356,13 @@ template<typename T>
 inline pipe_begin<factory<bits::input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory<bits::input_t, file_stream<T> &>(fs);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pipelining nodes that pushes the contents of the named file stream
+/// to the next node in the pipeline.
+/// \param path The file stream from which it pushes items
+///////////////////////////////////////////////////////////////////////////////
+typedef pipe_begin<factory<bits::named_input_t, std::string> > named_input; 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining pull-node that reads items from the given file_stream
