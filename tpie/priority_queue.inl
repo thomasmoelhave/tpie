@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 template<typename T, typename Comparator, typename OPQType>
-priority_queue<T, Comparator, OPQType>::priority_queue(double f, float b) :
+priority_queue<T, Comparator, OPQType>::priority_queue(double f, float b, stream_size_type n) :
 block_factor(b) { // constructor mem fraction
 	assert(f<= 1.0 && f > 0);
 	assert(b > 0.0);
@@ -27,29 +27,44 @@ block_factor(b) { // constructor mem fraction
 		<< mm_avail/1024/1024 << "mb("
 		<< mm_avail << "bytes)" << "\n");
 	mm_avail = static_cast<memory_size_type>(static_cast<double>(mm_avail)*f);
-	init(mm_avail);
+	init(mm_avail, n);
 }
 
 #ifndef DOXYGEN
 template<typename T, typename Comparator, typename OPQType>
-priority_queue<T, Comparator, OPQType>::priority_queue(memory_size_type mm_avail, float b) :
+priority_queue<T, Comparator, OPQType>::priority_queue(memory_size_type mm_avail, float b, stream_size_type n) :
 block_factor(b) { // constructor absolute mem
 	assert(mm_avail <= get_memory_manager().limit() && mm_avail > 0);
 	assert(b > 0.0);
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
 				 << mm_avail/1024/1024 << "mb("
 				 << mm_avail << "bytes)" << "\n");
-	init(mm_avail);
+	init(mm_avail, n);
 }
 #endif
 
+
 template<typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { // init
+memory_size_type priority_queue<T, Comparator, OPQType>::memory_usage(stream_size_type n, float b) {
+	if ( std::numeric_limits<memory_size_type>::max() / sizeof(T) < n)
+		return std::numeric_limits<memory_size_type>::max();
+
+	return n * sizeof(T);
+}
+
+
+template<typename T, typename Comparator, typename OPQType>
+void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, stream_size_type n) { // init
 #ifdef _WIN32
 #ifndef _WIN64
 	mm_avail = std::min(mm_avail, static_cast<memory_size_type>(1024*1024*512));
 #endif //_WIN64
 #endif //_WIN32
+	if (memory_usage(n, block_factor) <= mm_avail) {
+		// Internal allocation
+		opq.reset(tpie_new<OPQType>(n));
+		return;
+	}	
 
 	TP_LOG_DEBUG("m_for_queue: " 
 		<< mm_avail << "\n");
