@@ -385,7 +385,7 @@ protected:
 #ifdef _WIN32
 #pragma warning( pop )
 #endif // _WIN32
-
+public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare a push destination.
 	///////////////////////////////////////////////////////////////////////////
@@ -438,7 +438,7 @@ protected:
 	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void set_available_memory(memory_size_type availableMemory);
-public:
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	/// If explicitForward is false, the data will not override data forwarded
