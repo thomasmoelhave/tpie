@@ -146,6 +146,33 @@ public:
 	};
 };
 
+
+template <typename source_t, typename dest_fact_t>
+class pull_fork_t: public node {
+public:
+	typedef typename pull_type<source_t>::type item_type;
+
+	pull_fork_t(source_t source, dest_fact_t dest_fact)
+		: dest(dest_fact.construct())
+		, source(std::move(source)) {
+		add_pull_source(this->source);
+		add_push_destination(dest);
+	}
+	
+	bool can_pull() {return source.can_pull();}
+	
+	item_type pull() {
+		item_type i=source.pull();
+		dest.push(i);
+		return i;
+	}
+
+private:
+	typename dest_fact_t::constructed_type dest;
+	source_t source;
+};
+
+
 template <typename T>
 class null_sink_t: public node {
 public:
@@ -467,6 +494,18 @@ template <typename fact_t>
 pipe_middle<tempfactory<bits::fork_t<fact_t>, fact_t &&> >
 fork(pipe_end<fact_t> && to) {
 	return tempfactory<bits::fork_t<fact_t>, fact_t &&>(std::move(to.factory));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Create a pulling fork pipe node.
+/// 
+/// Whenever an element e is pulled from fork node, e is first pushed
+/// into the destination
+///////////////////////////////////////////////////////////////////////////////
+template <typename dest_fact_t>
+pullpipe_middle<tfactory<bits::pull_fork_t, Args<dest_fact_t>, dest_fact_t> >
+pull_fork(dest_fact_t dest_fact) {
+	return {std::move(dest_fact)};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
