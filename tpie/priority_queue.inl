@@ -63,6 +63,10 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 	if (memory_usage(n, block_factor) <= mm_avail) {
 		// Internal allocation
 		opq.reset(tpie_new<OPQType>(n));
+		current_r = 0;
+		m_size = 0; // total size of priority queue
+		buffer_size = 0;
+		buffer_start = 0;
 		return;
 	}	
 
