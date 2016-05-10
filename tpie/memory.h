@@ -2,19 +2,19 @@
 // vi:set ts=4 sts=4 sw=4 noet :
 //
 // Copyright 2011, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -27,6 +27,7 @@
 
 #include <tpie/config.h>
 #include <tpie/util.h>
+#include <tpie/resource_manager.h>
 #include <mutex>
 #include <unordered_map>
 #include <type_traits>
@@ -37,98 +38,29 @@
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Thrown when trying to allocate too much memory.
-///
-/// When the memory limit is exceeded and the memory limit enforcement policy
-/// is set to THROW, this error is thrown by the memory subsystem.
-///////////////////////////////////////////////////////////////////////////////
-struct out_of_memory_error : public std::bad_alloc {
-	const char * msg;
-	out_of_memory_error(const char * s) : msg(s) { }
-	virtual const char* what() const throw() {return msg;}
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Memory management object used to track memory usage.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_manager {
+class memory_manager : public resource_manager {
 public:
-	///////////////////////////////////////////////////////////////////////////
-	/// Memory limit enforcement policies.
-	///////////////////////////////////////////////////////////////////////////
-	enum enforce_t {
-		/** Ignore when running out of memory. */
-		ENFORCE_IGNORE,
-		/** \brief Log to debug log when the memory limit is exceeded.
-		 * Note that not all violations will be logged. */
-		ENFORCE_DEBUG,
-		/** \brief Log a warning when the memory limit is exceeded. Note that
-		 * not all violations will be logged. */
-		ENFORCE_WARN,
-		/** Throw an out_of_memory_error when the memory limit is exceeded. */
-		ENFORCE_THROW
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Return the current amount of memory used.
-	///////////////////////////////////////////////////////////////////////////
-	size_t used() const throw();
-   
-	///////////////////////////////////////////////////////////////////////////
-	/// Return the amount of memory still available to allocation.
-	///////////////////////////////////////////////////////////////////////////
-	size_t available() const throw();
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Return the memory limit.
-	///////////////////////////////////////////////////////////////////////////
-	size_t limit() const throw() {return m_limit;}
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Update the memory limit.
-	/// If the memory limit is exceeded by decreasing the limit,
-	/// no exception will be thrown.
-	/// \param new_limit The new memory limit in bytes.
-	///////////////////////////////////////////////////////////////////////////
-	void set_limit(size_t new_limit);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set the memory limit enforcement policy.
-	/// \param e The new enforcement policy.
-	///////////////////////////////////////////////////////////////////////////
-	void set_enforcement(enforce_t e);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Return the current memory limit enforcement policy.
-	///////////////////////////////////////////////////////////////////////////
-	enforce_t enforcement() {return m_enforce;}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \internal
-	/// Register that more memory has been used.
-	/// Possibly throws a warning or an exception if the memory limit is
-	/// exceeded, depending on the enforcement.
-	///////////////////////////////////////////////////////////////////////////
-	void register_allocation(size_t bytes);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \internal
-	/// Register that some memory has been freed.
-	///////////////////////////////////////////////////////////////////////////
-	void register_deallocation(size_t bytes);
-
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
 	/// Construct the memory manager object.
 	///////////////////////////////////////////////////////////////////////////
-	memory_manager();	
+	memory_manager();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
 	/// Allocate the largest consecutive memory possible.
 	///////////////////////////////////////////////////////////////////////////
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
+
+	void register_allocation(size_t bytes) {
+		register_increased_usage(bytes);
+	}
+
+	void register_deallocation(size_t bytes) {
+		register_decreased_usage(bytes);
+	}
 
 #ifndef TPIE_NDEBUG
 	// The following methods take the mutex before calling the private doubly
@@ -141,12 +73,6 @@ public:
 
 
 private:
-	std::atomic<size_t> m_used;
-	size_t m_limit;
-	size_t m_maxExceeded;
-	size_t m_nextWarning;
-	enforce_t m_enforce;
-
 #ifndef TPIE_NDEBUG
 	std::mutex m_mutex;
 
@@ -222,7 +148,7 @@ inline void assert_tpie_ptr(void * p) {
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, 
+template <typename T,
 	bool x=std::is_polymorphic<T>::value
 >
 struct __object_addr {
@@ -251,7 +177,7 @@ inline D ptr_cast(T * t) { return reinterpret_cast<D>(__object_addr<T>()(t)); }
 
 template <typename T>
 inline T * __allocate() {
-	if(!std::is_polymorphic<T>::value) return reinterpret_cast<T *>(new uint8_t[sizeof(T)]);	
+	if(!std::is_polymorphic<T>::value) return reinterpret_cast<T *>(new uint8_t[sizeof(T)]);
 	uint8_t * x = new uint8_t[sizeof(T)+sizeof(size_t)];
 	*reinterpret_cast<size_t*>(x) = sizeof(T);
 	return reinterpret_cast<T*>(x + sizeof(size_t));
@@ -305,7 +231,7 @@ struct allocation_scope_magic {
 	size_t deregister;
 	T * data;
 	allocation_scope_magic(): deregister(0), data(0) {}
-	
+
 	T * allocate() {
 		get_memory_manager().register_allocation(sizeof(T));
 		deregister = sizeof(T);
@@ -320,7 +246,7 @@ struct allocation_scope_magic {
 		data = 0;
 		return d;
 	}
-	
+
 	~allocation_scope_magic() {
 		if (data) __unregister_pointer(data, sizeof(T), typeid(T));
 		delete[] reinterpret_cast<uint8_t*>(data);
@@ -355,7 +281,7 @@ inline T * tpie_new_array(size_t size) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename ... Args>
 inline T * tpie_new(Args &&... args) {
-	allocation_scope_magic<T> m; 
+	allocation_scope_magic<T> m;
 	new(m.allocate()) T(std::forward<Args>(args)...);
 	return m.finalize();
 }
@@ -371,7 +297,7 @@ inline void tpie_delete(T * p) throw() {
 	uint8_t * pp = ptr_cast<uint8_t *>(p);
 	__unregister_pointer(pp, tpie_size(p), typeid(*p));
 	p->~T();
-	if(!std::is_polymorphic<T>::value) 
+	if(!std::is_polymorphic<T>::value)
 		delete[] pp;
 	else
 		delete[] (pp - sizeof(size_t));
@@ -419,7 +345,7 @@ inline unique_ptr<T> make_unique(TT && ... tt) {
 class memory_bucket {
 public:
 	memory_bucket(): count(0) {}
-	
+
 	std::atomic_size_t count;
 	std::string name;
 };
@@ -438,9 +364,9 @@ public:
 	memory_bucket_ref(memory_bucket_ref && o) = default;
 	memory_bucket_ref & operator=(const memory_bucket_ref & o) = default;
 	memory_bucket_ref & operator=(memory_bucket_ref && o) = default;
-	memory_bucket & operator*() noexcept {return *bucket;} 
-	const memory_bucket & operator*() const noexcept {return *bucket;} 
-	memory_bucket * operator->() noexcept {return bucket;} 
+	memory_bucket & operator*() noexcept {return *bucket;}
+	const memory_bucket & operator*() const noexcept {return *bucket;}
+	memory_bucket * operator->() noexcept {return bucket;}
 	const memory_bucket * operator->() const noexcept {return bucket;}
 	friend bool operator ==(const memory_bucket_ref & l, const memory_bucket_ref & r) noexcept {return l.bucket == r.bucket;}
 	friend bool operator !=(const memory_bucket_ref & l, const memory_bucket_ref & r) noexcept {return l.bucket != r.bucket;}
@@ -472,7 +398,7 @@ public:
 	typedef std::true_type propagate_on_container_copy_assignment;
 	typedef std::true_type propagate_on_container_move_assignment;
 	typedef std::true_type propagate_on_container_swap;
-	
+
 	allocator() = default;
 	allocator(memory_bucket_ref bucket) noexcept : bucket(bucket) {}
 	allocator(const allocator & o) noexcept : bucket(o.bucket) {}
@@ -519,7 +445,7 @@ public:
 	template <typename U>
 	friend class allocator;
 
-		
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
