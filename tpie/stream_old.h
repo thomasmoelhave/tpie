@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -36,13 +36,14 @@
 
 #include <tpie/tempname.h>
 #include <tpie/uncompressed_stream.h>
-#include <tpie/file_count.h>
 
 #include <tpie/tpie_log.h>
 
 #include <tpie/stream_usage.h>
 
 #include <tpie/tpie_assert.h>
+
+#include <tpie/file_manager.h>
 
 namespace tpie {
 
@@ -55,7 +56,7 @@ namespace tpie {
 	    APPEND_STREAM,		// Open for writing at end.  Create if needed.
 	    READ_WRITE_STREAM	// Open to read and write.
 	};
-	
+
 /**  AMI stream status. */
 	enum stream_status {
 	    /** Stream is valid */
@@ -75,18 +76,18 @@ namespace tpie {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A Stream<T> object stores an ordered collection of objects of
-/// type T on external memory. 
+/// type T on external memory.
 /// \anchor stream_types The  type of a Stream indicates what
-/// operations are permitted on the stream. 
+/// operations are permitted on the stream.
 /// Stream types provided in TPIE are the following:
 ///
-/// \anchor READ_STREAM \par READ_STREAM: 
+/// \anchor READ_STREAM \par READ_STREAM:
 /// Input operations on the stream are permitted, but output is not permitted.
-/// 
-/// \anchor WRITE_STREAM \par WRITE_STREAM: 
-/// Output operations are permitted, but input operations are not permitted. 
-/// 
-/// \anchor APPEND_STREAM \par APPEND_STREAM: 
+///
+/// \anchor WRITE_STREAM \par WRITE_STREAM:
+/// Output operations are permitted, but input operations are not permitted.
+///
+/// \anchor APPEND_STREAM \par APPEND_STREAM:
 /// Output is appended to the end of the stream. Input operations are not
 /// permitted. This is similar to WRITE_STREAM except that if the stream is
 /// constructed on a file containing an existing stream,
@@ -95,27 +96,27 @@ namespace tpie {
 /// \anchor READ_WRITE_STREAM \par READ_WRITE_STREAM:
 /// Both input and output operations are permitted.
 ////////////////////////////////////////////////////////////////////////////////
-template<class T > 
+template<class T >
 class stream_old {
-    
+
 public:
 	typedef T item_type;
-    
+
     // We have a variety of constructors for different uses.
 
     ////////////////////////////////////////////////////////////////////////////
     /// A new stream of type \ref READ_WRITE_STREAM is constructed on
-    /// the given device as a file with a randomly generated name, 
-    /// prefixed by "".  
+    /// the given device as a file with a randomly generated name,
+    /// prefixed by "".
     ////////////////////////////////////////////////////////////////////////////
     stream_old();
-    
+
     ////////////////////////////////////////////////////////////////////////////
-    /// A new stream is constructed and 
+    /// A new stream is constructed and
     /// named and placed according to the given parameter pathname.
     /// Its type is given by st which defaults to \ref READ_WRITE_STREAM.
     ////////////////////////////////////////////////////////////////////////////
-    stream_old(const std::string& path_name, 
+    stream_old(const std::string& path_name,
 	   stream_type st = READ_WRITE_STREAM);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -137,54 +138,54 @@ public:
     /// \param[out] sub_stream  upon completion points to the newly created
     /// substream.
     ////////////////////////////////////////////////////////////////////////////
-    err new_substream(stream_type     st, 
-		      stream_offset_type  sub_begin, 
+    err new_substream(stream_type     st,
+		      stream_offset_type  sub_begin,
 		      stream_offset_type  sub_end,
 			  stream_old<T>       **sub_stream);
-  
+
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the status of the stream instance; the result is either
-    /// STREAM_STATUS_VALID or STREAM_STATUS_INVALID. 
+    /// STREAM_STATUS_VALID or STREAM_STATUS_INVALID.
     /// The only operation that can leave the stream invalid is the constructor
-    /// (if that happens, the log file contains more information). No items 
+    /// (if that happens, the log file contains more information). No items
     /// should be read from or written to an invalid stream.
     ////////////////////////////////////////////////////////////////////////////
-    inline stream_status status() const { 
-		return m_status; 
+    inline stream_status status() const {
+		return m_status;
     }
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// Returns wether the status of the stream is STREAM_STATUS_VALID.
     /// \sa status()
     ////////////////////////////////////////////////////////////////////////////
-    inline bool is_valid() const { 
-		return m_status == STREAM_STATUS_VALID; 
+    inline bool is_valid() const {
+		return m_status == STREAM_STATUS_VALID;
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    /// Returns true if the block's status is not BLOCK_STATUS_VALID. 
+    /// Returns true if the block's status is not BLOCK_STATUS_VALID.
     /// \sa is_valid(), status()
     ////////////////////////////////////////////////////////////////////////////
-    inline bool operator!() const { 
-		return !is_valid(); 
+    inline bool operator!() const {
+		return !is_valid();
     }
 
     ////////////////////////////////////////////////////////////////////////////
     /// Reads the current item from the stream and advance the "current item"
-    /// pointer to the next item. The item read is pointed to by 
+    /// pointer to the next item. The item read is pointed to by
     /// *elt. If no error has occurred, return \ref NO_ERROR.
     /// If the ``current item'' pointer is beyond the last item in the stream,
     /// ERROR_END_OF_STREAM is returned
     ////////////////////////////////////////////////////////////////////////////
     inline err read_item(T **elt);
-    
+
     ////////////////////////////////////////////////////////////////////////////
-    /// Writes elt to the stream in the current position. Advance the 
+    /// Writes elt to the stream in the current position. Advance the
     /// "current item" pointer to the next item. If no error has occurred
     /// \ref NO_ERROR is returned.
     ////////////////////////////////////////////////////////////////////////////
     inline err write_item(const T &elt);
-  
+
     ////////////////////////////////////////////////////////////////////////////
     /// Reads *len items from the current position of the stream into
     /// the array mm_array. The "current position" pointer is increased
@@ -199,37 +200,37 @@ public:
     /// accordingly.
     ////////////////////////////////////////////////////////////////////////////
     err read_array(T *mm_space, memory_size_type & len);
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// Writes len items from array |mm_array to the
     /// stream, starting in the current position. The "current item"
     /// pointer is increased accordingly.
     ////////////////////////////////////////////////////////////////////////////
     err write_array(const T *mm_space, memory_size_type len);
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the number of items in the stream.
     ////////////////////////////////////////////////////////////////////////////
-    inline stream_offset_type stream_len(void) const { 
+    inline stream_offset_type stream_len(void) const {
 		return m_stream.size();
     }
-  
+
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the path name of this stream in newly allocated space.
     ////////////////////////////////////////////////////////////////////////////
     inline std::string name() const;
-  
+
     ////////////////////////////////////////////////////////////////////////////
     /// Move the current position to off (measured in terms of items.
     ////////////////////////////////////////////////////////////////////////////
     inline err seek(stream_offset_type offset);
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the current position in the stream measured of items from the
     /// beginning of the stream.
     ////////////////////////////////////////////////////////////////////////////
-    inline stream_offset_type tell() const { 
-		return m_stream.offset(); 
+    inline stream_offset_type tell() const {
+		return m_stream.offset();
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -242,11 +243,11 @@ public:
     /// item" pointer will be moved to the new end of the stream.
     ////////////////////////////////////////////////////////////////////////////
     inline err truncate(stream_offset_type offset);
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// This function is used for obtaining the amount of main memory used by an
     /// Stream<T> object (in bytes).
-    /// \param[in] usage_type of type \ref MM_stream_usage and is 
+    /// \param[in] usage_type of type \ref MM_stream_usage and is
     /// one of the following:
     /// \par MM_STREAM_USAGE_CURRENT
     /// Total amount of memory currently used by the stream.
@@ -269,10 +270,10 @@ public:
     /// Returns the number of bytes that count streams will maximaly consume
     ////////////////////////////////////////////////////////////////////////////
 	static memory_size_type memory_usage(memory_size_type count);
-  
+
 	// This method used to return a statistics object, but this is no longer
 	// supported.
-    //struct stats_stream & stats() const { 
+    //struct stats_stream & stats() const {
 	//	tp_assert(0, "stream::stats() is no longer supported");
 	//	return *((stats_stream *)0);
     //}
@@ -291,17 +292,17 @@ public:
     /// of streams currently opened by TPIE.
     ////////////////////////////////////////////////////////////////////////////
     size_t available_streams(void) {
-		return available_files();
+		return get_file_manager().available();
     }
-    
+
     ////////////////////////////////////////////////////////////////////////////
-    /// Returns the maximum number of items (of type T) 
+    /// Returns the maximum number of items (of type T)
     /// that can be stored in one block.
     ////////////////////////////////////////////////////////////////////////////
-    memory_size_type chunk_size(void) const { 
+    memory_size_type chunk_size(void) const {
 		return file_base::block_size(1.0) / sizeof(T);
     }
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// Set the stream's \ref persistence flag to p, which can have one of two values:
     /// \ref PERSIST_DELETE or \ref PERSIST_PERSISTENT.}
@@ -309,12 +310,12 @@ public:
     void persist(persistence p) {
 		m_temp.set_persistent(p == PERSIST_PERSISTENT);
     }
-    
+
     ////////////////////////////////////////////////////////////////////////////
     /// Set the stram's \ref persistence flag to \ref PERSIST_PERSISTENT, thereby
     /// ensuring it is not deleted when destructed.
     ////////////////////////////////////////////////////////////////////////////
-    persistence persist() const { 
+    persistence persist() const {
 		return m_temp.is_persistent() ? PERSIST_PERSISTENT : PERSIST_DELETE;
     }
 
@@ -330,17 +331,17 @@ public:
 	uncompressed_stream<T>& underlying_stream() {
 		return m_stream;
 	}
-    
+
 private:
 
     /** Restricted copy constructor */
     stream_old(const stream_old<T>& other);
     /** Restricted assignment operator*/
     stream_old<T>& operator=(const stream_old<T>& other);
-	
+
 	temp_file m_temp;
 	uncompressed_stream<T> m_stream;
-    
+
     /** Non-zero if we should destroy the bte stream when we the
      * AMI stream is destroyed. */
     //bool m_destructBTEStream;
@@ -395,7 +396,7 @@ private:
 	    m_status = STREAM_STATUS_VALID;
 	};
 
-	
+
 	// *stream::new_substream* //
 	template<class T>
 	err stream_old<T>::new_substream(stream_type     st,
@@ -446,7 +447,7 @@ template<class T>
 memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
 	return count*(uncompressed_stream<T>::memory_usage(block_factor()) + sizeof(stream_old<T>));
 }
-	
+
 
 // Query memory usage
 	template<class T>
@@ -463,7 +464,7 @@ memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
 			*usage =  memory_usage(1);
 			return NO_ERROR;
 	    case STREAM_USAGE_BUFFER:
-			*usage = uncompressed_stream<T>::memory_usage(block_factor()) - uncompressed_stream<T>::memory_usage(0.0); 
+			*usage = uncompressed_stream<T>::memory_usage(block_factor()) - uncompressed_stream<T>::memory_usage(0.0);
 			return NO_ERROR;
 		}
 		return BTE_ERROR;
@@ -495,7 +496,7 @@ memory_size_type stream_old<T>::memory_usage(memory_size_type count) {
 	template<class T>
 	err stream_old<T>::read_array(T *mm_space, memory_size_type & len) {
 		size_type l = static_cast<size_type>(std::min(
-			static_cast<stream_size_type>(len), 
+			static_cast<stream_size_type>(len),
 			static_cast<stream_size_type>(m_stream.size() - m_stream.offset())));
 		m_stream.read(mm_space, mm_space+l);
 		return (l == len)?NO_ERROR:END_OF_STREAM;

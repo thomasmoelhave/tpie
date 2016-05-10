@@ -21,7 +21,7 @@
 //#include <tpie/stream/header.h>
 #include <string.h>
 #include <tpie/exception.h>
-#include <tpie/file_count.h>
+#include <tpie/file_manager.h>
 #include <tpie/file_accessor/stdio.h>
 #include <cstdio>
 
@@ -53,7 +53,7 @@ inline void stdio::write_i(const void * data, memory_size_type size) {
 inline void stdio::seek_i(stream_size_type offset) {
 	if (::fseeko(m_fd, offset, SEEK_SET) != 0) throw_errno();
 }
-	
+
 void stdio::open(const std::string & path,
 				 bool read,
 				 bool write,
@@ -98,7 +98,7 @@ void stdio::open(const std::string & path,
 			write_header(false);
 		}
 	}
-	increment_open_file_count();
+	get_file_manager().increment_open_file_count();
 	setvbuf(m_fd, NULL, _IONBF, 0);
 }
 
@@ -106,7 +106,7 @@ void stdio::close() {
 	if (m_fd && m_write) write_header(true);
 	if (m_fd != 0) {
 		::fclose(m_fd);
-		decrement_open_file_count();
+		get_file_manager().decrement_open_file_count();
 	}
 	m_fd=0;
 }

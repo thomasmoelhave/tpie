@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
 // Copyright 2013 The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -66,11 +66,11 @@ private:
 
 public:
 	open_file_monitor() {
-		m_openFiles = tpie::open_file_count();
+		m_openFiles = tpie::get_file_manager().used();
 	}
 
 	bool ensure_closed_and_delete(std::string fileName) {
-		tpie::memory_size_type openFiles = tpie::open_file_count();
+		tpie::memory_size_type openFiles = tpie::get_file_manager().used();
 		tpie::log_debug() << "Open file count was " << m_openFiles
 						  << "; is now " << openFiles << std::endl;
 		if (openFiles != m_openFiles) {
@@ -86,7 +86,7 @@ public:
 			tpie::log_error() << "Failed to unlink file: " << ::strerror(errno) << std::endl;
 			return false;
 		}
-		if (tpie::open_file_count() != m_openFiles) {
+		if (tpie::get_file_manager().used() != m_openFiles) {
 			tpie::log_error() << "ensure_closed_and_delete: Even after unlink, "
 								 "file count does not match." << std::endl;
 		}

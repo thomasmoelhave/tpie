@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
 // Copyright 2008, 2011, 2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -23,7 +23,7 @@ block_factor(b) { // constructor mem fraction
 	assert(f<= 1.0 && f > 0);
 	assert(b > 0.0);
 	memory_size_type mm_avail = consecutive_memory_available();
-	TP_LOG_DEBUG("priority_queue: Memory limit: " 
+	TP_LOG_DEBUG("priority_queue: Memory limit: "
 		<< mm_avail/1024/1024 << "mb("
 		<< mm_avail << "bytes)" << "\n");
 	mm_avail = static_cast<memory_size_type>(static_cast<double>(mm_avail)*f);
@@ -36,7 +36,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(memory_size_type mm_avail
 block_factor(b) { // constructor absolute mem
 	assert(mm_avail <= get_memory_manager().limit() && mm_avail > 0);
 	assert(b > 0.0);
-	TP_LOG_DEBUG("priority_queue: Memory limit: " 
+	TP_LOG_DEBUG("priority_queue: Memory limit: "
 				 << mm_avail/1024/1024 << "mb("
 				 << mm_avail << "bytes)" << "\n");
 	init(mm_avail, n);
@@ -68,11 +68,11 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 		buffer_size = 0;
 		buffer_start = 0;
 		return;
-	}	
+	}
 
-	TP_LOG_DEBUG("m_for_queue: " 
+	TP_LOG_DEBUG("m_for_queue: "
 		<< mm_avail << "\n");
-	TP_LOG_DEBUG("memory before alloc: " 
+	TP_LOG_DEBUG("memory before alloc: "
 				 << get_memory_manager().available() << "b" << "\n");
 	{
 		//Calculate M
@@ -117,7 +117,7 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 		             "setting_mmark " << setting_mmark  << ".\n\n");
 
 		mm_avail-=setting_mmark*buffer_m_overhead;
-		setting_k = (mm_avail/2); 
+		setting_k = (mm_avail/2);
 		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
 		             "setting_k     " << setting_k  << ".\n\n");
 
@@ -143,7 +143,7 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 			setting_k = static_cast<memory_size_type>(nominator/denominator); //Set fanout
 
 			// Don't open too many files
-			setting_k = std::min(available_files()-40, setting_k);
+			setting_k = std::min(get_file_manager().available(), setting_k);
 
 			// Performance degrades with more than around 250 open files
 			setting_k = std::min(static_cast<memory_size_type>(250), setting_k);
@@ -217,14 +217,14 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 	ss << tempname::tpie_name("pq_data");
 	datafiles.resize(setting_k*setting_k);
 	groupdatafiles.resize(setting_k);
-	TP_LOG_DEBUG("memory after alloc: " 
+	TP_LOG_DEBUG("memory after alloc: "
 				 << get_memory_manager().available() << "b" << "\n");
 }
 
 template <typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
 	datafiles.resize(0); // unlink slots
-	groupdatafiles.resize(0); // unlink groups 
+	groupdatafiles.resize(0); // unlink groups
 
 	buffer.resize(0);
 	gbuffer0.resize(0);
@@ -415,9 +415,9 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 
 	// output main buffer
 	for(memory_size_type i = 0; i<setting_mmark; i++) {
-		TP_LOG_DEBUG((i<buffer_start || buffer_start+buffer_size <=i ?"(":"") 
-				<< buffer[i] 
-				<< (i<buffer_start || buffer_start+buffer_size <=i ?")":"") 
+		TP_LOG_DEBUG((i<buffer_start || buffer_start+buffer_size <=i ?"(":"")
+				<< buffer[i]
+				<< (i<buffer_start || buffer_start+buffer_size <=i ?")":"")
 				<< " ");
 	}
 	TP_LOG_DEBUG("\n");
@@ -490,7 +490,7 @@ priority_queue<T, Comparator, OPQType>::free_slot(group_type group) {
 	slot_type i;
 	if(group>=setting_k) {
 		std::stringstream msg;
-		msg << "Error, queue is full no free slots in invalid group " 
+		msg << "Error, queue is full no free slots in invalid group "
 			<< group << ". Increase k.";
 		TP_LOG_FATAL_ID(msg.str());
 		throw exception(msg.str());
@@ -609,7 +609,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(group_type group)
 	// merge
 	{
 
-		//group output stream, not used if group==0 in this case 
+		//group output stream, not used if group==0 in this case
 		//the in-memory gbuffer0 is used
 		file_stream<T> out(block_factor);
 		out.open(group_data(group));
@@ -640,7 +640,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(group_type group)
 			}
 		}
 
-		//perform actual reading until group if full or all 
+		//perform actual reading until group if full or all
 		//the slots are empty
 		while(!heap.empty() && group_size(group)!=static_cast<stream_size_type>(setting_m)) {
 			slot_type current_slot = heap.top_run();
@@ -819,7 +819,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 					TP_LOG_FATAL_ID("Error: Group buffer " << i << " order invalid (last: " << last <<
 									", read: " << read << ")");
 					exit(-1);
-				} 
+				}
 			}
 			delete stream;
 		}
@@ -878,7 +878,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 					stream.open(slot_data(j));
 					stream.seek(slot_start(j));
 					T item_slot = stream.read();
-					
+
 					if(comp_(item_slot, item_group)) { // compare
 						dump();
 						TP_LOG_FATAL_ID("Error: Heap property invalid, group buffer " << i <<

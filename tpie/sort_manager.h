@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -30,7 +30,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
-#include <tpie/stream.h> 
+#include <tpie/stream.h>
 #include <tpie/tempname.h>
 #include <tpie/array.h>
 #include <tpie/merge_sorted_runs.h>
@@ -58,7 +58,7 @@ typedef TPIE_OS_SIZE_T arity_t;
 
 template <class T, class I, class M>
 class sort_manager {
-	    
+
 public:
 	sort_manager(I* isort, M* mheap);
 
@@ -69,21 +69,21 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Sort in stream to out stream an save in stream (uses 3x space)
 	///////////////////////////////////////////////////////////////////////////
-	void sort(file_stream<T>* in, file_stream<T>* out, 
+	void sort(file_stream<T>* in, file_stream<T>* out,
 			  progress_indicator_base* indicator = NULL);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Sort in stream and overwrite unsorted input with sorted output
 	/// (uses 2x space)
 	///////////////////////////////////////////////////////////////////////////
-	void sort(file_stream<T>* in, progress_indicator_base* indicator = NULL); 
-	    
+	void sort(file_stream<T>* in, progress_indicator_base* indicator = NULL);
+
 private:
 	// *************
 	// * Functions *
 	// *************
-	    
-	void start_sort();              // high level wrapper to full sort 
+
+	void start_sort();              // high level wrapper to full sort
 	void compute_sort_params();     // compute nInputItems, mrgArity, nRuns
 	void partition_and_sort_runs(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries); // make initial sorted runs
 	void merge_to_output(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries); // loop over merge tree, create output stream
@@ -92,49 +92,49 @@ private:
 		typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator,
 		typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator,
 		file_stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
-	    
+
 	// **************
 	// * Attributes *
 	// **************
-	    
+
 	I*              m_internalSorter;   // Method for sorting runs in memory
-	M*              m_mergeHeap;        // Merge heap implementation 
-	file_stream<T>* inStream;   
-	file_stream<T>* outStream;   
+	M*              m_mergeHeap;        // Merge heap implementation
+	file_stream<T>* inStream;
+	file_stream<T>* outStream;
 	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream;
 	TPIE_OS_SIZE_T  mmBytesAvail;       // Amount of spare memory we can use
 	TPIE_OS_SIZE_T  mmBytesPerStream;   // Memory consumed by each Stream obj
-	    
+
 	progress_indicator_base* m_indicator; // pointer to progress indicator
 
 	TPIE_OS_OFFSET progCount; //counter for showing progress
-	    
+
 	bool use2xSpace; //flag to indicate if we are doing a 2x sort
-	    
+
 	// The maximum number of stream items of type T that we can
 	// sort in internal memory
 	TPIE_OS_SIZE_T nItemsPerRun;
-	    
+
 	TPIE_OS_OFFSET nRuns; //The number of sorted runs left to merge
 	arity_t mrgArity; //Max runs we can merge at one time
-	    
+
 	// The output stream to which we are currently writing runs
 	file_stream<T>* curOutputRunStream;
-	    
+
 	// The mininum number of runs in each output stream
 	// some streams can have one additional run
-	TPIE_OS_OFFSET minRunsPerStream; 
+	TPIE_OS_OFFSET minRunsPerStream;
 	// The number of extra runs or the number of streams that
 	// get one additional run.
 	arity_t nXtraRuns;
-	
+
 	// The last run can have fewer than nItemsPerRun;
 	TPIE_OS_SIZE_T nItemsInLastRun;
 	// How many items we will sort in a given run
 	TPIE_OS_SIZE_T nItemsInThisRun;
 	// For each output stream, how many runs it should get
 	TPIE_OS_OFFSET runsInStream;
-	    
+
 	// A buffer for building the output file names
 	std::string   newName;
 
@@ -145,12 +145,12 @@ private:
 	sort_manager(const sort_manager<T,I,M>& other);
 	sort_manager<T,I,M>& operator=(const sort_manager<T,I,M>& other);
 };
-	
+
 template <class T, class I, class M>
 sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
-	m_internalSorter(isort), 
+	m_internalSorter(isort),
 	m_mergeHeap(mheap),
-	inStream(0), 
+	inStream(0),
 	outStream(0),
 	nInputItems(0),
 	mmBytesAvail(0),
@@ -167,7 +167,7 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 	nItemsInLastRun(0),
 	nItemsInThisRun(0),
 	runsInStream(0) {
-	    
+
 	// Prefix of temp files created during sort
 	working_disk = std::string(tempname::tpie_name("sort"));
 };
@@ -200,7 +200,7 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 		}
 		return;
 	}
-	    
+
 	// Else, there is something to sort, do it
 	start_sort();
 }
@@ -212,15 +212,15 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, progress_indicator_base* indi
 
 template<class T, class I, class M>
 void sort_manager<T,I,M>::start_sort(){
-	
+
 	// ********************************************************************
 	// * PHASE 1: See if we can sort the entire stream in internal memory *
 	// * without the need to use general merge sort                       *
 	// ********************************************************************
-	    	    
+
 	// Figure out how much memory we've got to work with.
 	mmBytesAvail = consecutive_memory_available();
-	    
+
 	// Space for internal buffers for the input and output stream may not
 	// have been allocated yet. Query the space usage and subtract.
 	mmBytesPerStream = file_stream<T>::memory_usage(1);
@@ -228,19 +228,19 @@ void sort_manager<T,I,M>::start_sort(){
 	// This is how much we can use for internal sort if
 	// we are not doing general merge sort
 	mmBytesAvail -= 2 * mmBytesPerStream;
-	    
+
 	// Check if all input items can be sorted internally using less than
 	// mmBytesAvail
 	nInputItems = inStream->size();
-	
+
 	inStream->seek (0);
-	
+
 	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))) {
-		
+
 		fractional_progress fp(m_indicator);
 		fp.id() << __FILE__ << __FUNCTION__ << "internal_sort" << typeid(T) << typeid(I) << typeid(M);
 		fractional_subindicator allocate_progress(fp, "allocate", TPIE_FSI, nInputItems, "Allocating");
-		fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nInputItems); 
+		fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nInputItems);
 		fp.init();
 		allocate_progress.init(nInputItems);
 		m_internalSorter->allocate(static_cast<TPIE_OS_SIZE_T>(nInputItems));
@@ -250,9 +250,9 @@ void sort_manager<T,I,M>::start_sort(){
 		// m_internalSorter also checks if inStream/outStream are the same and
 		// truncates/rewrites inStream if they are. This probably should not
 		// be the job of m_internalSorter-> TODO: build a cleaner interface
-		m_internalSorter->sort(inStream, 
-							   outStream, 
-							   static_cast<TPIE_OS_SIZE_T>(nInputItems), 
+		m_internalSorter->sort(inStream,
+							   outStream,
+							   static_cast<TPIE_OS_SIZE_T>(nInputItems),
 							   &sort_progress);
 		// de-allocate the internal array of items
 		m_internalSorter->deallocate();
@@ -263,7 +263,7 @@ void sort_manager<T,I,M>::start_sort(){
 	// ******************************************************************
 	// * Input stream too large for main memory, use general merge sort *
 	// ******************************************************************
-	    
+
 	// PHASE 2: compute nItemsPerRun, nItemsPerRun, nRuns
 	compute_sort_params();
 
@@ -276,7 +276,7 @@ void sort_manager<T,I,M>::start_sort(){
 	// * constraints. We have also calculated nRuns for the initial       *
 	// * number of runs we will partition into. Let's sort!               *
 	// ********************************************************************
-	    
+
 	// ********************************************************************
 	// * WARNING: Since we accounted for all known memory usage in PHASE 2*
 	// * be very wary of memory allocation via "new" or constructors from *
@@ -295,7 +295,7 @@ void sort_manager<T,I,M>::start_sort(){
 	partition_and_sort_runs(&run_progress, temporaries);
 	// PHASE 4: merge sorted runs to a single output stream
 	merge_to_output(&merge_progress, temporaries);
-	
+
 	fp.done();
 }
 
@@ -339,22 +339,22 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// *  Any additional memory requests that call "new" directly or      *
 	// *  indirectly should be documented and accounted for in this phase *
 	// ********************************************************************
-	    
+
 	TP_LOG_DEBUG_ID ("Computing merge sort parameters.");
-	    
+
 	TPIE_OS_SIZE_T mmBytesAvailSort; // Bytes available for sorting
-	    
+
 	TP_LOG_DEBUG ("Each object of size " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(T)) << " uses "
 				  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(m_internalSorter->space_per_item ()) << " bytes "
 				  << "for sorting in memory\n");
-	    
+
 	// Subtract off size of temp output stream
 	// The size of the input stream was already subtracted from
 	// mmBytesAvail
 	mmBytesAvailSort=mmBytesAvail - mmBytesPerStream;
-	    
+
 	nItemsPerRun=m_internalSorter->MaxItemCount(mmBytesAvailSort);
-	    
+
 	if(nItemsPerRun<1){
 		throw stream_exception("Insufficient Memory for forming sorted runs");
 	}
@@ -362,11 +362,11 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// Now we know the max number of Items we can sort in a single
 	// internal memory run. Next, compute the number of runs we can
 	// merge together at one time
-	    
+
 	TPIE_OS_SIZE_T mmBytesPerMergeItem = mmBytesPerStream +
 		m_mergeHeap->space_per_item() + sizeof(T*) +
 		sizeof(TPIE_OS_OFFSET)+sizeof(ami::stream<T>*);
-	    
+
 	// Fixed cost of mergheap impl. + MM_manager overhead of allocating
 	// an array of stream<T> ptrs (pending)
 	// cost of Input stream already accounted for in mmBytesAvail..
@@ -376,7 +376,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	if (mmBytesFixedForMerge > mmBytesAvail) {
 		throw stream_exception("Insufficient memory for merge heap and output stream");
 	}
-	    
+
 	// Cast down from TPIE_OS_OFFSET (type of mmBytesAvail).
 	// mmBytesPerMergeItem is at least 1KB, so we are OK unless we
 	// have more than 2 TerraBytes of memory, assuming 64 bit
@@ -387,7 +387,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	TP_LOG_DEBUG("mem avail=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mmBytesAvail-mmBytesFixedForMerge)
 				 << " bytes per merge item=" <<  static_cast<TPIE_OS_OUTPUT_SIZE_T>(mmBytesPerMergeItem)
 				 << " initial mrgArity=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << "\n");
-	    
+
 	// Need to support at least binary merge
 	if(mrgArity < 2) {
 		throw stream_exception("Merge arity < 2 -- Insufficient memory for a merge.");
@@ -397,8 +397,8 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// number of substreams we want.  It may not be able to due to
 	// operating system restrictions, such as on the number of regions
 	// that can be mmap()ed in, max number of file descriptors, etc.
-	int availableStreams = static_cast<int>(available_files());
-	    
+	int availableStreams = static_cast<int>(get_file_manager().available());
+
 	// Merging requires an available stream/file decriptor for
 	// each of the mrgArity input strems. We need one additional file descriptor
 	// for the output of the current merge, so binary merge requires
@@ -406,21 +406,21 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	if (availableStreams < 3) {
 		throw stream_exception("Not enough stream descriptors available to perform merge.");
 	}
-	    
+
 	// Can at least do binary merge. See if availableStreams limits
 	// maximum mrgArity
 	// Due to the previous test, we know that available_streams >= 3.
 	if (mrgArity > static_cast<arity_t>(availableStreams - 1)) {
 
 		mrgArity = static_cast<arity_t>(availableStreams - 1);
-		
+
 		TP_LOG_DEBUG_ID ("Reduced merge arity due to AMI restrictions.");
 	}
-	    
+
 	// The number of memory-sized runs that the original input stream
 	// will be partitioned into.
 	nRuns = ((nInputItems + nItemsPerRun - 1) / nItemsPerRun);
-	    
+
 #ifdef TPIE_SORT_SMALL_MRGARITY
 	// KEEP OUT!!!
 	// This should not be done by the typical user and is only for
@@ -455,7 +455,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// If compiled with the above flag, try to reduce the length of
 	// the initial sorted runs without increasing the merge tree height
 	// This could be a speed-up if it is faster to quicksort many small
-	// runs and merge them than it is to quicksort fewer long 
+	// runs and merge them than it is to quicksort fewer long
 	// runs and merge them.
 	TP_LOG_DEBUG_ID ("Minimizing initial run lengths without increasing" <<
 					 " the height of the merge tree.");
@@ -473,7 +473,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 
 	// How big will such runs be?
 	double new_nItemsPerRun = ceil (nInputItems/ maxOrigRuns);
-	tp_assert (new_nItemsPerRun <= nItemsPerRun, 
+	tp_assert (new_nItemsPerRun <= nItemsPerRun,
 		       "Size of original runs increased!");
 
 	// Update the number of items per run and the number of original runs
@@ -497,7 +497,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	    // full mrgArity. This is the last change to mrgArity
 	    // N.B. We need to "up"-cast mrgArity here!
 	if(static_cast<TPIE_OS_OFFSET>(mrgArity)>nRuns){
-		// N.B. We know that nRuns is small, so 
+		// N.B. We know that nRuns is small, so
 		//      it is safr to downcast.
 		mrgArity=static_cast<TPIE_OS_SIZE_T>(nRuns);
 	}
@@ -555,7 +555,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 
 	// nItemsPerRun except for last run.
 	nItemsInThisRun=nItemsPerRun;
-	    
+
 	// Rewind the input stream, we are about to begin
 	inStream->seek(0);
 
@@ -564,9 +564,9 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 	// ********************************************************************
 	TPIE_OS_OFFSET check_size = 0; //for debugging
 
-	if (indicator) 
+	if (indicator)
 		indicator->init(nRuns*1000);
-	
+
 	for(arity_t ii=0; ii<mrgArity; ii++){   //For each output stream
 		// Dynamically allocate the stream
 		// We account for these mmBytesPerStream in phase 2 (output stream)
@@ -585,13 +585,13 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		    }
 
 			progress_indicator_subindicator sort_indicator(indicator, 1000);
-			m_internalSorter->sort(inStream, curOutputRunStream, 
+			m_internalSorter->sort(inStream, curOutputRunStream,
 								   nItemsInThisRun, &sort_indicator);
 		} // For each run in this stream
-		
+
 		// All runs created for this stream, clean up
 		TP_LOG_DEBUG_ID ("Wrote " << runsInStream << " runs and "
-						 << curOutputRunStream->size() << " items to file " 
+						 << curOutputRunStream->size() << " items to file "
 						 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii));
 		check_size+=curOutputRunStream->size();
 		tpie_delete(curOutputRunStream);
@@ -602,11 +602,11 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 	// Done with partitioning and initial run formation
 	// free space associated with internal memory sorting
 	m_internalSorter->deallocate();
-	if(use2xSpace){ 
+	if(use2xSpace){
 		//recall outStream/inStream point to same file in this case
 		inStream->truncate(0); //free up disk space
 		inStream->seek(0);
-	} 
+	}
 	if (indicator) indicator->done();
 }
 
@@ -662,8 +662,8 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 
 	//nRuns is initially the number of runs we formed in partition_and_sort
 	//phase. nXtraRuns is initially the number of outputs streams that
-	//contain one extra run. Runs and nXtraRuns are updated as we 
-	//complete a merge level. 
+	//contain one extra run. Runs and nXtraRuns are updated as we
+	//complete a merge level.
 	while (nRuns > TPIE_OS_OFFSET(mrgArity)) {
 		// if (m_indicator) {
 		// 	std::string description;
@@ -677,7 +677,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 		// We are not yet at the top of the merge tree
 		// Write merged runs to temporary output streams
 		TP_LOG_DEBUG ("Intermediate merge. level="<<mrgHeight << "\n");
-    
+
 		// The number of output runs we will form after a mrgArity merge
 		nRuns = (nRuns + mrgArity - 1)/mrgArity;
 
@@ -686,7 +686,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 		minRunsPerStream = nRuns/mrgArity;
 
 		// We may have less mrgArity input runs for the last
-		// merged output run if the current set of merge streams has 
+		// merged output run if the current set of merge streams has
 		// xtra runs
 		arity_t mergeRunsInLastOutputRun=(nXtraRuns>0) ? nXtraRuns : mrgArity;
 
@@ -743,13 +743,13 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 				// Merge runs to curOutputRunStream
 				single_merge(mergeInputStreams.find(mrgArity-nRunsToMerge),
 							 mergeInputStreams.find(mrgArity),
-							 &curOutputRunStream, 
-							 nItemsPerRun, indicator); 
+							 &curOutputRunStream,
+							 nItemsPerRun, indicator);
 		    } // For each output run in this stream
 
 		    // Commit new output stream to disk
 		    TP_LOG_DEBUG("Wrote " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(runsInStream) << " runs and "
-						 << curOutputRunStream.size() << " items " 
+						 << curOutputRunStream.size() << " items "
 						 << "to file " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << "\n");
 		    check_size+=curOutputRunStream.size();
 		} // For each new output stream
@@ -779,7 +779,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 	TP_LOG_DEBUG("Merge runs left="<<nRuns<<"\n");
 	for(ii = mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns); ii < mrgArity; ii++){
 		/* Dynamically allocate the stream
-		   We account for these mmBytesPerStream in phase 2 
+		   We account for these mmBytesPerStream in phase 2
 		   (input stream to read from)
 		   Put LAST nRuns files in FIRST nRuns spots here
 		   either one of mergeInputStreams loading or the call to
@@ -795,7 +795,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 	// Merge last remaining runs to the output stream.
 	// mergeInputStreams is address( address (the first input stream) )
 	// N.B. nRuns is small, so it is safe to downcast.
-	single_merge(mergeInputStreams.begin(), 
+	single_merge(mergeInputStreams.begin(),
 				 mergeInputStreams.find((size_t)nRuns),
 				 outStream, -1, indicator);
 
@@ -810,12 +810,12 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 	// Deallocate the merge heap, free up memory
 	m_mergeHeap->deallocate();
 	TP_LOG_DEBUG_ID ("Number of passes incl run formation is " <<
-					 mrgHeight+2 ); 
+					 mrgHeight+2 );
 	TP_LOG_DEBUG("AMI_partition_and_merge END\n");
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::single_merge( 
+void sort_manager<T,I,M>::single_merge(
 	typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator start,
 	typename tpie::array<tpie::unique_ptr<file_stream<T> > >::iterator end,
 	file_stream < T >*outStream, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
@@ -828,4 +828,4 @@ void sort_manager<T,I,M>::single_merge(
 
 }  //  tpie namespace
 
-#endif // _TPIE_AMI_SORT_MANAGER_H 
+#endif // _TPIE_AMI_SORT_MANAGER_H
