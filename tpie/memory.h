@@ -27,6 +27,7 @@
 
 #include <tpie/config.h>
 #include <tpie/util.h>
+#include <tpie/resource_manager.h>
 #include <mutex>
 #include <unordered_map>
 #include <type_traits>
@@ -37,87 +38,10 @@
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Thrown when trying to allocate too much memory.
-///
-/// When the memory limit is exceeded and the memory limit enforcement policy
-/// is set to THROW, this error is thrown by the memory subsystem.
-///////////////////////////////////////////////////////////////////////////////
-struct out_of_memory_error : public std::bad_alloc {
-	const char * msg;
-	out_of_memory_error(const char * s) : msg(s) { }
-	virtual const char* what() const throw() {return msg;}
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Memory management object used to track memory usage.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_manager {
+class memory_manager : public resource_manager {
 public:
-	///////////////////////////////////////////////////////////////////////////
-	/// Memory limit enforcement policies.
-	///////////////////////////////////////////////////////////////////////////
-	enum enforce_t {
-		/** Ignore when running out of memory. */
-		ENFORCE_IGNORE,
-		/** \brief Log to debug log when the memory limit is exceeded.
-		 * Note that not all violations will be logged. */
-		ENFORCE_DEBUG,
-		/** \brief Log a warning when the memory limit is exceeded. Note that
-		 * not all violations will be logged. */
-		ENFORCE_WARN,
-		/** Throw an out_of_memory_error when the memory limit is exceeded. */
-		ENFORCE_THROW
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Return the current amount of memory used.
-	///////////////////////////////////////////////////////////////////////////
-	size_t used() const throw();
-   
-	///////////////////////////////////////////////////////////////////////////
-	/// Return the amount of memory still available to allocation.
-	///////////////////////////////////////////////////////////////////////////
-	size_t available() const throw();
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Return the memory limit.
-	///////////////////////////////////////////////////////////////////////////
-	size_t limit() const throw() {return m_limit;}
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Update the memory limit.
-	/// If the memory limit is exceeded by decreasing the limit,
-	/// no exception will be thrown.
-	/// \param new_limit The new memory limit in bytes.
-	///////////////////////////////////////////////////////////////////////////
-	void set_limit(size_t new_limit);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set the memory limit enforcement policy.
-	/// \param e The new enforcement policy.
-	///////////////////////////////////////////////////////////////////////////
-	void set_enforcement(enforce_t e);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Return the current memory limit enforcement policy.
-	///////////////////////////////////////////////////////////////////////////
-	enforce_t enforcement() {return m_enforce;}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \internal
-	/// Register that more memory has been used.
-	/// Possibly throws a warning or an exception if the memory limit is
-	/// exceeded, depending on the enforcement.
-	///////////////////////////////////////////////////////////////////////////
-	void register_allocation(size_t bytes);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \internal
-	/// Register that some memory has been freed.
-	///////////////////////////////////////////////////////////////////////////
-	void register_deallocation(size_t bytes);
-
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
 	/// Construct the memory manager object.
@@ -130,6 +54,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
 
+	void register_allocation(size_t bytes) {
+		register_increased_usage(bytes);
+	}
+
+	void register_deallocation(size_t bytes) {
+		register_decreased_usage(bytes);
+	}
+
 #ifndef TPIE_NDEBUG
 	// The following methods take the mutex before calling the private doubly
 	// underscored equivalent.
@@ -141,12 +73,6 @@ public:
 
 
 private:
-	std::atomic<size_t> m_used;
-	size_t m_limit;
-	size_t m_maxExceeded;
-	size_t m_nextWarning;
-	enforce_t m_enforce;
-
 #ifndef TPIE_NDEBUG
 	std::mutex m_mutex;
 
