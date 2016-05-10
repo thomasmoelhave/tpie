@@ -20,7 +20,6 @@
 
 #include <string.h>
 #include <tpie/exception.h>
-#include <tpie/file_count.h>
 #include <tpie/file_accessor/win32.h>
 #include <tpie/util.h>
 #include <sys/types.h>

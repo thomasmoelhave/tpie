@@ -34,6 +34,7 @@ set (HEADERS
 		file.h
 		file_base.h
 		file_base_crtp.h
+		file_manager.h
 		file_stream.h
 		file_stream_base.h
 		file_accessor/byte_stream_accessor.h
@@ -41,7 +42,6 @@ set (HEADERS
 		file_accessor/stream_accessor.h
 		file_accessor/stream_accessor_base.h
 		file_accessor/stream_accessor_base.inl
-		file_count.h
 		execution_time_predictor.h
 		internal_sort.h
 		internal_queue.h
@@ -158,7 +158,7 @@ set (SOURCES
 	compressed/thread.cpp
 	cpu_timer.cpp
 	file_base.cpp
-	file_count.cpp
+	file_manager.cpp
 	file_stream_base.cpp
 	execution_time_predictor.cpp
 	fractional_progress.cpp

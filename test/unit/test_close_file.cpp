@@ -66,11 +66,11 @@ private:
 
 public:
 	open_file_monitor() {
-		m_openFiles = tpie::open_file_count();
+		m_openFiles = tpie::get_file_manager().used();
 	}
 
 	bool ensure_closed_and_delete(std::string fileName) {
-		tpie::memory_size_type openFiles = tpie::open_file_count();
+		tpie::memory_size_type openFiles = tpie::get_file_manager().used();
 		tpie::log_debug() << "Open file count was " << m_openFiles
 						  << "; is now " << openFiles << std::endl;
 		if (openFiles != m_openFiles) {
@@ -86,7 +86,7 @@ public:
 			tpie::log_error() << "Failed to unlink file: " << ::strerror(errno) << std::endl;
 			return false;
 		}
-		if (tpie::open_file_count() != m_openFiles) {
+		if (tpie::get_file_manager().used() != m_openFiles) {
 			tpie::log_error() << "ensure_closed_and_delete: Even after unlink, "
 								 "file count does not match." << std::endl;
 		}

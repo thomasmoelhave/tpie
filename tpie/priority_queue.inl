@@ -143,7 +143,7 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 			setting_k = static_cast<memory_size_type>(nominator/denominator); //Set fanout
 
 			// Don't open too many files
-			setting_k = std::min(available_files()-40, setting_k);
+			setting_k = std::min(get_file_manager().available(), setting_k);
 
 			// Performance degrades with more than around 250 open files
 			setting_k = std::min(static_cast<memory_size_type>(250), setting_k);

@@ -182,7 +182,7 @@ public:
 	}
 
 	size_t available_streams(void) {
-		return available_files();
+		return get_file_manager().available();
 	}
 
 	memory_size_type chunk_size(void) const {

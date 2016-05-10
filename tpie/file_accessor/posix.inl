@@ -19,7 +19,6 @@
 #include <tpie/config.h>
 #include <string.h>
 #include <tpie/exception.h>
-#include <tpie/file_count.h>
 #include <tpie/file_accessor/posix.h>
 #include <sys/types.h>
 #include <sys/stat.h>
