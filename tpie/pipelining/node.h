@@ -52,6 +52,10 @@ public:
 struct node_parameters {
 	node_parameters();
 
+	int minimumFileDescriptors;
+	int maximumFileDescriptors;
+	double fileDescriptorFraction;
+
 	memory_size_type minimumMemory;
 	memory_size_type maximumMemory;
 	double memoryFraction;
@@ -102,6 +106,37 @@ public:
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~node() {}
+
+	inline int get_minimum_file_descriptors() const {
+		return m_parameters.minimumFileDescriptors;
+	}
+
+	inline int get_maximum_file_descriptors() const {
+		return m_parameters.maximumFileDescriptors;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of memory assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline int get_available_file_descriptors() const {
+		return m_availableFileDescriptors;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of memory assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline int get_used_file_descriptors() const {
+		int ans=0;
+		/*for (const auto & p: m_buckets)
+			if (p) ans += p->count;*/
+		return ans;
+	}
+
+	void set_file_descriptor_fraction(double f);
+
+	inline double get_file_descriptor_fraction() const {
+		return m_parameters.fileDescriptorFraction;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the minimum amount of memory declared by this node.
@@ -440,6 +475,25 @@ public:
 	virtual void set_available_memory(memory_size_type availableMemory);
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare minimum memory requirements.
+	///////////////////////////////////////////////////////////////////////////
+	void set_minimum_file_descriptors(int minimumFileDescriptors);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare maximum memory requirements.
+	///
+	/// To signal that you don't want any memory, set minimum memory and the
+	/// memory fraction to zero.
+	///////////////////////////////////////////////////////////////////////////
+	void set_maximum_file_descriptors(int maximumFileDescriptors);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by the memory manager to set the amount of memory
+	/// assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void set_available_file_descriptors(int availableFileDescriptors);
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
@@ -694,9 +748,10 @@ private:
 	node_token token;
 
 	node_parameters m_parameters;
+	int m_availableFileDescriptors;
 	memory_size_type m_availableMemory;
 	std::vector<std::unique_ptr<memory_bucket> > m_buckets;
-	
+
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
 	valuemap m_values;
 
