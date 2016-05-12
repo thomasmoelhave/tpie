@@ -755,11 +755,11 @@ public:
 			throw exception("Wrong state in set_items: state is not stParameters");
 
 		if(n < p.runLength) {
-			p.runLength = p.internalReportThreshold;
 			log_debug() << "Decreasing run length from " << p.runLength
-				<< " to " << p.internalReportThreshold << std::endl;
-			
-			log_debug() << "New merge sort parameters\n";
+				<< " to " << p.internalReportThreshold
+				<< " since at most " << n << " items will be pushed."
+				<< " New merge sort parameters:\n";
+			p.runLength = p.internalReportThreshold;
 			p.dump(log_debug());
 			log_debug() << std::endl;
 		}
