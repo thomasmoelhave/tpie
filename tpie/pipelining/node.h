@@ -49,25 +49,35 @@ public:
 
 } // namespace bits
 
+enum node_resource_type {
+	FILES,
+	MEMORY,
+
+	// Special value for internal use
+	TOTAL_RESOURCE_TYPES
+};
+
+struct node_resource_parameters {
+	memory_size_type minimum = 0;
+	memory_size_type maximum = std::numeric_limits<memory_size_type>::max();
+	double fraction = 0.0;
+
+	memory_size_type available = 0;
+};
+
 struct node_parameters {
-	node_parameters();
-
-	int minimumFileDescriptors;
-	int maximumFileDescriptors;
-	double fileDescriptorFraction;
-
-	memory_size_type minimumMemory;
-	memory_size_type maximumMemory;
-	double memoryFraction;
+	node_resource_parameters resource_parameters[TOTAL_RESOURCE_TYPES];
 
 	std::string name;
-	priority_type namePriority;
+	priority_type namePriority = PRIORITY_NO_NAME;
 
 	std::string phaseName;
 	priority_type phaseNamePriority;
 
-	stream_size_type stepsTotal;
+	stream_size_type stepsTotal = 0;
 };
+
+#define RES_PARAM(type, name) m_parameters.resource_parameters[type].name
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all nodes. A node should inherit from the node class,
@@ -107,43 +117,54 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~node() {}
 
-	inline int get_minimum_file_descriptors() const {
-		return m_parameters.minimumFileDescriptors;
+	inline memory_size_type get_minimum_resource_usage(node_resource_type type) const {
+		return RES_PARAM(type, minimum);
 	}
 
-	inline int get_maximum_file_descriptors() const {
-		return m_parameters.maximumFileDescriptors;
+	inline memory_size_type get_maximum_resource_usage(node_resource_type type) const {
+		return RES_PARAM(type, maximum);
+	}
+
+	inline double get_resource_fraction(node_resource_type type) const {
+		return RES_PARAM(type, fraction);
+	}
+
+	inline memory_size_type get_available_of_resource(node_resource_type type) const {
+		return RES_PARAM(type, available);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the amount of memory assigned to this node.
+	/// \brief Called by implementers to declare minimum resource requirements.
 	///////////////////////////////////////////////////////////////////////////
-	inline int get_available_file_descriptors() const {
-		return m_availableFileDescriptors;
-	}
+	void set_minimum_resource_usage(node_resource_type type, memory_size_type usage);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the amount of memory assigned to this node.
+	/// \brief Called by implementers to declare maximum resource requirements.
+	///
+	/// To signal that you don't want to use this resource,
+	/// set minimum resource usage and the resource fraction to zero.
 	///////////////////////////////////////////////////////////////////////////
-	inline int get_used_file_descriptors() const {
-		int ans=0;
-		/*for (const auto & p: m_buckets)
-			if (p) ans += p->count;*/
-		return ans;
-	}
+	void set_maximum_resource_usage(node_resource_type type, memory_size_type usage);
 
-	void set_file_descriptor_fraction(double f);
+	///////////////////////////////////////////////////////////////////////////
+	/// \Brief Set the resource priority of this node. Resources are
+	/// distributed proportionally to the priorities of the nodes in the given
+	/// phase.
+	///////////////////////////////////////////////////////////////////////////
+	void set_resource_fraction(node_resource_type type, double f);
 
-	inline double get_file_descriptor_fraction() const {
-		return m_parameters.fileDescriptorFraction;
-	}
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by the resource manager to set the usage of this resource
+	/// assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void set_available_of_resource(node_resource_type type, memory_size_type available);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the minimum amount of memory declared by this node.
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_minimum_memory() const {
-		return m_parameters.minimumMemory;
+		return get_minimum_resource_usage(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -151,37 +172,64 @@ public:
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_maximum_memory() const {
-		return m_parameters.maximumMemory;
+		return get_maximum_resource_usage(MEMORY);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the memory priority of this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline double get_memory_fraction() const {
+		return get_resource_fraction(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of memory assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_available_memory() const {
-		return m_availableMemory;
+		return get_available_of_resource(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the amount of memory assigned to this node.
+	/// \brief Called by implementers to declare minimum memory requirements.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_used_memory() const {
-		memory_size_type ans=0;
-		for (const auto & p: m_buckets)
-			if (p) ans += p->count;
-		return ans;
+	void set_minimum_memory(memory_size_type minimumMemory) {
+		set_minimum_resource_usage(MEMORY, minimumMemory);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare maximum memory requirements.
+	///
+	/// To signal that you don't want any memory, set minimum memory and the
+	/// memory fraction to zero.
+	///////////////////////////////////////////////////////////////////////////
+	void set_maximum_memory(memory_size_type maximumMemory) {
+		set_maximum_resource_usage(MEMORY, maximumMemory);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \Brief Set the memory priority of this node. Memory is distributed
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
-	void set_memory_fraction(double f);
+	void set_memory_fraction(double f) {
+		set_resource_fraction(MEMORY, f);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the memory priority of this node.
+	/// \brief Called by the memory manager to set the amount of memory
+	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline double get_memory_fraction() const {
-		return m_parameters.memoryFraction;
+	virtual void set_available_memory(memory_size_type availableMemory) {
+		set_available_of_resource(MEMORY, availableMemory);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of memory currently used by this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_used_memory() const {
+		memory_size_type ans=0;
+		for (const auto & p: m_buckets)
+			if (p) ans += p->count;
+		return ans;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -472,44 +520,6 @@ public:
 	void add_memory_share_dependency(const node & dest);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare minimum memory requirements.
-	///////////////////////////////////////////////////////////////////////////
-	void set_minimum_memory(memory_size_type minimumMemory);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare maximum memory requirements.
-	///
-	/// To signal that you don't want any memory, set minimum memory and the
-	/// memory fraction to zero.
-	///////////////////////////////////////////////////////////////////////////
-	void set_maximum_memory(memory_size_type maximumMemory);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by the memory manager to set the amount of memory
-	/// assigned to this node.
-	///////////////////////////////////////////////////////////////////////////
-	virtual void set_available_memory(memory_size_type availableMemory);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare minimum memory requirements.
-	///////////////////////////////////////////////////////////////////////////
-	void set_minimum_file_descriptors(int minimumFileDescriptors);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare maximum memory requirements.
-	///
-	/// To signal that you don't want any memory, set minimum memory and the
-	/// memory fraction to zero.
-	///////////////////////////////////////////////////////////////////////////
-	void set_maximum_file_descriptors(int maximumFileDescriptors);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by the memory manager to set the amount of memory
-	/// assigned to this node.
-	///////////////////////////////////////////////////////////////////////////
-	virtual void set_available_file_descriptors(int availableFileDescriptors);
-
-	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
 	/// If explicitForward is false, the data will not override data forwarded
 	/// with explicitForward == true.
@@ -772,8 +782,6 @@ private:
 	node_token token;
 
 	node_parameters m_parameters;
-	int m_availableFileDescriptors;
-	memory_size_type m_availableMemory;
 	std::vector<std::unique_ptr<memory_bucket> > m_buckets;
 	
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;

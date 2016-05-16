@@ -45,21 +45,6 @@ void proxy_progress_indicator::refresh() {
 
 } // namespace bits
 
-node_parameters::node_parameters()
-	: minimumFileDescriptors(0)
-	, maximumFileDescriptors(std::numeric_limits<int>::max())
-	, fileDescriptorFraction(0.0)
-	, minimumMemory(0)
-	, maximumMemory(std::numeric_limits<memory_size_type>::max())
-	, memoryFraction(0.0)
-	, name()
-	, namePriority(PRIORITY_NO_NAME)
-	, phaseName()
-	, phaseNamePriority(PRIORITY_NO_NAME)
-	, stepsTotal(0)
-{
-}
-
 const std::string & node::get_name() {
 	if (m_parameters.name.empty()) {
 		m_parameters.name = bits::extract_pipe_name(typeid(*this).name());
@@ -84,8 +69,6 @@ void node::set_phase_name(const std::string & name, priority_type priority) {
 
 node::node()
 	: token(this)
-	, m_availableFileDescriptors(0)
-	, m_availableMemory(0)
 	, m_flushPriority(0)
 	, m_stepsLeft(0)
 	, m_pi(0)
@@ -97,8 +80,6 @@ node::node()
 node::node(node && other)
 	: token(other.token, this)
 	, m_parameters(std::move(other.m_parameters))
-	, m_availableFileDescriptors(std::move(other.m_availableFileDescriptors))
-	, m_availableMemory(std::move(other.m_availableMemory))
 	, m_buckets(std::move(other.m_buckets))
 	, m_flushPriority(std::move(other.m_flushPriority))
 	, m_stepsLeft(std::move(other.m_stepsLeft))
@@ -120,8 +101,6 @@ node & node::operator=(node && other) {
 node::node(const node_token & token)
 	: token(token, this, true)
 	, m_parameters()
-	, m_availableFileDescriptors(0)
-	, m_availableMemory(0)
 	, m_flushPriority(0)
 	, m_stepsLeft(0)
 	, m_pi(0)
@@ -173,8 +152,8 @@ void node::add_memory_share_dependency(const node & dest) {
 }
 
 
-#define PARAM_SETTER(setter_name, param_type, param_name) \
-	void node::setter_name(param_type param_name) { \
+#define RESOURCE_SETTER(setter_name, param_type, param_name) \
+	void node::setter_name(node_resource_type type, param_type value) { \
 		switch (get_state()) { \
 		case STATE_IN_PROPAGATE: \
 		case STATE_AFTER_PROPAGATE: \
@@ -184,23 +163,15 @@ void node::add_memory_share_dependency(const node & dest) {
 		default: \
 			throw call_order_exception(#setter_name); \
 		} \
-		m_parameters.param_name = param_name; \
+		RES_PARAM(type, param_name) = value; \
 	}
 
-PARAM_SETTER(set_minimum_file_descriptors, int, minimumFileDescriptors);
-PARAM_SETTER(set_maximum_file_descriptors, int, maximumFileDescriptors);
-PARAM_SETTER(set_file_descriptor_fraction, double, fileDescriptorFraction);
+RESOURCE_SETTER(set_minimum_resource_usage, memory_size_type, minimum);
+RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
+RESOURCE_SETTER(set_resource_fraction, double, fraction);
 
-PARAM_SETTER(set_minimum_memory, memory_size_type, minimumMemory)
-PARAM_SETTER(set_maximum_memory, memory_size_type, maximumMemory)
-PARAM_SETTER(set_memory_fraction, double, memoryFraction);
-
-void node::set_available_file_descriptors(int availableFileDescriptors) {
-	m_availableFileDescriptors = availableFileDescriptors;
-}
-
-void node::set_available_memory(memory_size_type availableMemory) {
-	m_availableMemory = availableMemory;
+void node::set_available_of_resource(node_resource_type type, memory_size_type available) {
+	RES_PARAM(type, available) = available;
 }
 
 void node::forward_any(std::string key, boost::any value, memory_size_type k) {
