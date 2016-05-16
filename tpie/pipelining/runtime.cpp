@@ -126,46 +126,95 @@ private:
 	};
 };
 
+template <node_resource_type type>
+class resource_runtime {
+public:
+	resource_runtime(const std::vector<node *> & nodes)
+	: m_nodes(nodes)
+	, m_minimumUsage(0)
+	, m_maximumUsage(0)
+	, m_fraction(0.0)
+	{
+		const size_t N = m_nodes.size();
+		for (size_t i = 0; i < N; ++i) {
+			m_minimumUsage += minimum_usage(i);
+			m_maximumUsage += maximum_usage(i);
+			m_fraction += fraction(i);
+		}
+	}
+
+	// Node accessors
+	memory_size_type minimum_usage(size_t i) const {
+		return m_nodes[i]->get_minimum_resource_usage(type);
+	};
+	memory_size_type maximum_usage(size_t i) const {
+		return m_nodes[i]->get_maximum_resource_usage(type);
+	};
+	double fraction(size_t i) const {
+		return m_nodes[i]->get_resource_fraction(type);
+	};
+
+	// Node accessor aggregates
+	memory_size_type sum_minimum_usage() const {
+		return m_minimumUsage;
+	};
+	memory_size_type sum_maximum_usage() const {
+		return m_maximumUsage;
+	};
+	double sum_fraction() const {
+		return m_fraction;
+	};
+
+	// Node mutator
+	void set_usage(size_t i, memory_size_type usage) {
+		m_nodes[i]->set_available_of_resource(type, usage);
+	};
+
+	void assign_usage(double factor) {
+		for (size_t i = 0; i < m_nodes.size(); ++i)
+			set_usage(i, get_assigned_usage(i, factor));
+	};
+
+	// Special case of assign_usage when factor is zero.
+	void assign_minimum_resource() {
+		for (size_t i = 0; i < m_nodes.size(); ++i)
+			set_usage(i, minimum_usage(i));
+	};
+
+	memory_size_type sum_assigned_usage(double factor) const {
+		memory_size_type total = 0;
+		for (size_t i = 0; i < m_nodes.size(); ++i)
+			total += get_assigned_usage(i, factor);
+		return total;
+	};
+
+	memory_size_type get_assigned_usage(size_t i, double factor) const {
+		return clamp(minimum_usage(i), maximum_usage(i), factor * fraction(i));
+	};
+
+	static memory_size_type clamp(memory_size_type lo, memory_size_type hi,
+								  double v) {
+		if (v < lo) return lo;
+		if (v > hi) return hi;
+		return static_cast<memory_size_type>(v);
+	};
+
+protected:
+	const std::vector<node *> & m_nodes;
+	memory_size_type m_minimumUsage;
+	memory_size_type m_maximumUsage;
+	double m_fraction;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper methods for memory assignment.
 /// The memory assignment algorithm is in runtime::get_memory_factor.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_runtime {
+class memory_runtime : public resource_runtime<MEMORY> {
 public:
-	memory_runtime(const std::vector<node *> & nodes);
-
-	// Node accessors
-	memory_size_type minimum_memory(size_t i) const;
-	memory_size_type maximum_memory(size_t i) const;
-	double fraction(size_t i) const;
-
-	// Node accessor aggregates
-	memory_size_type sum_minimum_memory() const;
-	memory_size_type sum_maximum_memory() const;
-	double sum_fraction() const;
-
-	// Node mutator
-	void set_memory(size_t i, memory_size_type mem);
-
-	void assign_memory(double factor);
-
-	// Special case of assign_memory when factor is zero.
-	void assign_minimum_memory();
-
-	memory_size_type sum_assigned_memory(double factor) const;
-
-	memory_size_type get_assigned_memory(size_t i, double factor) const;
-
-	static memory_size_type clamp(memory_size_type lo, memory_size_type hi,
-								  double v);
+	memory_runtime(const std::vector<node *> & nodes) : resource_runtime(nodes) {}
 
 	void print_memory(double c, std::ostream & os);
-
-private:
-	const std::vector<node *> & m_nodes;
-	memory_size_type m_minimumMemory;
-	memory_size_type m_maximumMemory;
-	double m_fraction;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -384,86 +433,6 @@ private:
 	std::vector<node *> m_topologicalOrder;
 };
 
-memory_runtime::memory_runtime(const std::vector<node *> & nodes)
-	: m_nodes(nodes)
-	, m_minimumMemory(0)
-	, m_maximumMemory(0)
-	, m_fraction(0.0)
-{
-	const size_t N = m_nodes.size();
-	for (size_t i = 0; i < N; ++i) {
-		m_minimumMemory += minimum_memory(i);
-		m_maximumMemory += maximum_memory(i);
-		m_fraction += fraction(i);
-	}
-}
-
-// Node accessors
-memory_size_type memory_runtime::minimum_memory(size_t i) const {
-	return m_nodes[i]->get_minimum_memory();
-}
-
-memory_size_type memory_runtime::maximum_memory(size_t i) const {
-	return m_nodes[i]->get_maximum_memory();
-}
-
-double memory_runtime::fraction(size_t i) const {
-	return m_nodes[i]->get_memory_fraction();
-}
-
-// Node accessor aggregates
-memory_size_type memory_runtime::sum_minimum_memory() const {
-	return m_minimumMemory;
-}
-
-memory_size_type memory_runtime::sum_maximum_memory() const {
-	return m_maximumMemory;
-}
-
-double memory_runtime::sum_fraction() const {
-	return m_fraction;
-}
-
-
-// Node mutator
-void memory_runtime::set_memory(size_t i, memory_size_type mem) {
-	m_nodes[i]->set_available_memory(mem);
-}
-
-void memory_runtime::assign_memory(double factor) {
-	for (size_t i = 0; i < m_nodes.size(); ++i)
-		set_memory(i, get_assigned_memory(i, factor));
-}
-
-// Special case of assign_memory when factor is zero.
-void memory_runtime::assign_minimum_memory() {
-	for (size_t i = 0; i < m_nodes.size(); ++i)
-		set_memory(i, minimum_memory(i));
-}
-
-memory_size_type memory_runtime::sum_assigned_memory(double factor) const {
-	memory_size_type memoryAssigned = 0;
-	for (size_t i = 0; i < m_nodes.size(); ++i)
-		memoryAssigned += get_assigned_memory(i, factor);
-	return memoryAssigned;
-}
-
-memory_size_type memory_runtime::get_assigned_memory(size_t i,
-													 double factor) const {
-	return clamp(minimum_memory(i), maximum_memory(i),
-				 factor * fraction(i));
-}
-
-/*static*/
-memory_size_type memory_runtime::clamp(memory_size_type lo,
-									   memory_size_type hi,
-									   double v)
-{
-	if (v < lo) return lo;
-	if (v > hi) return hi;
-	return static_cast<memory_size_type>(v);
-}
-
 void memory_runtime::print_memory(double c, std::ostream & os) {
 	size_t cw = 12;
 	size_t prec_frac = 2;
@@ -485,9 +454,9 @@ void memory_runtime::print_memory(double c, std::ostream & os) {
 			frac = ss.str();
 		}
 
-		stream_size_type lo = minimum_memory(i);
-		stream_size_type hi = maximum_memory(i);
-		stream_size_type assigned = get_assigned_memory(i, c);
+		stream_size_type lo = minimum_usage(i);
+		stream_size_type hi = maximum_usage(i);
+		stream_size_type assigned = get_assigned_usage(i, c);
 
 		os	<< std::setw(cw) << lo;
 		if (hi == std::numeric_limits<stream_size_type>::max()) {
@@ -1135,7 +1104,7 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 #ifndef TPIE_NDEBUG
 		mrt.print_memory(c, log_debug());
 #endif // TPIE_NDEBUG
-		mrt.assign_memory(c);
+		mrt.assign_usage(c);
 	}
 	drt.assign_memory();
 }
@@ -1150,12 +1119,12 @@ void runtime::reassign_memory(const std::vector<std::vector<node *> > & phases,
 #ifndef TPIE_NDEBUG
 	mrt.print_memory(c, log_debug());
 #endif // TPIE_NDEBUG
-	mrt.assign_memory(c);
+	mrt.assign_usage(c);
 }
 
 /*static*/
 double runtime::get_memory_factor(memory_size_type memory, memory_size_type phase, const memory_runtime & mrt, const datastructure_runtime & drt, bool datastructures_locked) {
-	memory_size_type min = mrt.sum_minimum_memory() + drt.sum_minimum_memory(phase);
+	memory_size_type min = mrt.sum_minimum_usage() + drt.sum_minimum_memory(phase);
 	if (min > memory) {
 		log_warning() << "Not enough memory for pipelining phase ("
 					  << min << " > " << memory << ")"
@@ -1175,7 +1144,7 @@ double runtime::get_memory_factor(memory_size_type memory, memory_size_type phas
 	memory_size_type oldMemoryAssigned = 0;
 	while (true) {
 		double factor = memory * c_hi / fraction_sum;
-		memory_size_type memoryAssigned = mrt.sum_assigned_memory(factor) + (datastructures_locked ? drt.sum_assigned_memory(phase) : drt.sum_assigned_memory(factor, phase));
+		memory_size_type memoryAssigned = mrt.sum_assigned_usage(factor) + (datastructures_locked ? drt.sum_assigned_memory(phase) : drt.sum_assigned_memory(factor, phase));
 		if (memoryAssigned < memory && memoryAssigned != oldMemoryAssigned)
 			c_hi *= 2;
 		else
@@ -1187,7 +1156,7 @@ double runtime::get_memory_factor(memory_size_type memory, memory_size_type phas
 	while (c_hi - c_lo > 1e-6) {
 		double c = c_lo + (c_hi-c_lo)/2;
 		double factor = memory * c / fraction_sum;
-		memory_size_type memoryAssigned = mrt.sum_assigned_memory(factor) + (datastructures_locked ? drt.sum_assigned_memory(phase) : drt.sum_assigned_memory(factor, phase));
+		memory_size_type memoryAssigned = mrt.sum_assigned_usage(factor) + (datastructures_locked ? drt.sum_assigned_memory(phase) : drt.sum_assigned_memory(factor, phase));
 
 		if (memoryAssigned > memory) {
 			c_hi = c;
