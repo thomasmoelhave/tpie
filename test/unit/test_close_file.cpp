@@ -27,6 +27,7 @@
 #include <tpie/tempname.h>
 #include <tpie/serialization_stream.h>
 #include <tpie/config.h>
+#include <tpie/file_accessor/file_accessor.h>
 
 #ifdef WIN32
 class open_file_monitor {
@@ -101,12 +102,13 @@ bool test_test() {
 	tpie::log_debug() << "Temporary file is " << fileName << std::endl;
 	boost::filesystem::remove(fileName);
 	open_file_monitor m;
-	FILE * fp = ::fopen(fileName.c_str(), "w");
+	tpie::file_accessor::raw_file_accessor fa;
+	fa.open_wo(fileName);
 	TEST_ENSURE(boost::filesystem::exists(fileName),
 				"fopen did not create file");
 	TEST_ENSURE(!m.ensure_closed_and_delete(fileName),
 				"ensure_closed_and_delete is wrong");
-	::fclose(fp);
+	fa.close_i();
 	TEST_ENSURE(m.ensure_closed_and_delete(fileName),
 				"ensure_closed_and_delete is wrong");
 	return true;

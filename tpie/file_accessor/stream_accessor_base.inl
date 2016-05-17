@@ -151,7 +151,6 @@ void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 			write_header(false);
 		}
 	}
-	get_file_manager().increment_open_file_count();
 	m_open = true;
 	if (write && m_maxUserDataSize < maxUserDataSize) {
 		close();
@@ -166,7 +165,6 @@ void stream_accessor_base<file_accessor_t>::close() {
 	if (m_write)
 		write_header(true);
 	m_fileAccessor.close_i();
-	get_file_manager().decrement_open_file_count();
 	m_open = false;
 }
 
