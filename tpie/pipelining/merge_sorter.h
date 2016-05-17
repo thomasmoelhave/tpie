@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -177,7 +177,7 @@ public:
 		, m_finalMergeInitialized(false)
 		, m_owning_node(nullptr)
 		{}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Enable setting run length and fanout manually (for testing
 	/// purposes).
@@ -268,7 +268,7 @@ public:
 		++m_currentRunItemCount;
 		++m_itemCount;
 	}
-	
+
 	inline void push(const item_type & item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
@@ -329,7 +329,7 @@ public:
 		tp_assert(m_state == stMerge, "Wrong phase");
 		return m_reportInternal || m_finishedRuns <= p.fanout;
 	}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Perform phase 2: Performing all merges in the merge tree except
 	/// the last one.
@@ -380,7 +380,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 
 	inline void sort_current_run() {
-		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, 
+		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount,
 					  bits::store_pred<pred_t, specific_store_t>(pred));
 	}
 
