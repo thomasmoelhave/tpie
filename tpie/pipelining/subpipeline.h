@@ -28,7 +28,8 @@ namespace bits {
 
 class subpipeline_base: public pipeline_base_base {
 public:
-	void begin(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+	void begin(stream_size_type items, progress_indicator_base & pi,
+			memory_size_type filesAvailable, memory_size_type mem,
 			   const char * file, const char * function);
 	void end();
 protected:
@@ -92,13 +93,14 @@ struct subpipeline {
 	}
 	
 	void push(const item_type & item) {p->push(item);}
-	void begin(size_t memory) {
-		p->begin(1, p->pi, memory, nullptr, nullptr);
+	void begin(size_t filesAvailable, size_t memory) {
+		p->begin(1, p->pi, filesAvailable, memory, nullptr, nullptr);
 	}
 
-	void begin(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+	void begin(stream_size_type items, progress_indicator_base & pi,
+			memory_size_type filesAvailable, memory_size_type mem,
 			   const char * file, const char * function) {
-		p->begin(items, pi, mem, file, function);
+		p->begin(items, pi, filesAvailable, mem, file, function);
 	}
 
 	void end() {p->end();}

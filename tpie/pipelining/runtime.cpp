@@ -126,14 +126,14 @@ private:
 	};
 };
 
-template <node_resource_type type>
 class resource_runtime {
 public:
-	resource_runtime(const std::vector<node *> & nodes)
+	resource_runtime(const std::vector<node *> & nodes, node_resource_type type)
 	: m_nodes(nodes)
 	, m_minimumUsage(0)
 	, m_maximumUsage(0)
 	, m_fraction(0.0)
+	, m_type(type)
 	{
 		const size_t N = m_nodes.size();
 		for (size_t i = 0; i < N; ++i) {
@@ -145,13 +145,13 @@ public:
 
 	// Node accessors
 	memory_size_type minimum_usage(size_t i) const {
-		return m_nodes[i]->get_minimum_resource_usage(type);
+		return m_nodes[i]->get_minimum_resource_usage(m_type);
 	};
 	memory_size_type maximum_usage(size_t i) const {
-		return m_nodes[i]->get_maximum_resource_usage(type);
+		return m_nodes[i]->get_maximum_resource_usage(m_type);
 	};
 	double fraction(size_t i) const {
-		return m_nodes[i]->get_resource_fraction(type);
+		return m_nodes[i]->get_resource_fraction(m_type);
 	};
 
 	// Node accessor aggregates
@@ -167,7 +167,7 @@ public:
 
 	// Node mutator
 	void set_usage(size_t i, memory_size_type usage) {
-		m_nodes[i]->set_available_of_resource(type, usage);
+		m_nodes[i]->set_available_of_resource(m_type, usage);
 	};
 
 	void assign_usage(double factor) {
@@ -199,22 +199,69 @@ public:
 		return static_cast<memory_size_type>(v);
 	};
 
+	void print_usage(double c, std::ostream & os) {
+		size_t cw = 12;
+		size_t prec_frac = 2;
+		std::string sep(2, ' ');
+
+		os	<< "\nPipelining phase " << name_for_resource_type(m_type) << " assigned\n"
+			<< std::setw(cw) << "Minimum"
+			<< std::setw(cw) << "Maximum"
+			<< std::setw(cw) << "Fraction"
+			<< std::setw(cw) << "Assigned"
+			<< sep << "Name\n";
+
+		for (size_t i = 0; i < m_nodes.size(); ++i) {
+			std::string frac;
+			{
+				std::stringstream ss;
+				ss << std::fixed << std::setprecision(prec_frac)
+					<< fraction(i);
+				frac = ss.str();
+			}
+
+			stream_size_type lo = minimum_usage(i);
+			stream_size_type hi = maximum_usage(i);
+			stream_size_type assigned = get_assigned_usage(i, c);
+
+			os	<< std::setw(cw) << lo;
+			if (hi == std::numeric_limits<stream_size_type>::max()) {
+				os << std::setw(cw) << "inf";
+			} else {
+				os << std::setw(cw) << hi;
+			}
+			os	<< std::setw(cw) << frac
+				<< std::setw(cw) << assigned
+				<< sep
+				<< m_nodes[i]->get_name().substr(0, 50) << '\n';
+		}
+		os << std::endl;
+	}
+
 protected:
 	const std::vector<node *> & m_nodes;
 	memory_size_type m_minimumUsage;
 	memory_size_type m_maximumUsage;
 	double m_fraction;
+	node_resource_type m_type;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Helper methods for file assignment.
+/// The file assignment algorithm is in runtime::get_files_factor.
+///////////////////////////////////////////////////////////////////////////////
+class file_runtime : public resource_runtime {
+public:
+	file_runtime(const std::vector<node *> & nodes) : resource_runtime(nodes, FILES) {}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper methods for memory assignment.
 /// The memory assignment algorithm is in runtime::get_memory_factor.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_runtime : public resource_runtime<MEMORY> {
+class memory_runtime : public resource_runtime {
 public:
-	memory_runtime(const std::vector<node *> & nodes) : resource_runtime(nodes) {}
-
-	void print_memory(double c, std::ostream & os);
+	memory_runtime(const std::vector<node *> & nodes) : resource_runtime(nodes, MEMORY) {}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -433,45 +480,6 @@ private:
 	std::vector<node *> m_topologicalOrder;
 };
 
-void memory_runtime::print_memory(double c, std::ostream & os) {
-	size_t cw = 12;
-	size_t prec_frac = 2;
-	std::string sep(2, ' ');
-
-	os	<< "\nPipelining phase memory assigned\n"
-		<< std::setw(cw) << "Minimum"
-		<< std::setw(cw) << "Maximum"
-		<< std::setw(cw) << "Fraction"
-		<< std::setw(cw) << "Assigned"
-		<< sep << "Name\n";
-
-	for (size_t i = 0; i < m_nodes.size(); ++i) {
-		std::string frac;
-		{
-			std::stringstream ss;
-			ss << std::fixed << std::setprecision(prec_frac)
-				<< fraction(i);
-			frac = ss.str();
-		}
-
-		stream_size_type lo = minimum_usage(i);
-		stream_size_type hi = maximum_usage(i);
-		stream_size_type assigned = get_assigned_usage(i, c);
-
-		os	<< std::setw(cw) << lo;
-		if (hi == std::numeric_limits<stream_size_type>::max()) {
-			os << std::setw(cw) << "inf";
-		} else {
-			os << std::setw(cw) << hi;
-		}
-		os	<< std::setw(cw) << frac
-			<< std::setw(cw) << assigned
-			<< sep
-			<< m_nodes[i]->get_name().substr(0, 50) << '\n';
-	}
-	os << std::endl;
-}
-
 datastructure_runtime::datastructure_runtime(const std::vector<std::vector<node *> > & phases, node_map & nodeMap)
 	: m_nodeMap(nodeMap)
 {
@@ -581,6 +589,7 @@ struct gocontext {
 	datastructure_runtime drt;
 	progress_indicators pi;
 	size_t i;
+	memory_size_type files;
 	memory_size_type memory;
 	phase_progress_indicator phaseProgress;
 };
@@ -662,6 +671,7 @@ void gocontextdel::operator()(void * p) {delete static_cast<gocontext*>(p);}
 	
 gocontext_ptr runtime::go_init(stream_size_type items,
 							 progress_indicator_base & progress,
+							 memory_size_type files,
 							 memory_size_type memory,
 							 const char * file, const char * function) {
 	if (get_node_count() == 0)
@@ -705,6 +715,9 @@ gocontext_ptr runtime::go_init(stream_size_type items,
 	// build the datastructure runtime
 	datastructure_runtime drt(phases, m_nodeMap); 
 
+	// Gather node file requirements and assign files to each phase
+	assign_files(phases, files);
+
 	// Gather node memory requirements and assign memory to each phase
 	assign_memory(phases, memory, drt);
 
@@ -737,6 +750,7 @@ gocontext_ptr runtime::go_init(stream_size_type items,
 				std::move(drt),
 				std::move(pi),
 				0,
+				files,
 				memory,
 				phase_progress_indicator()});
 }
@@ -760,6 +774,8 @@ void runtime::go_until(gocontext * gc, node * node) {
 			
 		// call propagate in item source to item sink order
 		propagate_all(gc->itemFlow[gc->i]);
+		// reassign files to all nodes in the phase
+		reassign_files(gc->phases, gc->i, gc->files);
 		// reassign memory to all nodes in the phase
 		reassign_memory(gc->phases, gc->i, gc->memory, gc->drt);
 
@@ -799,10 +815,11 @@ void runtime::go_until(gocontext * gc, node * node) {
 		
 void runtime::go(stream_size_type items,
 				 progress_indicator_base & progress,
+				 memory_size_type filesAvailable,
 				 memory_size_type memory,
 				 const char * file,
 				 const char * function) {
-	gocontext_ptr gc = go_init(items, progress, memory, file, function);
+	gocontext_ptr gc = go_init(items, progress, filesAvailable, memory, file, function);
 	// Check that each phase has at least one initiator
 	ensure_initiators(gc->phases);
 	go_until(gc.get(), nullptr);
@@ -1087,6 +1104,78 @@ void runtime::go_initiators(const std::vector<node *> & phase) {
 }
 
 /*static*/
+void runtime::assign_files(const std::vector<std::vector<node *> > & phases,
+							memory_size_type files) {
+	for (size_t phase = 0; phase < phases.size(); ++phase) {
+		file_runtime frt(phases[phase]);
+
+		double c = get_files_factor(files, frt);
+#ifndef TPIE_NDEBUG
+		frt.print_usage(c, log_debug());
+#endif // TPIE_NDEBUG
+		frt.assign_usage(c);
+	}
+}
+
+/*static*/
+void runtime::reassign_files(const std::vector<std::vector<node *> > & phases,
+							  size_t phase,
+							  memory_size_type files) {
+	file_runtime frt(phases[phase]);
+	double c = get_files_factor(files, frt);
+#ifndef TPIE_NDEBUG
+	frt.print_usage(c, log_debug());
+#endif // TPIE_NDEBUG
+	frt.assign_usage(c);
+}
+
+/*static*/
+double runtime::get_files_factor(memory_size_type files, const file_runtime & frt) {
+	memory_size_type min = frt.sum_minimum_usage();
+	if (min > files) {
+		log_warning() << "Not enough files for pipelining phase ("
+					  << min << " > " << files << ")"
+					  << std::endl;
+		return 0.0;
+	}
+
+	// This case is handled specially to avoid dividing by zero later on.
+	double fraction_sum = frt.sum_fraction();
+	if (fraction_sum < 1e-9) {
+		return 0.0;
+	}
+
+	double c_lo = 0.0;
+	double c_hi = 1.0;
+	// Exponential search
+	memory_size_type oldFilesAssigned = 0;
+	while (true) {
+		double factor = files * c_hi / fraction_sum;
+		memory_size_type filesAssigned = frt.sum_assigned_usage(factor);
+		if (filesAssigned < files && filesAssigned != oldFilesAssigned)
+			c_hi *= 2;
+		else
+			break;
+		oldFilesAssigned = filesAssigned;
+	}
+
+	// Binary search
+	while (c_hi - c_lo > 1e-6) {
+		double c = c_lo + (c_hi-c_lo)/2;
+		double factor = files * c / fraction_sum;
+		memory_size_type filesAssigned = frt.sum_assigned_usage(factor);
+
+		if (filesAssigned > files) {
+			c_hi = c;
+		} else {
+			c_lo = c;
+		}
+	}
+
+	return files * c_lo / fraction_sum;
+}
+
+/*static*/
 void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 							memory_size_type memory,
 							datastructure_runtime & drt) {
@@ -1102,7 +1191,7 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 
 		double c = get_memory_factor(memory, phase, mrt, drt, true);
 #ifndef TPIE_NDEBUG
-		mrt.print_memory(c, log_debug());
+		mrt.print_usage(c, log_debug());
 #endif // TPIE_NDEBUG
 		mrt.assign_usage(c);
 	}
@@ -1117,7 +1206,7 @@ void runtime::reassign_memory(const std::vector<std::vector<node *> > & phases,
 	memory_runtime mrt(phases[phase]);
 	double c = get_memory_factor(memory, phase, mrt, drt, true);
 #ifndef TPIE_NDEBUG
-	mrt.print_memory(c, log_debug());
+	mrt.print_usage(c, log_debug());
 #endif // TPIE_NDEBUG
 	mrt.assign_usage(c);
 }

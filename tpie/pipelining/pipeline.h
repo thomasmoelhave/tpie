@@ -25,6 +25,7 @@
 #include <iostream>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_null.h>
+#include <tpie/file_manager.h>
 
 namespace tpie {
 
@@ -100,7 +101,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+					memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function);
 
 
@@ -183,19 +185,20 @@ public:
 	void operator()() {
 		CurrentPipeSetter _(this);
 		progress_indicator_null pi;
-		(*p)(1, pi, get_memory_manager().available(), nullptr, nullptr);
+		(*p)(1, pi, get_file_manager().available(), get_memory_manager().available(), nullptr, nullptr);
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,
 					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
-		(*p)(items, pi, get_memory_manager().available(), file, function);
+		(*p)(items, pi, get_file_manager().available(), get_memory_manager().available(), file, function);
 	}
 
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+			memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
-		(*p)(items, pi, mem, file, function);
+		(*p)(items, pi, filesAvailable, mem, file, function);
 	}
 	
 	void plot(std::ostream & os = std::cout) {

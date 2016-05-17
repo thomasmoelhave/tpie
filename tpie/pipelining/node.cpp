@@ -45,6 +45,14 @@ void proxy_progress_indicator::refresh() {
 
 } // namespace bits
 
+const char * name_for_resource_type(node_resource_type t) {
+	switch (t) {
+		case FILES: return "files";
+		case MEMORY: return "memory";
+		default: return "unknown";
+	}
+}
+
 const std::string & node::get_name() {
 	if (m_parameters.name.empty()) {
 		m_parameters.name = bits::extract_pipe_name(typeid(*this).name());

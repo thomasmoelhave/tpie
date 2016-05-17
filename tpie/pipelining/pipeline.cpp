@@ -110,11 +110,12 @@ void pipeline_base_base::plot_impl(std::ostream & out, bool full) {
 }
 
 void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi,
+							   const memory_size_type initialFiles,
 							   const memory_size_type initialMemory,
 							   const char * file, const char * function) {
 	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
-	rt.go(items, pi, initialMemory, file, function);
+	rt.go(items, pi, initialFiles, initialMemory, file, function);
 
 	/*
 	typedef std::vector<phase> phases_t;
@@ -219,10 +220,11 @@ void pipeline_base_base::output_memory(std::ostream & o) const {
 	}
 }
 
-void subpipeline_base::begin(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+void subpipeline_base::begin(stream_size_type items, progress_indicator_base & pi,
+							 memory_size_type filesAvailable, memory_size_type mem,
 							 const char * file, const char * function) {
 	rt.reset(new runtime(m_nodeMap->find_authority()));
-	gc = rt->go_init(items, pi, mem, file, function);
+	gc = rt->go_init(items, pi, filesAvailable, mem, file, function);
 	rt->go_until(gc.get(), frontNode);
 }
 	

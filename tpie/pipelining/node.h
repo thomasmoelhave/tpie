@@ -57,6 +57,8 @@ enum node_resource_type {
 	TOTAL_RESOURCE_TYPES
 };
 
+const char * name_for_resource_type(node_resource_type t);
+
 struct node_resource_parameters {
 	memory_size_type minimum = 0;
 	memory_size_type maximum = std::numeric_limits<memory_size_type>::max();
