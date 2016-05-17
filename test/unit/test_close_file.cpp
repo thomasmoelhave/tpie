@@ -28,6 +28,7 @@
 #include <tpie/serialization_stream.h>
 #include <tpie/config.h>
 #include <tpie/file_accessor/file_accessor.h>
+#include <tpie/file_manager.h>
 
 #ifdef WIN32
 class open_file_monitor {
@@ -160,11 +161,46 @@ bool serialization_reader_dtor_test() {
 	return true;
 }
 
+bool file_limit_enforcement_test() {
+	int limit = 5;
+	// resource_manager has an off-by-one error because of fetch_add
+	int should_error = limit + 1;
+
+	tpie::get_file_manager().set_limit(limit);
+	tpie::get_file_manager().set_enforcement(tpie::file_manager::ENFORCE_THROW);
+
+	std::vector<tpie::file_accessor::raw_file_accessor> fas(should_error + 1);
+	int i = 0;
+	for (auto &fa : fas) {
+		std::string fileName = tpie::tempname::tpie_name();
+		try {
+			fa.open_wo(fileName);
+		} catch(const tpie::out_of_resource_error &e) {
+			if (i == should_error) {
+				continue;
+			} else {
+				return false;
+			}
+		}
+		if (i == should_error) {
+			return false;
+		}
+		i++;
+	}
+
+	for (auto &fa : fas) {
+		fa.close_i();
+	}
+
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(test_test, "internal")
 		.test(serialization_writer_close_test, "serialization_writer_close")
 		.test(serialization_writer_dtor_test, "serialization_writer_dtor")
 		.test(serialization_reader_dtor_test, "serialization_reader_dtor")
+		.test(file_limit_enforcement_test, "file_limit_enforcement")
 		;
 }
