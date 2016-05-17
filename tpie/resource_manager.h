@@ -43,9 +43,9 @@ namespace tpie {
 /// is set to THROW, this error is thrown by the memory subsystem.
 ///////////////////////////////////////////////////////////////////////////////
 struct out_of_resource_error : public std::exception {
-	const char * msg;
-	out_of_resource_error(const char * s) : msg(s) { }
-	virtual const char* what() const throw() {return msg;}
+	std::string msg;
+	out_of_resource_error(std::string s) : msg(std::move(s)) { }
+	virtual const char* what() const throw() {return msg.c_str();}
 };
 
 
