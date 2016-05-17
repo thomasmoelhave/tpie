@@ -80,7 +80,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
 			tpie_print_resource_complaint(ss, name, amount, usage, m_limit);
-			throw out_of_resource_error(ss.str().c_str());
+			throw out_of_resource_error(ss.str());
 		}
 		break; }
 	case ENFORCE_DEBUG:
