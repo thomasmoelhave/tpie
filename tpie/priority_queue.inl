@@ -45,7 +45,7 @@ block_factor(b) { // constructor absolute mem
 
 
 template<typename T, typename Comparator, typename OPQType>
-memory_size_type priority_queue<T, Comparator, OPQType>::memory_usage(stream_size_type n, float b) {
+memory_size_type priority_queue<T, Comparator, OPQType>::memory_usage(stream_size_type n, float) {
 	if ( std::numeric_limits<memory_size_type>::max() / sizeof(T) < n)
 		return std::numeric_limits<memory_size_type>::max();
 
