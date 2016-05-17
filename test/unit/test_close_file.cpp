@@ -163,8 +163,7 @@ bool serialization_reader_dtor_test() {
 
 bool file_limit_enforcement_test() {
 	int limit = 5;
-	// resource_manager has an off-by-one error because of fetch_add
-	int should_error = limit + 1;
+	int should_error = limit;
 
 	tpie::get_file_manager().set_limit(limit);
 	tpie::get_file_manager().set_enforcement(tpie::file_manager::ENFORCE_THROW);
