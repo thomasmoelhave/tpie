@@ -62,7 +62,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 		m_used.fetch_add(amount);
 		break;
 	case ENFORCE_THROW: {
-		size_t usage = m_used.fetch_add(amount);
+		size_t usage = m_used.fetch_add(amount) + amount;
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
 			tpie_print_resource_complaint(ss, name, amount, usage, m_limit);
@@ -71,7 +71,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 		break; }
 	case ENFORCE_DEBUG:
 	case ENFORCE_WARN: {
-		size_t usage = m_used.fetch_add(amount);
+		size_t usage = m_used.fetch_add(amount) + amount;
 		if (usage > m_limit && usage - m_limit > m_maxExceeded && m_limit > 0) {
 			m_maxExceeded = usage - m_limit;
 			if (m_maxExceeded >= m_nextWarning) {
