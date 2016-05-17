@@ -528,7 +528,7 @@ public:
 			close();
 		} catch (std::exception & e) {
 			log_error() << "Someone threw an error in file_stream::~file_stream: " << e.what() << std::endl;
-			throw;
+			abort();
 		}
 	}
 
