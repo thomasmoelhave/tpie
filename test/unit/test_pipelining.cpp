@@ -27,6 +27,7 @@
 #include <tpie/pipelining/virtual.h>
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/pipelining/helpers.h>
+#include <tpie/resource_manager.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -1993,6 +1994,32 @@ bool subpipeline_test() {
 	return true;
 }
 
+bool file_limit_sort_test() {
+	int N = 1000000;
+	int B = 10000;
+	// Merge sort needs at least 3 open files for binary merge sort
+	// + 2 open files to store stream_position objects for sorted runs.
+	int F = 5;
+
+	get_memory_manager().set_limit(5000000);
+
+	set_block_size(B * sizeof(int));
+	get_file_manager().set_limit(F);
+	get_file_manager().set_enforcement(file_manager::ENFORCE_THROW);
+
+	std::vector<int> items;
+	for (int i = 0; i < N; i++) {
+		items.push_back(N - i);
+	}
+
+	std::vector<int> items2;
+
+	pipeline p = input_vector(items) | sort() | output_vector(items2);
+	p();
+
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2035,5 +2062,6 @@ int main(int argc, char ** argv) {
 	.test(set_flush_priority_test, "set_flush_priority_test")
 	.test(phase_priority_test, "phase_priority_test")
 	.multi_test(datastructure_test_multi, "datastructures")
+	.test(file_limit_sort_test, "file_limit_sort")
 	;
 }
