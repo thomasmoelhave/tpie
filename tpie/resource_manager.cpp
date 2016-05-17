@@ -49,9 +49,23 @@ size_t resource_manager::available() const throw() {
 } // namespace tpie
 
 void tpie_print_resource_complaint(std::ostream & os, const std::string & name, size_t amount, size_t usage, size_t limit) {
-	os << "Resource " << name << " limit exceeded by " << tpie::bits::pretty_print::size_type(usage - limit)
-	   << " (" << (usage-limit) * 100 / limit << "%), while trying to increase usage by " << tpie::bits::pretty_print::size_type(amount) << "."
-	   << " Limit is " << tpie::bits::pretty_print::size_type(limit) << ", but " << tpie::bits::pretty_print::size_type(usage) << " would be used.";
+	if (name == "file descriptors") {
+		os << "File descriptor limit exceeded ";
+		if (usage != limit + 1) {
+			os << "by " << (usage - limit) << " files ";
+		}
+		os << "while trying to open ";
+		if (amount == 1)
+			os << "a file";
+		else
+			os << amount << " files";
+		os << "."
+		   << " Limit is " << limit << ", but " << usage << " would be opened.";
+	} else {
+		os << "Resource " << name << " limit exceeded by " << tpie::bits::pretty_print::size_type(usage - limit)
+		   << " (" << (usage-limit) * 100 / limit << "%), while trying to increase usage by " << tpie::bits::pretty_print::size_type(amount) << "."
+		   << " Limit is " << tpie::bits::pretty_print::size_type(limit) << ", but " << tpie::bits::pretty_print::size_type(usage) << " would be used.";
+	}
 }
 
 namespace tpie {
