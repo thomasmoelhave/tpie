@@ -88,7 +88,7 @@ memory_size_type get_block_size();
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Set the TPIE block size.
 ///
-/// It is not safe to change the block size once TPIE has been initialized.
+/// It is not safe to change the block size when any streams are open.
 ///////////////////////////////////////////////////////////////////////////////
 void set_block_size(memory_size_type block_size);
 
