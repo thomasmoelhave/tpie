@@ -159,7 +159,12 @@ public:
 	/// \brief Called by the resource manager to set the usage of this resource
 	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void set_available_of_resource(node_resource_type type, memory_size_type available);
+	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) {
+		unused(type);
+		unused(available);
+	}
+
+	void _internal_set_available_of_resource(node_resource_type type, memory_size_type available);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the minimum amount of memory declared by this node.
@@ -221,7 +226,7 @@ public:
 	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void set_available_memory(memory_size_type availableMemory) {
-		set_available_of_resource(MEMORY, availableMemory);
+		unused(availableMemory);
 	}
 
 	///////////////////////////////////////////////////////////////////////////

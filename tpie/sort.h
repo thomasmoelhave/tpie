@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008-2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -35,7 +35,7 @@
 /// If the original unsorted input stream is not needed after sorting, it is
 /// recommended that users use the sort() polymorph with with just
 /// an input stream, to save space and avoid having to maintain both an input
-/// and output stream. 
+/// and output stream.
 ///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
@@ -195,7 +195,7 @@ void sort(file_stream<T> &instream, Compare comp,
 /// \brief Sort elements of a stream in-place using the less-than operator.
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T>
-void sort(uncompressed_stream<T> &instream, 
+void sort(uncompressed_stream<T> &instream,
 		  progress_indicator_base &indicator) {
 	sort(instream, instream, &indicator);
 }
@@ -220,4 +220,4 @@ void sort(uncompressed_stream<T> & instream) {
 
 #include <tpie/sort_deprecated.h>
 
-#endif // _AMI_SORT_H 
+#endif // _AMI_SORT_H

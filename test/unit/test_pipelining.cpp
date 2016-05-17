@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
 // Copyright 2011, 2012, 2013 The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -540,7 +540,7 @@ bool memory_test(memtest settings) {
 	pipeline p =
 		make_pipe_begin<memtest_1, memtest &>(settings)
 		| make_pipe_end<memtest_2, memtest &>(settings);
-	p(0, pi, settings.totalMemory, TPIE_FSI);
+	p(0, pi, get_file_manager().available(), settings.totalMemory, TPIE_FSI);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
 	            << "minMem1     " << settings.minMem1 << '\n'
@@ -1756,7 +1756,7 @@ bool datastructure_test(datastructuretest settings) {
 	pipeline p =
 		make_pipe_begin<datastructuretest_1, datastructuretest &>(settings)
 		| make_pipe_end<datastructuretest_2, datastructuretest &>(settings);
-	p(0, pi, settings.totalMemory, TPIE_FSI);
+	p(0, pi, get_file_manager().available(), settings.totalMemory, TPIE_FSI);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
 	            << "minMem1     " << settings.minMem1 << '\n'
@@ -1934,11 +1934,11 @@ public:
 		dest_pusher(dest_t & dest, int first): first(first), dest(dest) {}
 		void push(int second) {
 			dest.push(std::make_pair(first, second));
-		}					  
+		}
 		int first;
 		dest_t & dest;
 	};
-		
+
 	subpipeline<int> sp;
 	int first;
 	subpipe_tester_type(dest_t dest): dest(std::move(dest)) {
@@ -1948,14 +1948,14 @@ public:
 	void prepare() override {
 		first = 1234;
 	}
-	
+
 	void push(std::pair<int, int> i) {
 		if (i.first != first) {
 			if (first != 1234)
 				sp.end();
 			first = i.first;
 			sp = sort() | pipe_end<termfactory<dest_pusher, dest_t &, int>>(dest, first);
-			sp.begin(get_available_memory());
+			sp.begin(get_available_of_resource(FILES), get_available_memory());
 		}
 		sp.push(i.second);
 	}
@@ -1964,7 +1964,7 @@ public:
 		if (first != 1234)
 			sp.end();
 	}
-		
+
 	dest_t dest;
 };
 
@@ -1980,16 +1980,16 @@ bool subpipeline_test() {
 	}
 
 	std::vector<std::pair<int, int> > items2;
-	
+
 	pipeline p = input_vector(items) | subpipe_tester() | output_vector(items2);
 	p();
 	if (items2.size() != items.size()) return false;
 
 	int cnt=0;
 	for (int i=0; i < outer_size; ++i)
-		for (int j=0; j < inner_size; ++j) 
+		for (int j=0; j < inner_size; ++j)
 			if (items2[cnt++] != std::make_pair(i, j)) return false;
-		
+
 	return true;
 }
 
