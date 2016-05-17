@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2011, 2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -25,6 +25,7 @@
 #include <iostream>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_null.h>
+#include <tpie/file_manager.h>
 
 namespace tpie {
 
@@ -73,7 +74,7 @@ public:
 	virtual ~pipeline_base_base() {}
 
 	void forward_any(std::string key, const boost::any & value);
-	
+
 	bool can_fetch(std::string key);
 
 	boost::any fetch_any(std::string key);
@@ -82,14 +83,14 @@ public:
 		return m_nodeMap;
 	}
 
-	void output_memory(std::ostream & o) const;	
+	void output_memory(std::ostream & o) const;
 protected:
-	node_map::ptr m_nodeMap;	
+	node_map::ptr m_nodeMap;
 
 private:
-	void plot_impl(std::ostream & out, bool full);	
+	void plot_impl(std::ostream & out, bool full);
 };
-	
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline_base
@@ -100,7 +101,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+					memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function);
 
 
@@ -183,21 +185,22 @@ public:
 	void operator()() {
 		CurrentPipeSetter _(this);
 		progress_indicator_null pi;
-		(*p)(1, pi, get_memory_manager().available(), nullptr, nullptr);
+		(*p)(1, pi, get_file_manager().available(), get_memory_manager().available(), nullptr, nullptr);
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,
 					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
-		(*p)(items, pi, get_memory_manager().available(), file, function);
+		(*p)(items, pi, get_file_manager().available(), get_memory_manager().available(), file, function);
 	}
 
-	void operator()(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+			memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
-		(*p)(items, pi, mem, file, function);
+		(*p)(items, pi, filesAvailable, mem, file, function);
 	}
-	
+
 	void plot(std::ostream & os = std::cout) {
 		p->plot(os);
 	}
@@ -205,7 +208,7 @@ public:
 	void plot_full(std::ostream & os = std::cout) {
 		p->plot_full(os);
 	}
-	
+
 	inline double memory() const {
 		return p->memory();
 	}

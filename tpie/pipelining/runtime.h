@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
 // Copyright 2013, 2014, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -32,6 +32,7 @@ namespace bits {
 
 template <typename T>
 class graph;
+class file_runtime;
 class memory_runtime;
 class datastructure_runtime;
 
@@ -41,7 +42,7 @@ struct gocontextdel {
 };
 typedef std::unique_ptr<gocontext, gocontextdel> gocontext_ptr;
 
-	
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Execute the pipeline contained in a node_map.
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,9 +66,10 @@ public:
 
 	gocontext_ptr go_init(stream_size_type items,
 						 progress_indicator_base & progress,
+						 memory_size_type files,
 						 memory_size_type memory,
 						 const char * file, const char * function);
-	
+
 	void go_until(gocontext * gc, node * node=nullptr);
 
 	///////////////////////////////////////////////////////////////////////////
@@ -87,6 +89,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void go(stream_size_type items,
 			progress_indicator_base & progress,
+			memory_size_type files,
 			memory_size_type memory,
 			const char * file, const char * function);
 
@@ -209,6 +212,25 @@ public:
 	/// indicator.
 	///////////////////////////////////////////////////////////////////////////
 	void go_initiators(const std::vector<node *> & phase);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void assign_files(const std::vector<std::vector<node *> > & phases,
+							  memory_size_type files);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void reassign_files(const std::vector<std::vector<node *> > & phases,
+								memory_size_type phase,
+								memory_size_type files);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by assign_memory().
+	///////////////////////////////////////////////////////////////////////////
+	static double get_files_factor(memory_size_type files,
+								   const file_runtime & frt);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by go().

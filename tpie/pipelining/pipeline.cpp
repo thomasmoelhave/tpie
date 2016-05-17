@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
 // Copyright 2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -57,7 +57,7 @@ void pipeline_base_base::plot_impl(std::ostream & out, bool full) {
 
 	node_map::ptr nodeMap = m_nodeMap->find_authority();
 	const node_map::relmap_t & relations = nodeMap->get_relations();
-	
+
 	std::unordered_map<id_t, id_t> repr;
 	if (!full) {
 	 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
@@ -68,13 +68,13 @@ void pipeline_base_base::plot_impl(std::ostream & out, bool full) {
 				repr[s] = t;
 		}
 	}
-	
+
 	out << "digraph {\n";
 	for (node_map::mapit i = nodeMap->begin(); i != nodeMap->end(); ++i) {
 		if (repr.count(i->first)) continue;
 		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_BUFFERED))
 			out << '"' << name(nodeMap, i->first) << "\" [shape=box];\n";
-		
+
 		if (!full && (nodeMap->get(i->first)->get_plot_options() & node::PLOT_PARALLEL))
 			out << '"' << name(nodeMap, i->first) << "\" [shape=polygon];\n";
 		else
@@ -106,11 +106,12 @@ void pipeline_base_base::plot_impl(std::ostream & out, bool full) {
 }
 
 void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi,
+							   const memory_size_type initialFiles,
 							   const memory_size_type initialMemory,
 							   const char * file, const char * function) {
 	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
-	rt.go(items, pi, initialMemory, file, function);
+	rt.go(items, pi, initialFiles, initialMemory, file, function);
 
 	/*
 	typedef std::vector<phase> phases_t;
@@ -215,24 +216,25 @@ void pipeline_base_base::output_memory(std::ostream & o) const {
 	}
 }
 
-void subpipeline_base::begin(stream_size_type items, progress_indicator_base & pi, memory_size_type mem,
+void subpipeline_base::begin(stream_size_type items, progress_indicator_base & pi,
+							 memory_size_type filesAvailable, memory_size_type mem,
 							 const char * file, const char * function) {
 	rt.reset(new runtime(m_nodeMap->find_authority()));
-	gc = rt->go_init(items, pi, mem, file, function);
+	gc = rt->go_init(items, pi, filesAvailable, mem, file, function);
 	rt->go_until(gc.get(), frontNode);
 }
-	
+
 void subpipeline_base::end() {
 	rt->go_until(gc.get(), nullptr);
 	gc.reset();
 	rt.reset();
 }
 
-	
+
 } // namespace bits
 
 pipeline * pipeline::m_current = NULL;
-	
+
 
 } // namespace pipelining
 
