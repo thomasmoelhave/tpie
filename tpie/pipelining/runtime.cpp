@@ -167,7 +167,7 @@ public:
 
 	// Node mutator
 	void set_usage(size_t i, memory_size_type usage) {
-		m_nodes[i]->set_available_of_resource(m_type, usage);
+		m_nodes[i]->_internal_set_available_of_resource(m_type, usage);
 	};
 
 	void assign_usage(double factor) {

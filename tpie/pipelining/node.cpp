@@ -178,8 +178,13 @@ RESOURCE_SETTER(set_minimum_resource_usage, memory_size_type, minimum);
 RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
 RESOURCE_SETTER(set_resource_fraction, double, fraction);
 
-void node::set_available_of_resource(node_resource_type type, memory_size_type available) {
+void node::_internal_set_available_of_resource(node_resource_type type, memory_size_type available) {
 	RES_PARAM(type, available) = available;
+	set_available_of_resource(type, available);
+	if (type == MEMORY) {
+		// Legacy interface
+		set_available_memory(available);
+	}
 }
 
 void node::forward_any(std::string key, boost::any value, memory_size_type k) {
