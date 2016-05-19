@@ -141,6 +141,34 @@ private:
 
 typedef pipe_middle<factory<sum_differences_type> > sum_differences;
 
+template <typename dest_t>
+class structure_user_type : public node {
+	dest_t dest;
+public:
+	typedef int item_type;
+
+	structure_user_type(dest_t && dest) 
+	: dest(std::move(dest))
+	{
+		add_push_destination(dest);
+		set_name("Structure User");
+	}
+
+	virtual void prepare() override {
+		register_datastructure_usage("item_set");
+	}
+	virtual void propagate() override {
+		auto * m_set = get_datastructure<std::multiset<int> *>("item_set");
+		m_set->size();
+	}
+
+	void push(int item) {
+		dest.push(item);
+	}
+};
+
+typedef pipe_middle<factory<structure_user_type> > structure_user;
+
 int main() {
 	tpie::tpie_init();
 
@@ -151,6 +179,7 @@ int main() {
 
 	pipeline p = generator()
 		| set_filler()
+		| fork(buffer() | structure_user() | null_sink<int>())
 		| sort()
 		| sum_differences()
 		| printf_ints();
