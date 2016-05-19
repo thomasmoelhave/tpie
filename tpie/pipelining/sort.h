@@ -67,6 +67,10 @@ public:
 		set_maximum_memory(memory_usage);
 		set_memory_fraction(0);
 		m_propagate_called = true;
+
+		this->set_minimum_resource_usage(FILES, 5);
+		this->set_maximum_resource_usage(FILES, 5);
+		this->set_resource_fraction(FILES, 1.0);
 	}
 
 	void add_calc_dependency(node_token tkn) {
@@ -108,6 +112,10 @@ public:
 	sort_pull_output_t(sorterptr sorter)
 		: sort_output_base<T, pred_t, store_t>(sorter)
 	{
+		this->set_minimum_resource_usage(FILES, 5);
+		this->set_maximum_resource_usage(FILES, 5);
+		this->set_resource_fraction(FILES, 1.0);
+
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
@@ -166,6 +174,10 @@ public:
 		: p_t(sorter)
 		, dest(std::move(dest))
 	{
+		this->set_minimum_resource_usage(FILES, 5);
+		this->set_maximum_resource_usage(FILES, 5);
+		this->set_resource_fraction(FILES, 1.0);
+
 		this->add_push_destination(dest);
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
@@ -230,6 +242,10 @@ public:
 	}
 
 	void init() {
+		this->set_minimum_resource_usage(FILES, 5);
+		this->set_maximum_resource_usage(FILES, 5);
+		this->set_resource_fraction(FILES, 1.0);
+
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
@@ -310,10 +326,16 @@ public:
 		, dest(std::move(dest))
 	{
 		this->dest.set_input_node(*this);
-		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
+	}
+
+	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) {
+		if (type == FILES) {
+			m_sorter->set_available_files(available);
+			set_minimum_memory(m_sorter->minimum_memory_phase_1());
+		}
 	}
 
 	virtual void propagate() override {

@@ -161,8 +161,6 @@ public:
 	typedef std::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
-	static const memory_size_type maximumFanout = 250; // arbitrary. TODO: run experiments to find threshold
-
 	inline merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
 		: m_bucketPtr(new memory_bucket())
  		, m_bucket(memory_bucket_ref(m_bucketPtr.get()))
@@ -575,7 +573,7 @@ public:
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
-	static memory_size_type minimum_memory_phase_1() {
+	memory_size_type minimum_memory_phase_1() {
 		// Our *absolute minimum* memory requirements are a single item and
 		// twice as many temp_files as the fanout.
 		// However, our fanout calculation does not take the memory available
@@ -583,10 +581,10 @@ public:
 		// Thus, we assume the largest fanout, meaning we might overshoot.
 		// If we do overshoot, we will just spend the extra bytes on a run length
 		// longer than 1, which is probably what the user wants anyway.
-		sort_parameters p((sort_parameters()));
-		p.runLength = 1;
-		p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max());
-		return memory_usage_phase_1(p);
+		sort_parameters tmp_p((sort_parameters()));
+		tmp_p.runLength = 1;
+		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), p.availableFiles);
+		return memory_usage_phase_1(tmp_p);
 	}
 
 	static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
@@ -594,7 +592,7 @@ public:
 	}
 
 	static memory_size_type minimum_memory_phase_2() {
-		return fanout_memory_usage(calculate_fanout(0));
+		return fanout_memory_usage(calculate_fanout(0, 0));
 	}
 
 	static memory_size_type memory_usage_phase_3(const sort_parameters & params) {
@@ -602,11 +600,11 @@ public:
 	}
 
 	static memory_size_type minimum_memory_phase_3() {
-		return fanout_memory_usage(calculate_fanout(0));
+		return fanout_memory_usage(calculate_fanout(0, 0));
 	}
 
 	static memory_size_type maximum_memory_phase_3() {
-		return fanout_memory_usage(maximumFanout);
+		return std::numeric_limits<memory_size_type>::max();
 	}
 
 	memory_size_type actual_memory_phase_3() {
@@ -620,6 +618,10 @@ public:
 
 	inline memory_size_type evacuated_memory_usage() const {
 		return 2*p.fanout*sizeof(temp_file);
+	}
+
+	void set_available_files(memory_size_type available) {
+		p.availableFiles = available;
 	}
 
 private:
@@ -643,7 +645,7 @@ private:
 		// Run length: unbounded
 		// Fanout: determined by the size of our merge heap and the stream memory usage.
 		log_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
-		p.fanout = calculate_fanout(p.memoryPhase2);
+		p.fanout = calculate_fanout(p.memoryPhase2, p.availableFiles);
 		if (fanout_memory_usage(p.fanout) > p.memoryPhase2) {
 			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << fanout_memory_usage(p.fanout) << ")\n";
 			p.memoryPhase2 = fanout_memory_usage(p.fanout);
@@ -653,7 +655,7 @@ private:
 		// Run length: unbounded
 		// Fanout: determined by the stream memory usage.
 		log_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
-		p.finalFanout = calculate_fanout(p.memoryPhase3);
+		p.finalFanout = calculate_fanout(p.memoryPhase3, p.availableFiles);
 
 		if (p.finalFanout > p.fanout)
 			p.finalFanout = p.fanout;
@@ -714,9 +716,9 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type calculate_fanout(memory_size_type availableMemory) {
+	static inline memory_size_type calculate_fanout(memory_size_type availableMemory, memory_size_type availableFiles) {
 		memory_size_type fanout_lo = 2;
-		memory_size_type fanout_hi = maximumFanout + 1;
+		memory_size_type fanout_hi = availableFiles - 2 + 1;
 		// binary search
 		while (fanout_lo < fanout_hi - 1) {
 			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
