@@ -329,12 +329,17 @@ public:
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
+
+		this->set_minimum_resource_usage(FILES, 5);
+		this->set_maximum_resource_usage(FILES, 5);
+		this->set_resource_fraction(FILES, 1.0);
 	}
 
 	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) {
 		if (type == FILES) {
-			m_sorter->set_available_files(available);
-			set_minimum_memory(m_sorter->minimum_memory_phase_1());
+			log_error() << "Setting available files to: " << available << '\n';
+			m_filesAvailable = available;
+			set_minimum_memory(m_sorter->minimum_memory_phase_1(available));
 		}
 	}
 
@@ -355,6 +360,9 @@ public:
 
 	void begin() override {
 		m_sorter->set_owner(this);
+		// We need to wait with setting this until we know that
+		// all the resources has been assigned
+		m_sorter->set_available_files(m_filesAvailable);
 	}
 
 
@@ -384,6 +392,7 @@ private:
 	std::weak_ptr<typename sorterptr::element_type> m_weakSorter;
 	bool m_propagate_called;
 	sort_calc_t<T, pred_t, store_t> dest;
+	memory_size_type m_filesAvailable;
 };
 
 template <typename child_t, typename store_t>
