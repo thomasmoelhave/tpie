@@ -26,7 +26,9 @@
 namespace tpie {
 
 struct sort_parameters {
-	/** Memory available while forming sorted runs. */
+	/** total number of files available. same for all runs. */
+	memory_size_type availableFiles;
+	/** memory available while forming sorted runs. */
 	memory_size_type memoryPhase1;
 	/** Memory available while merging runs. */
 	memory_size_type memoryPhase2;
@@ -48,6 +50,7 @@ struct sort_parameters {
 
 	void dump(std::ostream & out) const {
 		out << "Merge sort parameters\n"
+			<< "Available files:             " << availableFiles << '\n'
 			<< "Phase 1 memory:              " << memoryPhase1 << '\n'
 			<< "Run length:                  " << runLength << '\n'
 			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
