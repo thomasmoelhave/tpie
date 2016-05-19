@@ -22,6 +22,7 @@
 
 #include <tpie/fractional_progress.h>
 #include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/node.h>
 #include <set>
 
 namespace tpie {
@@ -212,6 +213,12 @@ public:
 	/// indicator.
 	///////////////////////////////////////////////////////////////////////////
 	void go_initiators(const std::vector<node *> & phase);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void set_resource_being_assigned(const std::vector<node *> & nodes,
+											node_resource_type type);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by go().

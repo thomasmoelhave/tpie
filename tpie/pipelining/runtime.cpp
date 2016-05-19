@@ -1065,6 +1065,13 @@ void runtime::go_initiators(const std::vector<node *> & phase) {
 }
 
 /*static*/
+void runtime::set_resource_being_assigned(const std::vector<node *> & nodes,
+										  node_resource_type type) {
+	for (node * n : nodes)
+		n->set_resource_being_assigned(type);
+}
+
+/*static*/
 void runtime::assign_files(const std::vector<std::vector<node *> > & phases,
 							memory_size_type files) {
 	for (size_t phase = 0; phase < phases.size(); ++phase) {
@@ -1074,7 +1081,9 @@ void runtime::assign_files(const std::vector<std::vector<node *> > & phases,
 #ifndef TPIE_NDEBUG
 		frt.print_usage(c, log_debug());
 #endif // TPIE_NDEBUG
+		set_resource_being_assigned(phases[phase], FILES);
 		frt.assign_usage(c);
+		set_resource_being_assigned(phases[phase], NO_RESOURCE);
 	}
 }
 
@@ -1087,7 +1096,9 @@ void runtime::reassign_files(const std::vector<std::vector<node *> > & phases,
 #ifndef TPIE_NDEBUG
 	frt.print_usage(c, log_debug());
 #endif // TPIE_NDEBUG
+	set_resource_being_assigned(phases[phase], FILES);
 	frt.assign_usage(c);
+	set_resource_being_assigned(phases[phase], NO_RESOURCE);
 }
 
 /*static*/
@@ -1154,7 +1165,9 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 #ifndef TPIE_NDEBUG
 		mrt.print_usage(c, log_debug());
 #endif // TPIE_NDEBUG
+		set_resource_being_assigned(phases[phase], MEMORY);
 		mrt.assign_usage(c);
+		set_resource_being_assigned(phases[phase], NO_RESOURCE);
 	}
 	drt.assign_memory();
 }
@@ -1169,7 +1182,9 @@ void runtime::reassign_memory(const std::vector<std::vector<node *> > & phases,
 #ifndef TPIE_NDEBUG
 	mrt.print_usage(c, log_debug());
 #endif // TPIE_NDEBUG
+	set_resource_being_assigned(phases[phase], MEMORY);
 	mrt.assign_usage(c);
+	set_resource_being_assigned(phases[phase], NO_RESOURCE);
 }
 
 /*static*/

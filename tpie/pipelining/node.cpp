@@ -160,6 +160,12 @@ void node::add_dependency(const node & dest) {
 		case STATE_IN_PREPARE: \
 			break; \
 		default: \
+			node_resource_type t = get_resource_being_assigned(); \
+			/* If the changed resource is being assigned later,
+			 * allow changing it
+			 */ \
+			if (t != NO_RESOURCE && type > t) \
+				break; \
 			throw call_order_exception(#setter_name); \
 		} \
 		RES_PARAM(type, param_name) = value; \
