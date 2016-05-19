@@ -50,11 +50,14 @@ public:
 } // namespace bits
 
 enum node_resource_type {
+	// These should be ordered by when the resource
+	// assigned at runtime
 	FILES,
 	MEMORY,
 
-	// Special value for internal use
-	TOTAL_RESOURCE_TYPES
+	// Special values for internal use
+	TOTAL_RESOURCE_TYPES,
+	NO_RESOURCE
 };
 
 const char * name_for_resource_type(node_resource_type t);
@@ -423,6 +426,20 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void set_state(STATE s) {
 		m_state = s;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used internally to check order of method calls.
+	///////////////////////////////////////////////////////////////////////////
+	node_resource_type get_resource_being_assigned() const {
+		return m_resourceBeingAssigned;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used internally to check order of method calls.
+	///////////////////////////////////////////////////////////////////////////
+	void set_resource_being_assigned(node_resource_type type) {
+		m_resourceBeingAssigned = type;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -799,6 +816,7 @@ private:
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
+	node_resource_type m_resourceBeingAssigned = NO_RESOURCE;
 	std::unique_ptr<progress_indicator_base> m_piProxy;
 	flags<PLOT> m_plotOptions;
 
