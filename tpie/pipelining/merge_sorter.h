@@ -170,6 +170,7 @@ public:
 		, m_store(store.template get_specific<element_type>())
 		, m_merger(pred, m_store, m_bucket)
 		, m_currentRunItems(m_bucket)
+		, m_maxItems(-1)
 		, pred(pred)
 		, m_evacuated(false)
 		, m_finalMergeInitialized(false)
@@ -211,11 +212,14 @@ public:
 private:
 	// set_phase_?_memory helper
 	inline void maybe_calculate_parameters() {
-		if (m_state != stParameters)
+		if (m_state != stParameters) {
+			log_error() << m_state << '\n';
 			throw tpie::exception("Bad state in maybe_calculate_parameters");
+		}
 		if (p.memoryPhase1 > 0 &&
 			p.memoryPhase2 > 0 &&
-			p.memoryPhase3 > 0)
+			p.memoryPhase3 > 0 &&
+			p.availableFiles > 0)
 			calculate_parameters(p.memoryPhase1,
 								 p.memoryPhase2,
 								 p.memoryPhase3);
@@ -573,7 +577,7 @@ public:
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
-	memory_size_type minimum_memory_phase_1() {
+	static memory_size_type minimum_memory_phase_1(memory_size_type filesAvailable) {
 		// Our *absolute minimum* memory requirements are a single item and
 		// twice as many temp_files as the fanout.
 		// However, our fanout calculation does not take the memory available
@@ -583,7 +587,7 @@ public:
 		// longer than 1, which is probably what the user wants anyway.
 		sort_parameters tmp_p((sort_parameters()));
 		tmp_p.runLength = 1;
-		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), p.availableFiles);
+		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), filesAvailable);
 		return memory_usage_phase_1(tmp_p);
 	}
 
@@ -622,6 +626,7 @@ public:
 
 	void set_available_files(memory_size_type available) {
 		p.availableFiles = available;
+		maybe_calculate_parameters();
 	}
 
 private:
@@ -689,6 +694,12 @@ private:
 
 		m_parametersSet = true;
 
+		if (m_maxItems != -1)
+			set_items(m_maxItems);
+
+		log_debug() << m_maxItems;
+
+
 		log_debug() << "Calculated merge sort parameters\n";
 		p.dump(log_debug());
 		log_debug() << std::endl;
@@ -751,8 +762,11 @@ public:
 	/// mode.
 	///////////////////////////////////////////////////////////////////////////
 	void set_items(stream_size_type n) {
+		m_maxItems = n;
+
 		if (!m_parametersSet)
-			throw exception("Wrong state in set_items: parameters not set");
+			// calculate_parameters will handle this later
+			return;
 		if (m_state != stParameters)
 			throw exception("Wrong state in set_items: state is not stParameters");
 
@@ -855,6 +869,8 @@ private:
 	memory_size_type m_itemsPulled;
 
 	stream_size_type m_itemCount;
+
+	memory_size_type m_maxItems;
 
 	pred_t pred;
 	bool m_evacuated;
