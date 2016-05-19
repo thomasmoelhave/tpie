@@ -31,10 +31,6 @@ namespace tpie {
 resource_manager::resource_manager()
 	: m_used(0), m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN) {}
 
-inline void segfault() {
-	std::abort();
-}
-
 size_t resource_manager::used() const throw() {
 	return m_used.load();
 }

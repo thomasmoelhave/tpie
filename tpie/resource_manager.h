@@ -36,6 +36,10 @@
 
 namespace tpie {
 
+inline void segfault() {
+	std::abort();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Thrown when trying to allocate too much memory.
 ///
