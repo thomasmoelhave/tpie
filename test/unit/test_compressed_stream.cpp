@@ -949,6 +949,43 @@ bool write_only_test() {
 	return success;
 }
 
+bool stack_test() {
+	tpie::file_stream<uint32_t> fs_a, fs_b, fs_c;
+	fs_a.open(tpie::compression_all);
+	fs_b.open(tpie::compression_all);
+	fs_c.open(tpie::compression_all);
+
+	constexpr uint32_t cnt = 1024*512*2; 
+
+	for (uint32_t i=0; i < cnt; ++i) {
+		fs_a.write(i);
+		fs_b.write(i);
+		fs_c.write(i);
+		fs_c.write(i);
+	}
+	
+	for (uint32_t i=cnt-1; i < cnt; --i) {
+		if (i != fs_a.read_back()) {
+			tpie::log_error() << "Bad value" << std::endl;
+			return false;
+		}
+		if (i != fs_b.read_back()) {
+			tpie::log_error() << "Bad value" << std::endl;
+			return false;
+		}
+		if (i != fs_c.read_back()) {
+			tpie::log_error() << "Bad value" << std::endl;
+			return false;
+		}
+		if (i != fs_c.read_back()) {
+			tpie::log_error() << "Bad value" << std::endl;
+			return false;
+		}
+	}
+		
+	return true;
+}
+
 template <tpie::compression_flags flags>
 tpie::tests & add_tests(tpie::tests & t, std::string suffix) {
 	typedef tests<flags> T;
@@ -991,5 +1028,5 @@ int main(int argc, char ** argv) {
 		.test(write_peek_test, "write_peek", "n", static_cast<size_t>(1 << 23))
 		/* .test(read_only_test, "read_only") */
 		.test(write_only_test, "write_only")
-		;
-}
+		.test(stack_test, "lockstep_reverse");
+

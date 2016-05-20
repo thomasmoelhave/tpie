@@ -53,6 +53,8 @@ add_unittest(compressed_stream
 
 	odd_block_size write_only
 	write_peek
+
+	lockstep_reverse
 )
 add_unittest(btree
 	internal_augment
