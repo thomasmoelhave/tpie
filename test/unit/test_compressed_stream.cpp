@@ -950,17 +950,18 @@ bool write_only_test() {
 }
 
 bool stack_test() {
-	tpie::file_stream<uint32_t> fs_a, fs_b, fs_c;
-	fs_a.open(tpie::compression_all);
-	fs_b.open(tpie::compression_all);
+	constexpr uint32_t block_items = 4;
+	auto bof = tpie::file_stream<uint32_t>::calculate_block_factor(block_items);
+	tpie::file_stream<uint32_t> fs_a(bof), fs_b(bof), fs_c(bof);
+	fs_a.open(tpie::compression_none);
+	fs_b.open(tpie::compression_none);
 	fs_c.open(tpie::compression_all);
 
-	constexpr uint32_t cnt = 1024*512*2; 
+	constexpr uint32_t cnt = block_items * 2; 
 
 	for (uint32_t i=0; i < cnt; ++i) {
 		fs_a.write(i);
 		fs_b.write(i);
-		fs_c.write(i);
 		fs_c.write(i);
 	}
 	
@@ -970,10 +971,6 @@ bool stack_test() {
 			return false;
 		}
 		if (i != fs_b.read_back()) {
-			tpie::log_error() << "Bad value" << std::endl;
-			return false;
-		}
-		if (i != fs_c.read_back()) {
 			tpie::log_error() << "Bad value" << std::endl;
 			return false;
 		}
@@ -1029,4 +1026,4 @@ int main(int argc, char ** argv) {
 		/* .test(read_only_test, "read_only") */
 		.test(write_only_test, "write_only")
 		.test(stack_test, "lockstep_reverse");
-
+}
