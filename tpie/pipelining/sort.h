@@ -67,10 +67,6 @@ public:
 		set_maximum_memory(memory_usage);
 		set_memory_fraction(0);
 		m_propagate_called = true;
-
-		this->set_minimum_resource_usage(FILES, 5);
-		this->set_maximum_resource_usage(FILES, 5);
-		this->set_resource_fraction(FILES, 1.0);
 	}
 
 	void add_calc_dependency(node_token tkn) {
@@ -78,9 +74,16 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
-		if (!m_propagate_called)
-			m_sorter->set_phase_3_memory(availableMemory);
+	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) override {
+		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
+		if (m_propagate_called)
+			return;
+
+		if (type == MEMORY)
+			m_sorter->set_phase_3_memory(available);
+		else if (type == FILES) {
+			m_sorter->set_phase_3_files(available);
+		}
 	}
 
 	sort_output_base(sorterptr sorter)
@@ -112,10 +115,8 @@ public:
 	sort_pull_output_t(sorterptr sorter)
 		: sort_output_base<T, pred_t, store_t>(sorter)
 	{
-		this->set_minimum_resource_usage(FILES, 5);
-		this->set_maximum_resource_usage(FILES, 5);
+		this->set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase3);
 		this->set_resource_fraction(FILES, 1.0);
-
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
@@ -174,11 +175,9 @@ public:
 		: p_t(sorter)
 		, dest(std::move(dest))
 	{
-		this->set_minimum_resource_usage(FILES, 5);
-		this->set_maximum_resource_usage(FILES, 5);
-		this->set_resource_fraction(FILES, 1.0);
-
 		this->add_push_destination(dest);
+		this->set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase3);
+		this->set_resource_fraction(FILES, 1.0);
 		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
 		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
@@ -242,10 +241,8 @@ public:
 	}
 
 	void init() {
-		this->set_minimum_resource_usage(FILES, 5);
-		this->set_maximum_resource_usage(FILES, 5);
-		this->set_resource_fraction(FILES, 1.0);
-
+		set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase2);
+		set_resource_fraction(FILES, 1.0);
 		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
@@ -292,9 +289,16 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
-		if (!m_propagate_called)
-			m_sorter->set_phase_2_memory(availableMemory);
+	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) override {
+		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
+		if (m_propagate_called)
+			return;
+
+		if (type == MEMORY)
+			m_sorter->set_phase_2_memory(available);
+		else if (type == FILES) {
+			m_sorter->set_phase_2_files(available);
+		}
 	}
 
 private:
@@ -322,31 +326,20 @@ public:
 
 	inline sort_input_t(sort_calc_t<T, pred_t, store_t> dest)
 		: m_sorter(dest.get_sorter())
-		, m_propagate_called(false)
 		, dest(std::move(dest))
 	{
 		this->dest.set_input_node(*this);
 		set_name("Form input runs", PRIORITY_SIGNIFICANT);
+		set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase1);
+		set_resource_fraction(FILES, 0.0);
+		set_minimum_memory(m_sorter->minimum_memory_phase_1());
 		set_memory_fraction(1.0);
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
-
-		this->set_minimum_resource_usage(FILES, 5);
-		this->set_maximum_resource_usage(FILES, 5);
-		this->set_resource_fraction(FILES, 1.0);
-	}
-
-	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) {
-		if (type == FILES) {
-			log_error() << "Setting available files to: " << available << '\n';
-			m_filesAvailable = available;
-			set_minimum_memory(m_sorter->minimum_memory_phase_1(available));
-		}
 	}
 
 	virtual void propagate() override {
 		if (this->can_fetch("items"))
 			m_sorter->set_items(this->fetch<stream_size_type>("items"));
-		m_sorter->begin();
 		m_propagate_called = true;
 	}
 
@@ -359,10 +352,8 @@ public:
 	}
 
 	void begin() override {
+		m_sorter->begin();
 		m_sorter->set_owner(this);
-		// We need to wait with setting this until we know that
-		// all the resources has been assigned
-		m_sorter->set_available_files(m_filesAvailable);
 	}
 
 
@@ -383,16 +374,22 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
-		if (!m_propagate_called)
-			m_sorter->set_phase_1_memory(availableMemory);
+	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) override {
+		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
+		if (m_propagate_called)
+			return;
+
+		if (type == MEMORY)
+			m_sorter->set_phase_1_memory(available);
+		else if (type == FILES) {
+			m_sorter->set_phase_1_files(available);
+		}
 	}
 private:
 	sorterptr m_sorter;
 	std::weak_ptr<typename sorterptr::element_type> m_weakSorter;
 	bool m_propagate_called;
 	sort_calc_t<T, pred_t, store_t> dest;
-	memory_size_type m_filesAvailable;
 };
 
 template <typename child_t, typename store_t>

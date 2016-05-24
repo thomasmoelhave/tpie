@@ -161,16 +161,24 @@ public:
 	typedef std::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 
+	static const memory_size_type defaultFiles = 253; // Default number of files available, when not using set_available_files
+	static const memory_size_type minimumFilesPhase1 = 1;
+	static const memory_size_type maximumFilesPhase1 = 1;
+	static const memory_size_type minimumFilesPhase2 = 5;
+	static const memory_size_type maximumFilesPhase2 = std::numeric_limits<memory_size_type>::max();
+	static const memory_size_type minimumFilesPhase3 = 5;
+	static const memory_size_type maximumFilesPhase3 = std::numeric_limits<memory_size_type>::max();
+
 	inline merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
 		: m_bucketPtr(new memory_bucket())
  		, m_bucket(memory_bucket_ref(m_bucketPtr.get()))
-		, m_state(stParameters)
+		, m_state(stNotStarted)
 		, p()
 		, m_parametersSet(false)
 		, m_store(store.template get_specific<element_type>())
 		, m_merger(pred, m_store, m_bucket)
 		, m_currentRunItems(m_bucket)
-		, m_maxItems(-1)
+		, m_maxItems(std::numeric_limits<memory_size_type>::max())
 		, pred(pred)
 		, m_evacuated(false)
 		, m_finalMergeInitialized(false)
@@ -182,7 +190,7 @@ public:
 	/// purposes).
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_parameters(memory_size_type runLength, memory_size_type fanout) {
-		tp_assert(m_state == stParameters, "Merge sorting already begun");
+		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
 		p.runLength = p.internalReportThreshold = runLength;
 		p.fanout = p.finalFanout = fanout;
 		m_parametersSet = true;
@@ -192,11 +200,34 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given amount of files.
+	/// \param f Files available for phase 1, 2 and 3
+	///////////////////////////////////////////////////////////////////////////
+	inline void set_available_files(memory_size_type f) {
+		p.filesPhase1 = p.filesPhase2 = p.filesPhase3 = f;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given amount of files.
+	/// \param f1 Files available for phase 1
+	/// \param f2 Files available for phase 2
+	/// \param f3 Files available for phase 3
+	///////////////////////////////////////////////////////////////////////////
+	inline void set_available_files(memory_size_type f1, memory_size_type f2, memory_size_type f3) {
+		p.filesPhase1 = f1;
+		p.filesPhase2 = f2;
+		p.filesPhase3 = f3;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate parameters from given memory amount.
-	/// \param m Memory available for phase 2, 3 and 4
+	/// \param m Memory available for phase 1, 2 and 3
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_available_memory(memory_size_type m) {
-		calculate_parameters(m, m, m);
+		p.memoryPhase1 = p.memoryPhase2 = p.memoryPhase3 = m;
+		check_not_started();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -206,47 +237,57 @@ public:
 	/// \param m3 Memory available for phase 3
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_available_memory(memory_size_type m1, memory_size_type m2, memory_size_type m3) {
-		calculate_parameters(m1, m2, m3);
+		p.memoryPhase1 = m1;
+		p.memoryPhase2 = m2;
+		p.memoryPhase3 = m3;
+		check_not_started();
 	}
 
 private:
-	// set_phase_?_memory helper
-	inline void maybe_calculate_parameters() {
-		if (m_state != stParameters) {
-			log_error() << m_state << '\n';
-			throw tpie::exception("Bad state in maybe_calculate_parameters");
+	// Checks if we should still be able to change parameters
+	inline void check_not_started() {
+		if (m_state != stNotStarted) {
+			throw tpie::exception("Can't change parameters after merge sorting has started");
 		}
-		if (p.memoryPhase1 > 0 &&
-			p.memoryPhase2 > 0 &&
-			p.memoryPhase3 > 0 &&
-			p.availableFiles > 0)
-			calculate_parameters(p.memoryPhase1,
-								 p.memoryPhase2,
-								 p.memoryPhase3);
 	}
 
 public:
+	inline void set_phase_1_files(memory_size_type f1) {
+		p.filesPhase1 = f1;
+		check_not_started();
+	}
+
+	inline void set_phase_2_files(memory_size_type f2) {
+		p.filesPhase2 = f2;
+		check_not_started();
+	}
+
+	inline void set_phase_3_files(memory_size_type f3) {
+		p.filesPhase3 = f3;
+		check_not_started();
+	}
+
 	inline void set_phase_1_memory(memory_size_type m1) {
 		p.memoryPhase1 = m1;
-		maybe_calculate_parameters();
+		check_not_started();
 	}
 
 	inline void set_phase_2_memory(memory_size_type m2) {
 		p.memoryPhase2 = m2;
-		maybe_calculate_parameters();
+		check_not_started();
 	}
 
 	inline void set_phase_3_memory(memory_size_type m3) {
 		p.memoryPhase3 = m3;
-		maybe_calculate_parameters();
+		check_not_started();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initiate phase 1: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
-		tp_assert(m_state == stParameters, "Merge sorting already begun");
-		if (!m_parametersSet) throw merge_sort_not_ready();
+		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
+		if (!m_parametersSet) calculate_parameters();
 		log_debug() << "Start forming input runs" << std::endl;
 		m_currentRunItems = array<store_type>(0, allocator<store_type>(m_bucket));
 		m_currentRunItems.resize((size_t)p.runLength);
@@ -577,7 +618,7 @@ public:
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
-	static memory_size_type minimum_memory_phase_1(memory_size_type filesAvailable) {
+	static memory_size_type minimum_memory_phase_1() {
 		// Our *absolute minimum* memory requirements are a single item and
 		// twice as many temp_files as the fanout.
 		// However, our fanout calculation does not take the memory available
@@ -587,7 +628,7 @@ public:
 		// longer than 1, which is probably what the user wants anyway.
 		sort_parameters tmp_p((sort_parameters()));
 		tmp_p.runLength = 1;
-		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), filesAvailable);
+		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), 0);
 		return memory_usage_phase_1(tmp_p);
 	}
 
@@ -624,25 +665,38 @@ public:
 		return 2*p.fanout*sizeof(temp_file);
 	}
 
-	void set_available_files(memory_size_type available) {
-		p.availableFiles = available;
-		maybe_calculate_parameters();
+private:
+	static memory_size_type clamp(memory_size_type lo, memory_size_type val, memory_size_type hi) {
+		return std::max(lo, std::min(val, hi));
 	}
 
-private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate parameters from given memory amount.
-	/// \param m1 Memory available for phase 1
-	/// \param m2 Memory available for phase 2
-	/// \param m3 Memory available for phase 3
 	///////////////////////////////////////////////////////////////////////////
-	inline void calculate_parameters(const memory_size_type m1, const memory_size_type m2, const memory_size_type m3) {
-		tp_assert(m_state == stParameters, "Merge sorting already begun");
+	inline void calculate_parameters() {
+		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
 
-		p.memoryPhase1 = m1;
-		p.memoryPhase2 = m2;
-		p.memoryPhase3 = m3;
+		if(!p.filesPhase1)
+			p.filesPhase1 = clamp(minimumFilesPhase1, defaultFiles, maximumFilesPhase1);
+		if(!p.filesPhase2)
+			p.filesPhase2 = clamp(minimumFilesPhase2, defaultFiles, maximumFilesPhase2);
+		if(!p.filesPhase3)
+			p.filesPhase3 = clamp(minimumFilesPhase3, defaultFiles, maximumFilesPhase3);
 
+		if(p.filesPhase1 < minimumFilesPhase1)
+			throw tpie::exception("file limit for phase 1 too small (" + std::to_string(p.filesPhase1) + " < " + std::to_string(minimumFilesPhase1) + ")");
+		if(p.filesPhase2 < minimumFilesPhase2)
+			throw tpie::exception("file limit for phase 2 too small (" + std::to_string(p.filesPhase2) + " < " + std::to_string(minimumFilesPhase2) + ")");
+		if(p.filesPhase3 < minimumFilesPhase3)
+			throw tpie::exception("file limit for phase 3 too small (" + std::to_string(p.filesPhase3) + " < " + std::to_string(minimumFilesPhase3) + ")");
+
+		if (!p.filesPhase1)
+			throw tpie::exception("memory limit for phase 1 not set");
+		if (!p.filesPhase2)
+			throw tpie::exception("memory limit for phase 2 not set");
+		if (!p.filesPhase3)
+			throw tpie::exception("memory limit for phase 3 not set");
+		
 		// We must set aside memory for temp_files in m_runFiles.
 		// m_runFiles contains fanout*2 temp_files, so calculate fanout before run length.
 
@@ -650,7 +704,7 @@ private:
 		// Run length: unbounded
 		// Fanout: determined by the size of our merge heap and the stream memory usage.
 		log_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
-		p.fanout = calculate_fanout(p.memoryPhase2, p.availableFiles);
+		p.fanout = calculate_fanout(p.memoryPhase2, p.filesPhase2);
 		if (fanout_memory_usage(p.fanout) > p.memoryPhase2) {
 			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << fanout_memory_usage(p.fanout) << ")\n";
 			p.memoryPhase2 = fanout_memory_usage(p.fanout);
@@ -660,7 +714,7 @@ private:
 		// Run length: unbounded
 		// Fanout: determined by the stream memory usage.
 		log_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
-		p.finalFanout = calculate_fanout(p.memoryPhase3, p.availableFiles);
+		p.finalFanout = calculate_fanout(p.memoryPhase3, p.filesPhase3);
 
 		if (p.finalFanout > p.fanout)
 			p.finalFanout = p.fanout;
@@ -693,34 +747,30 @@ private:
 			p.internalReportThreshold = p.runLength;
 
 		m_parametersSet = true;
-		
-		if (m_maxItems != -1)
-			set_items(m_maxItems);
 
-		log_debug() << m_maxItems;
-
+		set_items(m_maxItems);
 
 		log_debug() << "Calculated merge sort parameters\n";
 		p.dump(log_debug());
 		log_debug() << std::endl;
 
 		log_debug() << "Merge sort phase 1: "
-			<< m1 << " b available, " << memory_usage_phase_1(p) << " b expected" << std::endl;
-		if (memory_usage_phase_1(p) > m1) {
+			<< p.memoryPhase1 << " b available, " << memory_usage_phase_1(p) << " b expected" << std::endl;
+		if (memory_usage_phase_1(p) > p.memoryPhase1) {
 			log_warning() << "Merge sort phase 1 exceeds the alloted memory usage: "
-				<< m1 << " b available, but " << memory_usage_phase_1(p) << " b expected" << std::endl;
+				<< p.memoryPhase1 << " b available, but " << memory_usage_phase_1(p) << " b expected" << std::endl;
 		}
 		log_debug() << "Merge sort phase 2: "
-			<< m2 << " b available, " << memory_usage_phase_2(p) << " b expected" << std::endl;
-		if (memory_usage_phase_2(p) > m2) {
+			<< p.memoryPhase2 << " b available, " << memory_usage_phase_2(p) << " b expected" << std::endl;
+		if (memory_usage_phase_2(p) > p.memoryPhase2) {
 			log_warning() << "Merge sort phase 2 exceeds the alloted memory usage: "
-				<< m2 << " b available, but " << memory_usage_phase_2(p) << " b expected" << std::endl;
+				<< p.memoryPhase2 << " b available, but " << memory_usage_phase_2(p) << " b expected" << std::endl;
 		}
 		log_debug() << "Merge sort phase 3: "
-			<< m3 << " b available, " << memory_usage_phase_3(p) << " b expected" << std::endl;
-		if (memory_usage_phase_3(p) > m3) {
+			<< p.memoryPhase3 << " b available, " << memory_usage_phase_3(p) << " b expected" << std::endl;
+		if (memory_usage_phase_3(p) > p.memoryPhase3) {
 			log_warning() << "Merge sort phase 3 exceeds the alloted memory usage: "
-				<< m3 << " b available, but " << memory_usage_phase_3(p) << " b expected" << std::endl;
+				<< p.memoryPhase3 << " b available, but " << memory_usage_phase_3(p) << " b expected" << std::endl;
 		}
 	}
 
@@ -729,7 +779,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type calculate_fanout(memory_size_type availableMemory, memory_size_type availableFiles) {
 		memory_size_type fanout_lo = 2;
-		memory_size_type fanout_hi = availableFiles - 2 + 1;
+		memory_size_type fanout_hi = availableFiles - 2;
 		// binary search
 		while (fanout_lo < fanout_hi - 1) {
 			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
@@ -762,18 +812,20 @@ public:
 	/// mode.
 	///////////////////////////////////////////////////////////////////////////
 	void set_items(stream_size_type n) {
+		if (m_state != stNotStarted)
+			throw exception("Wrong state in set_items: state is not stNotStarted");
+
 		m_maxItems = n;
 
-		if (!m_parametersSet)
-			// calculate_parameters will handle this later
+		if (!m_parametersSet) {
+			// We will handle this later in calculate_parameters
 			return;
-		if (m_state != stParameters)
-			throw exception("Wrong state in set_items: state is not stParameters");
+		}
 
-		if(n < p.internalReportThreshold) {
+		if(m_maxItems < p.internalReportThreshold) {
 			log_debug() << "Decreasing run length from " << p.runLength
 				<< " to " << p.internalReportThreshold
-				<< " since at most " << n << " items will be pushed."
+				<< " since at most " << m_maxItems << " items will be pushed."
 				<< " New merge sort parameters:\n";
 			p.runLength = p.internalReportThreshold;
 			p.dump(log_debug());
@@ -828,7 +880,7 @@ private:
 	}
 
 	enum state_type {
-		stParameters,
+		stNotStarted,
 		stRunFormation,
 		stMerge,
 		stReport
