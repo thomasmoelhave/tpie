@@ -181,6 +181,7 @@ add_unittest(close_file
 	serialization_writer_close
 	serialization_writer_dtor
 	serialization_reader_dtor
+	file_limit_enforcement
 )
 add_unittest(node_name gcc msvc)
 add_unittest(snappy basic)
