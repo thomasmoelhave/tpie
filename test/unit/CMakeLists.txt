@@ -172,6 +172,7 @@ add_unittest(pipelining
 	set_flush_priority_test
 	node_map
 	subpipeline
+	file_limit_sort
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
