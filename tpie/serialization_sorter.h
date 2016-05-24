@@ -40,10 +40,16 @@ namespace tpie {
 namespace serialization_bits {
 
 struct sort_parameters {
-	/** Memory available while forming sorted runs. */
+	/** files available while forming sorted runs. */
+	memory_size_type filesPhase1;
+	/** memory available while forming sorted runs. */
 	memory_size_type memoryPhase1;
+	/** files available while merging runs. */
+	memory_size_type filesPhase2;
 	/** Memory available while merging runs. */
 	memory_size_type memoryPhase2;
+	/** files available during output phase. */
+	memory_size_type filesPhase3;
 	/** Memory available during output phase. */
 	memory_size_type memoryPhase3;
 	/** Minimum size of serialized items. */
@@ -53,8 +59,11 @@ struct sort_parameters {
 
 	void dump(std::ostream & out) const {
 		out << "Serialization merge sort parameters\n"
+			<< "Phase 1 files:               " << filesPhase1 << '\n'
 			<< "Phase 1 memory:              " << memoryPhase1 << '\n'
+			<< "Phase 2 files:               " << filesPhase2 << '\n'
 			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
+			<< "Phase 3 files:               " << filesPhase3 << '\n'
 			<< "Phase 3 memory:              " << memoryPhase3 << '\n'
 			<< "Minimum item size:           " << minimumItemSize << '\n'
 			<< "Temporary directory:         " << tempDir << '\n';
@@ -529,6 +538,9 @@ public:
 		, m_reportInternal(false)
 		, m_nextInternalItem(0)
 	{
+		m_params.filesPhase1 = 0;
+		m_params.filesPhase2 = 0;
+		m_params.filesPhase3 = 0;
 		m_params.memoryPhase1 = 0;
 		m_params.memoryPhase2 = 0;
 		m_params.memoryPhase3 = 0;
@@ -544,6 +556,43 @@ private:
 	}
 
 public:
+	inline void set_phase_1_files(memory_size_type f1) {
+		m_params.filesPhase1 = f1;
+		check_not_started();
+	}
+
+	inline void set_phase_2_files(memory_size_type f2) {
+		m_params.filesPhase2 = f2;
+		check_not_started();
+	}
+
+	inline void set_phase_3_files(memory_size_type f3) {
+		m_params.filesPhase3 = f3;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given amount of files.
+	/// \param f Files available for phase 1, 2 and 3
+	///////////////////////////////////////////////////////////////////////////
+	inline void set_available_files(memory_size_type f) {
+		m_params.filesPhase1 = m_params.filesPhase2 = m_params.filesPhase3 = f;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given amount of files.
+	/// \param f1 Files available for phase 1
+	/// \param f2 Files available for phase 2
+	/// \param f3 Files available for phase 3
+	///////////////////////////////////////////////////////////////////////////
+	inline void set_available_files(memory_size_type f1, memory_size_type f2, memory_size_type f3) {
+		m_params.filesPhase1 = f1;
+		m_params.filesPhase2 = f2;
+		m_params.filesPhase3 = f3;
+		check_not_started();
+	}
+
 	void set_phase_1_memory(memory_size_type m1) {
 		m_params.memoryPhase1 = m1;
 		check_not_started();
