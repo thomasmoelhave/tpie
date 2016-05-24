@@ -536,30 +536,27 @@ public:
 	}
 
 private:
-	// set_phase_?_memory helper
-	inline void maybe_calculate_parameters() {
-		if (m_state != state_initial)
-			throw tpie::exception("Bad state in maybe_calculate_parameters");
-		if (m_params.memoryPhase1 > 0 &&
-			m_params.memoryPhase2 > 0 &&
-			m_params.memoryPhase3 > 0)
-			calculate_parameters();
+	// Checks if we should still be able to change parameters
+	inline void check_not_started() {
+		if (m_state != state_initial) {
+			throw tpie::exception("Can't change parameters after sorting has started");
+		}
 	}
 
 public:
 	void set_phase_1_memory(memory_size_type m1) {
 		m_params.memoryPhase1 = m1;
-		maybe_calculate_parameters();
+		check_not_started();
 	}
 
 	void set_phase_2_memory(memory_size_type m2) {
 		m_params.memoryPhase2 = m2;
-		maybe_calculate_parameters();
+		check_not_started();
 	}
 
 	void set_phase_3_memory(memory_size_type m3) {
 		m_params.memoryPhase3 = m3;
-		maybe_calculate_parameters();
+		check_not_started();
 	}
 
 	void set_available_memory(memory_size_type m) {
@@ -680,7 +677,7 @@ private:
 public:
 	void begin() {
 		if (!m_parametersSet)
-			throw tpie::exception("Parameters not set in serialization_sorter");
+			calculate_parameters();
 		if (m_state != state_initial)
 			throw tpie::exception("Bad state in begin");
 		m_state = state_1;
