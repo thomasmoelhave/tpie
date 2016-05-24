@@ -89,6 +89,10 @@ bool sort_upper_bound_test() {
 	return sort_upper_bound_test_base(80*1024*1024);
 }
 
+bool sort_faulty_upper_bound_test() {
+	return sort_upper_bound_test_base(400);  // much lower than dataSize
+}
+
 bool temp_file_usage_test() {
 	bool result = true;
 	const stream_size_type initialUsage = get_temp_file_usage();
@@ -159,6 +163,7 @@ int main(int argc, char ** argv) {
 	return
 		sort_tester<use_merge_sort>::add_all(t)
 		.test(sort_upper_bound_test, "sort_upper_bound")
+		.test(sort_faulty_upper_bound_test, "sort_faulty_upper_bound")
 		.test(temp_file_usage_test, "temp_file_usage")
 		.test(tall_tree_test, "tall_tree", "fanout", static_cast<size_t>(6), "height", static_cast<size_t>(1))
 		;
