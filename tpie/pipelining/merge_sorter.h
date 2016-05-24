@@ -822,12 +822,25 @@ public:
 			return;
 		}
 
-		if(m_maxItems < p.internalReportThreshold) {
+		// If the item upper bound is less than a run,
+		// then it might pay off to decrease the length of a run
+		// so that we can avoid I/O altogether.
+		if (m_maxItems < p.runLength) {
+			memory_size_type newRunLength =
+				std::max(m_maxItems, p.internalReportThreshold);
 			log_debug() << "Decreasing run length from " << p.runLength
-				<< " to " << p.internalReportThreshold
-				<< " since at most " << m_maxItems << " items will be pushed."
-				<< " New merge sort parameters:\n";
-			p.runLength = p.internalReportThreshold;
+				<< " to " << newRunLength
+				<< " since at most " << m_maxItems << " items will be pushed,"
+				<< " and the internal report threshold is "
+				<< p.internalReportThreshold
+				<< ". New merge sort parameters:\n";
+			// In principle, we could decrease runLength to m_maxItems,
+			// but setting runLength below internalReportThreshold does not
+			// give additional benefits.
+			// Furthermore, buggy code could call set_items with a very low
+			// upper bound, leading to unacceptable performance in practice;
+			// thus, internalReportThreshold is used as a stopgap/failsafe.
+			p.runLength = newRunLength;
 			p.dump(log_debug());
 			log_debug() << std::endl;
 		}
