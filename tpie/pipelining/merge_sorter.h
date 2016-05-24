@@ -178,7 +178,7 @@ public:
 		, m_store(store.template get_specific<element_type>())
 		, m_merger(pred, m_store, m_bucket)
 		, m_currentRunItems(m_bucket)
-		, m_maxItems(std::numeric_limits<memory_size_type>::max())
+		, m_maxItems(std::numeric_limits<stream_size_type>::max())
 		, pred(pred)
 		, m_evacuated(false)
 		, m_finalMergeInitialized(false)
@@ -922,7 +922,7 @@ private:
 
 	stream_size_type m_itemCount;
 	
-	memory_size_type m_maxItems;
+	stream_size_type m_maxItems;
 
 	pred_t pred;
 	bool m_evacuated;
