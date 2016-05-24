@@ -95,6 +95,7 @@ add_unittest(merge_sort
 	evacuate_before_merge
 	evacuate_before_report
 	sort_upper_bound
+	sort_faulty_upper_bound
 	temp_file_usage
 	tall_tree
 	)
