@@ -774,10 +774,10 @@ void runtime::go_until(gocontext * gc, node * node) {
 	for (; gc->i < gc->phases.size(); ++gc->i) {
 		// Run each phase:
 		// Evacuate previous if necessary
-		auto & phase = gc->phases[gc->i-1];
+		auto & phase = gc->phases[gc->i];
 		log_debug() << "Running pipe phase " << get_phase_name(phase);
 		
-		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(phase);
+		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(gc->phases[gc->i-1]);
 			
 		// call propagate in item source to item sink order
 		propagate_all(gc->itemFlow[gc->i]);
