@@ -209,6 +209,27 @@ private:
 	node_map & m_nodeMap;
 };
 
+std::string get_phase_name(const std::vector<node *> & phase) {
+	priority_type highest = std::numeric_limits<priority_type>::min();
+	size_t highest_node = 0;
+	for (size_t i = 0; i < phase.size(); ++i) {
+		if (phase[i]->get_phase_name_priority() > highest) {
+			highest_node = i;
+			highest = phase[i]->get_phase_name_priority();
+		}
+	}
+	std::string n = phase[highest_node]->get_phase_name();
+	if (!n.empty()) return n;
+	
+	highest_node = 0;
+	for (size_t i = 0; i < phase.size(); ++i) {
+		if (phase[i]->get_name_priority() > highest) {
+			highest_node = i;
+			highest = phase[i]->get_name_priority();
+		}
+	}
+	return phase[highest_node]->get_name();
+}
 
 	
 ///////////////////////////////////////////////////////////////////////////////
@@ -274,28 +295,6 @@ public:
 	}
 
 private:
-	std::string get_phase_name(const std::vector<node *> & phase) {
-		priority_type highest = std::numeric_limits<priority_type>::min();
-		size_t highest_node = 0;
-		for (size_t i = 0; i < phase.size(); ++i) {
-			if (phase[i]->get_phase_name_priority() > highest) {
-				highest_node = i;
-				highest = phase[i]->get_phase_name_priority();
-			}
-		}
-		std::string n = phase[highest_node]->get_phase_name();
-		if (!n.empty()) return n;
-
-		highest_node = 0;
-		for (size_t i = 0; i < phase.size(); ++i) {
-			if (phase[i]->get_name_priority() > highest) {
-				highest_node = i;
-				highest = phase[i]->get_name_priority();
-			}
-		}
-		return phase[highest_node]->get_name();
-	}
-
 	friend class phase_progress_indicator;
 
 	fractional_progress * fp;
@@ -775,28 +774,32 @@ void runtime::go_until(gocontext * gc, node * node) {
 	for (; gc->i < gc->phases.size(); ++gc->i) {
 		// Run each phase:
 		// Evacuate previous if necessary
-		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(gc->phases[gc->i-1]);
+		auto & phase = gc->phases[gc->i-1];
+		log_debug() << "Running pipe phase " << get_phase_name(phase);
+		
+		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(phase);
+			
 		// call propagate in item source to item sink order
 		propagate_all(gc->itemFlow[gc->i]);
 		// reassign memory to all nodes in the phase
 		reassign_memory(gc->phases, gc->i, gc->memory, gc->drt);
 
 		bool emptyFace = true;
-		for (auto n: gc->phases[gc->i])
+		for (auto n: phase)
 			if (is_initiator(n) && !n->is_go_free())
 				emptyFace = false;
 		
 		// sum number of steps and call pi.init()
-		gc->phaseProgress = phase_progress_indicator(gc->pi, gc->i, gc->phases[gc->i], emptyFace);
+		gc->phaseProgress = phase_progress_indicator(gc->pi, gc->i, phase, emptyFace);
 		
 		// set progress indicators on each node
-		set_progress_indicators(gc->phases[gc->i], gc->phaseProgress.get());
+		set_progress_indicators(phase, gc->phaseProgress.get());
 		// call begin in leaf to root actor order
 		begin_end beginEnd(gc->actor[gc->i]);
 		beginEnd.begin();
 		
 		// call go on initiators
-		for (auto n: gc->phases[gc->i])
+		for (auto n: phase)
 			if (n == node) {
 				gc->i++;
 				return;
