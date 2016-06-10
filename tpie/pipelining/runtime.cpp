@@ -775,7 +775,7 @@ void runtime::go_until(gocontext * gc, node * node) {
 		// Run each phase:
 		// Evacuate previous if necessary
 		auto & phase = gc->phases[gc->i];
-		log_debug() << "Running pipe phase " << get_phase_name(phase);
+		log_debug() << "Running pipe phase " << get_phase_name(phase) << std::endl;
 		
 		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(gc->phases[gc->i-1]);
 			
