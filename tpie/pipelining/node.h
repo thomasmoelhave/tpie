@@ -573,11 +573,13 @@ public:
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by forward_any to add forwarded data.
-	//
-	/// If explicitForward is false, the data will not override data forwarded
-	/// with explicitForward == true.
 	///////////////////////////////////////////////////////////////////////////
-	void add_forwarded_data(std::string key, boost::any value, bool explicitForward);
+	void add_forwarded_data(std::string key, node_token::id_t from_node);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by fetch_any to get data forwarded from this node.
+	///////////////////////////////////////////////////////////////////////////
+	boost::any get_forwarded_data(std::string key, const std::string & type_name = "boost::any");
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -585,34 +587,28 @@ public:
 	/// given name.
 	///////////////////////////////////////////////////////////////////////////
 	inline bool can_fetch(std::string key) {
-		return m_values.count(key) != 0;
+		return m_forwardedToHere.count(key) != 0;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Fetch piece of auxiliary data as boost::any (the internal
 	/// representation).
 	///////////////////////////////////////////////////////////////////////////
-	boost::any fetch_any(std::string key);
+	boost::any fetch_any(std::string key, const std::string & type_name = "boost::any");
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Fetch piece of auxiliary data, expecting a given value type.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	inline T fetch(std::string key) {
-		if (m_values.count(key) == 0) {
-			std::stringstream ss;
-			ss << "Tried to fetch nonexistent key '" << key
-			   << "' of type " << typeid(T).name()
-			   << " in " << get_name() << " of type " << typeid(*this).name();
-			throw invalid_argument_exception(ss.str());
-		}
+		boost::any item = fetch_any(key, typeid(T).name());
 		try {
-			return boost::any_cast<T>(m_values[key].first);
+			return boost::any_cast<T>(item);
 		} catch (boost::bad_any_cast m) {
 			std::stringstream ss;
 			ss << "Trying to fetch key '" << key << "' of type "
 			   << typeid(T).name() << " but forwarded data was of type "
-			   << m_values[key].first.type().name() << ". Message was: " << m.what();
+			   << item.type().name() << ". Message was: " << m.what();
 			throw invalid_argument_exception(ss.str());
 		}
 	}
@@ -809,8 +805,8 @@ private:
 	node_parameters m_parameters;
 	std::vector<std::unique_ptr<memory_bucket> > m_buckets;
 	
-	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
-	valuemap m_values;
+	std::map<std::string, boost::any> m_forwardedFromHere;
+	std::map<std::string, node_token::id_t> m_forwardedToHere;
 
 	datastructuremap_t m_datastructures;
 	memory_size_type m_flushPriority;

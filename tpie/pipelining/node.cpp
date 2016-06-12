@@ -210,7 +210,7 @@ void node::forward_any(std::string key, boost::any value, memory_size_type k) {
 			break;
 	}
 
-	add_forwarded_data(key, value, true);
+	m_forwardedFromHere[key] = value;
 
 	bits::node_map::ptr nodeMap = get_node_map()->find_authority();
 
@@ -218,25 +218,48 @@ void node::forward_any(std::string key, boost::any value, memory_size_type k) {
 	std::vector<id_t> successors;
 	nodeMap->get_successors(get_id(), successors, k, true);
 	for (auto i : successors) {
-		nodeMap->get(i)->add_forwarded_data(key, value, false);
+		nodeMap->get(i)->add_forwarded_data(key, get_id());
 	}
 }
 
-void node::add_forwarded_data(std::string key, boost::any value, bool explicitForward) {
-	if (m_values.count(key) &&
-		!explicitForward && m_values[key].second) return;
-	m_values[key].first = value;
-	m_values[key].second = explicitForward;
+void node::add_forwarded_data(std::string key, node_token::id_t from_node) {
+	m_forwardedToHere[key] = from_node;
 }
 
-boost::any node::fetch_any(std::string key) {
-	if (m_values.count(key) != 0) {
-		return m_values[key].first;
-	} else {
+boost::any node::fetch_any(std::string key, const std::string & type_name) {
+	auto it = m_forwardedToHere.find(key);
+	if (it == m_forwardedToHere.end()) {
 		std::stringstream ss;
-		ss << "Tried to fetch nonexistent key '" << key << '\'';
+		ss << "Tried to fetch nonexistent key '" << key
+		   << "' of type " << type_name
+		   << " in " << get_name() << " of type " << typeid(*this).name();
 		throw invalid_argument_exception(ss.str());
 	}
+
+	node_token::id_t fetch_from_id = it->second;
+	bits::node_map::ptr nodeMap = get_node_map()->find_authority();
+	node *fetch_from = nodeMap->get(fetch_from_id);
+	if (!fetch_from) {
+		std::stringstream ss;
+		ss << "Tried to fetch key with nonexisting node '" << key
+		   << "' of type " << type_name
+		   << " in " << get_name() << " of type " << typeid(*this).name();
+		throw invalid_argument_exception(ss.str());
+	}
+
+	return fetch_from->get_forwarded_data(key, type_name);
+}
+
+boost::any node::get_forwarded_data(std::string key, const std::string & type_name) {
+	auto it = m_forwardedFromHere.find(key);
+	if (it == m_forwardedFromHere.end()) {
+		std::stringstream ss;
+		ss << "Tried to fetch nonexistent key '" << key
+		   << "' of type " << type_name
+		   << " from " << get_name() << " of type " << typeid(*this).name();
+		throw invalid_argument_exception(ss.str());
+	}
+	return it->second;
 }
 
 void node::set_steps(stream_size_type steps) {
