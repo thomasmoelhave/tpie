@@ -45,7 +45,7 @@ file_manager * fm = 0;
 file_manager::file_manager() {}
 
 void init_file_manager() {
-	const size_t reserved_files = 20;
+	const size_t reserved_files = 42;
 
 	fm = new file_manager();
 	fm->set_limit(get_maximum_open_files() - reserved_files);
