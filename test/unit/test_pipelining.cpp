@@ -824,6 +824,70 @@ bool bound_fetch_forward_test() {
 	return true;
 }
 
+struct copy_counter {
+	static int c;
+	copy_counter() {}
+	copy_counter(const copy_counter &) {
+		c++;
+	}
+};
+int copy_counter::c = 0;
+
+bool forward_minimal_copy_result;
+
+template <typename dest_t>
+struct FNC1 : public node {
+	dest_t dest;
+	FNC1(dest_t dest) : dest(std::move(dest)) {}
+
+	virtual void propagate() override {
+		forward("ptr", copy_counter());
+	}
+
+	virtual void go() override {
+	}
+};
+
+template <typename dest_t>
+struct FNC2 : public node {
+	dest_t dest;
+	FNC2(dest_t dest) : dest(std::move(dest)) {}
+
+	virtual void propagate() override {
+	}
+};
+
+struct FNC3 : public node {
+	virtual void propagate() override {
+		if (!can_fetch("ptr")) {
+			log_error() << "Cannot fetch ptr" << std::endl;
+			forward_minimal_copy_result = false;
+			return;
+		}
+		auto p = fetch<copy_counter>("ptr");
+		if (p.c != 4) {
+			log_error() << "Expected forwarded item to be copied 4 times, not " << p.c << std::endl;
+			forward_minimal_copy_result = false;
+			return;
+		}
+	}
+};
+
+
+bool forward_minimal_copy_test() {
+	forward_minimal_copy_result = true;
+	pipeline p = make_pipe_begin<FNC1>()
+		| make_pipe_middle<FNC2>()
+		| make_pipe_middle<FNC2>()
+		| make_pipe_middle<FNC2>()
+		| make_pipe_middle<FNC2>()
+		| make_pipe_end<FNC3>();
+	p.plot(log_info());
+	p();
+	if (!forward_minimal_copy_result) return false;
+	return true;
+}
+
 // Assume that dest_t::item_type is a reference type.
 // Push a dereferenced zero pointer to the destination.
 template <typename dest_t>
@@ -2072,6 +2136,7 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(bound_fetch_forward_test, "bound_fetch_forward")
+	.test(forward_minimal_copy_test, "forward_minimal_copy")
 	.test(virtual_test, "virtual")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
