@@ -76,7 +76,7 @@ static bool sort_test(memory_size_type m1,
 					  memory_size_type extraMemory = 0,
 					  bool evacuateBeforeMerge = false,
 					  bool evacuateBeforeReport = false,
-					  memory_size_type file_limit = std::numeric_limits<memory_size_type>::max())
+					  memory_size_type file_limit = 0)
 {
 	m1 *= 1024*1024;
 	m2 *= 1024*1024;
