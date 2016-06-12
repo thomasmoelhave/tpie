@@ -122,18 +122,32 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~node() {}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the minimum amount of the resource declared by this node.
+	/// Defaults to zero when no minimum has been set.
+	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_minimum_resource_usage(node_resource_type type) const {
 		return RES_PARAM(type, minimum);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the maximum amount of the resource declared by this node.
+	/// Defaults to maxint when no maximum has been set.
+	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_maximum_resource_usage(node_resource_type type) const {
 		return RES_PARAM(type, maximum);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the priority for the specific resource of this node.
+	///////////////////////////////////////////////////////////////////////////
 	inline double get_resource_fraction(node_resource_type type) const {
 		return RES_PARAM(type, fraction);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of the specific resource assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_available_of_resource(node_resource_type type) const {
 		return RES_PARAM(type, available);
 	}
@@ -159,14 +173,17 @@ public:
 	void set_resource_fraction(node_resource_type type, double f);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by the resource manager to set the usage of this resource
-	/// assigned to this node.
+	/// \brief Called by the resource manager to notify the node's available
+	/// amount of resource has changed.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) {
 		unused(type);
 		unused(available);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Used internally to assign the available resource to the node.
+	///////////////////////////////////////////////////////////////////////////
 	void _internal_set_available_of_resource(node_resource_type type, memory_size_type available);
 
 	///////////////////////////////////////////////////////////////////////////
