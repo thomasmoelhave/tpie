@@ -74,7 +74,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) override {
+	virtual void resource_available_changed(node_resource_type type, memory_size_type available) override {
 		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
 		if (m_propagate_called)
 			return;
@@ -289,7 +289,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) override {
+	virtual void resource_available_changed(node_resource_type type, memory_size_type available) override {
 		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
 		if (m_propagate_called)
 			return;
@@ -374,7 +374,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) override {
+	virtual void resource_available_changed(node_resource_type type, memory_size_type available) override {
 		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
 		if (m_propagate_called)
 			return;

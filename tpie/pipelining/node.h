@@ -176,9 +176,7 @@ public:
 	/// \brief Called by the resource manager to notify the node's available
 	/// amount of resource has changed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void set_available_of_resource(node_resource_type type, memory_size_type available) {
-		unused(type);
-		unused(available);
+	virtual void resource_available_changed(node_resource_type, memory_size_type) {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
