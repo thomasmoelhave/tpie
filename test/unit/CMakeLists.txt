@@ -113,6 +113,7 @@ add_unittest(serialization_sort
 	small_final_fanout
 	evacuate_before_merge
 	evacuate_before_report
+	file_limit
 	)
 add_unittest(stats simple)
 add_unittest(stream
