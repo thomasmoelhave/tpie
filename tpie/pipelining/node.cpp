@@ -185,8 +185,8 @@ RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
 RESOURCE_SETTER(set_resource_fraction, double, fraction);
 
 void node::_internal_set_available_of_resource(node_resource_type type, memory_size_type available) {
-	set_available_of_resource(type, available);
 	RES_PARAM(type).available = available;
+	resource_available_changed(type, available);
 	if (type == MEMORY) {
 		// Legacy interface
 		set_available_memory(available);
