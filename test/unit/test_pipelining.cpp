@@ -27,6 +27,7 @@
 #include <tpie/pipelining/virtual.h>
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/pipelining/helpers.h>
+#include <tpie/pipelining/split.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -1669,6 +1670,35 @@ bool join_test() {
 	return true;
 }
 
+bool split_test() {
+	std::vector<int> i(10);
+	std::vector<int> o1, o2;
+
+	for (int j = 0; j < 10; ++j) {
+		i[j] = j;
+	}
+
+	split<int> j;
+	pipeline p1 = input_vector(i) | j.sink();
+	pipeline p2 = j.source() | output_vector(o1);
+	pipeline p3 = j.source() | output_vector(o2);
+
+	p3.plot(log_info());
+	p3();
+
+	if (o1.size() != 10 || o2.size() != 10) {
+		log_error() << "Wrong output size " << o1.size() << " " << o2.size() << " expected 10" << std::endl;
+		return false;
+	}
+
+	for (int i = 0; i < 10; ++i) {
+		if (o1[i] == i % 10 && o2[i] == i % 10) continue;
+		log_error() << "Wrong output item got " << o1[i] << " " << o2[i] << " expected " << i%10 << std::endl;
+		return false;
+	}
+	return true;
+}
+
 bool copy_ctor_test() {
 	std::vector<int> i(10);
 	std::vector<int> j;
@@ -2029,6 +2059,7 @@ int main(int argc, char ** argv) {
 	.test(parallel_own_buffer_test, "parallel_own_buffer")
 	.test(parallel_push_in_end_test, "parallel_push_in_end")
 	.test(join_test, "join")
+	.test(split_test, "split")
 	.test(subpipeline_test, "subpipeline")
 	.multi_test(node_map_multi_test, "node_map")
 	.test(copy_ctor_test, "copy_ctor")

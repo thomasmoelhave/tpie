@@ -167,6 +167,7 @@ add_unittest(pipelining
 	parallel_push_in_end
 	node_map
 	join
+	split
 	copy_ctor
 	datastructures
 	phase_priority_test
