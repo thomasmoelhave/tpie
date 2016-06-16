@@ -421,6 +421,22 @@ public:
 	void add_dependency(const node & dest);
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare a node memory share
+	/// dependency, that is, a requirement that another node has end() called
+	/// before the begin() of this node, and memory shared between end() and
+	/// begin() unless evacuate() is called
+	///////////////////////////////////////////////////////////////////////////
+	void add_memory_share_dependency(const node_token & dest);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare a node memory share
+	/// dependency, that is, a requirement that another node has end() called
+	/// before the begin() of this node, and memory shared between end() and
+	/// begin() unless evacuate() is called
+	///////////////////////////////////////////////////////////////////////////
+	void add_memory_share_dependency(const node & dest);
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare minimum memory requirements.
 	///////////////////////////////////////////////////////////////////////////
 	void set_minimum_memory(memory_size_type minimumMemory);

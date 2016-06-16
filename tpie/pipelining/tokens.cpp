@@ -130,6 +130,7 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors, memory_
 					case pulls:
 					case depends:
 					case no_forward_depends:
+					case memory_share_depends:
 						break;
 				}
 			}
@@ -142,6 +143,7 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors, memory_
 						break;
 					case pulls:
 					case depends:
+					case memory_share_depends:
 						q.push(std::make_pair(i->second.first, d+1));
 						break;
 					case no_forward_depends:

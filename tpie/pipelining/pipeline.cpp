@@ -100,6 +100,10 @@ void pipeline_base_base::plot_impl(std::ostream & out, bool full) {
 			case no_forward_depends:
 				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dotted];\n";
 				break;
+			case memory_share_depends:
+				out << '"' << name(nodeMap, s) << "\" -> \"" << name(nodeMap, t) << "\" [arrowhead=none,arrowtail=normal,dir=both,style=tapered];\n";
+				break;
+
 		}
 	}
 	out << '}' << std::endl;

@@ -606,7 +606,7 @@ struct gocontext {
 	graph<size_t> phaseGraph;
 	graph<size_t> orderedPhaseGraph;
 	std::vector<std::vector<node *> > phases;
-	std::vector<bool> evacuateWhenDone;
+	std::unordered_set<node_map::id_t> evacuateWhenDone;
 	std::vector<graph<node *> > itemFlow;
 	std::vector<graph<node *> > actor;
 	datastructure_runtime drt;
@@ -720,7 +720,7 @@ gocontext_ptr runtime::go_init(stream_size_type items,
 	// Build phases vector
 
 	std::vector<std::vector<node *> > phases;
-	std::vector<bool> evacuateWhenDone;
+	std::unordered_set<node_map::id_t> evacuateWhenDone;
 	get_phases(phaseMap, orderedPhaseGraph, evacuateWhenDone, phases);
 
 	// Build item flow graph and actor graph for each phase
@@ -787,7 +787,7 @@ void runtime::go_until(gocontext * gc, node * node) {
 		auto & phase = gc->phases[gc->i];
 		log_debug() << "Running pipe phase " << get_phase_name(phase) << std::endl;
 		
-		if (gc->i > 0 && gc->evacuateWhenDone[gc->i-1]) evacuate_all(gc->phases[gc->i-1]);
+		if (gc->i > 0) evacuate_all(gc->phases[gc->i-1], gc->evacuateWhenDone);
 			
 		// call propagate in item source to item sink order
 		propagate_all(gc->itemFlow[gc->i]);
@@ -858,6 +858,7 @@ void runtime::get_item_sources(std::vector<node *> & itemSources) {
 			case pulls:
 			case depends:
 			case no_forward_depends:
+			case memory_share_depends:
 				possibleSources.erase(from);
 				break;
 		}
@@ -887,6 +888,7 @@ void runtime::get_item_sinks(std::vector<node *> & itemSinks) {
 			case pulls:
 			case depends:
 			case no_forward_depends:
+			case memory_share_depends:
 				possibleSinks.erase(to);
 				break;
 		}
@@ -913,7 +915,9 @@ void runtime::get_phase_map(std::map<node *, size_t> & phaseMap) {
 
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second != depends && i->second.second != no_forward_depends)
+		if (i->second.second != depends 
+			&& i->second.second != no_forward_depends
+			&& i->second.second != memory_share_depends)
 			unionFind.union_set(numbering[i->first], numbering[i->second.first]);
 	}
 
@@ -939,7 +943,9 @@ void runtime::get_phase_graph(const std::map<node *, size_t> & phaseMap,
 
 	const node_map::relmap_t & relations = m_nodeMap.get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		if (i->second.second == depends || i->second.second == no_forward_depends)
+		if (i->second.second == depends 
+			|| i->second.second == no_forward_depends
+			|| i->second.second == memory_share_depends)
 			phaseGraph.add_edge(phaseMap.find(m_nodeMap.get(i->second.first))->second,
 								phaseMap.find(m_nodeMap.get(i->first))->second);
 	}
@@ -965,7 +971,7 @@ std::vector<size_t> runtime::inverse_permutation(const std::vector<size_t> & f) 
 
 void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 						 const graph<size_t> & phaseGraph,
-						 std::vector<bool> & evacuateWhenDone,
+						 std::unordered_set<node_map::id_t> & evacuateWhenDone,
 						 std::vector<std::vector<node *> > & phases)
 {
 	std::vector<size_t> topologicalOrder;
@@ -985,10 +991,21 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		phases[topoOrderMap[i->second]].push_back(i->first);
 	}
 
-	evacuateWhenDone.resize(phases.size(), false);
-	for (size_t i = 0; i + 1 < phases.size(); ++i) {
-		if (!phaseGraph.has_edge(topologicalOrder[i], topologicalOrder[i+1]))
-			evacuateWhenDone[i] = true;
+	std::unordered_set<node_map::id_t> previousNodes;
+	bits::node_map::ptr nodeMap = (phases.front().front())->get_node_map()->find_authority();
+	for (const auto & phase : phases) {
+		for (const auto node : phase) {
+			const auto range = nodeMap->get_relations().equal_range(node->get_id());
+			for (auto it = range.first ; it != range.second ; ++it) {
+				if (it->second.second != memory_share_depends) continue;
+				if (previousNodes.count(it->second.first) != 0) continue;
+				evacuateWhenDone.emplace(it->second.first);
+			}
+		}
+		previousNodes.clear();
+		for (const auto node : phase) {
+			previousNodes.emplace(node->get_id());
+		}
 	}
 }
 
@@ -1020,7 +1037,9 @@ void runtime::get_graph(std::vector<node *> & phase, graph<node *> & result,
 		for (relmapit j = edges.first; j != edges.second; ++j) {
 			node * u = m_nodeMap.get(j->first);
 			node * v = m_nodeMap.get(j->second.first);
-			if (j->second.second == depends || j->second.second == no_forward_depends) continue;
+			if (j->second.second == depends) continue;
+			if (j->second.second == no_forward_depends) continue;
+			if (j->second.second == memory_share_depends) continue;
 			if (itemFlow && j->second.second == pulls) std::swap(u, v);
 			result.add_edge(u, v);
 		}
@@ -1057,11 +1076,16 @@ void runtime::prepare_all(const std::vector<graph<node *> > & itemFlow) {
 	}
 }
 
-void runtime::evacuate_all(const std::vector<node *> & phase) {
-	for (size_t i = 0; i < phase.size(); ++i) {
-		if (phase[i]->can_evacuate()) {
-			phase[i]->evacuate();
-			tpie::log_debug() << "Evacuated node " << phase[i]->get_id() << std::endl;
+void runtime::evacuate_all(const std::vector<node *> & phase, 
+						   const std::unordered_set<node_map::id_t> & evacuateWhenDone) {
+	for (auto node : phase) {
+		if (evacuateWhenDone.count(node->get_id()) == 0)
+			continue;
+		if (node->can_evacuate()) {
+			node->evacuate();
+			tpie::log_debug() << "Evacuated node " << node->get_id() << std::endl;
+		} else {
+			tpie::log_warning() << "Need to evacuate but not possible." << node->get_id() << std::endl;
 		}
 	}
 }

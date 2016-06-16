@@ -70,7 +70,7 @@ public:
 	}
 
 	void add_calc_dependency(node_token tkn) {
-		add_dependency(tkn);
+		add_memory_share_dependency(tkn);
 	}
 		
 protected:
@@ -273,7 +273,7 @@ public:
 	}
 
 	void set_input_node(node & input) {
-		add_dependency(input);
+		add_memory_share_dependency(input);
 	}
 
 protected:

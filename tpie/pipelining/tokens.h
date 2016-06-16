@@ -93,7 +93,8 @@ enum node_relation {
 	pushes,
 	pulls,
 	depends,
-	no_forward_depends
+	no_forward_depends,
+	memory_share_depends
 };
 
 class node_map {

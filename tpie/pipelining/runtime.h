@@ -23,6 +23,7 @@
 #include <tpie/fractional_progress.h>
 #include <tpie/pipelining/tokens.h>
 #include <set>
+#include <unordered_set>
 
 namespace tpie {
 
@@ -137,12 +138,12 @@ public:
 	/// \brief  Compute topological phase order.
 	///
 	/// The vector phases[i] will contain the nodes in the ith phase to run.
-	/// If no node in phases[i] has a dependency to a node in phases[i-1],
-	/// evacuateWhenDone[i] is set to true.
+	/// For each node in phase[i], if the node has a memory share dependency to
+	/// any node not in phases[i-1], the node is contained in evacuateWhenDone.
 	///////////////////////////////////////////////////////////////////////////
 	void get_phases(const std::map<node *, size_t> & phaseMap,
 					const graph<size_t> & phaseGraph,
-					std::vector<bool> & evacuateWhenDone,
+					std::unordered_set<node_map::id_t> & evacuateWhenDone,
 					std::vector<std::vector<node *> > & phases);
 
 	///////////////////////////////////////////////////////////////////////////
@@ -189,9 +190,11 @@ public:
 	void prepare_all(const std::vector<graph<node *> > & itemFlow);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Call evacuate on all nodes for which can_evacuate() is true.
+	/// \brief  Call evacuate on all nodes in evacuateWhenDone for which
+	/// can_evacuate() is true.
 	///////////////////////////////////////////////////////////////////////////
-	void evacuate_all(const std::vector<node *> & phase);
+	void evacuate_all(const std::vector<node *> & phase,
+					  const std::unordered_set<node_map::id_t> & evacuateWhenDone);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Call propagate on all nodes in item source to sink order.

@@ -170,6 +170,15 @@ void node::add_dependency(const node & dest) {
 	add_dependency(dest.token);
 }
 
+void node::add_memory_share_dependency(const node_token & dest) {
+	bits::node_map::ptr m = token.map_union(dest);
+	m->add_relation(token.id(), dest.id(), bits::memory_share_depends);
+}
+
+void node::add_memory_share_dependency(const node & dest) {
+	add_memory_share_dependency(dest.token);
+}
+
 void node::set_minimum_memory(memory_size_type minimumMemory) {
 	switch (get_state()) {
 	case STATE_IN_PROPAGATE:
