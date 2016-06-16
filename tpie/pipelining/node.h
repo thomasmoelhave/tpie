@@ -613,7 +613,7 @@ public:
 		if(i == structures.end())
 			throw tpie::exception("attempted to set non-registered datastructure");
 
-		i->second.second = datastructure;
+		i->second.second = move_if_movable<T>(datastructure);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -622,16 +622,24 @@ public:
 	/// \tparam the type of the datastructure
 	///////////////////////////////////////////////////////////////////////////////
 	template<typename T>
-	T get_datastructure(const std::string & name) {
+	T & get_datastructure(const std::string & name) {
 		bits::node_map::datastructuremap_t & structures = get_node_map()->find_authority()->get_datastructures();
 		bits::node_map::datastructuremap_t::iterator i = structures.find(name);
 
 		if(i == structures.end())
 			throw tpie::exception("attempted to get non-registered datastructure");
 
-		return boost::any_cast<T>(i->second.second);
+		return any_cast<T>(i->second.second);
 	}
 
+	void unset_datastructure(const std::string & name) {
+		bits::node_map::datastructuremap_t & structures = get_node_map()->find_authority()->get_datastructures();
+		bits::node_map::datastructuremap_t::iterator i = structures.find(name);
+
+		if(i == structures.end()) return;
+		i->second.second.reset();
+	}
+	
 private:
 	struct datastructure_info_t {
 		datastructure_info_t() : min(0), max(std::numeric_limits<memory_size_type>::max()) {}

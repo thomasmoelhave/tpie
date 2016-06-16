@@ -74,13 +74,14 @@
 #include <tpie/exception.h>
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/predeclare.h>
+#include <tpie/pipelining/container.h>
 #include <tpie/types.h>
 #include <tpie/tpie_assert.h>
 #include <map>
 #include <vector>
 #include <iostream>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/any.hpp>
+#include <unordered_map>
 
 namespace tpie {
 
@@ -106,7 +107,7 @@ public:
 	typedef std::multimap<id_t, std::pair<id_t, node_relation> > relmap_t;
 	typedef relmap_t::const_iterator relmapit;
 
-	typedef std::map<std::string, std::pair<memory_size_type, boost::any> > datastructuremap_t;
+	typedef std::unordered_map<std::string, std::pair<memory_size_type, any_noncopyable> > datastructuremap_t;
 
 	typedef boost::intrusive_ptr<node_map> ptr;
 

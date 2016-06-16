@@ -183,6 +183,16 @@ public:
 	memory_size_type sum_assigned_memory(size_t phase) const; // sum the assigned memory for datastructures used in the phase using the factors given to the minimize_factor method
 	void assign_memory();
 
+	void free_datastructures(size_t phase) {
+		auto & ds = m_nodeMap.get_datastructures();
+		for (auto & p: m_datastructures) {
+			if (p.second.right_most_phase != phase) continue;
+			auto it = ds.find(p.first);
+			if (it == ds.end()) continue;
+			it->second.second.reset();
+		}
+	}
+	
 	//void print_memory(double c, std::ostream & os);
 private:
 	static memory_size_type clamp(memory_size_type lo, memory_size_type hi, double v);
@@ -586,7 +596,7 @@ memory_size_type datastructure_runtime::clamp(memory_size_type lo, memory_size_t
 void datastructure_runtime::assign_memory() {
 	for(std::map<std::string, datastructure_info_t>::iterator i = m_datastructures.begin(); i != m_datastructures.end(); ++i) {
 		memory_size_type mem = clamp(i->second.min, i->second.max, i->second.factor * i->second.priority);
-		m_nodeMap.get_datastructures().insert(std::make_pair(i->first, std::make_pair(mem, boost::any())));
+		m_nodeMap.get_datastructures().insert(std::make_pair(i->first, std::make_pair(mem, any_noncopyable())));
 	}
 }
 
@@ -808,8 +818,10 @@ void runtime::go_until(gocontext * gc, node * node) {
 
 		// call end in root to leaf actor order
 		beginEnd.end();
-		// call pi.done in ~phase_progress_indicator
 
+		gc->drt.free_datastructures(gc->i);
+
+		// call pi.done in ~phase_progress_indicator
 		gc->phaseProgress = phase_progress_indicator();
 	}
 	// call fp->done in ~progress_indicators
