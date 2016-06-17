@@ -35,6 +35,8 @@
 #include <memory>
 #include <atomic>
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
 
 namespace tpie {
 
@@ -114,11 +116,22 @@ public:
 
 	void register_decreased_usage(size_t amount);
 
+	virtual std::string amount_with_unit(size_t amount) const {
+		std::ostringstream os;
+		os << amount << " amount of " << resource_managed;
+		return os.str();
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
 	/// Construct the resource manager object.
 	///////////////////////////////////////////////////////////////////////////
 	resource_manager(resource_type type);
+
+	virtual ~resource_manager() = default;
+
+private:
+	void print_resource_complaint(std::ostream & os, size_t amount, size_t usage);
 
 protected:
 	std::atomic<size_t> m_used;

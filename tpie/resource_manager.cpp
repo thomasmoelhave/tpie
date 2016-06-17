@@ -41,29 +41,13 @@ size_t resource_manager::available() const throw() {
 	return 0;
 }
 
-} // namespace tpie
+void resource_manager::print_resource_complaint(std::ostream & os, size_t amount, size_t usage) {
+	size_t diff = usage - m_limit;
 
-void tpie_print_resource_complaint(std::ostream & os, tpie::resource_type type, size_t amount, size_t usage, size_t limit) {
-	if (type == tpie::FILES) {
-		os << "File descriptor limit exceeded ";
-		if (usage != limit + 1) {
-			os << "by " << (usage - limit) << " files ";
-		}
-		os << "while trying to open ";
-		if (amount == 1)
-			os << "a file";
-		else
-			os << amount << " files";
-		os << "."
-		   << " Limit is " << limit << ", but " << usage << " would be opened.";
-	} else {
-		os << "Resource " << type << " limit exceeded by " << tpie::bits::pretty_print::size_type(usage - limit)
-	   << " (" << (usage-limit) * 100 / limit << "%), while trying to increase usage by " << tpie::bits::pretty_print::size_type(amount) << "."
-	   << " Limit is " << tpie::bits::pretty_print::size_type(limit) << ", but " << tpie::bits::pretty_print::size_type(usage) << " would be used.";
+	os << "Resource " << resource_managed << " limit exceeded by " << amount_with_unit(diff)
+	   << " (" << (diff * 100 / m_limit) << "%), while trying to increase usage by " << amount_with_unit(amount) << "."
+	   << " Limit is " << amount_with_unit(m_limit) << ", but " << amount_with_unit(usage) << " would be used.";
 }
-}
-
-namespace tpie {
 
 void resource_manager::register_increased_usage(size_t amount) {
 	switch(m_enforce) {
@@ -74,7 +58,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 		size_t usage = m_used.fetch_add(amount) + amount;
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
-			tpie_print_resource_complaint(ss, resource_managed, amount, usage, m_limit);
+			print_resource_complaint(ss, amount, usage);
 			throw out_of_resource_error(ss.str());
 		}
 		break; }
@@ -86,7 +70,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 			if (m_maxExceeded >= m_nextWarning) {
 				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
 				std::ostream & os = (m_enforce == ENFORCE_DEBUG) ? log_debug() : log_warning();
-				tpie_print_resource_complaint(os, resource_managed, amount, usage, m_limit);
+				print_resource_complaint(os, amount, usage);
 				os << std::endl;
 			}
 		}
@@ -98,8 +82,9 @@ void resource_manager::register_decreased_usage(size_t amount) {
 #ifndef TPIE_NDEBUG
 	size_t usage = m_used.fetch_sub(amount);
 	if (amount > usage) {
-		log_error() << "Error in deallocation, trying to deallocate " << amount << " bytes, while only " <<
-			usage << " were allocated" << std::endl;
+		log_error() << "Error in decrease_usage, trying to decrease by "
+		            << amount_with_unit(amount) << " , while only "
+		            << amount_with_unit(usage) << " were allocated" << std::endl;
 		segfault();
 	}
 #else
