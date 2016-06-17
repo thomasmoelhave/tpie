@@ -870,9 +870,8 @@ public:
 		memory_size_type fanout = std::min(m_params.filesPhase2 - 1, fanoutMemory / perFanout);
 		
 		memory_size_type finalFanoutMemory = m_params.memoryPhase3;
-		memory_size_type finalFanout = std::min(m_params.filesPhase3 - 1,
-			std::min(fanout,
-					 finalFanoutMemory / perFanout));
+		memory_size_type finalFanout = std::min(
+				{m_params.filesPhase3 - 1, fanout, finalFanoutMemory / perFanout});
 
 		return m_files.next_level_runs() <= finalFanout;
 	}
@@ -913,9 +912,8 @@ public:
 		}
 
 		memory_size_type finalFanoutMemory = m_params.memoryPhase3;
-		memory_size_type finalFanout =
-			std::min(std::min(fanout,
-					 finalFanoutMemory / perFanout), m_params.filesPhase3 - 1);
+		memory_size_type finalFanout = std::min(
+				{m_params.filesPhase3 - 1, fanout, finalFanoutMemory / perFanout});
 
 		if (finalFanout < 2) {
 			log_error() << "Not enough memory for merging (final fanout < 2). "
