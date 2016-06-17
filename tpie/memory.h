@@ -28,6 +28,7 @@
 #include <tpie/config.h>
 #include <tpie/util.h>
 #include <tpie/resource_manager.h>
+#include <tpie/pretty_print.h>
 #include <mutex>
 #include <unordered_map>
 #include <type_traits>
@@ -60,6 +61,10 @@ public:
 
 	void register_deallocation(size_t bytes) {
 		register_decreased_usage(bytes);
+	}
+
+	std::string amount_with_unit(size_t amount) const override {
+		return bits::pretty_print::size_type(amount);
 	}
 
 #ifndef TPIE_NDEBUG

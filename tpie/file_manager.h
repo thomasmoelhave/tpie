@@ -55,6 +55,16 @@ public:
 	void decrement_open_file_count() {
 		register_decreased_usage(1);
 	}
+	
+	std::string amount_with_unit(size_t amount) const override {
+		std::ostringstream os;
+		if (amount == 1) {
+			os << "a file";
+		} else {
+			os << amount << " files";
+		}
+		return os.str();
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
