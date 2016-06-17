@@ -34,7 +34,7 @@ public:
 	void begin(stream_size_type items, progress_indicator_base & pi,
 			   memory_size_type mem,
 			   const char * file, const char * function) {
-		begin(items, pi, get_file_manager().available(), file, function);
+		begin(items, pi, get_file_manager().available(), mem, file, function);
 	}
 	void end();
 protected:
