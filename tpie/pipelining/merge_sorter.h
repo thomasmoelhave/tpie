@@ -827,7 +827,7 @@ public:
 		// so that we can avoid I/O altogether.
 		if (m_maxItems < p.runLength) {
 			memory_size_type newRunLength =
-				std::max(m_maxItems, p.internalReportThreshold);
+				std::max(memory_size_type(m_maxItems), p.internalReportThreshold);
 			log_debug() << "Decreasing run length from " << p.runLength
 				<< " to " << newRunLength
 				<< " since at most " << m_maxItems << " items will be pushed,"
