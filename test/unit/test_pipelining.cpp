@@ -541,7 +541,7 @@ bool memory_test(memtest settings) {
 	pipeline p =
 		make_pipe_begin<memtest_1, memtest &>(settings)
 		| make_pipe_end<memtest_2, memtest &>(settings);
-	p(0, pi, get_file_manager().available(), settings.totalMemory, TPIE_FSI);
+	p(0, pi, settings.totalMemory, TPIE_FSI);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
 	            << "minMem1     " << settings.minMem1 << '\n'
@@ -1757,7 +1757,7 @@ bool datastructure_test(datastructuretest settings) {
 	pipeline p =
 		make_pipe_begin<datastructuretest_1, datastructuretest &>(settings)
 		| make_pipe_end<datastructuretest_2, datastructuretest &>(settings);
-	p(0, pi, get_file_manager().available(), settings.totalMemory, TPIE_FSI);
+	p(0, pi, settings.totalMemory, TPIE_FSI);
 
 	log_debug() << "totalMemory " << settings.totalMemory << '\n'
 	            << "minMem1     " << settings.minMem1 << '\n'
@@ -1956,7 +1956,7 @@ public:
 				sp.end();
 			first = i.first;
 			sp = sort() | pipe_end<termfactory<dest_pusher, dest_t &, int>>(dest, first);
-			sp.begin(get_available_of_resource(FILES), get_available_memory());
+			sp.begin(get_available_memory());
 		}
 		sp.push(i.second);
 	}

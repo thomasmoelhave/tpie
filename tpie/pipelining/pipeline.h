@@ -105,6 +105,15 @@ public:
 					memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function);
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Invoke the pipeline with amount of available files automatically
+	/// configured.
+	///////////////////////////////////////////////////////////////////////////
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+					memory_size_type mem,
+					const char * file, const char * function) {
+		operator()(items, pi, get_file_manager().available(), mem, file, function);
+	}
 
 	double memory() const {
 		return m_memory;
@@ -195,7 +204,14 @@ public:
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,
-			memory_size_type filesAvailable, memory_size_type mem,
+					memory_size_type mem,
+					const char * file, const char * function) {
+		CurrentPipeSetter _(this);
+		(*p)(items, pi, get_file_manager().available(), mem, file, function);
+	}
+
+	void operator()(stream_size_type items, progress_indicator_base & pi,
+					memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function) {
 		CurrentPipeSetter _(this);
 		(*p)(items, pi, filesAvailable, mem, file, function);
