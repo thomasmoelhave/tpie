@@ -200,15 +200,17 @@ private:
 template <typename T>
 const T & any_cast(const any_noncopyable & a) {
 	if (!a.cont) throw bad_any_noncopyable_cast();
-	if (typeid(*a.cont.get()) != typeid(bits::any_noncopyable_cont<T>)) throw bad_any_noncopyable_cast();
-	return static_cast<const bits::any_noncopyable_cont<T>*>(a.cont.get())->value;
+	auto val = a.cont.get();
+	if (typeid(*val) != typeid(bits::any_noncopyable_cont<T>)) throw bad_any_noncopyable_cast();
+	return static_cast<const bits::any_noncopyable_cont<T>*>(val)->value;
 }
 
 template <typename T>
 T & any_cast(any_noncopyable & a) {
 	if (!a.cont) throw bad_any_noncopyable_cast();
-	if (typeid(*a.cont.get()) != typeid(bits::any_noncopyable_cont<T>)) throw bad_any_noncopyable_cast();
-	return static_cast<bits::any_noncopyable_cont<T>*>(a.cont.get())->value;
+	auto val = a.cont.get();
+	if (typeid(*val) != typeid(bits::any_noncopyable_cont<T>)) throw bad_any_noncopyable_cast();
+	return static_cast<bits::any_noncopyable_cont<T>*>(val)->value;
 }
 
 inline void swap(any_noncopyable & l, any_noncopyable & r) {std::swap(l.cont, r.cont);}
