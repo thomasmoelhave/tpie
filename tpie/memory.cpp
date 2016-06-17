@@ -30,7 +30,7 @@ namespace tpie {
 
 memory_manager * mm = 0;
 
-memory_manager::memory_manager() {}
+memory_manager::memory_manager(): resource_manager(MEMORY) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Buffers messages to the debug log.
@@ -174,7 +174,6 @@ void memory_manager::__complain_about_unfreed_memory() {
 
 void init_memory_manager() {
 	mm = new memory_manager();
-	mm->set_name("memory");
 }
 
 void finish_memory_manager() {

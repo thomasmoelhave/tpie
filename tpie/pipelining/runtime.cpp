@@ -128,7 +128,7 @@ private:
 
 class resource_runtime {
 public:
-	resource_runtime(const std::vector<node *> & nodes, node_resource_type type)
+	resource_runtime(const std::vector<node *> & nodes, resource_type type)
 	: m_nodes(nodes)
 	, m_minimumUsage(0)
 	, m_maximumUsage(0)
@@ -204,7 +204,7 @@ public:
 		size_t prec_frac = 2;
 		std::string sep(2, ' ');
 
-		os	<< "\nPipelining phase " << name_for_resource_type(m_type) << " assigned\n"
+		os	<< "\nPipelining phase " << m_type << " assigned\n"
 			<< std::setw(cw) << "Minimum"
 			<< std::setw(cw) << "Maximum"
 			<< std::setw(cw) << "Fraction"
@@ -243,7 +243,7 @@ protected:
 	memory_size_type m_minimumUsage;
 	memory_size_type m_maximumUsage;
 	double m_fraction;
-	node_resource_type m_type;
+	resource_type m_type;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1066,7 +1066,7 @@ void runtime::go_initiators(const std::vector<node *> & phase) {
 
 /*static*/
 void runtime::set_resource_being_assigned(const std::vector<node *> & nodes,
-										  node_resource_type type) {
+										  resource_type type) {
 	for (node * n : nodes)
 		n->set_resource_being_assigned(type);
 }

@@ -108,6 +108,7 @@ set (HEADERS
 		progress_indicator_terminal.h
 		queue.h
 		resource_manager.h
+		resources.h
 		serialization.h
 		serialization2.h
 		serialization_stream.h
@@ -176,6 +177,7 @@ set (SOURCES
 	progress_indicator_base.cpp
 	progress_indicator_subindicator.cpp
 	resource_manager.cpp
+	resources.cpp
 	serialization_stream.cpp
 	hash.cpp
 	tempname.cpp

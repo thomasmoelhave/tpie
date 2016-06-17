@@ -218,7 +218,7 @@ public:
 	/// \brief  Internal method used by go().
 	///////////////////////////////////////////////////////////////////////////
 	static void set_resource_being_assigned(const std::vector<node *> & nodes,
-											node_resource_type type);
+											resource_type type);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by go().

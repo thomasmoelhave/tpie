@@ -42,14 +42,13 @@ size_t get_maximum_open_files() {
 
 file_manager * fm = 0;
 
-file_manager::file_manager() {}
+file_manager::file_manager(): resource_manager(FILES) {}
 
 void init_file_manager() {
 	const size_t reserved_files = 42;
 
 	fm = new file_manager();
 	fm->set_limit(get_maximum_open_files() - reserved_files);
-	fm->set_name("file descriptors");
 }
 
 void finish_file_manager() {

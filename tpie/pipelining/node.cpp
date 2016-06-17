@@ -45,14 +45,6 @@ void proxy_progress_indicator::refresh() {
 
 } // namespace bits
 
-const char * name_for_resource_type(node_resource_type t) {
-	switch (t) {
-		case FILES: return "files";
-		case MEMORY: return "memory";
-		default: return "unknown";
-	}
-}
-
 const std::string & node::get_name() {
 	if (m_parameters.name.empty()) {
 		m_parameters.name = bits::extract_pipe_name(typeid(*this).name());
@@ -152,7 +144,7 @@ void node::add_dependency(const node & dest) {
 
 
 #define TPIE_RESOURCE_SETTER(setter_name, param_type, param_name) \
-	void node::setter_name(node_resource_type type, param_type value) { \
+	void node::setter_name(resource_type type, param_type value) { \
 		switch (get_state()) { \
 		case STATE_IN_PROPAGATE: \
 		case STATE_AFTER_PROPAGATE: \
@@ -160,7 +152,7 @@ void node::add_dependency(const node & dest) {
 		case STATE_IN_PREPARE: \
 			break; \
 		default: \
-			node_resource_type t = get_resource_being_assigned(); \
+			resource_type t = get_resource_being_assigned(); \
 			/* If the changed resource is being assigned later,
 			 * allow changing it
 			 */ \
@@ -177,7 +169,7 @@ TPIE_RESOURCE_SETTER(set_resource_fraction, double, fraction);
 
 #undef TPIE_RESOURCE_SETTER
 
-void node::_internal_set_available_of_resource(node_resource_type type, memory_size_type available) {
+void node::_internal_set_available_of_resource(resource_type type, memory_size_type available) {
 	m_parameters.resource_parameters[type].available = available;
 	resource_available_changed(type, available);
 	if (type == MEMORY) {
