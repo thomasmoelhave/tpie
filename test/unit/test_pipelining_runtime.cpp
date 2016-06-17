@@ -51,49 +51,49 @@ bool evacuate_test() {
 	graph<size_t> phaseGraph;
 	for (size_t i = 0; i < N; ++i) phaseGraph.add_node(i);
 
-	phaseGraph.add_edge(0, 1);
-	phaseGraph.add_edge(0, 2);
-	phaseGraph.add_edge(1, 3);
-	phaseGraph.add_edge(2, 3);
-	phaseGraph.add_edge(3, 4);
-	phaseGraph.add_edge(3, 5);
-	phaseGraph.add_edge(4, 6);
-	phaseGraph.add_edge(5, 6);
-
+	std::vector<std::pair<size_t, size_t> > edges{{0,1}, {0,2}, {1,3}, {2,3}, {3,4}, {3,5}, {4,6}, {5,6}};
+	
+	for (auto e: edges) {
+		phaseGraph.add_edge(e.first, e.second);
+		log_info() << nodes[e.second].get_id() << " " << nodes[e.first].get_id() << std::endl;
+		nodes[e.second].add_memory_share_dependency(nodes[e.first]);
+	}
+	
 	// 0 -- 1 ---- 3 -- 4 ---- 6
 	//  \         / \         /
 	//   `---- 2 ´   `---- 5 ´
 	//
-	// Since the result of 1 and 4 are not needed in 2 and 5 resp.,
-	// (that is, there is no edge 1-2 or 4-5,)
-	// 1 and 4 should be evacuated when they are done.
 
-	std::vector<bool> expect(7);
-	expect[1] = expect[4] = true;
-
-	std::vector<bool> evacuateWhenDone;
+	std::unordered_set<uint64_t> evacuateWhenDone;
 	std::vector<std::vector<node *> > phases;
 
 	{
 		runtime rt(nodeMap);
 		rt.get_phases(phaseMap, phaseGraph, evacuateWhenDone, phases);
 	}
-
+		
+	std::unordered_map<size_t, size_t> nodePhases;
+	for (size_t i=0; i < phases.size(); ++i)
+		for (node * n: phases[i])
+			nodePhases.emplace((evac_node*)n-nodes, i);
+	
 	bool bad = false;
-	for (size_t i = 0; i < N; ++i) {
-		if (evacuateWhenDone[i] == expect[i]) {
-			log_debug() << "Node " << i << ": "
-				<< (expect[i] ? "should evacuate" : "don't evacuate")
-				<< std::endl;
-		} else {
-			log_error() << "Node " << i << ": Expected "
-				<< (expect[i] ? "should evacuate" : "don't evacuate")
-				<< ", got "
-				<< (evacuateWhenDone[i] ? "should evacuate" : "don't evacuate")
-				<< std::endl;
+	for (size_t i=0; i < N; ++i) {
+		size_t evac = 0;
+		for (auto e: edges) {
+			if (e.first != i) continue;
+			if (nodePhases[i]+1 == nodePhases[e.second]) continue;
+			evac = 1;
+		}
+		if (evacuateWhenDone.count(nodes[i].get_id()) != evac)  {
+			if (evac)
+				log_error() << "Evac of node " << i << " should be evaced but is not"  << std::endl;
+			else
+				log_error() << "Evac of node " << i << " is evacuated but should not be"  << std::endl;
 			bad = true;
 		}
 	}
+	
 	return !bad;
 }
 
