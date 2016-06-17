@@ -177,7 +177,7 @@ void node::add_memory_share_dependency(const node & dest) {
 				break; \
 			throw call_order_exception(#setter_name); \
 		} \
-		RES_PARAM(type).param_name = value; \
+		m_parameters.resource_parameters[type].param_name = value; \
 	}
 
 RESOURCE_SETTER(set_minimum_resource_usage, memory_size_type, minimum);
@@ -185,7 +185,7 @@ RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
 RESOURCE_SETTER(set_resource_fraction, double, fraction);
 
 void node::_internal_set_available_of_resource(node_resource_type type, memory_size_type available) {
-	RES_PARAM(type).available = available;
+	m_parameters.resource_parameters[type].available = available;
 	resource_available_changed(type, available);
 	if (type == MEMORY) {
 		// Legacy interface
