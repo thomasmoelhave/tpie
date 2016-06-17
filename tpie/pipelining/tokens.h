@@ -236,7 +236,7 @@ public:
 	typedef bits::node_map::val_t val_t;
 
 	// Use for the simple case in which a node owns its own token
-	inline node_token(val_t owner)
+	explicit node_token(val_t owner)
 		: m_tokens(bits::node_map::create())
 		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
