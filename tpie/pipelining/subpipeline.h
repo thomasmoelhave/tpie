@@ -31,6 +31,11 @@ public:
 	void begin(stream_size_type items, progress_indicator_base & pi,
 			memory_size_type filesAvailable, memory_size_type mem,
 			   const char * file, const char * function);
+	void begin(stream_size_type items, progress_indicator_base & pi,
+			   memory_size_type mem,
+			   const char * file, const char * function) {
+		begin(items, pi, get_file_manager().available(), file, function);
+	}
 	void end();
 protected:
 	node * frontNode;
@@ -93,14 +98,25 @@ struct subpipeline {
 	}
 
 	void push(const item_type & item) {p->push(item);}
+
 	void begin(size_t filesAvailable, size_t memory) {
 		p->begin(1, p->pi, filesAvailable, memory, nullptr, nullptr);
 	}
 
+	void begin(size_t memory) {
+		begin(get_file_manager().available(), memory);
+	}
+
 	void begin(stream_size_type items, progress_indicator_base & pi,
-			memory_size_type filesAvailable, memory_size_type mem,
+			   memory_size_type filesAvailable, memory_size_type mem,
 			   const char * file, const char * function) {
 		p->begin(items, pi, filesAvailable, mem, file, function);
+	}
+
+	void begin(stream_size_type items, progress_indicator_base & pi,
+			   memory_size_type mem,
+			   const char * file, const char * function) {
+		begin(items, pi, get_file_manager().available(), mem, file, function);
 	}
 
 	void end() {p->end();}
