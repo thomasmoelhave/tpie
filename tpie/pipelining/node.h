@@ -82,8 +82,6 @@ struct node_parameters {
 	stream_size_type stepsTotal = 0;
 };
 
-#define RES_PARAM(type) m_parameters.resource_parameters[type]
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all nodes. A node should inherit from the node class,
 /// have a single template parameter dest_t if it is not a terminus node,
@@ -127,7 +125,7 @@ public:
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_minimum_resource_usage(node_resource_type type) const {
-		return RES_PARAM(type).minimum;
+		return m_parameters.resource_parameters[type].minimum;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -135,21 +133,21 @@ public:
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_maximum_resource_usage(node_resource_type type) const {
-		return RES_PARAM(type).maximum;
+		return m_parameters.resource_parameters[type].maximum;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the priority for the specific resource of this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline double get_resource_fraction(node_resource_type type) const {
-		return RES_PARAM(type).fraction;
+		return m_parameters.resource_parameters[type].fraction;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of the specific resource assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_available_of_resource(node_resource_type type) const {
-		return RES_PARAM(type).available;
+		return m_parameters.resource_parameters[type].available;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
