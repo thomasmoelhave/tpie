@@ -151,7 +151,7 @@ void node::add_dependency(const node & dest) {
 }
 
 
-#define RESOURCE_SETTER(setter_name, param_type, param_name) \
+#define TPIE_RESOURCE_SETTER(setter_name, param_type, param_name) \
 	void node::setter_name(node_resource_type type, param_type value) { \
 		switch (get_state()) { \
 		case STATE_IN_PROPAGATE: \
@@ -171,9 +171,11 @@ void node::add_dependency(const node & dest) {
 		m_parameters.resource_parameters[type].param_name = value; \
 	}
 
-RESOURCE_SETTER(set_minimum_resource_usage, memory_size_type, minimum);
-RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
-RESOURCE_SETTER(set_resource_fraction, double, fraction);
+TPIE_RESOURCE_SETTER(set_minimum_resource_usage, memory_size_type, minimum);
+TPIE_RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
+TPIE_RESOURCE_SETTER(set_resource_fraction, double, fraction);
+
+#undef TPIE_RESOURCE_SETTER
 
 void node::_internal_set_available_of_resource(node_resource_type type, memory_size_type available) {
 	m_parameters.resource_parameters[type].available = available;
