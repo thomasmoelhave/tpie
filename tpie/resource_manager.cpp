@@ -23,7 +23,6 @@
 #include <sstream>
 #include "tpie_log.h"
 #include <cstring>
-#include <cstdlib>
 #include "pretty_print.h"
 
 namespace tpie {

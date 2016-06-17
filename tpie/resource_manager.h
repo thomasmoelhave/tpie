@@ -33,6 +33,7 @@
 #include <utility>
 #include <memory>
 #include <atomic>
+#include <cstdlib>
 
 namespace tpie {
 
