@@ -31,6 +31,7 @@
 #include <tpie/pipelining/node_traits.h>
 #include <tpie/flags.h>
 #include <limits>
+#include <tpie/resources.h>
 
 namespace tpie {
 
@@ -49,19 +50,6 @@ public:
 
 } // namespace bits
 
-enum node_resource_type {
-	// These should be ordered by when the resource
-	// assigned at runtime
-	FILES,
-	MEMORY,
-
-	// Special values for internal use
-	TOTAL_RESOURCE_TYPES,
-	NO_RESOURCE
-};
-
-const char * name_for_resource_type(node_resource_type t);
-
 struct node_resource_parameters {
 	memory_size_type minimum = 0;
 	memory_size_type maximum = std::numeric_limits<memory_size_type>::max();
@@ -71,7 +59,7 @@ struct node_resource_parameters {
 };
 
 struct node_parameters {
-	node_resource_parameters resource_parameters[TOTAL_RESOURCE_TYPES];
+	node_resource_parameters resource_parameters[resource_type::TOTAL_RESOURCE_TYPES];
 
 	std::string name;
 	priority_type namePriority = PRIORITY_NO_NAME;
@@ -124,7 +112,7 @@ public:
 	/// \brief Get the minimum amount of the resource declared by this node.
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_minimum_resource_usage(node_resource_type type) const {
+	inline memory_size_type get_minimum_resource_usage(resource_type type) const {
 		return m_parameters.resource_parameters[type].minimum;
 	}
 
@@ -132,28 +120,28 @@ public:
 	/// \brief Get the maximum amount of the resource declared by this node.
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_maximum_resource_usage(node_resource_type type) const {
+	inline memory_size_type get_maximum_resource_usage(resource_type type) const {
 		return m_parameters.resource_parameters[type].maximum;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the priority for the specific resource of this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline double get_resource_fraction(node_resource_type type) const {
+	inline double get_resource_fraction(resource_type type) const {
 		return m_parameters.resource_parameters[type].fraction;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of the specific resource assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_available_of_resource(node_resource_type type) const {
+	inline memory_size_type get_available_of_resource(resource_type type) const {
 		return m_parameters.resource_parameters[type].available;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare minimum resource requirements.
 	///////////////////////////////////////////////////////////////////////////
-	void set_minimum_resource_usage(node_resource_type type, memory_size_type usage);
+	void set_minimum_resource_usage(resource_type type, memory_size_type usage);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to declare maximum resource requirements.
@@ -161,26 +149,26 @@ public:
 	/// To signal that you don't want to use this resource,
 	/// set minimum resource usage and the resource fraction to zero.
 	///////////////////////////////////////////////////////////////////////////
-	void set_maximum_resource_usage(node_resource_type type, memory_size_type usage);
+	void set_maximum_resource_usage(resource_type type, memory_size_type usage);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \Brief Set the resource priority of this node. Resources are
 	/// distributed proportionally to the priorities of the nodes in the given
 	/// phase.
 	///////////////////////////////////////////////////////////////////////////
-	void set_resource_fraction(node_resource_type type, double f);
+	void set_resource_fraction(resource_type type, double f);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by the resource manager to notify the node's available
 	/// amount of resource has changed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void resource_available_changed(node_resource_type, memory_size_type) {
+	virtual void resource_available_changed(resource_type, memory_size_type) {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally to assign the available resource to the node.
 	///////////////////////////////////////////////////////////////////////////
-	void _internal_set_available_of_resource(node_resource_type type, memory_size_type available);
+	void _internal_set_available_of_resource(resource_type type, memory_size_type available);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the minimum amount of memory declared by this node.
@@ -444,14 +432,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Used internally to check order of method calls.
 	///////////////////////////////////////////////////////////////////////////
-	node_resource_type get_resource_being_assigned() const {
+	resource_type get_resource_being_assigned() const {
 		return m_resourceBeingAssigned;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Used internally to check order of method calls.
 	///////////////////////////////////////////////////////////////////////////
-	void set_resource_being_assigned(node_resource_type type) {
+	void set_resource_being_assigned(resource_type type) {
 		m_resourceBeingAssigned = type;
 	}
 
@@ -829,7 +817,7 @@ private:
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
-	node_resource_type m_resourceBeingAssigned = NO_RESOURCE;
+	resource_type m_resourceBeingAssigned = NO_RESOURCE;
 	std::unique_ptr<progress_indicator_base> m_piProxy;
 	flags<PLOT> m_plotOptions;
 

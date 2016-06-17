@@ -27,6 +27,7 @@
 
 #include <tpie/config.h>
 #include <tpie/util.h>
+#include <tpie/resources.h>
 #include <mutex>
 #include <unordered_map>
 #include <type_traits>
@@ -109,8 +110,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	enforce_t enforcement() {return m_enforce;}
 
-	void set_name(const std::string & name);
-
 	void register_increased_usage(size_t amount);
 
 	void register_decreased_usage(size_t amount);
@@ -119,7 +118,7 @@ public:
 	/// \internal
 	/// Construct the resource manager object.
 	///////////////////////////////////////////////////////////////////////////
-	resource_manager();
+	resource_manager(resource_type type);
 
 protected:
 	std::atomic<size_t> m_used;
@@ -128,8 +127,7 @@ protected:
 	size_t m_nextWarning;
 	enforce_t m_enforce;
 
-	std::string name;
-
+	resource_type resource_managed;
 };
 
 } //namespace tpie

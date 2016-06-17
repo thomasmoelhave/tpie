@@ -27,8 +27,8 @@
 
 namespace tpie {
 
-resource_manager::resource_manager()
-	: m_used(0), m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN) {}
+resource_manager::resource_manager(resource_type type)
+	: m_used(0), m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN), resource_managed(type) {}
 
 size_t resource_manager::used() const throw() {
 	return m_used.load();
@@ -43,8 +43,8 @@ size_t resource_manager::available() const throw() {
 
 } // namespace tpie
 
-void tpie_print_resource_complaint(std::ostream & os, const std::string & name, size_t amount, size_t usage, size_t limit) {
-	if (name == "file descriptors") {
+void tpie_print_resource_complaint(std::ostream & os, tpie::resource_type type, size_t amount, size_t usage, size_t limit) {
+	if (type == tpie::FILES) {
 		os << "File descriptor limit exceeded ";
 		if (usage != limit + 1) {
 			os << "by " << (usage - limit) << " files ";
@@ -57,7 +57,7 @@ void tpie_print_resource_complaint(std::ostream & os, const std::string & name, 
 		os << "."
 		   << " Limit is " << limit << ", but " << usage << " would be opened.";
 	} else {
-	os << "Resource " << name << " limit exceeded by " << tpie::bits::pretty_print::size_type(usage - limit)
+		os << "Resource " << type << " limit exceeded by " << tpie::bits::pretty_print::size_type(usage - limit)
 	   << " (" << (usage-limit) * 100 / limit << "%), while trying to increase usage by " << tpie::bits::pretty_print::size_type(amount) << "."
 	   << " Limit is " << tpie::bits::pretty_print::size_type(limit) << ", but " << tpie::bits::pretty_print::size_type(usage) << " would be used.";
 }
@@ -74,7 +74,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 		size_t usage = m_used.fetch_add(amount) + amount;
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
-			tpie_print_resource_complaint(ss, name, amount, usage, m_limit);
+			tpie_print_resource_complaint(ss, resource_managed, amount, usage, m_limit);
 			throw out_of_resource_error(ss.str());
 		}
 		break; }
@@ -86,7 +86,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 			if (m_maxExceeded >= m_nextWarning) {
 				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
 				std::ostream & os = (m_enforce == ENFORCE_DEBUG) ? log_debug() : log_warning();
-				tpie_print_resource_complaint(os, name, amount, usage, m_limit);
+				tpie_print_resource_complaint(os, resource_managed, amount, usage, m_limit);
 				os << std::endl;
 			}
 		}
@@ -113,10 +113,6 @@ void resource_manager::set_limit(size_t new_limit) {
 
 void resource_manager::set_enforcement(enforce_t e) {
 	m_enforce = e;
-}
-
-void resource_manager::set_name(const std::string & name) {
-	this->name = name;
 }
 
 } //namespace tpie
