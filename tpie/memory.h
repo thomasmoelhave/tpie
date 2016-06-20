@@ -41,7 +41,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Memory management object used to track memory usage.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_manager : public resource_manager {
+class memory_manager final : public resource_manager {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
@@ -76,6 +76,8 @@ public:
 	void complain_about_unfreed_memory();
 #endif
 
+protected:
+	void throw_out_of_resource_error(const std::string & s) override;
 
 private:
 #ifndef TPIE_NDEBUG

@@ -37,25 +37,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
-
+#include <tpie/exception.h>
 namespace tpie {
-
-inline void segfault() {
-	std::abort();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Thrown when trying to allocate too much of a resource.
-///
-/// When the resource limit is exceeded and the resource limit enforcement policy
-/// is set to THROW, this error is thrown by the resource subsystem.
-///////////////////////////////////////////////////////////////////////////////
-struct out_of_resource_error : public std::exception {
-	std::string msg;
-	out_of_resource_error(std::string s) : msg(std::move(s)) { }
-	virtual const char* what() const throw() {return msg.c_str();}
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Resource management object used to track resource usage.
@@ -81,17 +64,17 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the current amount of the resource used.
 	///////////////////////////////////////////////////////////////////////////
-	size_t used() const throw();
+	size_t used() const noexcept;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the amount of the resource still available to be assigned.
 	///////////////////////////////////////////////////////////////////////////
-	size_t available() const throw();
+	size_t available() const noexcept;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the resource limit.
 	///////////////////////////////////////////////////////////////////////////
-	size_t limit() const throw() {return m_limit;}
+	size_t limit() const noexcept {return m_limit;}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Update the resource limit.
@@ -110,7 +93,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the current resource limit enforcement policy.
 	///////////////////////////////////////////////////////////////////////////
-	enforce_t enforcement() {return m_enforce;}
+	enforce_t enforcement() const noexcept {return m_enforce;}
 
 	void register_increased_usage(size_t amount);
 
@@ -132,8 +115,9 @@ public:
 
 private:
 	void print_resource_complaint(std::ostream & os, size_t amount, size_t usage);
-
 protected:
+	virtual void throw_out_of_resource_error(const std::string & s) = 0;
+
 	std::atomic<size_t> m_used;
 	size_t m_limit;
 	size_t m_maxExceeded;

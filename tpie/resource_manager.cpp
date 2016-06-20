@@ -30,11 +30,11 @@ namespace tpie {
 resource_manager::resource_manager(resource_type type)
 	: m_used(0), m_limit(0), m_maxExceeded(0), m_nextWarning(0), m_enforce(ENFORCE_WARN), resource_managed(type) {}
 
-size_t resource_manager::used() const throw() {
+size_t resource_manager::used() const noexcept {
 	return m_used.load();
 }
 
-size_t resource_manager::available() const throw() {
+size_t resource_manager::available() const noexcept {
 	size_t used = m_used.load();
 	size_t limit = m_limit;
 	if (used < limit) return limit-used;
@@ -59,6 +59,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 		if (usage > m_limit && m_limit > 0) {
 			std::stringstream ss;
 			print_resource_complaint(ss, amount, usage);
+			throw_out_of_resource_error(ss.str());
 			throw out_of_resource_error(ss.str());
 		}
 		break; }
@@ -85,7 +86,7 @@ void resource_manager::register_decreased_usage(size_t amount) {
 		log_error() << "Error in decrease_usage, trying to decrease by "
 		            << amount_with_unit(amount) << " , while only "
 		            << amount_with_unit(usage) << " were allocated" << std::endl;
-		segfault();
+		std::abort();
 	}
 #else
 	m_used.fetch_sub(amount);

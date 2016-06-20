@@ -105,6 +105,9 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	return std::make_pair(res, best);
 }
 
+void memory_manager::throw_out_of_resource_error(const std::string & s) {
+	throw out_of_memory_error(s);
+}
 
 #ifndef TPIE_NDEBUG
 void memory_manager::register_pointer(void * p, size_t size, const std::type_info & t) {
@@ -116,7 +119,7 @@ void memory_manager::__register_pointer(void * p, size_t size, const std::type_i
 	if (m_pointers.count(p) != 0) {
 		log_error() << "Trying to register pointer " << p << " of size " 
 					<< size << " which is already registered" << std::endl;
-		segfault();
+		std::abort();
 	}
 	m_pointers[p] = std::make_pair(size, &t);;
 }
@@ -131,17 +134,17 @@ void memory_manager::__unregister_pointer(void * p, size_t size, const std::type
 	if (i == m_pointers.end()) {
 		log_error() << "Trying to deregister pointer " << p << " of size "
 					<< size << " which was never registered" << std::endl;
-		segfault();
+		std::abort();
 	} else {
 		if (i->second.first != size) {
 			log_error() << "Trying to deregister pointer " << p << " of size "
 						<< size << " which was registered with size " << i->second.first << std::endl;
-			segfault();
+			std::abort();
 		}
 		if (*i->second.second != t) {
 			log_error() << "Trying to deregister pointer " << p << " of type "
 						<< t.name() << " which was registered with size " << i->second.second->name() << std::endl;
-			segfault();
+			std::abort();
 		}
 		m_pointers.erase(i);
 	}
@@ -155,7 +158,7 @@ void memory_manager::assert_tpie_ptr(void * p) {
 void memory_manager::__assert_tpie_ptr(void * p) {
 	if (!p || m_pointers.count(p)) return;
 	log_error() << p << " has not been allocated with tpie_new" << std::endl;
-	segfault();
+	std::abort();
 }
 
 void memory_manager::complain_about_unfreed_memory() {

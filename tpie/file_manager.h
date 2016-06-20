@@ -40,7 +40,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief File management object used to track file usage.
 ///////////////////////////////////////////////////////////////////////////////
-class file_manager : public resource_manager {
+class file_manager final : public resource_manager {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
@@ -64,6 +64,11 @@ public:
 			os << amount << " files";
 		}
 		return os.str();
+	}
+
+protected:
+	void throw_out_of_resource_error(const std::string & s) override {
+		throw out_of_files_error(s);
 	}
 };
 
