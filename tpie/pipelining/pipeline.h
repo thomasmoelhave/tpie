@@ -241,7 +241,7 @@ public:
 	}
 
 	template <typename T>
-	T fetch(std::string key) {
+	T & fetch(std::string key) {
 		any_noncopyable &a = fetch_any(key);
 		return any_cast<T>(a);
 	}

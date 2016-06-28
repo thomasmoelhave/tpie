@@ -23,6 +23,7 @@
 #include <tpie/file_stream.h>
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
 #include <tpie/progress_indicator_arrow.h>
@@ -824,67 +825,53 @@ bool bound_fetch_forward_test() {
 	return true;
 }
 
-struct copy_counter {
-	static int c;
-	copy_counter() {}
-	copy_counter(const copy_counter &) {
-		c++;
-	}
-};
-int copy_counter::c = 0;
-
-bool forward_minimal_copy_result;
+bool forward_unique_ptr_result = true;
 
 template <typename dest_t>
-struct FNC1 : public node {
+struct FUP1 : public node {
 	dest_t dest;
-	FNC1(dest_t dest) : dest(std::move(dest)) {}
+	FUP1(dest_t dest) : dest(std::move(dest)) {}
 
 	virtual void propagate() override {
-		forward("ptr", copy_counter());
+		forward("item", std::unique_ptr<int>(new int(293)));
 	}
 
 	virtual void go() override {
 	}
 };
 
-template <typename dest_t>
-struct FNC2 : public node {
-	dest_t dest;
-	FNC2(dest_t dest) : dest(std::move(dest)) {}
-
+struct FUP2 : public node {
 	virtual void propagate() override {
-	}
-};
-
-struct FNC3 : public node {
-	virtual void propagate() override {
-		if (!can_fetch("ptr")) {
-			log_error() << "Cannot fetch ptr" << std::endl;
-			forward_minimal_copy_result = false;
+		if (!can_fetch("item")) {
+			log_error() << "Cannot fetch item" << std::endl;
+			forward_unique_ptr_result = false;
 			return;
 		}
-		auto p = fetch<copy_counter>("ptr");
-		if (p.c != 4) {
-			log_error() << "Expected forwarded item to be copied 4 times, not " << p.c << std::endl;
-			forward_minimal_copy_result = false;
+		auto &p = fetch<std::unique_ptr<int>>("item");
+		if (*p != 293) {
+			log_error() << "Expected 293, not " << *p << std::endl;
+			forward_unique_ptr_result = false;
 			return;
 		}
 	}
 };
 
-
-bool forward_minimal_copy_test() {
-	forward_minimal_copy_result = true;
-	pipeline p = make_pipe_begin<FNC1>()
-		| make_pipe_middle<FNC2>()
-		| make_pipe_middle<FNC2>()
-		| make_pipe_middle<FNC2>()
-		| make_pipe_middle<FNC2>()
-		| make_pipe_end<FNC3>();
+bool forward_unique_ptr_test() {
+	std::unique_ptr<int> ptr(new int(1337));
+	pipeline p = input_vector(std::vector<int>()) | null_sink<int>();
 	p.plot(log_info());
+	p.forward("ptr", ptr);
 	p();
-	if (!forward_minimal_copy_result) return false;
+	if (!forward_unique_ptr_result) return false;
+	if (!p.can_fetch("ptr")) {
+		log_error() << "Cannot fetch ptr" << std::endl;
+		return false;
+	}
+	auto &ptr2 = p.fetch<std::unique_ptr<int>>("ptr");
+	if (*ptr2 != 1337) {
+		log_error() << "Expected 1337, not " << *ptr2 << std::endl;
+		return false;
+	}
 	return true;
 }
 
@@ -2146,7 +2133,7 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(bound_fetch_forward_test, "bound_fetch_forward")
-	.test(forward_minimal_copy_test, "forward_minimal_copy")
+	.test(forward_unique_ptr_test, "forward_unique_ptr")
 	.test(forward_multiple_pipelines_test, "forward_multiple_pipelines")
 	.test(virtual_test, "virtual")
 	.test(virtual_fork_test, "virtual_fork")

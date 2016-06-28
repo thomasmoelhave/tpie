@@ -608,7 +608,7 @@ public:
 	/// \brief Fetch piece of auxiliary data, expecting a given value type.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
-	inline T fetch(std::string key) {
+	inline T & fetch(std::string key) {
 		any_noncopyable &item = fetch_any(key, typeid(T).name());
 		try {
 			return any_cast<T>(item);
