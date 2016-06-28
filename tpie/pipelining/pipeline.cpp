@@ -144,14 +144,8 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 	*/
 }
 
-void pipeline_base_base::forward_any(std::string key, const boost::any & value) {
-	node_map::ptr map = m_nodeMap->find_authority();
-	runtime rt(map);
-	std::vector<node *> sources;
-	rt.get_item_sources(sources);
-	for (size_t j = 0; j < sources.size(); ++j) {
-		sources[j]->forward_any(key, value);
-	}
+void pipeline_base_base::forward_any(std::string key, any_noncopyable && value) {
+	get_node_map()->find_authority()->forward(key, std::move(value));
 }
 
 bool pipeline_base_base::can_fetch(std::string key) {
@@ -165,7 +159,7 @@ bool pipeline_base_base::can_fetch(std::string key) {
 	return false;
 }
 
-boost::any pipeline_base_base::fetch_any(std::string key) {
+any_noncopyable & pipeline_base_base::fetch_any(std::string key) {
 	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
 	std::vector<node *> sinks;
