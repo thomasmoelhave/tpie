@@ -156,6 +156,7 @@ add_unittest(pipelining
 	bound_fetch_forward
 	fetch_forward
 	forward_minimal_copy
+	forward_multiple_pipelines_test
 	virtual
 	virtual_cref_item_type
 	virtual_fork
