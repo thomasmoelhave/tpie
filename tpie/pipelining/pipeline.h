@@ -251,8 +251,8 @@ public:
 	}
 
 	template <typename T>
-	void forward(std::string key, T value) {
-		forward_any(key, any_noncopyable(value));
+	void forward(std::string key, T && value) {
+		forward_any(key, any_noncopyable(std::move(value)));
 	}
 
 	pipeline & then(pipeline & other) {
