@@ -193,6 +193,12 @@ public:
 	friend T & any_cast(any_noncopyable & a);
 	
 	friend void swap(any_noncopyable & l, any_noncopyable & r);
+
+	const std::type_info & type() const {
+		if (!cont) return typeid(void);
+		auto val = cont.get();
+		return typeid(*val);
+	}
 private:
 	std::unique_ptr<bits::any_noncopyable_cont_base> cont;
 };
