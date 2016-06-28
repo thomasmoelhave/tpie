@@ -888,6 +888,16 @@ bool forward_minimal_copy_test() {
 	return true;
 }
 
+bool forward_multiple_pipelines_test() {
+	passive_sorter<int> ps;
+	pipeline p = input_vector(std::vector<int>{3, 2, 1}) | ps.input();
+	p.forward("test", 8);
+	pipeline p_ = input_vector(std::vector<int>{5, 6, 7}) | add_pairs(ps.output()) | null_sink<int>();
+	p();
+	int val = p_.fetch<int>("test");
+	return val == 8;
+}
+
 // Assume that dest_t::item_type is a reference type.
 // Push a dereferenced zero pointer to the destination.
 template <typename dest_t>
@@ -2137,6 +2147,7 @@ int main(int argc, char ** argv) {
 	.test(fetch_forward_test, "fetch_forward")
 	.test(bound_fetch_forward_test, "bound_fetch_forward")
 	.test(forward_minimal_copy_test, "forward_minimal_copy")
+	.test(forward_multiple_pipelines_test, "forward_multiple_pipelines")
 	.test(virtual_test, "virtual")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
