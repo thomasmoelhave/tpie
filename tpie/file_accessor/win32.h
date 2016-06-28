@@ -61,6 +61,9 @@ public:
 	inline bool is_open() const;
 
 	inline void set_cache_hint(cache_hint cacheHint);
+
+private:
+	inline _open(const std::string & path, DWORD access, DWORD create_mode);
 };
 
 }

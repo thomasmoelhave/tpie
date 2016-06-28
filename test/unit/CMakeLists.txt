@@ -97,6 +97,7 @@ add_unittest(merge_sort
 	evacuate_before_merge
 	evacuate_before_report
 	sort_upper_bound
+	sort_faulty_upper_bound
 	temp_file_usage
 	tall_tree
 	)
@@ -112,6 +113,7 @@ add_unittest(serialization_sort
 	small_final_fanout
 	evacuate_before_merge
 	evacuate_before_report
+	file_limit
 	)
 add_unittest(stats simple)
 add_unittest(stream
@@ -174,11 +176,18 @@ add_unittest(pipelining
 	set_flush_priority_test
 	node_map
 	subpipeline
+	file_limit_sort
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
 add_unittest(maybe basic unique_ptr)
-add_unittest(close_file internal serialization_writer_close serialization_writer_dtor serialization_reader_dtor)
+add_unittest(close_file
+	internal
+	serialization_writer_close
+	serialization_writer_dtor
+	serialization_reader_dtor
+	file_limit_enforcement
+)
 add_unittest(node_name gcc msvc)
 add_unittest(snappy basic)
 

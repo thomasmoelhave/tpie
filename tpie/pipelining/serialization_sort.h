@@ -91,7 +91,6 @@ public:
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
-		node::set_available_memory(availableMemory);
 		if (!m_propagate_called)
 			m_sorter->set_phase_3_memory(availableMemory);
 	}
@@ -266,7 +265,6 @@ public:
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
-		node::set_available_memory(availableMemory);
 		if (!m_propagate_called)
 			m_sorter->set_phase_2_memory(availableMemory);
 	}
@@ -332,7 +330,6 @@ public:
 
 protected:
 	virtual void set_available_memory(memory_size_type availableMemory) override {
-		node::set_available_memory(availableMemory);
 		if (!m_propagate_called)
 			m_sorter->set_phase_1_memory(availableMemory);
 	}

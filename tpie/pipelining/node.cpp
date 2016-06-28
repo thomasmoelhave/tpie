@@ -45,31 +45,6 @@ void proxy_progress_indicator::refresh() {
 
 } // namespace bits
 
-node_parameters::node_parameters()
-	: minimumMemory(0)
-	, maximumMemory(std::numeric_limits<memory_size_type>::max())
-	, memoryFraction(0.0)
-	, name()
-	, namePriority(PRIORITY_NO_NAME)
-	, phaseName()
-	, phaseNamePriority(PRIORITY_NO_NAME)
-	, stepsTotal(0)
-{
-}
-
-void node::set_memory_fraction(double f) {
-	switch (get_state()) {
-	case STATE_IN_PROPAGATE:
-	case STATE_AFTER_PROPAGATE:
-	case STATE_FRESH:
-	case STATE_IN_PREPARE:
-		break;
-	default:
-		throw call_order_exception("set_memory_fraction");
-	}
-	m_parameters.memoryFraction = f;
-}
-
 const std::string & node::get_name() {
 	if (m_parameters.name.empty()) {
 		m_parameters.name = bits::extract_pipe_name(typeid(*this).name());
@@ -94,7 +69,6 @@ void node::set_phase_name(const std::string & name, priority_type priority) {
 
 node::node()
 	: token(this)
-	, m_availableMemory(0)
 	, m_flushPriority(0)
 	, m_stepsLeft(0)
 	, m_pi(0)
@@ -106,7 +80,6 @@ node::node()
 node::node(node && other)
 	: token(other.token, this)
 	, m_parameters(std::move(other.m_parameters))
-	, m_availableMemory(std::move(other.m_availableMemory))
 	, m_buckets(std::move(other.m_buckets))
 	, m_flushPriority(std::move(other.m_flushPriority))
 	, m_stepsLeft(std::move(other.m_stepsLeft))
@@ -128,7 +101,6 @@ node & node::operator=(node && other) {
 node::node(const node_token & token)
 	: token(token, this, true)
 	, m_parameters()
-	, m_availableMemory(0)
 	, m_flushPriority(0)
 	, m_stepsLeft(0)
 	, m_pi(0)
@@ -179,34 +151,40 @@ void node::add_memory_share_dependency(const node & dest) {
 	add_memory_share_dependency(dest.token);
 }
 
-void node::set_minimum_memory(memory_size_type minimumMemory) {
-	switch (get_state()) {
-	case STATE_IN_PROPAGATE:
-	case STATE_AFTER_PROPAGATE:
-	case STATE_FRESH:
-	case STATE_IN_PREPARE:
-		break;
-	default:
-		throw call_order_exception("set_minimum_memory");
-	}
-	m_parameters.minimumMemory = minimumMemory;
-}
 
-void node::set_maximum_memory(memory_size_type maximumMemory) {
-	switch (get_state()) {
-	case STATE_IN_PROPAGATE:
-	case STATE_AFTER_PROPAGATE:
-	case STATE_FRESH:
-	case STATE_IN_PREPARE:
-		break;
-	default:
-		throw call_order_exception("set_maximum_memory");
+#define TPIE_RESOURCE_SETTER(setter_name, param_type, param_name) \
+	void node::setter_name(resource_type type, param_type value) { \
+		switch (get_state()) { \
+		case STATE_IN_PROPAGATE: \
+		case STATE_AFTER_PROPAGATE: \
+		case STATE_FRESH: \
+		case STATE_IN_PREPARE: \
+			break; \
+		default: \
+			resource_type t = get_resource_being_assigned(); \
+			/* If the changed resource is being assigned later,
+			 * allow changing it
+			 */ \
+			if (t != NO_RESOURCE && type > t) \
+				break; \
+			throw call_order_exception(#setter_name); \
+		} \
+		m_parameters.resource_parameters[type].param_name = value; \
 	}
-	m_parameters.maximumMemory = maximumMemory;
-}
 
-void node::set_available_memory(memory_size_type availableMemory) {
-	m_availableMemory = availableMemory;
+TPIE_RESOURCE_SETTER(set_minimum_resource_usage, memory_size_type, minimum);
+TPIE_RESOURCE_SETTER(set_maximum_resource_usage, memory_size_type, maximum);
+TPIE_RESOURCE_SETTER(set_resource_fraction, double, fraction);
+
+#undef TPIE_RESOURCE_SETTER
+
+void node::_internal_set_available_of_resource(resource_type type, memory_size_type available) {
+	m_parameters.resource_parameters[type].available = available;
+	resource_available_changed(type, available);
+	if (type == MEMORY) {
+		// Legacy interface
+		set_available_memory(available);
+	}
 }
 
 void node::forward_any(std::string key, boost::any value, memory_size_type k) {

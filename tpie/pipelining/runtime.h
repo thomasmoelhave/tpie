@@ -22,6 +22,7 @@
 
 #include <tpie/fractional_progress.h>
 #include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/node.h>
 #include <set>
 #include <unordered_set>
 
@@ -33,6 +34,7 @@ namespace bits {
 
 template <typename T>
 class graph;
+class file_runtime;
 class memory_runtime;
 class datastructure_runtime;
 
@@ -66,6 +68,7 @@ public:
 
 	gocontext_ptr go_init(stream_size_type items,
 						 progress_indicator_base & progress,
+						 memory_size_type files,
 						 memory_size_type memory,
 						 const char * file, const char * function);
 	
@@ -88,6 +91,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void go(stream_size_type items,
 			progress_indicator_base & progress,
+			memory_size_type files,
 			memory_size_type memory,
 			const char * file, const char * function);
 
@@ -212,6 +216,31 @@ public:
 	/// indicator.
 	///////////////////////////////////////////////////////////////////////////
 	void go_initiators(const std::vector<node *> & phase);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void set_resource_being_assigned(const std::vector<node *> & nodes,
+											resource_type type);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void assign_files(const std::vector<std::vector<node *> > & phases,
+							  memory_size_type files);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by go().
+	///////////////////////////////////////////////////////////////////////////
+	static void reassign_files(const std::vector<std::vector<node *> > & phases,
+								memory_size_type phase,
+								memory_size_type files);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Internal method used by assign_memory().
+	///////////////////////////////////////////////////////////////////////////
+	static double get_files_factor(memory_size_type files,
+								   const file_runtime & frt);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Internal method used by go().

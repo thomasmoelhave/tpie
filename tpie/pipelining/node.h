@@ -31,6 +31,7 @@
 #include <tpie/pipelining/node_traits.h>
 #include <tpie/flags.h>
 #include <limits>
+#include <tpie/resources.h>
 
 namespace tpie {
 
@@ -49,20 +50,24 @@ public:
 
 } // namespace bits
 
-struct node_parameters {
-	node_parameters();
+struct node_resource_parameters {
+	memory_size_type minimum = 0;
+	memory_size_type maximum = std::numeric_limits<memory_size_type>::max();
+	double fraction = 0.0;
 
-	memory_size_type minimumMemory;
-	memory_size_type maximumMemory;
-	double memoryFraction;
+	memory_size_type available = 0;
+};
+
+struct node_parameters {
+	node_resource_parameters resource_parameters[resource_type::TOTAL_RESOURCE_TYPES];
 
 	std::string name;
-	priority_type namePriority;
+	priority_type namePriority = PRIORITY_NO_NAME;
 
 	std::string phaseName;
 	priority_type phaseNamePriority;
 
-	stream_size_type stepsTotal;
+	stream_size_type stepsTotal = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -104,11 +109,73 @@ public:
 	virtual ~node() {}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the minimum amount of the resource declared by this node.
+	/// Defaults to zero when no minimum has been set.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_minimum_resource_usage(resource_type type) const {
+		return m_parameters.resource_parameters[type].minimum;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the maximum amount of the resource declared by this node.
+	/// Defaults to maxint when no maximum has been set.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_maximum_resource_usage(resource_type type) const {
+		return m_parameters.resource_parameters[type].maximum;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the priority for the specific resource of this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline double get_resource_fraction(resource_type type) const {
+		return m_parameters.resource_parameters[type].fraction;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of the specific resource assigned to this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_available_of_resource(resource_type type) const {
+		return m_parameters.resource_parameters[type].available;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare minimum resource requirements.
+	///////////////////////////////////////////////////////////////////////////
+	void set_minimum_resource_usage(resource_type type, memory_size_type usage);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare maximum resource requirements.
+	///
+	/// To signal that you don't want to use this resource,
+	/// set minimum resource usage and the resource fraction to zero.
+	///////////////////////////////////////////////////////////////////////////
+	void set_maximum_resource_usage(resource_type type, memory_size_type usage);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \Brief Set the resource priority of this node. Resources are
+	/// distributed proportionally to the priorities of the nodes in the given
+	/// phase.
+	///////////////////////////////////////////////////////////////////////////
+	void set_resource_fraction(resource_type type, double f);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by the resource manager to notify the node's available
+	/// amount of resource has changed.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void resource_available_changed(resource_type, memory_size_type) {
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Used internally to assign the available resource to the node.
+	///////////////////////////////////////////////////////////////////////////
+	void _internal_set_available_of_resource(resource_type type, memory_size_type available);
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the minimum amount of memory declared by this node.
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_minimum_memory() const {
-		return m_parameters.minimumMemory;
+		return get_minimum_resource_usage(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -116,37 +183,64 @@ public:
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_maximum_memory() const {
-		return m_parameters.maximumMemory;
+		return get_maximum_resource_usage(MEMORY);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the memory priority of this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline double get_memory_fraction() const {
+		return get_resource_fraction(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of memory assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type get_available_memory() const {
-		return m_availableMemory;
+		return get_available_of_resource(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the amount of memory assigned to this node.
+	/// \brief Called by implementers to declare minimum memory requirements.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_used_memory() const {
-		memory_size_type ans=0;
-		for (const auto & p: m_buckets)
-			if (p) ans += p->count;
-		return ans;
+	void set_minimum_memory(memory_size_type minimumMemory) {
+		set_minimum_resource_usage(MEMORY, minimumMemory);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Called by implementers to declare maximum memory requirements.
+	///
+	/// To signal that you don't want any memory, set minimum memory and the
+	/// memory fraction to zero.
+	///////////////////////////////////////////////////////////////////////////
+	void set_maximum_memory(memory_size_type maximumMemory) {
+		set_maximum_resource_usage(MEMORY, maximumMemory);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \Brief Set the memory priority of this node. Memory is distributed
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
-	void set_memory_fraction(double f);
+	void set_memory_fraction(double f) {
+		set_resource_fraction(MEMORY, f);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Get the memory priority of this node.
+	/// \brief Called by the memory manager to set the amount of memory
+	/// assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline double get_memory_fraction() const {
-		return m_parameters.memoryFraction;
+	virtual void set_available_memory(memory_size_type availableMemory) {
+		unused(availableMemory);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the amount of memory currently used by this node.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type get_used_memory() const {
+		memory_size_type ans=0;
+		for (const auto & p: m_buckets)
+			if (p) ans += p->count;
+		return ans;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -336,6 +430,20 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used internally to check order of method calls.
+	///////////////////////////////////////////////////////////////////////////
+	resource_type get_resource_being_assigned() const {
+		return m_resourceBeingAssigned;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used internally to check order of method calls.
+	///////////////////////////////////////////////////////////////////////////
+	void set_resource_being_assigned(resource_type type) {
+		m_resourceBeingAssigned = type;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Get options specified for plot(), as a combination of
 	/// \c node::PLOT values.
 	///////////////////////////////////////////////////////////////////////////
@@ -435,25 +543,6 @@ public:
 	/// begin() unless evacuate() is called
 	///////////////////////////////////////////////////////////////////////////
 	void add_memory_share_dependency(const node & dest);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare minimum memory requirements.
-	///////////////////////////////////////////////////////////////////////////
-	void set_minimum_memory(memory_size_type minimumMemory);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by implementers to declare maximum memory requirements.
-	///
-	/// To signal that you don't want any memory, set minimum memory and the
-	/// memory fraction to zero.
-	///////////////////////////////////////////////////////////////////////////
-	void set_maximum_memory(memory_size_type maximumMemory);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Called by the memory manager to set the amount of memory
-	/// assigned to this node.
-	///////////////////////////////////////////////////////////////////////////
-	virtual void set_available_memory(memory_size_type availableMemory);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Called by implementers to forward auxiliary data to successors.
@@ -718,7 +807,6 @@ private:
 	node_token token;
 
 	node_parameters m_parameters;
-	memory_size_type m_availableMemory;
 	std::vector<std::unique_ptr<memory_bucket> > m_buckets;
 	
 	typedef std::map<std::string, std::pair<boost::any, bool> > valuemap;
@@ -729,6 +817,7 @@ private:
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;
+	resource_type m_resourceBeingAssigned = NO_RESOURCE;
 	std::unique_ptr<progress_indicator_base> m_piProxy;
 	flags<PLOT> m_plotOptions;
 
