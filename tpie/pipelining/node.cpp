@@ -187,7 +187,7 @@ void node::_internal_set_available_of_resource(resource_type type, memory_size_t
 	}
 }
 
-void node::forward_any(std::string key, any_noncopyable && value, memory_size_type k) {
+void node::forward_any(std::string key, any_noncopyable value, memory_size_type k) {
 	switch (get_state()) {
 		case STATE_FRESH:
 		case STATE_IN_PREPARE:

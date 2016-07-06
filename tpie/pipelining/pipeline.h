@@ -72,7 +72,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipeline_base_base() {}
 
-	void forward_any(std::string key, any_noncopyable && value);
+	void forward_any(std::string key, any_noncopyable value);
 	
 	bool can_fetch(std::string key);
 
@@ -246,12 +246,12 @@ public:
 		return any_cast<T>(a);
 	}
 
-	void forward_any(std::string key, any_noncopyable && value) {
+	void forward_any(std::string key, any_noncopyable value) {
 		p->forward_any(key, std::move(value));
 	}
 
 	template <typename T>
-	void forward(std::string key, T && value) {
+	void forward(std::string key, T value) {
 		forward_any(key, any_noncopyable(std::move(value)));
 	}
 

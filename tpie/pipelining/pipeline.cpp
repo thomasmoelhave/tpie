@@ -144,7 +144,7 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 	*/
 }
 
-void pipeline_base_base::forward_any(std::string key, any_noncopyable && value) {
+void pipeline_base_base::forward_any(std::string key, any_noncopyable value) {
 	get_node_map()->find_authority()->forward(key, std::move(value));
 }
 

@@ -563,13 +563,13 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void forward(std::string key, T value, memory_size_type k = std::numeric_limits<memory_size_type>::max()) {
-		forward_any(key, any_noncopyable(value), k);
+		forward_any(key, any_noncopyable(std::move(value)), k);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief See \ref node::forward.
 	///////////////////////////////////////////////////////////////////////////
-	void forward_any(std::string key, any_noncopyable && value, memory_size_type k = std::numeric_limits<memory_size_type>::max());
+	void forward_any(std::string key, any_noncopyable value, memory_size_type k = std::numeric_limits<memory_size_type>::max());
 
 private:
 	///////////////////////////////////////////////////////////////////////////

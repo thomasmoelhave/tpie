@@ -197,7 +197,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void get_successors(id_t from, std::vector<id_t> & successors, memory_size_type k, bool forward_only=false);
 
-	void forward(std::string key, any_noncopyable && value) {
+	void forward(std::string key, any_noncopyable value) {
 		m_pipelineForwards[key] = std::move(value);
 	}
 

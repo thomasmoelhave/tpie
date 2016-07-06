@@ -858,9 +858,10 @@ struct FUP2 : public node {
 
 bool forward_unique_ptr_test() {
 	std::unique_ptr<int> ptr(new int(1337));
-	pipeline p = input_vector(std::vector<int>()) | null_sink<int>();
+	pipeline p = make_pipe_begin<FUP1>()
+		| make_pipe_end<FUP2>();
 	p.plot(log_info());
-	p.forward("ptr", ptr);
+	p.forward("ptr", std::move(ptr));
 	p();
 	if (!forward_unique_ptr_result) return false;
 	if (!p.can_fetch("ptr")) {
