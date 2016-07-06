@@ -886,6 +886,58 @@ bool forward_multiple_pipelines_test() {
 	return val == 8;
 }
 
+bool pipe_base_forward_result = true;
+
+struct PBF_base : public node {
+	int n;
+	PBF_base(int n) : n(n) {}
+
+	virtual void prepare() override {
+		for (int i = 1; i <= 3; i++) {
+			std::string item = "item" + std::to_string(i);
+			bool fetchable = can_fetch(item);
+			if (n < i) {
+				if (fetchable) {
+					log_error() << "Pipe segment " << n
+								<< " could fetch item " << i << "." << std::endl;
+					pipe_base_forward_result = false;
+				}
+			} else {
+				if (!fetchable) {
+					log_error() << "Pipe segment " << n
+								<< " couldn't fetch item " << i << "." << std::endl;
+					pipe_base_forward_result = false;
+				}
+				int value = fetch<int>(item);
+				if (value != i) {
+					log_error() << "Pipe segment " << n
+								<< " fetched item " << i
+								<< " with value " << value << "." << std::endl;
+					pipe_base_forward_result = false;
+				}
+			}
+		}
+	}
+};
+
+template <typename dest_t>
+struct PBF : public PBF_base {
+	dest_t dest;
+	PBF(dest_t dest, int n) : PBF_base(n), dest(std::move(dest)) {}
+
+	virtual void go() override {
+	}
+};
+
+bool pipe_base_forward_test() {
+	pipeline p = make_pipe_begin<PBF>(1).forward("item1", 1)
+		| make_pipe_middle<PBF>(2).forward("item2", 2)
+		| make_pipe_end<PBF_base>(3).forward("item3", 3);
+	p();
+
+	return pipe_base_forward_result;
+}
+
 // Assume that dest_t::item_type is a reference type.
 // Push a dereferenced zero pointer to the destination.
 template <typename dest_t>
@@ -1617,7 +1669,7 @@ public:
 		if (edges.size() != nodes*nodes) throw std::invalid_argument("edges has wrong size");
 	}
 
-	node_map_tester construct() const {
+	node_map_tester construct() {
 		std::vector<node_map_tester *> nodes;
 		node_map_tester node;
 		this->init_node(node);
@@ -2136,6 +2188,7 @@ int main(int argc, char ** argv) {
 	.test(bound_fetch_forward_test, "bound_fetch_forward")
 	.test(forward_unique_ptr_test, "forward_unique_ptr")
 	.test(forward_multiple_pipelines_test, "forward_multiple_pipelines")
+	.test(pipe_base_forward_test, "pipe_base_forward")
 	.test(virtual_test, "virtual")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")

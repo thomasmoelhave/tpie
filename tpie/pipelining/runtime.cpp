@@ -707,6 +707,10 @@ gocontext_ptr runtime::go_init(stream_size_type items,
 	get_item_flow_graphs(phases, itemFlow);
 	std::vector<graph<node *> > actor;
 	get_actor_graphs(phases, actor);
+
+	// Make the nodeMap forward all the forwards calls
+	// made on pipe_bases
+	m_nodeMap.forward_pipe_base_forwards();
 	
 	// Toposort item flow graph for each phase
 	// and call node::prepare in item source to item sink order

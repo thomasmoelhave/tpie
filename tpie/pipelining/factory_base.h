@@ -131,7 +131,7 @@ public:
 	/// If more than one node is constructed in the subclass in \c construct(),
 	/// the implementation should use \c init_sub_node instead.
 	///////////////////////////////////////////////////////////////////////////
-	inline void init_node(node & r) const {
+	inline void init_node(node & r) {
 		if (!m_name.empty()) {
 			r.set_name(m_name, m_namePriority);
 		}
@@ -154,7 +154,7 @@ public:
 	/// If just one node is constructed in the subclass in \c construct(),
 	/// the implementation should use \c init_node instead.
 	///////////////////////////////////////////////////////////////////////////
-	void init_sub_node(node & r) const {
+	void init_sub_node(node & r) {
 		if (m_breadcrumbs.empty()) {
 			if (m_name.empty()) {
 				// no op
@@ -297,12 +297,22 @@ public:
 			m_add_relations.push_back(std::make_pair(s,bits::depends));
 	}
 
+	void forward(const std::string & key, any_noncopyable value) {
+		m_forwards.push_back({key, std::move(value)});
+	}
+
 private:
-	void init_common(node & r) const {
+	void init_common(node & r) {
 		if (m_set) r.set_memory_fraction(memory());
 
 		for (size_t i = 0; i < m_hooks.size(); ++i) {
 			m_hooks[i]->init_node(r);
+		}
+
+		auto nodeMap = r.get_node_map()->find_authority();
+
+		for (auto &p : m_forwards) {
+			nodeMap->forward_from_pipe_base(r.get_id(), p.first, std::move(p.second));
 		}
 	}
 	
@@ -315,6 +325,7 @@ private:
 	std::vector<factory_init_hook *> m_hooks;
 	std::vector<node_set> m_add_to_set;
 	std::vector<std::pair<node_set, bits::node_relation> > m_add_relations;
+	std::vector<std::pair<std::string, any_noncopyable> > m_forwards;
 };
 
 } // namespace pipelining

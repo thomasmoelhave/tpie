@@ -408,7 +408,7 @@ public:
 	};
 	
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t dest) const {
+	typename constructed<dest_t>::type construct(dest_t dest) {
 		typedef typename push_type<dest_t>::type item_type;
 		typedef typename store_t::template element_type<item_type>::type element_type;
 		typedef typename constructed<dest_t>::pred_type pred_type;
