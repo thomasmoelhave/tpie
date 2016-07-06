@@ -227,7 +227,7 @@ void node::add_forwarded_data(std::string key, node_token::id_t from_node) {
 }
 
 node::maybeany_t node::fetch_maybe(std::string key) {
-	bits::node_map::ptr nodeMap = get_node_map()->find_authority();
+	auto nodeMap = get_node_map()->find_authority();
 
 	auto it = m_forwardedToHere.find(key);
 	if (it == m_forwardedToHere.end()) {
@@ -235,7 +235,7 @@ node::maybeany_t node::fetch_maybe(std::string key) {
 		return nodeMap->fetch_maybe(key);
 	}
 
-	node_token::id_t fetch_from_id = it->second;
+	auto fetch_from_id = it->second;
 	node *fetch_from = nodeMap->get(fetch_from_id);
 	if (!fetch_from) {
 		return maybeany_t();
