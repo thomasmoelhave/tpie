@@ -602,14 +602,14 @@ public:
 	/// \brief Fetch piece of auxiliary data as any_noncopyable (the internal
 	/// representation).
 	///////////////////////////////////////////////////////////////////////////
-	any_noncopyable & fetch_any(std::string key, const std::string & type_name = "any_noncopyable");
+	any_noncopyable & fetch_any(std::string key);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Fetch piece of auxiliary data, expecting a given value type.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	inline T & fetch(std::string key) {
-		any_noncopyable &item = fetch_any(key, typeid(T).name());
+		any_noncopyable &item = fetch_any(key);
 		try {
 			return any_cast<T>(item);
 		} catch (bad_any_noncopyable_cast m) {

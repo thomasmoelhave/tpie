@@ -244,12 +244,11 @@ node::maybeany_t node::fetch_maybe(std::string key) {
 	return fetch_from->get_forwarded_data_maybe(key);
 }
 
-any_noncopyable & node::fetch_any(std::string key, const std::string & type_name) {
+any_noncopyable & node::fetch_any(std::string key) {
 	maybeany_t value = fetch_maybe(key);
 	if (!value) {
 		std::stringstream ss;
-		ss << "Tried to fetch nonexistent key '" << key
-		   << "' of type " << type_name
+		ss << "Tried to fetch nonexistent key '" << key << "'" 
 		   << " in " << get_name() << " of type " << typeid(*this).name();
 		throw invalid_argument_exception(ss.str());
 	}
