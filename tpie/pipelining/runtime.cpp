@@ -316,10 +316,10 @@ private:
 };
 
 std::string get_phase_name(const std::vector<node *> & phase) {
-	priority_type highest = std::numeric_limits<priority_type>::min();
+	priority_type highest = std::numeric_limits<priority_type>::lowest();
 	size_t highest_node = 0;
 	for (size_t i = 0; i < phase.size(); ++i) {
-		if (phase[i]->get_phase_name_priority() > highest) {
+		if (phase[i]->get_phase_name_priority() > highest && phase[i]->get_phase_name().size()) {
 			highest_node = i;
 			highest = phase[i]->get_phase_name_priority();
 		}

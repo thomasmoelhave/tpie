@@ -65,7 +65,7 @@ struct node_parameters {
 	priority_type namePriority = PRIORITY_NO_NAME;
 
 	std::string phaseName;
-	priority_type phaseNamePriority;
+	priority_type phaseNamePriority = PRIORITY_NO_NAME;
 
 	stream_size_type stepsTotal = 0;
 };
