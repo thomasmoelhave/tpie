@@ -412,9 +412,10 @@ typedef pipe_end<termfactory<sequence_verifier_type, size_t, bool *> >
 
 bool sort_test(size_t elements) {
 	bool result = false;
-	pipeline p = sequence_generator(elements, true)
-		| sort().name("Test")
-		| sequence_verifier(elements, &result);
+	pipeline p = 
+		virtual_chunk_begin<size_t>(sequence_generator(elements, true))
+		| virtual_chunk_end<size_t>(sort().name("Test")
+		| sequence_verifier(elements, &result));
 	p.plot(log_info());
 	p();
 	return result;
