@@ -110,7 +110,7 @@ public:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit external_store(const std::string & path)
+	explicit external_store(const std::string & path, bool /*write_only*/=false) //TODO maybe use this?
 	: external_store_base(path)
 	{
 		m_collection = std::make_shared<blocks::block_collection_cache>(
@@ -379,6 +379,9 @@ public:
 	void set_size(size_t size) throw() {
 		m_size = size;
 	}
+	
+	void flush() {}
+	void finalize_build() {}
 
 	std::shared_ptr<blocks::block_collection_cache> m_collection;
 

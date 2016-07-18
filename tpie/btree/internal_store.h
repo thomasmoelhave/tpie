@@ -236,6 +236,9 @@ private:
 	void set_size(size_t size) throw() {
 		m_size = size;
 	}
+	
+	void flush() {}
+	void finalize_build() {}
 
 	void * m_root;
 	size_t m_height;
