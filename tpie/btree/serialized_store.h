@@ -136,7 +136,7 @@ private:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit serialized_store(const std::string & path, bool write_only): 
+	explicit serialized_store(const std::string & path, bool write_only=false): 
 		m_height(0), m_size(0), path(path) {
 		f.reset(new std::fstream());
 		header h;
