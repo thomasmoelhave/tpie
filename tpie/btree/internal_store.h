@@ -240,9 +240,18 @@ private:
 	void flush() {}
 	void finalize_build() {}
 
+	void set_metadata(const std::string & data) {
+		metadata = data;
+	}
+	
+	std::string get_metadata() {
+		return metadata;
+	}
+	
 	void * m_root;
 	size_t m_height;
 	size_t m_size;
+	std::string metadata;
 
 	template <typename>
 	friend class ::tpie::btree_node;

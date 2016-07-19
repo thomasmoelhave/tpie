@@ -382,6 +382,14 @@ public:
 	
 	void flush() {}
 	void finalize_build() {}
+	
+	void set_metadata(const std::string & data) {
+		throw exception("Not yet implemnted.");
+	}
+	
+	std::string get_metadata() {
+		throw exception("Not yet implemnted.");
+	}
 
 	std::shared_ptr<blocks::block_collection_cache> m_collection;
 

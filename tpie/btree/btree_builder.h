@@ -211,11 +211,11 @@ public:
         if(m_items.size() < leaf_tipping_point()) return;
 		extract_nodes();
     }
-
+    
 	/**
 	* \brief Constructs and returns a btree from the value that was pushed to the builder. The btree builder should not be used again after this point.
 	*/
-    tree_type build() {
+    tree_type build(const std::string & metadata = std::string()) {
         // finish building the tree by traversing all levels and constructing leaves/nodes
 
         // construct one or two leaves if neccesary
@@ -259,6 +259,10 @@ public:
             else
                 m_state.store().set_root(m_internal_nodes.back().front().internal);
         }
+		if (metadata.size()) {
+			m_state.store().flush();
+			m_state.store().set_metadata(metadata);
+		}
 		m_state.store().finalize_build();
         return tree_type(std::move(m_state), std::move(m_comp));
     }

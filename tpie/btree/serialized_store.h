@@ -128,6 +128,8 @@ private:
 		off_t root; // offset of root
 		size_t height; // tree height (internal and leaf levels)
 		size_t size; // number of items (from btree)
+		off_t metadata_offset;
+		off_t metadata_size;
 	};
 	
 	typedef std::shared_ptr<internal> internal_type;
@@ -137,7 +139,7 @@ private:
 	 * \brief Construct a new empty btree storage
 	 */
 	explicit serialized_store(const std::string & path, bool write_only=false): 
-		m_height(0), m_size(0), path(path) {
+		m_height(0), m_size(0), metadata_offset(0), metadata_size(0), path(path) {
 		f.reset(new std::fstream());
 		header h;
 		if (write_only) {
@@ -162,6 +164,8 @@ private:
 		
 			m_height = h.height;
 			m_size = h.size;
+			metadata_offset = h.metadata_offset;
+			metadata_size = h.metadata_size;
 			if (m_height == 1) {
 				root_leaf = std::make_shared<leaf>();
 				root_leaf->my_offset = h.root;
@@ -277,7 +281,15 @@ private:
 		tp_assert(false, "Not found");
 		tpie_unreachable();
 	}
+	
+	size_t index(leaf_type l, internal_type node) const {
+		return index(l->my_offset, node);
+	}
 
+	size_t index(internal_type i, internal_type node) const {
+		return index(i->my_offset, node);
+	}
+	
 	void set_augment(leaf_type l, internal_type p, augment_type ag) {
 		size_t idx = index(l->my_offset, p);
 		p->values[idx].augment = ag;
@@ -339,6 +351,8 @@ private:
 		}
 		h.height = m_height;
 		h.size = m_size;
+		h.metadata_offset = metadata_offset;
+		h.metadata_size = metadata_size;
 		f->seekp(0);
 		f->write(reinterpret_cast<char *>(&h), sizeof(h));
 		f->close();
@@ -348,8 +362,26 @@ private:
 			throw invalid_file_exception("Open failed");
 	}
 	
+	void set_metadata(const std::string & data) {
+		assert(!current_internal && !current_leaf);
+		assert(f->is_open());
+		metadata_offset = f->tellp();
+		metadata_size = data.size();
+		f->write(data.c_str(), data.size());
+	}
+	
+	std::string get_metadata() {
+		assert(f->is_open());
+		if (metadata_offset == 0 || metadata_size == 0)
+			return {};
+		std::string data(metadata_size, '\0');
+		f->read(&data[0], metadata_size);
+		return data;
+	}
+
 	size_t m_height;
 	size_t m_size;
+	off_t metadata_offset, metadata_size;
 	
 	std::string path;
 	std::unique_ptr<std::fstream> f;
