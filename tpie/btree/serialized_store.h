@@ -31,8 +31,7 @@ namespace tpie {
 namespace bbits {
 
 /**
- * \brief Storage used for an internal btree. Note that a user of a btree should
- * not call the store directly
+ * \brief Serializing store
  *
  * \tparam T the type of value stored
  * \tparam A the type of augmentation
