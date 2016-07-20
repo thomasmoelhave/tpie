@@ -61,7 +61,7 @@ public:
 
 	typedef size_t size_type;
 	
-	typedef std::fstream::pos_type off_t;
+	typedef uint64_t off_t;
 
 
 	serialized_store(const serialized_store & o) = delete;
@@ -89,12 +89,14 @@ private:
 		
 		template <typename S>
 		friend void serialize(S & s, const internal & i) {
+			using tpie::serialize;
 			serialize(s, i.count);
 			serialize(s, i.values, i.values + i.count);
 		}
 		
 		template <typename D>
 		friend void unserialize(D & d, internal & i) {
+			using tpie::unserialize;
 			unserialize(d, i.count);
 			assert(i.count <= b);
 			unserialize(d, i.values, i.values + i.count);
@@ -108,12 +110,14 @@ private:
 		
 		template <typename S>
 		friend void serialize(S & s, const leaf & i) {
+			using tpie::serialize;
 			serialize(s, i.count);
 			serialize(s, i.values, i.values + i.count);
 		}
 		
 		template <typename D>
 		friend void unserialize(D & d, leaf & i) {
+			using tpie::unserialize;
 			unserialize(d, i.count);
 			assert(i.count <= b);
 			unserialize(d, i.values, i.values + i.count);
