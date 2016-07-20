@@ -33,7 +33,6 @@
 #include <type_traits>
 #include <utility>
 #include <atomic>
-#include <sys/resource.h>
 
 namespace tpie {
 
