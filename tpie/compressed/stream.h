@@ -1054,6 +1054,7 @@ public:
 			if (m_nextItem == m_bufferEnd) {
 				compressor_thread_lock lock(compressor());
 				if (m_bufferDirty) {
+					m_updateReadOffsetFromWrite = true;
 					flush_block(lock);
 				}
 				if (offset() == size()) {
@@ -1076,8 +1077,10 @@ public:
 
 		if (m_nextItem == m_bufferEnd) {
 			compressor_thread_lock l(compressor());
-			if (m_bufferDirty)
+			if (m_bufferDirty) {
+				m_updateReadOffsetFromWrite = true;
 				flush_block(l);
+			}
 			get_buffer(l, m_streamBlocks);
 			m_nextItem = m_bufferBegin;
 		}
@@ -1280,8 +1283,9 @@ private:
 		compressor().request(r);
 		m_bufferDirty = false;
 
-		m_updateReadOffsetFromWrite = true;
-		m_lastWriteBlockNumber = blockNumber;
+		if (m_updateReadOffsetFromWrite) {
+			m_lastWriteBlockNumber = blockNumber;
+		}
 
 		if (blockNumber == m_streamBlocks) {
 			++m_streamBlocks;
@@ -1293,8 +1297,10 @@ private:
 			while (!m_response.done()) {
 				m_response.wait(lock);
 			}
-			m_readOffset = m_response.get_read_offset(m_lastWriteBlockNumber);
-			m_nextReadOffset = m_readOffset + m_response.get_block_size(m_lastWriteBlockNumber);
+			if (m_response.has_block_info(m_lastWriteBlockNumber)) {
+				m_readOffset = m_response.get_read_offset(m_lastWriteBlockNumber);
+				m_nextReadOffset = m_readOffset + m_response.get_block_size(m_lastWriteBlockNumber);
+			}
 			m_updateReadOffsetFromWrite = false;
 		}
 	}
