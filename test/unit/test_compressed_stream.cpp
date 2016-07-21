@@ -966,16 +966,20 @@ bool stack_test() {
 	}
 	
 	for (uint32_t i=cnt-1; i < cnt; --i) {
-		if (i != fs_a.read_back()) {
-			tpie::log_error() << "Bad value" << std::endl;
+		uint32_t val;
+		val = fs_a.read_back();
+		if (i != val) {
+			tpie::log_error() << "Bad value " << val << " instead of " << i << std::endl;
 			return false;
 		}
-		if (i != fs_b.read_back()) {
-			tpie::log_error() << "Bad value" << std::endl;
+		val = fs_b.read_back();
+		if (i != val) {
+			tpie::log_error() << "Bad value " << val << " instead of " << i << std::endl;
 			return false;
 		}
-		if (i != fs_c.read_back()) {
-			tpie::log_error() << "Bad value" << std::endl;
+		val = fs_c.read_back();
+		if (i != val) {
+			tpie::log_error() << "Bad value " << val << " instead of " << i << std::endl;
 			return false;
 		}
 	}
