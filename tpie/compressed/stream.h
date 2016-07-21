@@ -1266,6 +1266,13 @@ private:
 		compressor().request(r);
 		m_bufferDirty = false;
 
+		if (use_compression()) {
+			while (!m_response.done()) {
+				m_response.wait(lock);
+			}
+			m_readOffset =  m_response.get_read_offset(blockNumber);
+		}
+
 		if (blockNumber == m_streamBlocks) {
 			++m_streamBlocks;
 		}
