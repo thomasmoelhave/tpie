@@ -1,4 +1,4 @@
-TPIE - The Templated Portable I/O Environment
+TPIE - The Templated Portable I/O Environment [![Build Status](https://travis-ci.org/thomasmoelhave/tpie.svg?branch=master)](https://travis-ci.org/thomasmoelhave/tpie)
 =============================================
 
 The TPIE (Templated Portable I/O Environment) library is a tool box providing
