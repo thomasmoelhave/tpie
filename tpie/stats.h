@@ -74,7 +74,7 @@ public:
 	static ptime now() {return clock::now();}
 
 	static double seconds(const ptime & t1, const ptime & t2) {
-		return std::chrono::duration_cast<std::chrono::seconds>(
+		return std::chrono::duration_cast<std::chrono::duration<double>>(
 			t2.m_ptime - t1.m_ptime).count();
 	}
 
