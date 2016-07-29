@@ -318,7 +318,7 @@ public:
 		for (size_t i=0; i < *(dstInter.count); ++i)
 			if (dstInter.values[i].handle == child.handle) return i;
 		tp_assert(false, "Leaf not found");
-		__builtin_unreachable();
+		tpie_unreachable();
 	}
 
 	size_t index(internal_type child, internal_type node) const {
@@ -328,7 +328,7 @@ public:
 		for (size_t i=0; i < *(dstInter.count); ++i)
 			if (dstInter.values[i].handle == child.handle) return i;
 		tp_assert(false, "Node not found");
-		__builtin_unreachable();
+		tpie_unreachable();
 	}
 	
 	void set_augment(blocks::block_handle child, internal_type node, augment_type augment) {
@@ -345,7 +345,7 @@ public:
 		}
 
 		tp_assert(false, "Not found");
-		__builtin_unreachable();
+		tpie_unreachable();
 	}
 	
 
