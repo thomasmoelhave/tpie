@@ -326,6 +326,7 @@ public:
 
 	inline sort_input_t(sort_calc_t<T, pred_t, store_t> dest)
 		: m_sorter(dest.get_sorter())
+		, m_propagate_called(false)
 		, dest(std::move(dest))
 	{
 		this->dest.set_input_node(*this);
