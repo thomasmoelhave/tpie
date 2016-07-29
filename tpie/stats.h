@@ -94,7 +94,7 @@ public:
 
 	~stat_timer() {
 		ptime t2 = ptime::now();
-		increment_user(i, ptime::seconds(t1, t2)*1000000);
+		increment_user(i, (stream_size_type)(ptime::seconds(t1, t2)*1000000));
 	}
 
 private:
