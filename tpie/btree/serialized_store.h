@@ -237,14 +237,14 @@ private:
 	leaf_type create_leaf() {
 		assert(!current_internal && !current_leaf);
 		current_leaf = std::make_shared<leaf>();
-		current_leaf->my_offset = f->tellp();
+		current_leaf->my_offset = (stream_size_type)f->tellp();
 		return current_leaf;
 	}
 	leaf_type create(leaf_type) {return create_leaf();}
 	internal_type create_internal() {
 		assert(!current_internal && !current_leaf);
 		current_internal = std::make_shared<internal>();
-		current_internal->my_offset = f->tellp();
+		current_internal->my_offset = (stream_size_type)f->tellp();
 		return current_internal;
 	}
 	internal_type create(internal_type) {return create_internal();}
@@ -326,12 +326,12 @@ private:
 	void flush() {
 		if (current_internal) {
 			assert(!current_leaf);
-			assert(f->tellp() == current_internal->my_offset);
+			assert((stream_size_type)f->tellp() == current_internal->my_offset);
 			serialize(*f, *current_internal);
 			current_internal.reset();
 		}
 		if (current_leaf) {
-			assert(f->tellp() == current_leaf->my_offset);
+			assert((stream_size_type)f->tellp() == current_leaf->my_offset);
 			serialize(*f, *current_leaf);
 			current_leaf.reset();
 		}
@@ -368,7 +368,7 @@ private:
 	void set_metadata(const std::string & data) {
 		assert(!current_internal && !current_leaf);
 		assert(f->is_open());
-		metadata_offset = f->tellp();
+		metadata_offset = (stream_size_type)f->tellp();
 		metadata_size = data.size();
 		f->write(data.c_str(), data.size());
 	}
