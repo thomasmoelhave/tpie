@@ -138,6 +138,7 @@ public:
 			m_stream.seek(offset);
 		} catch(const stream_exception &e) {
 			TP_LOG_WARNING_ID("BTE error - seek failed: " << e.what());
+			tpie::unused(e);
 			return BTE_ERROR;
 		}
 		return NO_ERROR;
@@ -152,6 +153,7 @@ public:
 			m_stream.truncate(offset);
 		} catch(const stream_exception & e) {
 			TP_LOG_WARNING_ID("BTE error - truncate failed: " << e.what());
+			tpie::unused(e);
 			return BTE_ERROR;
 		}
 		return NO_ERROR;

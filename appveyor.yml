@@ -51,4 +51,4 @@ build:
 test_script:
   - cmd: cd C:\projects\tpie
   - cmd: cd build
-  - cmd: ctest --output-on-afilure -C "%CONFIG%"
+  - cmd: ctest --timeout 30 -j 2 --output-on-failure -C "%CONFIG%" ctest 
