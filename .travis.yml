@@ -23,6 +23,7 @@ addons:
       - g++-4.8
       - libboost-date-time1.55-dev
       - libboost-filesystem1.55-dev
+      - libboost-graph1.55-dev
       - libboost-system1.55-dev
       - libsnappy-dev
 script: mkdir build && cd build && cmake .. && make -j2 && make test
