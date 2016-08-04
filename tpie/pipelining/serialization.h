@@ -222,7 +222,6 @@ public:
 		{
 		set_name("Serialization reverse reader");
 		add_dependency(input_token);
-		add_push_destination(this->dest);
 		//TODO memory
 		set_minimum_resource_usage(FILES, 1);
 		set_plot_options(PLOT_BUFFERED);
