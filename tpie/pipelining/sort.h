@@ -628,7 +628,7 @@ public:
 		tp_assert(m_sorterInput, "input() called more than once");
 		auto ret = bits::passive_sorter_factory_input<item_type, pred_t, store_t>(
 			std::move(m_sorterInput), m_calc_token);
-		return std::move(ret);
+		return {std::move(ret)};
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -638,7 +638,7 @@ public:
 		tp_assert(m_sorterOutput, "output() called more than once");
 		auto ret =  bits::passive_sorter_factory_output<item_type, pred_t, store_t>(
 			std::move(m_sorterOutput), m_calc_token);
-		return std::move(ret);
+		return {std::move(ret)};
 	}
 	
 private:
