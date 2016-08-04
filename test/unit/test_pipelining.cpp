@@ -25,6 +25,7 @@
 #include <cmath>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
+#include <tpie/pipelining/serialization.h>
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/pipelining/helpers.h>
 #include <tpie/pipelining/split.h>
@@ -2050,6 +2051,52 @@ bool file_limit_sort_test() {
 	return true;
 }
 
+template<typename T>
+virtual_chunk<int, int> passive_virtual_chunk() {
+    T passive;
+    return virtual_chunk<int, int>(fork(passive.input())
+                                   | buffer()
+                                   | merge(passive.output()));
+}
+
+template<typename T>
+void passive_virtual_test(teststream & ts, const char * cname, const std::vector<int> & input, const std::vector<int> & expected_output) {
+    ts << cname;
+
+    auto vc = passive_virtual_chunk<T>();
+
+    std::vector<int> output;
+    pipeline p = virtual_chunk_begin<int>(input_vector(input))
+                 | vc
+                 | virtual_chunk_end<int>(output_vector<int>(output));
+    p();
+
+    // Output is interleaved with the input
+    auto expected = expected_output;
+    for (size_t i = 0; i < input.size(); i++) {
+        expected.insert(expected.begin() + i * 2, input[i]);
+    }
+
+    ts << result(output == expected);
+}
+
+void passive_virtual_test_multi(teststream & ts) {
+    std::vector<int> input    = {3, 4, 1, 2};
+    std::vector<int> reversed = {2, 1, 4, 3};
+    std::vector<int> sorted   = {1, 2, 3, 4};
+
+#define TEST(T, expected) passive_virtual_test<T<int>>(ts, #T, input, expected)
+
+    TEST(passive_sorter, sorted);
+    TEST(passive_buffer, input);
+    TEST(passive_reverser, reversed);
+    TEST(serialization_passive_sorter, sorted);
+    TEST(passive_serialization_buffer, input);
+    TEST(passive_serialization_reverser, reversed);
+
+#undef TEST
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2094,5 +2141,6 @@ int main(int argc, char ** argv) {
 	.test(phase_priority_test, "phase_priority_test")
 	.multi_test(datastructure_test_multi, "datastructures")
 	.test(file_limit_sort_test, "file_limit_sort")
+	.multi_test(passive_virtual_test_multi, "passive_virtual_management")
 	;
 }
