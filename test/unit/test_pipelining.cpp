@@ -2097,6 +2097,25 @@ void passive_virtual_test_multi(teststream & ts) {
 #undef TEST
 }
 
+bool join_split_dealloc_test() {
+    std::vector<int> v{1, 2, 3};
+    pipeline p, p1, p2, p3;
+
+    {
+        join<int> j;
+        split<int> s;
+
+        p = input_vector(v) | s.sink();
+        p1 = s.source() | j.sink();
+        p2 = s.source() | j.sink();
+        p3 = j.source() | null_sink<int>();
+    }
+
+    p();pass
+
+    return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2142,5 +2161,6 @@ int main(int argc, char ** argv) {
 	.multi_test(datastructure_test_multi, "datastructures")
 	.test(file_limit_sort_test, "file_limit_sort")
 	.multi_test(passive_virtual_test_multi, "passive_virtual_management")
+	.test(join_split_dealloc_test, "join_split_dealloc")
 	;
 }
