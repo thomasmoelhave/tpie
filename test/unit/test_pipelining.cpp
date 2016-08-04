@@ -2111,7 +2111,7 @@ bool join_split_dealloc_test() {
         p3 = j.source() | null_sink<int>();
     }
 
-    p();pass
+    p();
 
     return true;
 }
