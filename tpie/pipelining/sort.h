@@ -626,7 +626,8 @@ public:
 	/// \brief Get the input push node.
 	///////////////////////////////////////////////////////////////////////////
 	input_pipe_t input() {
-		tp_assert(m_sorterInput, "Output called more then once");
+		tp_assert(m_sorterInput, "input() called more than once");
+		tp_assert(m_sorterOutput, "input() called after output()");
 		auto ret = bits::passive_sorter_factory_input<item_type, pred_t, store_t>(
 			std::move(m_sorterInput), m_calc_token);
 		return std::move(ret);
@@ -636,7 +637,7 @@ public:
 	/// \brief Get the output pull node.
 	///////////////////////////////////////////////////////////////////////////
 	output_pipe_t output() {
-		tp_assert(m_sorterOutput, "Output called more then once");
+		tp_assert(m_sorterOutput, "output() called more than once");
 		auto ret =  bits::passive_sorter_factory_output<item_type, pred_t, store_t>(
 			std::move(m_sorterOutput), m_calc_token);
 		return std::move(ret);
