@@ -591,7 +591,6 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelined sorter with push input and pull output.
 /// Get the input pipe with \c input() and the output pullpipe with \c output().
-/// input() must not be called after output().
 /// \tparam T The type of item to sort
 /// \tparam pred_t The predicate (e.g. std::less<T>) indicating the predicate
 /// on which to order an item before another.
@@ -627,7 +626,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	input_pipe_t input() {
 		tp_assert(m_sorterInput, "input() called more than once");
-		tp_assert(m_sorterOutput, "input() called after output()");
 		auto ret = bits::passive_sorter_factory_input<item_type, pred_t, store_t>(
 			std::move(m_sorterInput), m_calc_token);
 		return std::move(ret);
