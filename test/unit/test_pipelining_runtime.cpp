@@ -195,7 +195,7 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	ts << name << std::endl;
 
 	std::vector<node *> nodeList;
-	std::map<size_t, node *> nodes;
+	std::map<size_t, std::shared_ptr<node>> nodes;
 	std::map<size_t, bool> can_evac_node;
 
 	// Make sure red edges come from nodes that can be evacuated
@@ -215,8 +215,9 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	}
 
 	for (const auto & p : can_evac_node) {
-		nodes[p.first] = p.second? static_cast<node *>(new evac_node()): static_cast<node *>(new no_evac_node());
-		nodeList.push_back(nodes[p.first]);
+		node * n = p.second? static_cast<node *>(new evac_node()): static_cast<node *>(new no_evac_node());
+		nodes[p.first] = std::shared_ptr<node>(n);
+		nodeList.push_back(n);
 	}
 
 	// For all nodes with neither a red or green edge coming from it
@@ -224,26 +225,27 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	for (const edge_t & e : edges) {
 		for (size_t i : {e.from, e.to}) {
 			if (nodes.find(i) == nodes.end()) {
-				nodes[i] = new evac_node();
-				nodeList.push_back(nodes[i]);
+				node * n = new evac_node();
+				nodes[i] = std::shared_ptr<node>(n);
+				nodeList.push_back(n);
 			}
 		}
 	}
 
 	std::map<node *, size_t> revNodes;
 	for (const auto & p : nodes) {
-		revNodes.insert({p.second, p.first});
+		revNodes.insert({p.second.get(), p.first});
 	}
 
 	size_t N = nodeList.size();
 
 	node_map::ptr nodeMap = nodeList[0]->get_node_map();
-	for (node * n : nodeList) n->get_node_map()->union_set(nodeMap);
+	for (auto n : nodeList) n->get_node_map()->union_set(nodeMap);
 	nodeMap = nodeMap->find_authority();
 
 	// In our model, each node is its own phase.
 	std::map<node *, size_t> phaseMap;
-	for (const auto & p : nodes) phaseMap[p.second] = p.first;
+	for (const auto & p : nodes) phaseMap[p.second.get()] = p.first;
 
 	graph<size_t> phaseGraph;
 	for (size_t i = 0; i < N; ++i) phaseGraph.add_node(i);
@@ -259,7 +261,7 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	}
 
 	std::unordered_set<uint64_t> evacuateWhenDone;
-	std::vector<std::vector<node *> > phases;
+	std::vector<std::vector<node *>> phases;
 
 	{
 		runtime rt(nodeMap);
