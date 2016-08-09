@@ -1098,11 +1098,11 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		topologicalOrder.insert(it, path.begin(), path.end() - 1);
 	}
 
-	// topologicalOrder[0] is the first phase to run,
-	// topologicalOrder[1] the next, and so on.
+	// topologicalOrder[0] is the last phase to run,
+	// topologicalOrder[1] the previous, and so on.
 
 	// Compute inverse permutation such that
-	// topoOrderMap[i] is the time at which we run phase i.
+	// topoOrderMap[n-i] is the time at which we run phase i.
 	std::vector<size_t> topoOrderMap = inverse_permutation(topologicalOrder);
 
 	// Distribute nodes according to the topological order
@@ -1115,7 +1115,9 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 	std::unordered_set<node_map::id_t> previousNodes;
 	bits::node_map::ptr nodeMap = (phases.front().front())->get_node_map()->find_authority();
-	for (const auto & phase : phases) {
+	// Loop through phases in order they are run
+	for (auto it = phases.rbegin(); it != phases.rend(); ++it) {
+		const auto & phase = *it;
 		for (const auto node : phase) {
 			const auto range = nodeMap->get_relations().equal_range(node->get_id());
 			for (auto it = range.first ; it != range.second ; ++it) {
