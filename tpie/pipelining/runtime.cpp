@@ -994,7 +994,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 	 * Next note that for any node we can satisfy at most one outgoing edge, and at most one incoming edge.
 	 */
 
-
+	// TODO: Handle red edges, possibly greedily
 
 	std::unordered_map<size_t, size_t> greenEdges;
 	std::unordered_map<size_t, size_t> revGreenEdges;
