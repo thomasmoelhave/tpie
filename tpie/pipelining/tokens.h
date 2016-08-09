@@ -81,6 +81,7 @@
 #include <vector>
 #include <iostream>
 #include <boost/intrusive_ptr.hpp>
+#include <boost/optional.hpp>
 #include <unordered_map>
 
 namespace tpie {
@@ -109,6 +110,9 @@ public:
 	typedef relmap_t::const_iterator relmapit;
 
 	typedef std::unordered_map<std::string, std::pair<memory_size_type, any_noncopyable> > datastructuremap_t;
+
+	typedef boost::optional<any_noncopyable &> maybeany_t;
+	typedef std::unordered_map<std::string, any_noncopyable> forwardmap_t;
 
 	typedef boost::intrusive_ptr<node_map> ptr;
 
@@ -193,6 +197,17 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void get_successors(id_t from, std::vector<id_t> & successors, memory_size_type k, bool forward_only=false);
 
+	void forward(std::string key, any_noncopyable value) {
+		m_pipelineForwards[key] = std::move(value);
+	}
+
+	maybeany_t fetch_maybe(std::string key) {
+		auto it = m_pipelineForwards.find(key);
+		if (it == m_pipelineForwards.end()) {
+			return maybeany_t();
+		}
+		return maybeany_t(it->second);
+	}
 
 	friend void intrusive_ptr_add_ref(node_map * m) {
 		m->m_refCnt++;
@@ -208,6 +223,7 @@ private:
 	relmap_t m_relations;
 	relmap_t m_relationsInv;
 	datastructuremap_t m_datastructures;
+	forwardmap_t m_pipelineForwards;
 
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 	size_t out_degree(const relmap_t & map, id_t from) const;

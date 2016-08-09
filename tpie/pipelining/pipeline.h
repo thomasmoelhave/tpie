@@ -20,7 +20,6 @@
 #ifndef __TPIE_PIPELINING_PIPELINE_H__
 #define __TPIE_PIPELINING_PIPELINE_H__
 
-#include <boost/any.hpp>
 #include <tpie/types.h>
 #include <iostream>
 #include <tpie/pipelining/tokens.h>
@@ -73,11 +72,11 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipeline_base_base() {}
 
-	void forward_any(std::string key, const boost::any & value);
+	void forward_any(std::string key, any_noncopyable value);
 	
 	bool can_fetch(std::string key);
 
-	boost::any fetch_any(std::string key);
+	any_noncopyable & fetch_any(std::string key);
 
 	node_map::ptr get_node_map() const {
 		return m_nodeMap;
@@ -237,23 +236,23 @@ public:
 		return p->can_fetch(key);
 	}
 
-	boost::any fetch_any(std::string key) {
+	any_noncopyable & fetch_any(std::string key) {
 		return p->fetch_any(key);
 	}
 
 	template <typename T>
-	T fetch(std::string key) {
-		boost::any a = fetch_any(key);
-		return *boost::any_cast<T>(&a);
+	T & fetch(std::string key) {
+		any_noncopyable &a = fetch_any(key);
+		return any_cast<T>(a);
 	}
 
-	void forward_any(std::string key, const boost::any & value) {
-		return p->forward_any(key, value);
+	void forward_any(std::string key, any_noncopyable value) {
+		p->forward_any(key, std::move(value));
 	}
 
 	template <typename T>
 	void forward(std::string key, T value) {
-		forward_any(key, boost::any(value));
+		forward_any(key, any_noncopyable(std::move(value)));
 	}
 
 	pipeline & then(pipeline & other) {

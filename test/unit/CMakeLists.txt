@@ -155,6 +155,8 @@ add_unittest(pipelining
 	merger_memory
 	bound_fetch_forward
 	fetch_forward
+	forward_multiple_pipelines
+	forward_unique_ptr
 	virtual
 	virtual_cref_item_type
 	virtual_fork

@@ -137,23 +137,23 @@ struct subpipeline {
 		return p->can_fetch(key);
 	}
 
-	boost::any fetch_any(std::string key) {
+	any_noncopyable fetch_any(std::string key) {
 		return p->fetch_any(key);
 	}
 
 	template <typename T>
 	T fetch(std::string key) {
-		boost::any a = fetch_any(key);
-		return *boost::any_cast<T>(&a);
+		any_noncopyable a = fetch_any(key);
+		return *any_cast<T>(&a);
 	}
 
-	void forward_any(std::string key, const boost::any & value) {
+	void forward_any(std::string key, const any_noncopyable & value) {
 		return p->forward_any(key, value);
 	}
 
 	template <typename T>
 	void forward(std::string key, T value) {
-		forward_any(key, boost::any(value));
+		forward_any(key, any_noncopyable(value));
 	}
 
 	void output_memory(std::ostream & o) const {p->output_memory(o);}

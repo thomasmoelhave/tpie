@@ -145,6 +145,9 @@ namespace bits {
 class any_noncopyable_cont_base {
 public:
 	virtual ~any_noncopyable_cont_base() {};
+	virtual const std::type_info & type() const {
+		return typeid(void);
+	}
 };
 
 template <typename T>
@@ -152,6 +155,9 @@ class any_noncopyable_cont: public any_noncopyable_cont_base {
 public:
 	any_noncopyable_cont(T value): value(move_if_movable<T>(value)) {}
 	T value;
+	const std::type_info & type() const override {
+		return typeid(value);
+	}
 };
 
 } //namespace bits
@@ -193,6 +199,12 @@ public:
 	friend T & any_cast(any_noncopyable & a);
 	
 	friend void swap(any_noncopyable & l, any_noncopyable & r);
+
+	const std::type_info & type() const {
+		if (!cont) return typeid(void);
+		auto val = cont.get();
+		return val->type();
+	}
 private:
 	std::unique_ptr<bits::any_noncopyable_cont_base> cont;
 };

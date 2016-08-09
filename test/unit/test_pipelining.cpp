@@ -23,6 +23,7 @@
 #include <tpie/file_stream.h>
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <tpie/sysinfo.h>
 #include <tpie/pipelining/virtual.h>
 #include <tpie/pipelining/serialization.h>
@@ -823,6 +824,67 @@ bool bound_fetch_forward_test() {
 		return false;
 	}
 	return true;
+}
+
+bool forward_unique_ptr_result = true;
+
+template <typename dest_t>
+struct FUP1 : public node {
+	dest_t dest;
+	FUP1(dest_t dest) : dest(std::move(dest)) {}
+
+	virtual void propagate() override {
+		forward("item", std::unique_ptr<int>(new int(293)));
+	}
+
+	virtual void go() override {
+	}
+};
+
+struct FUP2 : public node {
+	virtual void propagate() override {
+		if (!can_fetch("item")) {
+			log_error() << "Cannot fetch item" << std::endl;
+			forward_unique_ptr_result = false;
+			return;
+		}
+		auto &p = fetch<std::unique_ptr<int>>("item");
+		if (*p != 293) {
+			log_error() << "Expected 293, not " << *p << std::endl;
+			forward_unique_ptr_result = false;
+			return;
+		}
+	}
+};
+
+bool forward_unique_ptr_test() {
+	std::unique_ptr<int> ptr(new int(1337));
+	pipeline p = make_pipe_begin<FUP1>()
+		| make_pipe_end<FUP2>();
+	p.plot(log_info());
+	p.forward("ptr", std::move(ptr));
+	p();
+	if (!forward_unique_ptr_result) return false;
+	if (!p.can_fetch("ptr")) {
+		log_error() << "Cannot fetch ptr" << std::endl;
+		return false;
+	}
+	auto &ptr2 = p.fetch<std::unique_ptr<int>>("ptr");
+	if (*ptr2 != 1337) {
+		log_error() << "Expected 1337, not " << *ptr2 << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool forward_multiple_pipelines_test() {
+	passive_sorter<int> ps;
+	pipeline p = input_vector(std::vector<int>{3, 2, 1}) | ps.input();
+	p.forward("test", 8);
+	pipeline p_ = input_vector(std::vector<int>{5, 6, 7}) | add_pairs(ps.output()) | null_sink<int>();
+	p();
+	int val = p_.fetch<int>("test");
+	return val == 8;
 }
 
 // Assume that dest_t::item_type is a reference type.
@@ -2138,6 +2200,8 @@ int main(int argc, char ** argv) {
 	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	.test(fetch_forward_test, "fetch_forward")
 	.test(bound_fetch_forward_test, "bound_fetch_forward")
+	.test(forward_unique_ptr_test, "forward_unique_ptr")
+	.test(forward_multiple_pipelines_test, "forward_multiple_pipelines")
 	.test(virtual_test, "virtual")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
