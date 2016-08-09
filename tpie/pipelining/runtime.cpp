@@ -31,6 +31,10 @@ namespace pipelining {
 
 namespace bits {
 
+struct not_a_dag_exception : public exception {
+	not_a_dag_exception(const std::string &s) : exception(s) {}
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Directed graph with nodes of type T.
 ///
@@ -50,6 +54,10 @@ public:
 		add_node(u);
 		add_node(v);
 		m_edgeLists[u].push_back(v);
+	}
+
+	const std::set<T> & get_node_set() const {
+		return m_nodes;
 	}
 
 	const std::vector<T> & get_edge_list(const T & i) const {
@@ -104,7 +112,12 @@ private:
 		}
 
 		size_t visit(T u) {
-			if (m_finishTime.count(u)) return m_finishTime[u];
+			if (m_finishTime.count(u)) {
+				if (m_finishTime[u] == 0) {
+					throw not_a_dag_exception("Cycle detected in graph");
+				}
+				return m_finishTime[u];
+			}
 			m_finishTime[u] = 0;
 			++m_time;
 			const std::vector<T> & edgeList = get_edge_list(u);
@@ -964,13 +977,136 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 						 std::unordered_set<node_map::id_t> & evacuateWhenDone,
 						 std::vector<std::vector<node *> > & phases)
 {
+	/*
+	 * We have a dependency edge saying that a node in one phase shares memory with a node in another phase.
+	 * If these two phases are not executed consecutively the shared memory will have to be evacuated to disk,
+	 * since some other phase running between the two phases could need the memory.
+	 * Obviously we want to minimize the number of evacuations, but how?
+	 *
+	 * Let a normal dependency between two phase be represented by a black edge
+	 * and let a memory sharing dependency be represented by a red edge if the memory can be evacuated
+	 * and green if it cannot be evacuated.
+	 * We say that a non-black edge is satisfied if its two end points are consecutive in the topological order,
+	 * so the objective is to maximize the number of satisfied edges.
+	 * Also we must satisfy ALL green edges, if this is not possible the input is malformed,
+	 * and someone has to implement an evacuate method somewhere.
+	 *
+	 * First note that a non-black edges cannot be satisfied
+	 * if there exists an alternative path from its source to its destination (with length at least 2),
+	 * so any such red edge can be recolored to black, if there is any such green edge the input is invalid.
+	 *
+	 * Next note that for any node we can satisfy at most one outgoing edge, and at most one incoming edge.
+	 */
+
+	// TODO: Handle red edges, possibly greedily
+
+	std::unordered_map<size_t, size_t> greenEdges;
+	std::unordered_map<size_t, size_t> revGreenEdges;
+
+	const node_map::relmap_t & relations = m_nodeMap.find_authority()->get_relations();
+	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+		node *from = m_nodeMap.get(i->first);
+		node *to = m_nodeMap.get(i->second.first);
+
+		size_t fromPhase = phaseMap.find(from)->second;
+		size_t toPhase = phaseMap.find(to)->second;
+		bits::node_relation rel = i->second.second;
+
+		if (fromPhase == toPhase) {
+			// Not an edge between two different phases
+			continue;
+		}
+
+		if (rel != memory_share_depends) {
+			// Black edge
+			log_debug() << "Black edge: " << toPhase << " -> " << fromPhase << std::endl;
+			continue;
+		}
+
+		if (to->can_evacuate()) {
+			// Red edge
+			log_debug() << "Red edge: " << toPhase << " -> " << fromPhase << std::endl;
+		} else {
+			// Green edge
+			log_debug() << "Green edge: " << toPhase << " -> " << fromPhase << std::endl;
+
+			// Check if we already have a green edge from fromPhase or to toPhase
+			// If so one of edges can't be satisfied, but all green edges must be satisfied
+			if (greenEdges.find(fromPhase) != greenEdges.end() ||
+				revGreenEdges.find(toPhase) != revGreenEdges.end()) {
+				throw tpie::exception("get_phases: can't satisfy all green edges");
+			}
+			greenEdges[fromPhase] = toPhase;
+			revGreenEdges[toPhase] = fromPhase;
+		}
+	}
+
+	disjoint_sets<size_t> contractedNodes(phaseGraph.size());
+	for (size_t i : phaseGraph.get_node_set()) {
+		contractedNodes.make_set(i);
+	}
+
+	for (const auto & p : greenEdges) {
+		contractedNodes.union_set(p.first, p.second);
+	}
+
+	std::unordered_map<size_t, graph<size_t>> greenPaths;
+	for (const auto & p : greenEdges) {
+		size_t i = contractedNodes.find_set(p.first);
+		greenPaths[i].add_edge(p.first, p.second);
+	}
+
+	graph<size_t> contractedGraph;
+	for (size_t i : phaseGraph.get_node_set()) {
+		contractedGraph.add_node(contractedNodes.find_set(i));
+	}
+
+	for (size_t i : phaseGraph.get_node_set()) {
+		for (size_t j : phaseGraph.get_edge_list(i)) {
+			i = contractedNodes.find_set(i);
+			j = contractedNodes.find_set(j);
+
+			if (i == j) {
+				/*
+				 * If we have an edge from one contracted node to another
+				 * it must either be a green edge or an edge going
+				 * in the same direction as the green path, because the graph is a DAG.
+				 * So if we find a topological order for new the graph,
+				 * the topological order without contractions will also satisfy this edge.
+				 */
+				continue;
+			}
+
+			if (!contractedGraph.has_edge(i, j)) {
+				contractedGraph.add_edge(i, j);
+			}
+		}
+	}
+
 	std::vector<size_t> topologicalOrder;
-	phaseGraph.rootfirst_topological_order(topologicalOrder);
-	// topologicalOrder[0] is the first phase to run,
-	// topologicalOrder[1] the next, and so on.
+	try {
+		contractedGraph.rootfirst_topological_order(topologicalOrder);
+	} catch(not_a_dag_exception & e) {
+		throw tpie::exception("get_phases: can't satisfy all green edges");
+	}
+
+	for (const auto & p : greenPaths) {
+		size_t i = p.first;
+		const graph<size_t> & g = p.second;
+
+		std::vector<size_t> path;
+		g.topological_order(path);
+
+		auto it = std::find(topologicalOrder.begin(), topologicalOrder.end(), i);
+		*it = *path.rbegin();
+		topologicalOrder.insert(it, path.begin(), path.end() - 1);
+	}
+
+	// topologicalOrder[0] is the last phase to run,
+	// topologicalOrder[1] the previous, and so on.
 
 	// Compute inverse permutation such that
-	// topoOrderMap[i] is the time at which we run phase i.
+	// topoOrderMap[n-i] is the time at which we run phase i.
 	std::vector<size_t> topoOrderMap = inverse_permutation(topologicalOrder);
 
 	// Distribute nodes according to the topological order
@@ -983,7 +1119,9 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 	std::unordered_set<node_map::id_t> previousNodes;
 	bits::node_map::ptr nodeMap = (phases.front().front())->get_node_map()->find_authority();
-	for (const auto & phase : phases) {
+	// Loop through phases in order they are run
+	for (auto it = phases.rbegin(); it != phases.rend(); ++it) {
+		const auto & phase = *it;
 		for (const auto node : phase) {
 			const auto range = nodeMap->get_relations().equal_range(node->get_id());
 			for (auto it = range.first ; it != range.second ; ++it) {

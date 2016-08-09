@@ -36,6 +36,14 @@ public:
 	}
 };
 
+class no_evac_node : public node {
+public:
+
+	virtual bool can_evacuate() override {
+		return false;
+	}
+};
+
 bool evacuate_test() {
 	const size_t N = 7;
 	evac_node nodes[N];
@@ -165,9 +173,205 @@ bool get_phase_graph_test() {
 	return true;
 }
 
+// See tpie::pipelining::bits::runtime::get_phases for description of edge colors
+enum edge_color {
+	BLACK,
+	RED,
+	GREEN,
+};
+const char * edge_color_names[] = {
+	"black",
+	"red",
+	"green",
+};
+
+struct edge_t {
+	edge_color color;
+	size_t from;
+	size_t to;
+};
+
+void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * name, const std::vector<edge_t> & edges) {
+	ts << name << std::endl;
+
+	std::vector<node *> nodeList;
+	std::map<size_t, node *> nodes;
+	std::map<size_t, bool> can_evac_node;
+
+	// Make sure red edges come from nodes that can be evacuated
+	// and green edges come from nodes that can't
+	// Black edge can come from both types
+	for (const edge_t & e : edges) {
+		if (e.color == BLACK) continue;
+
+		bool can_evac = e.color == RED;
+
+		if (can_evac_node.find(e.from) != can_evac_node.end()) {
+			tp_assert(can_evac == can_evac_node[e.from],
+					  "Red and green edge with from same node not possible: " + std::to_string(e.from));
+		}
+
+		can_evac_node[e.from] = can_evac;
+	}
+
+	for (const auto & p : can_evac_node) {
+		nodes[p.first] = p.second? static_cast<node *>(new evac_node()): static_cast<node *>(new no_evac_node());
+		nodeList.push_back(nodes[p.first]);
+	}
+
+	// For all nodes with neither a red or green edge coming from it
+	// we make evacuatable nodes.
+	for (const edge_t & e : edges) {
+		for (size_t i : {e.from, e.to}) {
+			if (nodes.find(i) == nodes.end()) {
+				nodes[i] = new evac_node();
+				nodeList.push_back(nodes[i]);
+			}
+		}
+	}
+
+	std::map<node *, size_t> revNodes;
+	for (const auto & p : nodes) {
+		revNodes.insert({p.second, p.first});
+	}
+
+	size_t N = nodeList.size();
+
+	node_map::ptr nodeMap = nodeList[0]->get_node_map();
+	for (node * n : nodeList) n->get_node_map()->union_set(nodeMap);
+	nodeMap = nodeMap->find_authority();
+
+	// In our model, each node is its own phase.
+	std::map<node *, size_t> phaseMap;
+	for (const auto & p : nodes) phaseMap[p.second] = p.first;
+
+	graph<size_t> phaseGraph;
+	for (size_t i = 0; i < N; ++i) phaseGraph.add_node(i);
+
+	for (const edge_t & e : edges) {
+		phaseGraph.add_edge(e.to, e.from);
+		log_info() << nodes[e.from]->get_id() << " -(" << edge_color_names[e.color] << ")-> " << nodes[e.to]->get_id() << std::endl;
+		if (e.color == BLACK) {
+			nodes[e.to]->add_dependency(*nodes[e.from]);
+		} else {
+			nodes[e.to]->add_memory_share_dependency(*nodes[e.from]);
+		}
+	}
+
+	std::unordered_set<uint64_t> evacuateWhenDone;
+	std::vector<std::vector<node *> > phases;
+
+	{
+		runtime rt(nodeMap);
+		try {
+			rt.get_phases(phaseMap, phaseGraph, evacuateWhenDone, phases);
+		} catch (exception & e) {
+			if (!should_fail) {
+				log_error() << e.what() << std::endl;
+			}
+			ts << result(should_fail);
+			return;
+		}
+	}
+
+	if (should_fail) {
+		log_error() << "Constructed phase ordering successfully" << std::endl;
+		ts << result(false);
+		return;
+	}
+
+	log_info() << "Phase order: ";
+	std::vector<size_t> phaseOrder;
+	for (auto it = phases.rbegin(); it != phases.rend(); ++it) {
+		const auto & phase = *it;
+		size_t i = revNodes[phase[0]];
+		phaseOrder.push_back(i);
+		log_info() << i << ", ";
+	}
+	log_info() << std::endl;
+
+	log_info() << "Evacuated nodes: ";
+	std::unordered_set<size_t> evacuatedNodes;
+	for (auto id : evacuateWhenDone) {
+		size_t i = revNodes[nodeMap->get(id)];
+		evacuatedNodes.insert(i);
+		log_info() << i << ", ";
+	}
+	log_info() << std::endl;
+
+	bool bad = false;
+	for (const edge_t & e : edges) {
+		if (e.color == GREEN) {
+			if (evacuatedNodes.count(e.from) != 0) {
+				log_error() << "Evacuated a node with a green edge going out: " << e.from << std::endl;
+				bad = true;
+			}
+
+			auto from = std::find(phaseOrder.begin(), phaseOrder.end(), e.from);
+			auto to   = std::find(phaseOrder.begin(), phaseOrder.end(), e.to);
+
+			if (to - from != 1) {
+				log_error() << "Phases with green edge between not consecutive: "
+							<< e.from << " -> " << e.to << std::endl;
+				bad = true;
+			}
+		}
+	}
+
+	ts << result(!bad);
+}
+
+void evacuate_phase_graph_multi(teststream & ts) {
+	evacuate_phase_graph_test(ts, true, "Simple fail", {
+		{BLACK, 0, 1},
+		{BLACK, 1, 2},
+		{GREEN, 0, 2},
+	});
+	evacuate_phase_graph_test(ts, false, "Diamond working", {
+		{GREEN, 0, 1},
+		{BLACK, 1, 3},
+		{BLACK, 0, 2},
+		{GREEN, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, true, "Diamond failing", {
+		{GREEN, 0, 1},
+		{GREEN, 1, 3},
+		{BLACK, 0, 2},
+		{BLACK, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, "Red diamond", {
+		{RED, 0, 1},
+		{RED, 1, 3},
+		{RED, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, "Green path", {
+		{GREEN, 2, 3},
+		{GREEN, 1, 2},
+		{GREEN, 3, 4},
+		{GREEN, 0, 1},
+	});
+	evacuate_phase_graph_test(ts, false, "Green bridges", {
+		{GREEN, 0, 1},
+		{BLACK, 1, 2},
+		{BLACK, 2, 4},
+		{BLACK, 1, 3},
+		{BLACK, 3, 4},
+		{GREEN, 4, 5},
+		{BLACK, 5, 6},
+		{BLACK, 6, 8},
+		{BLACK, 5, 7},
+		{BLACK, 7, 8},
+		{GREEN, 8, 9},
+		{BLACK, 9, 10},
+		{GREEN, 10, 11},
+	});
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.test(evacuate_test, "evacuate")
 	.test(get_phase_graph_test, "get_phase_graph")
+	.multi_test(evacuate_phase_graph_multi, "evacuate_phase_graph")
 	;
 }

@@ -1705,17 +1705,17 @@ public:
 	}
 };
 
-bool node_map_test(size_t nodes, bool hasInitiator, const std::string & edges) {
+bool node_map_test(size_t nodes, bool acyclic, const std::string & edges) {
 	node_map_tester_factory fact(nodes, edges);
 	pipeline p =
 		tpie::pipelining::bits::pipeline_impl<node_map_tester_factory>(fact);
 	p.plot(log_info());
 	try {
 		p();
-	} catch (const no_initiator_node &) {
-		return !hasInitiator;
+	} catch (const exception &) {
+		return !acyclic;
 	}
-	return hasInitiator;
+	return acyclic;
 }
 
 void node_map_multi_test(teststream & ts) {
@@ -1751,7 +1751,7 @@ void node_map_multi_test(teststream & ts) {
 		  "<."));
 	ts << "item_cycle" << result
 		(node_map_test
-		 (3, true,
+		 (3, false,
 		  ".><"
 		  "..>"
 		  "..."));
