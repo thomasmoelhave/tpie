@@ -33,6 +33,10 @@ namespace pipelining {
 
 namespace bits {
 
+struct not_a_dag_exception : public exception {
+	not_a_dag_exception(const std::string &s) : exception(s) {}
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Directed graph with nodes of type T.
 ///
@@ -106,7 +110,12 @@ private:
 		}
 
 		size_t visit(T u) {
-			if (m_finishTime.count(u)) return m_finishTime[u];
+			if (m_finishTime.count(u)) {
+				if (m_finishTime[u] == 0) {
+					throw not_a_dag_exception("Cycle detected in graph");
+				}
+				return m_finishTime[u];
+			}
 			m_finishTime[u] = 0;
 			++m_time;
 			const std::vector<T> & edgeList = get_edge_list(u);
