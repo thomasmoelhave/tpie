@@ -357,7 +357,7 @@ public:
 	};
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t dest) const {
+	typename constructed<dest_t>::type construct(dest_t dest) {
 		typedef typename push_type<dest_t>::type item_type;
 		typedef typename constructed<dest_t>::Traits Traits;
 

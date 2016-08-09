@@ -157,6 +157,7 @@ add_unittest(pipelining
 	fetch_forward
 	forward_multiple_pipelines
 	forward_unique_ptr
+	pipe_base_forward
 	virtual
 	virtual_cref_item_type
 	virtual_fork

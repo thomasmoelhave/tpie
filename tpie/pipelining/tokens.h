@@ -116,6 +116,12 @@ public:
 
 	typedef boost::intrusive_ptr<node_map> ptr;
 
+	struct pipe_base_forward_t {
+		id_t from;
+		std::string key;
+		any_noncopyable value;
+	};
+
 	static  ptr create() {
 		return ptr(new node_map);
 	}
@@ -209,6 +215,12 @@ public:
 		return maybeany_t(it->second);
 	}
 
+	void forward_from_pipe_base(id_t from, std::string key, any_noncopyable value) {
+		m_pipeBaseForwards.push_back({from, key, std::move(value)});
+	}
+
+	void forward_pipe_base_forwards();
+
 	friend void intrusive_ptr_add_ref(node_map * m) {
 		m->m_refCnt++;
 	}
@@ -224,6 +236,7 @@ private:
 	relmap_t m_relationsInv;
 	datastructuremap_t m_datastructures;
 	forwardmap_t m_pipelineForwards;
+	std::vector<pipe_base_forward_t> m_pipeBaseForwards;
 
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 	size_t out_degree(const relmap_t & map, id_t from) const;
