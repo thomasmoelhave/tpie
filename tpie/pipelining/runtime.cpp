@@ -24,8 +24,6 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/runtime.h>
 #include <boost/functional/hash.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/max_cardinality_matching.hpp>
 
 namespace tpie {
 
@@ -56,6 +54,10 @@ public:
 		add_node(u);
 		add_node(v);
 		m_edgeLists[u].push_back(v);
+	}
+
+	const std::set<T> & get_node_set() const {
+		return m_nodes;
 	}
 
 	const std::vector<T> & get_edge_list(const T & i) const {
@@ -136,42 +138,6 @@ private:
 		std::map<T, size_t> m_finishTime;
 	};
 };
-
-/**
- * \brief Given a vector of edges return a maximum bipartite matching.
- * The edges should be pairs of integers, where the first is the left node and the second is the right node.
- * The return value is a filtered version of the input, so that the first value of the pair is a left node matched with a right node in the second value.
- */
-template <typename T>
-std::vector<std::pair<T, T>> tpie_maximum_bipartite_matching(const std::vector<std::pair<T, T>> & edges) {
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> biGraph;
-
-	biGraph g;
-
-	// Even edges on the left and odd edges on the right
-	for (const auto & p : edges) {
-		boost::add_edge(p.first * 2, p.second * 2 + 1, g);
-	}
-
-	std::vector<boost::graph_traits<biGraph>::vertex_descriptor> mate(boost::num_vertices(g));
-	boost::edmonds_maximum_cardinality_matching(g, &mate[0]);
-
-	std::vector<std::pair<T, T>> result;
-
-	boost::graph_traits<biGraph>::vertex_iterator vi, vi_end;
-	for(boost::tie(vi,vi_end) = boost::vertices(g); vi != vi_end; ++vi) {
-		if (mate[*vi] != boost::graph_traits<biGraph>::null_vertex() &&
-			*vi % 2 == 0 // filter out right to left matches
-			) {
-			size_t from = *vi / 2;
-			size_t to = mate[*vi] / 2;
-			
-			result.push_back({from, to});
-		}
-	}
-
-	return result;
-}
 
 class resource_runtime {
 public:
@@ -1008,27 +974,35 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 						 std::vector<std::vector<node *> > & phases)
 {
 	/*
-	We have an dependency edge saying that a node in one phase shares memory with a node in another phase, now if these two phases are not executed constitutively, the shared memory will have to be evacuated to disk, since some other phase running between the two phases could need the memory. Obviously we want to minimize the number of evacuations, but how?
-
-	Let a normal dependency between two phase be represented by a black edge, and let a memory sharing dependency be represented by a red edge if the memory can be evacuated and green if it cannot be evacuated. We say that a non-black edge is satisfied if its two end points are consecutive in the topological order, so the objective is to maximize the number of satisfied edges. Also we must satisfy ALL green edges, if this is not possible the input is malformed, and someone has to implement an evacuate method somewhere.
-
-	First note that a non-black edges cannot be satisfied if there exists an alternative path from its source to its destination (with length at least 2), so any such red edge can be recolored to black, if there is any such green edge the input is invalid.
-
-	Next note that for any node we can satisfy at most one outgoing edge, and at most one incoming edge. So lets construct a bipartite graph, with all nodes with outgoing non-black edges on the left, and all nodes with incoming non-black edges on the right. Now construct a bipartite maximum matching (where all green edges are pre-matched, if it is not possible to pre match all the green edges then the input is invalid). Now the claim is that it is possible to construct a topological order where all nodes of matched edges occur consecutively and that this order satisfies the maximum number of edges.
-
-	The top order can be constructed, by constructing a top order of a version of the graph where all the matched edges have been contracted.
+	 * We have a dependency edge saying that a node in one phase shares memory with a node in another phase.
+	 * If these two phases are not executed consecutively the shared memory will have to be evacuated to disk,
+	 * since some other phase running between the two phases could need the memory.
+	 * Obviously we want to minimize the number of evacuations, but how?
+	 *
+	 * Let a normal dependency between two phase be represented by a black edge
+	 * and let a memory sharing dependency be represented by a red edge if the memory can be evacuated
+	 * and green if it cannot be evacuated.
+	 * We say that a non-black edge is satisfied if its two end points are consecutive in the topological order,
+	 * so the objective is to maximize the number of satisfied edges.
+	 * Also we must satisfy ALL green edges, if this is not possible the input is malformed,
+	 * and someone has to implement an evacuate method somewhere.
+	 *
+	 * First note that a non-black edges cannot be satisfied
+	 * if there exists an alternative path from its source to its destination (with length at least 2),
+	 * so any such red edge can be recolored to black, if there is any such green edge the input is invalid.
+	 *
+	 * Next note that for any node we can satisfy at most one outgoing edge, and at most one incoming edge.
 	 */
 
-	std::vector<std::pair<size_t, size_t>> redEdges;
+
+
 	std::unordered_map<size_t, size_t> greenEdges;
 	std::unordered_map<size_t, size_t> revGreenEdges;
 
 	const node_map::relmap_t & relations = m_nodeMap.find_authority()->get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		// from and to is swapped in the relationship so that
-		// to depends on from, meaning from should be run before to
-		node *from = m_nodeMap.get(i->second.first);
-		node *to = m_nodeMap.get(i->first);
+		node *from = m_nodeMap.get(i->first);
+		node *to = m_nodeMap.get(i->second.first);
 
 		size_t fromPhase = phaseMap.find(from)->second;
 		size_t toPhase = phaseMap.find(to)->second;
@@ -1041,17 +1015,16 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 		if (rel != memory_share_depends) {
 			// Black edge
-			log_debug() << "Black edge: " << fromPhase << " -> " << toPhase << std::endl;
+			log_debug() << "Black edge: " << toPhase << " -> " << fromPhase << std::endl;
 			continue;
 		}
 
-		if (from->can_evacuate()) {
+		if (to->can_evacuate()) {
 			// Red edge
-			log_debug() << "Red edge: " << fromPhase << " -> " << toPhase << std::endl;
-			redEdges.push_back({fromPhase, toPhase});
+			log_debug() << "Red edge: " << toPhase << " -> " << fromPhase << std::endl;
 		} else {
 			// Green edge
-			log_debug() << "Green edge: " << fromPhase << " -> " << toPhase << std::endl;
+			log_debug() << "Green edge: " << toPhase << " -> " << fromPhase << std::endl;
 
 			// Check if we already have a green edge from fromPhase or to toPhase
 			// If so one of edges can't be satisfied, but all green edges must be satisfied
@@ -1060,32 +1033,71 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 				throw tpie::exception("get_phases: can't satisfy all green edges");
 			}
 			greenEdges[fromPhase] = toPhase;
-			greenEdges[toPhase] = fromPhase;
+			revGreenEdges[toPhase] = fromPhase;
 		}
 	}
 
-	std::set<std::pair<size_t, size_t>> satisfiedEdges(greenEdges.begin(), greenEdges.end());
-
-	// "Pre-match" green edges by removing all red edges from nodes with green edges
-	redEdges.erase(std::remove_if(redEdges.begin(),
-								  redEdges.end(),
-								  [&](const std::pair<size_t, size_t> & p){
-									return greenEdges.find(p.first) != greenEdges.end() ||
-									       revGreenEdges.find(p.second) != revGreenEdges.end();
-								  }),
-								  redEdges.end());
-
-	auto matchedRedEdges = tpie_maximum_bipartite_matching(redEdges);
-	satisfiedEdges.insert(matchedRedEdges.begin(), matchedRedEdges.end());
-
-	for (const auto & p : satisfiedEdges) {
-		log_debug() << "Satisfied edge: " << p.first << " -> " << p.second << std::endl;
+	disjoint_sets<size_t> contractedNodes(phaseGraph.size());
+	for (size_t i : phaseGraph.get_node_set()) {
+		contractedNodes.make_set(i);
 	}
 
-	// TODO: Use satisfiedEdges to create the topological order
+	for (const auto & p : greenEdges) {
+		contractedNodes.union_set(p.first, p.second);
+	}
+
+	std::unordered_map<size_t, graph<size_t>> greenPaths;
+	for (const auto & p : greenEdges) {
+		size_t i = contractedNodes.find_set(p.first);
+		greenPaths[i].add_edge(p.first, p.second);
+	}
+
+	graph<size_t> contractedGraph;
+	for (size_t i : phaseGraph.get_node_set()) {
+		contractedGraph.add_node(contractedNodes.find_set(i));
+	}
+
+	for (size_t i : phaseGraph.get_node_set()) {
+		for (size_t j : phaseGraph.get_edge_list(i)) {
+			i = contractedNodes.find_set(i);
+			j = contractedNodes.find_set(j);
+
+			if (i == j) {
+				/*
+				 * If we have an edge from one contracted node to another
+				 * it must either be a green edge or an edge going
+				 * in the same direction as the green path, because the graph is a DAG.
+				 * So if we find a topological order for new the graph,
+				 * the topological order without contractions will also satisfy this edge.
+				 */
+				continue;
+			}
+
+			if (!contractedGraph.has_edge(i, j)) {
+				contractedGraph.add_edge(i, j);
+			}
+		}
+	}
 
 	std::vector<size_t> topologicalOrder;
-	phaseGraph.rootfirst_topological_order(topologicalOrder);
+	try {
+		contractedGraph.rootfirst_topological_order(topologicalOrder);
+	} catch(not_a_dag_exception & e) {
+		throw tpie::exception("get_phases: can't satisfy all green edges");
+	}
+
+	for (const auto & p : greenPaths) {
+		size_t i = p.first;
+		const graph<size_t> & g = p.second;
+
+		std::vector<size_t> path;
+		g.topological_order(path);
+
+		auto it = std::find(topologicalOrder.begin(), topologicalOrder.end(), i);
+		*it = *path.rbegin();
+		topologicalOrder.insert(it, path.begin(), path.end() - 1);
+	}
+
 	// topologicalOrder[0] is the first phase to run,
 	// topologicalOrder[1] the next, and so on.
 
