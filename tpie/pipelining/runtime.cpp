@@ -1005,8 +1005,10 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 	const node_map::relmap_t & relations = m_nodeMap.find_authority()->get_relations();
 	for (node_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
-		node *from = m_nodeMap.get(i->first);
-		node *to = m_nodeMap.get(i->second.first);
+		// from and to is swapped in the relationship so that
+		// to depends on from, meaning from should be run before to
+		node *from = m_nodeMap.get(i->second.first);
+		node *to = m_nodeMap.get(i->first);
 
 		size_t fromPhase = phaseMap.find(from)->second;
 		size_t toPhase = phaseMap.find(to)->second;
@@ -1019,16 +1021,16 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 		if (rel != memory_share_depends) {
 			// Black edge
-			log_debug() << "Black edge: " << toPhase << " -> " << fromPhase << std::endl;
+			log_debug() << "Black edge: " << fromPhase << " -> " << toPhase << std::endl;
 			continue;
 		}
 
-		if (to->can_evacuate()) {
+		if (from->can_evacuate()) {
 			// Red edge
-			log_debug() << "Red edge: " << toPhase << " -> " << fromPhase << std::endl;
+			log_debug() << "Red edge: " << fromPhase << " -> " << toPhase << std::endl;
 		} else {
 			// Green edge
-			log_debug() << "Green edge: " << toPhase << " -> " << fromPhase << std::endl;
+			log_debug() << "Green edge: " << fromPhase << " -> " << toPhase << std::endl;
 
 			// Check if we already have a green edge from fromPhase or to toPhase
 			// If so one of edges can't be satisfied, but all green edges must be satisfied
@@ -1090,6 +1092,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		throw tpie::exception("get_phases: can't satisfy all green edges");
 	}
 
+	// Expand contracted edges in topologicalOrder
 	for (const auto & p : greenPaths) {
 		size_t i = p.first;
 		const graph<size_t> & g = p.second;
@@ -1102,11 +1105,11 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		topologicalOrder.insert(it, path.begin(), path.end() - 1);
 	}
 
-	// topologicalOrder[0] is the last phase to run,
-	// topologicalOrder[1] the previous, and so on.
+	// topologicalOrder[0] is the first phase to run,
+	// topologicalOrder[1] the next, and so on.
 
 	// Compute inverse permutation such that
-	// topoOrderMap[n-i] is the time at which we run phase i.
+	// topoOrderMap[i] is the time at which we run phase i.
 	std::vector<size_t> topoOrderMap = inverse_permutation(topologicalOrder);
 
 	// Distribute nodes according to the topological order
@@ -1119,9 +1122,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 	std::unordered_set<node_map::id_t> previousNodes;
 	bits::node_map::ptr nodeMap = (phases.front().front())->get_node_map()->find_authority();
-	// Loop through phases in order they are run
-	for (auto it = phases.rbegin(); it != phases.rend(); ++it) {
-		const auto & phase = *it;
+	for (const auto & phase : phases) {
 		for (const auto node : phase) {
 			const auto range = nodeMap->get_relations().equal_range(node->get_id());
 			for (auto it = range.first ; it != range.second ; ++it) {

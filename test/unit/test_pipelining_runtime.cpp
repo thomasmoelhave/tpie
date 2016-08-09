@@ -251,8 +251,8 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	for (size_t i = 0; i < N; ++i) phaseGraph.add_node(i);
 
 	for (const edge_t & e : edges) {
-		phaseGraph.add_edge(e.to, e.from);
-		log_info() << nodes[e.from]->get_id() << " -(" << edge_color_names[e.color] << ")-> " << nodes[e.to]->get_id() << std::endl;
+		phaseGraph.add_edge(e.from, e.to);
+		log_info() << e.from << " -(" << edge_color_names[e.color] << ")-> " << e.to << std::endl;
 		if (e.color == BLACK) {
 			nodes[e.to]->add_dependency(*nodes[e.from]);
 		} else {
@@ -278,14 +278,11 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 
 	if (should_fail) {
 		log_error() << "Constructed phase ordering successfully" << std::endl;
-		ts << result(false);
-		return;
 	}
 
 	log_info() << "Phase order: ";
 	std::vector<size_t> phaseOrder;
-	for (auto it = phases.rbegin(); it != phases.rend(); ++it) {
-		const auto & phase = *it;
+	for (const auto & phase : phases) {
 		size_t i = revNodes[phase[0]];
 		phaseOrder.push_back(i);
 		log_info() << i << ", ";
@@ -300,6 +297,11 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 		log_info() << i << ", ";
 	}
 	log_info() << std::endl;
+
+	if (should_fail) {
+		ts << result(false);
+		return;
+	}
 
 	bool bad = false;
 	for (const edge_t & e : edges) {
