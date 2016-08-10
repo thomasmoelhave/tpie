@@ -56,6 +56,14 @@ public:
 		m_edgeLists[u].push_back(v);
 	}
 
+	void remove_edge(size_t u, size_t v) {
+		auto & edges = m_edgeLists[u];
+		auto it = std::find(edges.begin(), edges.end(), v);
+		if (it != edges.end()) {
+			edges.erase(it);
+		}
+	}
+
 	const std::set<T> & get_node_set() const {
 		return m_nodes;
 	}
@@ -71,6 +79,13 @@ public:
 	bool has_edge(T u, T v) const {
 		const std::vector<T> & edgeList = m_edgeLists.find(u)->second;
 		return std::find(edgeList.begin(), edgeList.end(), v) != edgeList.end();
+	}
+
+	void validate_acyclical() {
+		depth_first_search dfs(m_edgeLists);
+		for (T v : m_nodes) {
+			dfs.visit(v);
+		}
 	}
 
 	void topological_order(std::vector<T> & result) const {
@@ -99,6 +114,11 @@ public:
 		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
 	}
 
+	template <typename Compare>
+	void sort_edge_list(T u, Compare comp) {
+		std::sort(m_edgeLists[u].begin(), m_edgeLists[u].end(), comp);
+	}
+
 private:
 	std::set<T> m_nodes;
 	std::map<T, std::vector<T> > m_edgeLists;
@@ -125,6 +145,15 @@ private:
 			return m_finishTime[u] = m_time++;
 		}
 
+		bool visited(T u, size_t & finishTime) const {
+			auto it = m_finishTime.find(u);
+			bool result = it != m_finishTime.end();
+			if (result) {
+				finishTime = *it;
+			}
+			return result;
+		}
+
 	private:
 		const std::vector<T> & get_edge_list(T u) {
 			typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.find(u);
@@ -137,6 +166,229 @@ private:
 		const std::map<T, std::vector<T> > & m_edgeLists;
 		std::map<T, size_t> m_finishTime;
 	};
+};
+
+class satisfiable_graph {
+	typedef size_t node_t;
+
+	graph<node_t> m_graph;
+	std::set<std::pair<node_t, node_t>> m_satisfiableEdges;
+
+public:
+	void add_node(node_t u) {
+		m_graph.add_node(u);
+	}
+
+	void add_edge(node_t u, node_t v, bool satisfiable) {
+		m_graph.add_edge(u, v);
+		if (satisfiable) {
+			m_satisfiableEdges.insert({u, v});
+		}
+	}
+
+	void remove_edge(node_t u, node_t v) {
+		m_graph.remove_edge(u, v);
+		m_satisfiableEdges.erase({u ,v});
+	}
+
+	static constexpr size_t max_bruteforce_depth = 16;
+
+private:
+	struct result_t {
+		size_t satisfied;
+		std::vector<node_t> order;
+	};
+
+	typedef std::bitset<max_bruteforce_depth> node_bitset_t;
+	struct cache_key_t {
+		node_bitset_t node_bitset;
+		node_t last;
+
+		bool operator<(const cache_key_t & o) const {
+			return node_bitset.to_ullong() < o.node_bitset.to_ullong() || (node_bitset.to_ullong() == o.node_bitset.to_ullong() && last < o.last);
+		}
+	};
+
+	typedef std::map<cache_key_t, result_t> cache_t;
+
+	result_t & bruteforce_optimal_topological_order_helper(
+		std::unordered_map<node_t, size_t> & indegrees,
+		std::unordered_set<node_t> & roots,
+		std::vector<node_t> & order,
+		size_t satisfied,
+		node_bitset_t & nodesRemoved,
+		cache_t & cache,
+		std::unordered_map<node_t, size_t> nodeIndices)
+	{
+		node_t last = order.size() > 0? *order.rbegin(): default_unused<node_t>::v();
+		cache_key_t key = {nodesRemoved, last};
+
+		log_debug() << "Order: ";
+		for (auto v : order) {
+			log_debug() << v << ", ";
+		}
+		log_debug() << std::endl;
+
+		if (order.size() > 0) {
+			auto it = cache.find(key);
+			if (it != cache.end()) {
+				log_debug() << "Hit cache" << std::endl;
+				return it->second;
+			}
+		}
+
+		if (order.size() == m_graph.size()) {
+			return cache[key] = {satisfied, order};
+		}
+
+		tp_assert(roots.size() > 0, "No nodes with indegree 0!");
+
+		result_t * best = nullptr;
+		auto rootsCopy = roots;
+		for (node_t u : rootsCopy) {
+			bool satisfiedEdge = order.size() > 0 && m_satisfiableEdges.count({*order.rbegin(), u});
+
+			roots.erase(u);
+
+			std::vector<node_t> newRoots;
+			for (node_t v : m_graph.get_edge_list(u)) {
+				size_t & indegree = indegrees[v];
+				indegree--;
+				if (indegree == 0) {
+					roots.insert(v);
+					newRoots.push_back(v);
+				}
+			}
+
+			order.push_back(u);
+			size_t nodeIndex = nodeIndices[u];
+			nodesRemoved.set(nodeIndex);
+
+			result_t & result = bruteforce_optimal_topological_order_helper(indegrees, roots, order, satisfied + satisfiedEdge, nodesRemoved, cache, nodeIndices);
+			if (!best || result.satisfied > best->satisfied) {
+				best = &result;
+			}
+
+			nodesRemoved.reset(nodeIndex);
+			order.pop_back();
+
+			for (node_t v : newRoots) {
+				roots.erase(v);
+			}
+			for (node_t v : m_graph.get_edge_list(u)) {
+				size_t & indegree = indegrees[v];
+				indegree++;
+			}
+
+			roots.insert(u);
+
+			if (best->satisfied == m_satisfiableEdges.size()) {
+				cache[key] = *best;
+				return cache[key];
+			}
+		}
+
+		cache[key] = *best;
+		return cache[key];
+	}
+
+	std::unordered_map<node_t, size_t> & paths(node_t u, std::unordered_map<node_t, std::unordered_map<node_t, size_t>> & cache) {
+		if (cache[u].size()) {
+			return cache[u];
+		}
+
+		std::unordered_map<node_t, size_t> result;
+		for (node_t v : m_graph.get_edge_list(u)) {
+			result[v]++;
+			for (node_t w : m_graph.get_node_set()) {
+				result[w] += paths(v, cache)[w];
+			}
+		}
+
+		return cache[u] = result;
+	}
+
+public:
+	void preprocess() {
+		m_graph.validate_acyclical();
+
+		std::unordered_map<node_t, std::unordered_map<node_t, size_t>> cache;
+
+		for (node_t u : m_graph.get_node_set()) {
+			std::vector<node_t> unnecessaryEdges;
+			for (node_t v : m_graph.get_edge_list(u)) {
+				// If there exists another path between u and v, remove it
+				if (paths(u, cache)[v] > 1) {
+					unnecessaryEdges.push_back(v);
+				}
+			}
+			for (size_t v : unnecessaryEdges) {
+				remove_edge(u, v);
+			}
+		}
+	}
+
+	void bruteforce_optimal_topological_order(std::vector<node_t> & order) {
+		size_t N = m_graph.size();
+		tp_assert(N <= max_bruteforce_depth, "Too many nodes for bruteforce, not enough bits in bitset");
+
+		preprocess();
+
+		std::unordered_map<node_t, size_t> indegrees;
+		for (node_t u : m_graph.get_node_set()) {
+			for (node_t v : m_graph.get_edge_list(u)) {
+				indegrees[v]++;
+			}
+		}
+
+		std::unordered_set<node_t> roots;
+		std::unordered_map<node_t, size_t> nodeIndices;
+		size_t i = 0;
+		for (node_t u : m_graph.get_node_set()) {
+			if (indegrees[u] == 0) {
+				roots.insert(u);
+			}
+			nodeIndices[u] = i;
+			i++;
+		}
+
+		std::vector<node_t> recOrder;
+		node_bitset_t nodesRemoved;
+		cache_t cache;
+		result_t result = bruteforce_optimal_topological_order_helper(indegrees, roots, recOrder, 0, nodesRemoved, cache, nodeIndices);
+
+		log_debug() << "Total cache entries: " << cache.size() << std::endl;
+		order = result.order;
+	}
+
+	void greedy_topological_order(std::vector<node_t> & order) {
+		preprocess();
+
+		// Make the satisfiable edges be last in the edge lists
+		for (node_t u = 0; u < m_graph.size(); u++) {
+			m_graph.sort_edge_list(u, [&](node_t a, node_t b){
+				return m_satisfiableEdges.count({u, a}) < m_satisfiableEdges.count({u, b});
+			});
+		}
+
+		m_graph.rootfirst_topological_order(order);
+	}
+
+	void optimal_topological_order(std::vector<node_t> & order) {
+		if (m_graph.size() <= max_bruteforce_depth) {
+			bruteforce_optimal_topological_order(order);
+			return;
+		}
+		return greedy_topological_order(order);
+	}
+
+	size_t satisfied_in_order(std::vector<node_t> & order) const {
+		size_t result = 0;
+		for (size_t i = 0; i < order.size() - 1; i++) {
+			result += m_satisfiableEdges.count({order[i], order[i + 1]});
+		}
+		return result;
+	}
 };
 
 class resource_runtime {
@@ -339,7 +591,7 @@ std::string get_phase_name(const std::vector<node *> & phase) {
 	}
 	std::string n = phase[highest_node]->get_phase_name();
 	if (!n.empty()) return n;
-	
+
 	highest_node = 0;
 	for (size_t i = 0; i < phase.size(); ++i) {
 		if (phase[i]->get_name_priority() > highest) {
@@ -998,8 +1250,8 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 	 * Next note that for any node we can satisfy at most one outgoing edge, and at most one incoming edge.
 	 */
 
-	// TODO: Handle red edges, possibly greedily
-
+	std::vector<std::pair<size_t, size_t>> blackEdges;
+	std::vector<std::pair<size_t, size_t>> redEdges;
 	std::unordered_map<size_t, size_t> greenEdges;
 	std::unordered_map<size_t, size_t> revGreenEdges;
 
@@ -1022,12 +1274,14 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		if (rel != memory_share_depends) {
 			// Black edge
 			log_debug() << "Black edge: " << fromPhase << " -> " << toPhase << std::endl;
+			blackEdges.push_back({fromPhase, toPhase});
 			continue;
 		}
 
 		if (from->can_evacuate()) {
 			// Red edge
 			log_debug() << "Red edge: " << fromPhase << " -> " << toPhase << std::endl;
+			redEdges.push_back({fromPhase, toPhase});
 		} else {
 			// Green edge
 			log_debug() << "Green edge: " << fromPhase << " -> " << toPhase << std::endl;
@@ -1058,36 +1312,53 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		greenPaths[i].add_edge(p.first, p.second);
 	}
 
-	graph<size_t> contractedGraph;
+	satisfiable_graph contractedGraph;
 	for (size_t i : phaseGraph.get_node_set()) {
 		contractedGraph.add_node(contractedNodes.find_set(i));
 	}
 
-	for (size_t i : phaseGraph.get_node_set()) {
-		for (size_t j : phaseGraph.get_edge_list(i)) {
-			i = contractedNodes.find_set(i);
-			j = contractedNodes.find_set(j);
+	/*
+	 * Greedily prefer red edges over black in the topological order.
+	 * First we add all black edges to the graph then all the red.
+	 * If there is both a black edge and red edge between the same contracted node,
+	 * we shall consider the edge as a red edge.
+	 * This ensure that dfs in the topological order implementation
+	 * will visit red edges later than black edges.
+	 */
+	std::set<std::pair<size_t, size_t>> redEdgeSet;
+	for (auto p : redEdges) {
+		p.first = contractedNodes.find_set(p.first);
+		p.second = contractedNodes.find_set(p.second);
+		if (p.first == p.second) continue;
+		redEdgeSet.insert(p);
+	}
 
-			if (i == j) {
-				/*
-				 * If we have an edge from one contracted node to another
-				 * it must either be a green edge or an edge going
-				 * in the same direction as the green path, because the graph is a DAG.
-				 * So if we find a topological order for new the graph,
-				 * the topological order without contractions will also satisfy this edge.
-				 */
-				continue;
-			}
+	std::set<std::pair<size_t, size_t>> blackEdgeSet;
+	for (auto p : blackEdges) {
+		p.first = contractedNodes.find_set(p.first);
+		p.second = contractedNodes.find_set(p.second);
+		if (p.first == p.second) continue;
+		if (!redEdgeSet.count(p)) {
+			blackEdgeSet.insert(p);
+		}
+	}
 
-			if (!contractedGraph.has_edge(i, j)) {
-				contractedGraph.add_edge(i, j);
-			}
+	for (const auto * edges : {&blackEdgeSet, &redEdgeSet}) {
+		for (const auto & p : *edges) {
+			/*
+			 * If we have an edge from one contracted node to another
+			 * it must either be a green edge or an edge going
+			 * in the same direction as the green path, because the graph is a DAG.
+			 * So if we find a topological order for new the graph,
+			 * the topological order without contractions will also satisfy this edge.
+			 */
+			contractedGraph.add_edge(p.first, p.second, edges == &redEdgeSet);
 		}
 	}
 
 	std::vector<size_t> topologicalOrder;
 	try {
-		contractedGraph.rootfirst_topological_order(topologicalOrder);
+		contractedGraph.optimal_topological_order(topologicalOrder);
 	} catch(not_a_dag_exception & e) {
 		throw tpie::exception("get_phases: can't satisfy all green edges");
 	}

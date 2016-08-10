@@ -173,6 +173,94 @@ bool get_phase_graph_test() {
 	return true;
 }
 
+template <typename T>
+void print_vector(std::ostream & out, const std::vector<T> & vec, const std::string & desc = "") {
+	if (desc != "") {
+		out << desc << ": ";
+	}
+	bool first = true;
+	out << "{";
+	for (const T & v : vec) {
+		out << (first? "": ", ") << v;
+		first = false;
+	}
+	out << "}" << std::endl;
+}
+
+struct satisfiable_edge_t {
+	size_t to;
+	size_t from;
+	bool satisfiable;
+};
+
+void satisfiable_helper(teststream & ts, size_t maxSatisfiable, const char * name, const std::vector<satisfiable_edge_t> & edges, const std::vector<size_t> & nodes = {}) {
+	ts << name << std::endl;
+
+	bool bad = false;
+	satisfiable_graph g;
+
+	for (const auto & e : edges) {
+		g.add_edge(e.to, e.from, e.satisfiable);
+	}
+
+	for (const auto & v : nodes) {
+		g.add_node(v);
+	}
+
+	size_t satisfied;
+	std::vector<size_t> order;
+
+	g.bruteforce_optimal_topological_order(order);
+	satisfied = g.satisfied_in_order(order);
+	print_vector(log_debug(), order, "Optimal ordering");
+	log_debug() << satisfied << std::endl;
+
+	if (satisfied != maxSatisfiable) {
+		log_error() << "Bruteforce solution only satisfied " << satisfied << ", optimal: " << maxSatisfiable << std::endl;
+		bad = true;
+	}
+
+	g.greedy_topological_order(order);
+	satisfied = g.satisfied_in_order(order);
+	print_vector(log_debug(), order, "Greedy ordering");
+	log_debug() << satisfied << std::endl;
+
+	ts << result(!bad);
+}
+
+void optimal_satisfiable_ordering_test(teststream & ts) {
+	satisfiable_helper(ts, 2, "2/3 satisfiable diamond", {
+	   {0, 1, true},
+	   {0, 2, true},
+	   {1, 3, false},
+	   {2, 3, true},
+	});
+	return;
+	satisfiable_helper(ts, 2, "2/3 satisfiable double diamond", {
+		{0, 1, false},
+		{0, 2, true},
+		{1, 3, false},
+		{2, 3, true},
+		{2, 4, false},
+		{3, 5, true},
+		{4, 5, false},
+	});
+
+	size_t N = satisfiable_graph::max_bruteforce_depth;
+	std::vector<size_t> nodes(N);
+	std::iota(nodes.begin(), nodes.end(), 0);
+
+	auto start = test_now();
+	satisfiable_helper(ts, 1, "Timing test", {
+	  	{0, 1, true},
+		{0, 2, false},
+		{1, 3, true},
+		{2, 3, false},
+	}, nodes);
+	auto end = test_now();
+	log_info() << "Time to bruteforce optimal solution with " << N << " nodes: " << test_millisecs(start, end) << " ms" << std::endl;
+}
+
 // See tpie::pipelining::bits::runtime::get_phases for description of edge colors
 enum edge_color {
 	BLACK,
@@ -191,7 +279,11 @@ struct edge_t {
 	size_t to;
 };
 
-void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * name, const std::vector<edge_t> & edges) {
+void evacuate_phase_graph_test(teststream & ts,
+							   bool should_fail,
+							   size_t expected_satisfied_reds,
+							   const char * name,
+							   const std::vector<edge_t> & edges) {
 	ts << name << std::endl;
 
 	std::vector<node *> nodeList;
@@ -280,23 +372,19 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 		log_error() << "Constructed phase ordering successfully" << std::endl;
 	}
 
-	log_info() << "Phase order: ";
 	std::vector<size_t> phaseOrder;
 	for (const auto & phase : phases) {
 		size_t i = revNodes[phase[0]];
 		phaseOrder.push_back(i);
-		log_info() << i << ", ";
 	}
-	log_info() << std::endl;
+	print_vector(log_info(), phaseOrder, "Phase order");
 
-	log_info() << "Evacuated nodes: ";
 	std::unordered_set<size_t> evacuatedNodes;
 	for (auto id : evacuateWhenDone) {
 		size_t i = revNodes[nodeMap->get(id)];
 		evacuatedNodes.insert(i);
-		log_info() << i << ", ";
 	}
-	log_info() << std::endl;
+	print_vector(log_info(), phaseOrder, "Evacuated nodes");
 
 	if (should_fail) {
 		ts << result(false);
@@ -304,58 +392,65 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	}
 
 	bool bad = false;
+	size_t satisfied_reds = 0;
+	size_t reds = 0;
 	for (const edge_t & e : edges) {
+		auto from = std::find(phaseOrder.begin(), phaseOrder.end(), e.from);
+		auto to   = std::find(phaseOrder.begin(), phaseOrder.end(), e.to);
+		bool satisfied = to - from == 1;
+
 		if (e.color == GREEN) {
 			if (evacuatedNodes.count(e.from) != 0) {
 				log_error() << "Evacuated a node with a green edge going out: " << e.from << std::endl;
 				bad = true;
 			}
-
-			auto from = std::find(phaseOrder.begin(), phaseOrder.end(), e.from);
-			auto to   = std::find(phaseOrder.begin(), phaseOrder.end(), e.to);
-
-			if (to - from != 1) {
+			if (!satisfied) {
 				log_error() << "Phases with green edge between not consecutive: "
 							<< e.from << " -> " << e.to << std::endl;
 				bad = true;
 			}
+		} else if (e.color == RED) {
+			reds++;
+			if (satisfied) satisfied_reds++;
 		}
+	}
+
+	log_info() << "Satisfied " << satisfied_reds << " out of " << reds << " red edges" << std::endl;
+
+	if (satisfied_reds != expected_satisfied_reds) {
+		log_error() << "Satisfied " << satisfied_reds << " red edges, expected " << expected_satisfied_reds << std::endl;
+		ts << result(false);
+		return;
 	}
 
 	ts << result(!bad);
 }
 
 void evacuate_phase_graph_multi(teststream & ts) {
-	evacuate_phase_graph_test(ts, true, "Simple fail", {
+	evacuate_phase_graph_test(ts, true, 0, "Simple fail", {
 		{BLACK, 0, 1},
 		{BLACK, 1, 2},
 		{GREEN, 0, 2},
 	});
-	evacuate_phase_graph_test(ts, false, "Diamond working", {
+	evacuate_phase_graph_test(ts, false, 0, "Diamond working", {
 		{GREEN, 0, 1},
 		{BLACK, 1, 3},
 		{BLACK, 0, 2},
 		{GREEN, 2, 3},
 	});
-	evacuate_phase_graph_test(ts, true, "Diamond failing", {
+	evacuate_phase_graph_test(ts, true, 0, "Diamond failing", {
 		{GREEN, 0, 1},
 		{GREEN, 1, 3},
 		{BLACK, 0, 2},
 		{BLACK, 2, 3},
 	});
-	evacuate_phase_graph_test(ts, false, "Red diamond", {
-		{RED, 0, 1},
-		{RED, 1, 3},
-		{RED, 0, 2},
-		{RED, 2, 3},
-	});
-	evacuate_phase_graph_test(ts, false, "Green path", {
+	evacuate_phase_graph_test(ts, false, 0, "Green path", {
 		{GREEN, 2, 3},
 		{GREEN, 1, 2},
 		{GREEN, 3, 4},
 		{GREEN, 0, 1},
 	});
-	evacuate_phase_graph_test(ts, false, "Green bridges", {
+	evacuate_phase_graph_test(ts, false, 0, "Green bridges", {
 		{GREEN, 0, 1},
 		{BLACK, 1, 2},
 		{BLACK, 2, 4},
@@ -370,12 +465,37 @@ void evacuate_phase_graph_multi(teststream & ts) {
 		{BLACK, 9, 10},
 		{GREEN, 10, 11},
 	});
+	evacuate_phase_graph_test(ts, false, 2, "Red diamond", {
+		{RED, 0, 1},
+		{RED, 1, 3},
+		{RED, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, 2, "3/4 Red diamond 1", {
+		{RED, 0, 1},
+		{RED, 1, 3},
+		{BLACK, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, 2, "3/4 Red diamond 2", {
+		{BLACK, 0, 1},
+		{RED, 1, 3},
+		{RED, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, 1, "Contracted node w/ outgoing red & black", {
+		{GREEN, 0, 1},
+		{BLACK, 0, 2},
+		{RED, 1, 2},
+		{BLACK, 0, 3},
+	});
 }
 
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.test(evacuate_test, "evacuate")
 	.test(get_phase_graph_test, "get_phase_graph")
+	.multi_test(optimal_satisfiable_ordering_test, "optimal_satisfiable_ordering")
 	.multi_test(evacuate_phase_graph_multi, "evacuate_phase_graph")
 	;
 }
