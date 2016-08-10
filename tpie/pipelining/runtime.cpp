@@ -998,8 +998,8 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 	 * Next note that for any node we can satisfy at most one outgoing edge, and at most one incoming edge.
 	 */
 
-	// TODO: Handle red edges, possibly greedily
-
+	std::vector<std::pair<size_t, size_t>> blackEdges;
+	std::vector<std::pair<size_t, size_t>> redEdges;
 	std::unordered_map<size_t, size_t> greenEdges;
 	std::unordered_map<size_t, size_t> revGreenEdges;
 
@@ -1022,12 +1022,14 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		if (rel != memory_share_depends) {
 			// Black edge
 			log_debug() << "Black edge: " << fromPhase << " -> " << toPhase << std::endl;
+			blackEdges.push_back({fromPhase, toPhase});
 			continue;
 		}
 
 		if (from->can_evacuate()) {
 			// Red edge
 			log_debug() << "Red edge: " << fromPhase << " -> " << toPhase << std::endl;
+			redEdges.push_back({fromPhase, toPhase});
 		} else {
 			// Green edge
 			log_debug() << "Green edge: " << fromPhase << " -> " << toPhase << std::endl;
@@ -1063,19 +1065,43 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 		contractedGraph.add_node(contractedNodes.find_set(i));
 	}
 
-	for (size_t i : phaseGraph.get_node_set()) {
-		for (size_t j : phaseGraph.get_edge_list(i)) {
-			i = contractedNodes.find_set(i);
-			j = contractedNodes.find_set(j);
+	/*
+	 * Greedily prefer red edges over black in the topological order.
+	 * First we add all black edges to the graph then all the red.
+	 * If there is both a black edge and red edge between the same contracted node,
+	 * we shall consider the edge as a red edge.
+	 * This ensure that dfs in the topological order implementation
+	 * will visit red edges later than black edges.
+	 */
+	std::set<std::pair<size_t, size_t>> redEdgesSet;
+	for (auto p : redEdges) {
+		p.first = contractedNodes.find_set(p.first);
+		p.second = contractedNodes.find_set(p.second);
+		redEdgesSet.insert(p);
+	}
 
+	for (bool addingRedEdge : {false, true}) {
+		const auto * edges = addingRedEdge? &redEdges: &blackEdges;
+		for (const auto & p : *edges) {
+			size_t i = contractedNodes.find_set(p.first);
+			size_t j = contractedNodes.find_set(p.second);
+
+			/*
+			 * If we have an edge from one contracted node to another
+			 * it must either be a green edge or an edge going
+			 * in the same direction as the green path, because the graph is a DAG.
+			 * So if we find a topological order for new the graph,
+			 * the topological order without contractions will also satisfy this edge.
+			 */
 			if (i == j) {
-				/*
-				 * If we have an edge from one contracted node to another
-				 * it must either be a green edge or an edge going
-				 * in the same direction as the green path, because the graph is a DAG.
-				 * So if we find a topological order for new the graph,
-				 * the topological order without contractions will also satisfy this edge.
-				 */
+				continue;
+			}
+
+			/*
+			 * If we are adding black edges, but there is also a red edge
+			 * between the same nodes, we should first add it after adding all black edges.
+			 */
+			if (!addingRedEdge && redEdgesSet.count({i, j})) {
 				continue;
 			}
 

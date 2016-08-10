@@ -191,7 +191,11 @@ struct edge_t {
 	size_t to;
 };
 
-void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * name, const std::vector<edge_t> & edges) {
+void evacuate_phase_graph_test(teststream & ts,
+							   bool should_fail,
+							   size_t expected_satisfied_reds,
+							   const char * name,
+							   const std::vector<edge_t> & edges) {
 	ts << name << std::endl;
 
 	std::vector<node *> nodeList;
@@ -304,58 +308,65 @@ void evacuate_phase_graph_test(teststream & ts, bool should_fail, const char * n
 	}
 
 	bool bad = false;
+	size_t satisfied_reds = 0;
+	size_t reds = 0;
 	for (const edge_t & e : edges) {
+		auto from = std::find(phaseOrder.begin(), phaseOrder.end(), e.from);
+		auto to   = std::find(phaseOrder.begin(), phaseOrder.end(), e.to);
+		bool satisfied = to - from == 1;
+
 		if (e.color == GREEN) {
 			if (evacuatedNodes.count(e.from) != 0) {
 				log_error() << "Evacuated a node with a green edge going out: " << e.from << std::endl;
 				bad = true;
 			}
-
-			auto from = std::find(phaseOrder.begin(), phaseOrder.end(), e.from);
-			auto to   = std::find(phaseOrder.begin(), phaseOrder.end(), e.to);
-
-			if (to - from != 1) {
+			if (!satisfied) {
 				log_error() << "Phases with green edge between not consecutive: "
 							<< e.from << " -> " << e.to << std::endl;
 				bad = true;
 			}
+		} else if (e.color == RED) {
+			reds++;
+			if (satisfied) satisfied_reds++;
 		}
+	}
+
+	log_info() << "Satisfied " << satisfied_reds << " out of " << reds << " red edges" << std::endl;
+
+	if (satisfied_reds != expected_satisfied_reds) {
+		log_error() << "Satisfied " << satisfied_reds << " red edges, expected " << expected_satisfied_reds << std::endl;
+		ts << result(false);
+		return;
 	}
 
 	ts << result(!bad);
 }
 
 void evacuate_phase_graph_multi(teststream & ts) {
-	evacuate_phase_graph_test(ts, true, "Simple fail", {
+	evacuate_phase_graph_test(ts, true, 0, "Simple fail", {
 		{BLACK, 0, 1},
 		{BLACK, 1, 2},
 		{GREEN, 0, 2},
 	});
-	evacuate_phase_graph_test(ts, false, "Diamond working", {
+	evacuate_phase_graph_test(ts, false, 0, "Diamond working", {
 		{GREEN, 0, 1},
 		{BLACK, 1, 3},
 		{BLACK, 0, 2},
 		{GREEN, 2, 3},
 	});
-	evacuate_phase_graph_test(ts, true, "Diamond failing", {
+	evacuate_phase_graph_test(ts, true, 0, "Diamond failing", {
 		{GREEN, 0, 1},
 		{GREEN, 1, 3},
 		{BLACK, 0, 2},
 		{BLACK, 2, 3},
 	});
-	evacuate_phase_graph_test(ts, false, "Red diamond", {
-		{RED, 0, 1},
-		{RED, 1, 3},
-		{RED, 0, 2},
-		{RED, 2, 3},
-	});
-	evacuate_phase_graph_test(ts, false, "Green path", {
+	evacuate_phase_graph_test(ts, false, 0, "Green path", {
 		{GREEN, 2, 3},
 		{GREEN, 1, 2},
 		{GREEN, 3, 4},
 		{GREEN, 0, 1},
 	});
-	evacuate_phase_graph_test(ts, false, "Green bridges", {
+	evacuate_phase_graph_test(ts, false, 0, "Green bridges", {
 		{GREEN, 0, 1},
 		{BLACK, 1, 2},
 		{BLACK, 2, 4},
@@ -369,6 +380,30 @@ void evacuate_phase_graph_multi(teststream & ts) {
 		{GREEN, 8, 9},
 		{BLACK, 9, 10},
 		{GREEN, 10, 11},
+	});
+	evacuate_phase_graph_test(ts, false, 2, "Red diamond", {
+		{RED, 0, 1},
+		{RED, 1, 3},
+		{RED, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, 2, "3/4 Red diamond 1", {
+		{RED, 0, 1},
+		{RED, 1, 3},
+		{BLACK, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, 2, "3/4 Red diamond 2", {
+		{BLACK, 0, 1},
+		{RED, 1, 3},
+		{RED, 0, 2},
+		{RED, 2, 3},
+	});
+	evacuate_phase_graph_test(ts, false, 1, "Contracted node w/ outgoing red & black", {
+		{GREEN, 0, 1},
+		{BLACK, 0, 2},
+		{RED, 1, 2},
+		{BLACK, 0, 3},
 	});
 }
 
