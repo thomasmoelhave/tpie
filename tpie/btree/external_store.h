@@ -42,7 +42,8 @@ namespace bbits {
 template <typename T,
 		  typename A,
 		  std::size_t fanout_a,
-		  std::size_t fanout_b>
+		  std::size_t fanout_b,
+		  std::size_t bs>
 class external_store : public external_store_base {
 public:
 	/**
@@ -58,7 +59,7 @@ public:
 	typedef size_t size_type;
 
 	static constexpr memory_size_type cacheSize() {return 32;}
-	static constexpr memory_size_type blockSize() {return 7000;}
+	static constexpr memory_size_type blockSize() {return bs?bs:7000;}
 	
 	struct internal_content {
 		blocks::block_handle handle;

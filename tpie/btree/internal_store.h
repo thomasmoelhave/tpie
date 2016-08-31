@@ -40,8 +40,7 @@ namespace bbits {
 template <typename T,
 		  typename A,
 		  std::size_t a_,
-		  std::size_t b_
-		  >
+		  std::size_t b_>
 class internal_store {
 public:
 	static const size_t a = a_?a_:2;
