@@ -130,6 +130,17 @@ public:
 		return components;
 	}
 
+	void plot(std::ostream & out) {
+		out << "digraph {\n";
+		for (T u : get_node_set()) {
+			out << u << '\n';
+			for (T v : get_edge_list(u)) {
+				out << u << " -> " << v << '\n';
+			}
+		}
+		out << '}' << std::endl;
+	}
+
 private:
 	std::set<T> m_nodes;
 	std::map<T, std::vector<T> > m_edgeLists;
@@ -260,7 +271,23 @@ public:
 		m_satisfiableEdges.erase({u ,v});
 	}
 
+	const std::set<node_t> & get_node_set() const {
+		return m_graph.get_node_set();
+	}
+
+	void plot(std::ostream & out) {
+		out << "digraph {\n";
+		for (node_t u : get_node_set()) {
+			out << u << '\n';
+			for (node_t v : m_graph.get_edge_list(u)) {
+				out << u << " -> " << v << " " << (m_satisfiableEdges.count({u, v})? "[color=red]": "") << '\n';
+			}
+		}
+		out << '}' << std::endl;
+	}
+
 	static constexpr size_t max_bruteforce_depth = 10;
+	static constexpr size_t max_bruteforce_satisfiable = 18;
 
 private:
 	/**
@@ -276,7 +303,7 @@ private:
 		std::unordered_map<node_t, size_t> result;
 		for (node_t v : m_graph.get_edge_list(u)) {
 			result[v]++;
-			for (node_t w : m_graph.get_node_set()) {
+			for (node_t w : get_node_set()) {
 				result[w] += paths(v, cache)[w];
 			}
 		}
@@ -294,7 +321,7 @@ private:
 
 		std::unordered_map<node_t, std::unordered_map<node_t, size_t>> cache;
 
-		for (node_t u : m_graph.get_node_set()) {
+		for (node_t u : get_node_set()) {
 			std::vector<node_t> unnecessaryEdges;
 			for (node_t v : m_graph.get_edge_list(u)) {
 				// If there exists another path between u and v, remove it
@@ -341,6 +368,13 @@ private:
 			result.push_back(subgraph(component));
 		}
 		return result;
+	}
+
+	/**
+	 * \brief Gives a lower bound on the maximum number of satisfiable edges
+	 */
+	size_t minimum_satisfiable_edges() {
+		return m_satisfiableEdges.size() == 0? 0: 1;
 	}
 
 	struct result_t {
@@ -407,16 +441,19 @@ private:
 		return best;
 	}
 
+	/*
+	 * Runs in O*(n!)
+	 */
 	void bruteforce_optimal_topological_order(std::vector<node_t> & order) {
 		std::unordered_map<node_t, size_t> indegrees;
-		for (node_t u : m_graph.get_node_set()) {
+		for (node_t u : get_node_set()) {
 			for (node_t v : m_graph.get_edge_list(u)) {
 				indegrees[v]++;
 			}
 		}
 
 		std::unordered_set<node_t> roots;
-		for (node_t u : m_graph.get_node_set()) {
+		for (node_t u : get_node_set()) {
 			if (indegrees[u] == 0) {
 				roots.insert(u);
 			}
@@ -428,9 +465,138 @@ private:
 		order = result.order;
 	}
 
+	/*
+	 * Runs in O*(2^k), where k is the number of satisfiable edges
+	 */
+	void bruteforce_satisfiable_edges(std::vector<node_t> & order) {
+		size_t N = m_graph.size();
+		size_t M = m_satisfiableEdges.size();
+
+		tp_assert(M <= sizeof(size_t) * CHAR_BIT, "Too many satisfiable edges");
+
+		std::unordered_map<node_t, size_t> nodeIndices;
+		std::unordered_map<size_t, node_t> revNodeIndices;
+		{
+			size_t i = 0;
+			for (node_t u : get_node_set()) {
+				nodeIndices[u] = i;
+				revNodeIndices[i] = u;
+				i++;
+			}
+		}
+
+		bool noBest = true;
+		size_t bestSatisfied;
+		disjoint_sets<size_t> bestContractedNodes;
+		std::unordered_map<size_t, graph<size_t>> bestContractedPaths;
+		graph<size_t> bestContractedGraph;
+
+		size_t minimumSatisfiable = minimum_satisfiable_edges();
+
+		size_t combinations = 1 << M;
+		for (size_t i = 0; i < combinations; i++) {
+			disjoint_sets<size_t> contractedNodes(N);
+			for (size_t j = 0; j < N; j++) {
+				contractedNodes.make_set(j);
+			}
+
+			std::unordered_set<node_t> satisfiedOut;
+			std::unordered_set<node_t> satisfiedIn;
+
+			bool bad = false;
+			size_t satisfied = 0;
+			size_t j = 0;
+			for (const auto & p : m_satisfiableEdges) {
+				if ((1 << j) & i) {
+					size_t k = nodeIndices[p.first];
+					size_t l = nodeIndices[p.second];
+					contractedNodes.union_set(k, l);
+					if (satisfiedOut.count(k) || satisfiedIn.count(l)) {
+						bad = true;
+						break;
+					}
+					satisfiedOut.insert(k);
+					satisfiedIn.insert(l);
+					satisfied++;
+				}
+				j++;
+			}
+
+			if (bad) continue;
+
+			if (satisfied < minimumSatisfiable) continue;
+
+			std::unordered_map<size_t, graph<size_t>> contractedPaths;
+			j = 0;
+			for (const auto & p : m_satisfiableEdges) {
+				if ((1 << j) & i) {
+					size_t k = contractedNodes.find_set(nodeIndices[p.first]);
+					contractedPaths[k].add_edge(nodeIndices[p.first], nodeIndices[p.second]);
+				}
+				j++;
+			}
+
+			graph<size_t> contractedGraph;
+			for (size_t j = 0; j < N; j++) {
+				contractedGraph.add_node(contractedNodes.find_set(j));
+			}
+
+			for (node_t u : get_node_set()) {
+				size_t j = contractedNodes.find_set(nodeIndices[u]);
+				for (node_t v : m_graph.get_edge_list(u)) {
+					size_t k = contractedNodes.find_set(nodeIndices[v]);
+					if (j != k) {
+						contractedGraph.add_edge(j, k);
+					}
+				}
+			}
+
+			try {
+				contractedGraph.validate_acyclical();
+			} catch (const not_a_dag_exception &) {
+				// Not a valid solution
+				continue;
+			}
+
+			if (noBest || satisfied > bestSatisfied) {
+				noBest = false;
+
+				bestSatisfied = satisfied;
+				bestContractedNodes = std::move(contractedNodes);
+				bestContractedPaths = std::move(contractedPaths);
+				bestContractedGraph = std::move(contractedGraph);
+
+				if (bestSatisfied == m_satisfiableEdges.size()) {
+					break;
+				}
+			}
+		}
+
+		tp_assert(!noBest, "Couldn't find any best solution!");
+
+		std::vector<size_t> indexOrder;
+		bestContractedGraph.topological_order(indexOrder);
+
+		for (const auto & p : bestContractedPaths) {
+			size_t i = p.first;
+			const graph<size_t> & g = p.second;
+
+			std::vector<size_t> path;
+			g.topological_order(path);
+
+			auto it = std::find(indexOrder.begin(), indexOrder.end(), i);
+			*it = *path.rbegin();
+			indexOrder.insert(it, path.begin(), path.end() - 1);
+		}
+
+		for (size_t i : indexOrder) {
+			order.push_back(revNodeIndices[i]);
+		}
+	}
+
 	void greedy_topological_order(std::vector<node_t> & order) {
 		// Make the satisfiable edges be last in the edge lists
-		for (node_t u : m_graph.get_node_set()) {
+		for (node_t u : get_node_set()) {
 			m_graph.sort_edge_list(u, [&](node_t a, node_t b){
 				return m_satisfiableEdges.count({u, a}) < m_satisfiableEdges.count({u, b});
 			});
@@ -440,6 +606,12 @@ private:
 	}
 
 	void auto_topological_order(std::vector<node_t> & order) {
+		static_assert(max_bruteforce_satisfiable <= sizeof(size_t) * CHAR_BIT, "max_bruteforce_satisfiable is too big");
+		if (m_satisfiableEdges.size() <= max_bruteforce_satisfiable) {
+			bruteforce_satisfiable_edges(order);
+			return;
+		}
+
 		if (m_graph.size() <= max_bruteforce_depth) {
 			bruteforce_optimal_topological_order(order);
 			return;
@@ -449,7 +621,8 @@ private:
 
 public:
 	enum strategy_t {
-		BRUTEFORCE,
+		BRUTEFORCE_ORDER,
+		BRUTEFORCE_SATISFIABLE,
 		GREEDY,
 		AUTO,
 	};
@@ -457,7 +630,8 @@ public:
 	void topological_order(std::vector<node_t> & order, strategy_t strategy = AUTO) {
 		void (satisfiable_graph::* get_order)(std::vector<node_t> &);
 		switch (strategy) {
-			case BRUTEFORCE: get_order = &satisfiable_graph::bruteforce_optimal_topological_order; break;
+			case BRUTEFORCE_ORDER: get_order = &satisfiable_graph::bruteforce_optimal_topological_order; break;
+			case BRUTEFORCE_SATISFIABLE: get_order = &satisfiable_graph::bruteforce_satisfiable_edges; break;
 			case GREEDY: get_order = &satisfiable_graph::greedy_topological_order; break;
 			case AUTO: get_order = &satisfiable_graph::auto_topological_order; break;
 		}
@@ -480,6 +654,10 @@ public:
 	 * \brief Counts the number of satisfied edges in a topological order
 	 */
 	size_t satisfied_in_order(std::vector<node_t> & order) const {
+		if (order.size() == 0) {
+			return 0;
+		}
+
 		size_t result = 0;
 		for (size_t i = 0; i < order.size() - 1; i++) {
 			result += m_satisfiableEdges.count({order[i], order[i + 1]});

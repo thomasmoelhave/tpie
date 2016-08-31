@@ -193,6 +193,34 @@ struct satisfiable_edge_t {
 	bool satisfiable;
 };
 
+bool satisfiable_helper_helper(size_t maxSatisfiable,
+							   satisfiable_graph g,
+							   const std::string & strategy_name,
+							   satisfiable_graph::strategy_t strategy) {
+	bool bad = false;
+	size_t satisfied;
+	std::vector<size_t> order;
+
+	const std::set<size_t> & nodes = g.get_node_set();
+
+	g.topological_order(order, strategy);
+	print_vector(log_debug(), order, strategy_name + " ordering");
+	if (order.size() != nodes.size() || std::set<size_t>(order.begin(), order.end()) != nodes) {
+		log_error() << strategy_name + " solution didn't contain every node" << std::endl;
+		bad = true;
+	}
+
+	satisfied = g.satisfied_in_order(order);
+	log_debug() << satisfied << std::endl;
+
+	if ((strategy == g.BRUTEFORCE_ORDER || strategy == g.BRUTEFORCE_SATISFIABLE) && satisfied != maxSatisfiable) {
+		log_error() << strategy_name + " solution only satisfied " << satisfied << ", optimal: " << maxSatisfiable << std::endl;
+		bad = true;
+	}
+
+	return bad;
+}
+
 void satisfiable_helper(teststream & ts,
 						size_t maxSatisfiable,
 						const char * name,
@@ -200,67 +228,43 @@ void satisfiable_helper(teststream & ts,
 						const std::vector<size_t> & extraNodes = {}) {
 	ts << name << std::endl;
 
-	log_debug() << "digraph {\n";
-	for (auto e : edges) {
-		log_debug() << "\t" << e.from << " -> " << e.to << " " << (e.satisfiable? "[color=red]": "") << std::endl;
-	}
-	log_debug() << "}" << std::endl;
-
-	bool bad = false;
 	satisfiable_graph g;
-
-	std::set<size_t> nodes;
-
 	for (const auto & e : edges) {
 		g.add_edge(e.from, e.to, e.satisfiable);
-		nodes.insert(e.from);
-		nodes.insert(e.to);
 	}
-
 	for (const auto & v : extraNodes) {
 		g.add_node(v);
-		nodes.insert(v);
 	}
 
-	size_t satisfied;
-	std::vector<size_t> order;
+	g.plot(log_debug());
 
-	g.topological_order(order, g.BRUTEFORCE);
-	print_vector(log_debug(), order, "Optimal ordering");
-	if (order.size() != nodes.size() || std::set<size_t>(order.begin(), order.end()) != nodes) {
-		log_error() << "Bruteforce solution didn't contain every node" << std::endl;
-		bad = true;
-	}
-
-	satisfied = g.satisfied_in_order(order);
-	log_debug() << satisfied << std::endl;
-
-	if (satisfied != maxSatisfiable) {
-		log_error() << "Bruteforce solution only satisfied " << satisfied << ", optimal: " << maxSatisfiable << std::endl;
-		bad = true;
-	}
-
-	g.topological_order(order, g.GREEDY);
-	print_vector(log_debug(), order, "Greedy ordering");
-	if (order.size() != nodes.size() || std::set<size_t>(order.begin(), order.end()) != nodes) {
-		log_error() << "Greedy solution didn't contain every node" << std::endl;
-		bad = true;
-	}
-
-	satisfied = g.satisfied_in_order(order);
-	log_debug() << satisfied << std::endl;
-
+	bool bad = false;
+	bad |= satisfiable_helper_helper(maxSatisfiable, g, "Bruteforce order", g.BRUTEFORCE_ORDER);
+	bad |= satisfiable_helper_helper(maxSatisfiable, g, "Bruteforce satisfiable", g.BRUTEFORCE_SATISFIABLE);
+	bad |= satisfiable_helper_helper(maxSatisfiable, g, "Greedy", g.GREEDY);
 	ts << result(!bad);
 }
 
 void optimal_satisfiable_ordering_test(teststream & ts) {
+	satisfiable_helper(ts, 1, "1/2 satisfiable diamond", {
+		{0, 1, true},
+		{0, 2, false},
+		{1, 3, true},
+		{2, 3, false},
+	});
 	satisfiable_helper(ts, 2, "2/3 satisfiable diamond", {
 	   {0, 1, true},
 	   {0, 2, true},
 	   {1, 3, false},
 	   {2, 3, true},
 	});
-	satisfiable_helper(ts, 4, "2/3 satisfiable double diamond", {
+	satisfiable_helper(ts, 2, "2/4 satisfiable diamond", {
+		{0, 1, true},
+		{0, 2, true},
+		{1, 3, true},
+		{2, 3, true},
+	});
+	satisfiable_helper(ts, 4, "4/6 satisfiable double diamond", {
 		{0, 1, true},
 		{0, 2, true},
 		{1, 3, true},
@@ -270,31 +274,70 @@ void optimal_satisfiable_ordering_test(teststream & ts) {
 		{4, 6, false},
 		{5, 6, true},
 	});
+	satisfiable_helper(ts, 2, "2/4 satisfiable wide diamond", {
+		{0, 1, true},
+		{0, 2, true},
+		{0, 3, false},
+		{1, 4, true},
+		{2, 4, true},
+		{3, 4, false},
+	});
 
 	{
+		ts << "Bruteforce order cut" << std::endl;
+
 		size_t N = 100;
-		std::vector<satisfiable_edge_t> edges;
+		satisfiable_graph g;
 		for (size_t i = 2; i < N; i++) {
-			edges.push_back({0, i, i == 2 || i == 3});
-			edges.push_back({i, 1, false});
+			g.add_edge(0, i, i == 2 || i == 3);
+			g.add_edge(i, 1, false);
 		}
-		satisfiable_helper(ts, 1, "Bruteforce cut test", edges);
+		bool bad = satisfiable_helper_helper(1, std::move(g), "Bruteforce order cut", satisfiable_graph::strategy_t::BRUTEFORCE_ORDER);
+		ts << result(!bad);
 	}
 
-	size_t N = satisfiable_graph::max_bruteforce_depth;
-	std::vector<size_t> nodes(N);
-	std::iota(nodes.begin(), nodes.end(), 0);
+	{
+		ts << "Bruteforce order timing" << std::endl;
 
-	std::vector<satisfiable_edge_t> edges;
-	for (size_t i = 2; i < N; i++) {
-		edges.push_back({0, i, true});
-		edges.push_back({i, 1, true});
+		size_t N = satisfiable_graph::max_bruteforce_depth;
+		satisfiable_graph g;
+
+		for (size_t i = 2; i < N; i++) {
+			g.add_edge(0, i, true);
+			g.add_edge(i, 1, true);
+		}
+
+		auto start = test_now();
+		bool bad = satisfiable_helper_helper(2, std::move(g), "Bruteforce order timing", satisfiable_graph::strategy_t::BRUTEFORCE_ORDER);
+		auto end = test_now();
+		log_info() << "Time to bruteforce optimal solution with " << N << " nodes: " << test_millisecs(start, end)
+				   << " ms" << std::endl;
+		ts << result(!bad);
 	}
 
-	auto start = test_now();
-	satisfiable_helper(ts, 2, "Timing test", edges, nodes);
-	auto end = test_now();
-	log_info() << "Time to bruteforce optimal solution with " << N << " nodes: " << test_millisecs(start, end) << " ms" << std::endl;
+	{
+		ts << "Bruteforce satisfiable timing" << std::endl;
+
+		size_t M = satisfiable_graph::max_bruteforce_satisfiable;
+		size_t N = M * 2;
+
+		satisfiable_graph g;
+
+		size_t j = 0;
+		for (size_t i = 2; i < N; i++) {
+			g.add_edge(0, i, j++ < M);
+			g.add_edge(i, 1, j++ < M);
+		}
+
+		g.plot(log_debug());
+
+		auto start = test_now();
+		bool bad = satisfiable_helper_helper(2, std::move(g), "Bruteforce order timing", satisfiable_graph::strategy_t::BRUTEFORCE_SATISFIABLE);
+		auto end = test_now();
+		log_info() << "Time to bruteforce optimal solution with " << M << " satisfiable edges: "
+				   << test_millisecs(start, end) << " ms" << std::endl;
+		ts << result(!bad);
+	}
 }
 
 // See tpie::pipelining::bits::runtime::get_phases for description of edge colors
