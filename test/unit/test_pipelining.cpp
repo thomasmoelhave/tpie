@@ -1981,99 +1981,6 @@ void datastructure_test_multi(teststream & ts) {
 }
 
 template <typename dest_t>
-class flush_priority_test_node_t : public node {
-public:
-	typedef int item_type;
-
-	flush_priority_test_node_t(dest_t dest, size_t flushPriority, size_t & returnedValue)
-		: dest(std::move(dest))
-		, returnedValue(returnedValue)
-	{
-		add_push_destination(dest);
-		set_flush_priority(flushPriority);
-	}
-
-	virtual void propagate() override {
-		returnedValue = get_flush_priority();
-	}
-
-	virtual void go() override {
-		for(int i = 0; i < 100; ++i)
-			dest.push(i);
-	}
-private:
-	dest_t dest;
-	size_t & returnedValue;
-};
-
-typedef pipe_begin<factory<flush_priority_test_node_t, size_t, size_t &> > flush_priority_test_node;
-
-bool set_flush_priority_test() {
-	for(size_t i = 0; i < 100; ++i) {
-		size_t returnedValue;
-		pipeline p = flush_priority_test_node(i, returnedValue) | null_sink<size_t>();
-
-		p();
-
-		TEST_ENSURE_EQUALITY(i, returnedValue, "The flush priority was not set to the correct value");
-	}
-
-	return true;
-}
-
-template <typename dest_t>
-class reference_incrementer_type : public node {
-	dest_t dest;
-	size_t & counter;
-	size_t & incremented_to;
-public:
-	typedef int item_type;
-
-	reference_incrementer_type(dest_t dest, size_t flush_priority, size_t & counter, size_t & incremented_to, std::string name)
-	: dest(std::move(dest))
-	, counter(counter)
-	, incremented_to(incremented_to)
-	{
-		add_push_destination(dest);
-		set_flush_priority(flush_priority);
-		set_name(name);
-	}
-
-	void propagate() {
-		incremented_to = ++counter;
-	}
-
-	void push(int item) {
-		dest.push(item);
-	}
-};
-
-typedef pipe_middle<factory<reference_incrementer_type, size_t, size_t &, size_t &, std::string> > reference_incrementer;
-
-bool phase_priority_test() {
-	size_t branchA;
-	size_t branchB;
-	size_t branchC;
-	size_t counter = 0;
-	std::vector<int> items;
-	for(int i = 0; i < 100; ++i) items.push_back(i);
-
-	pipeline p =
-				input_vector(items)
-				| fork(buffer() | reference_incrementer(1, counter, branchA, "Branch A(priority 1)") | null_sink<int>())
-				| fork(buffer() |reference_incrementer(3, counter, branchC, "Branch C(priority 3)") | null_sink<int>())
-				| buffer() | reference_incrementer(2, counter, branchB, "Branch B(priority 2)") | null_sink<size_t>();
-
-	p.plot(log_debug());
-	p();
-
-	TEST_ENSURE_EQUALITY(1, branchA, "Branch A should be run first");
-	TEST_ENSURE_EQUALITY(2, branchB, "Branch B should be run second");
-	TEST_ENSURE_EQUALITY(3, branchC, "Branch C should be run last");
-	return true;
-}
-
-template <typename dest_t>
 class subpipe_tester_type: public node {
 public:
 	struct dest_pusher: public node {
@@ -2273,8 +2180,6 @@ int main(int argc, char ** argv) {
 	.test(subpipeline_test, "subpipeline")
 	.multi_test(node_map_multi_test, "node_map")
 	.test(copy_ctor_test, "copy_ctor")
-	.test(set_flush_priority_test, "set_flush_priority_test")
-	.test(phase_priority_test, "phase_priority_test")
 	.multi_test(datastructure_test_multi, "datastructures")
 	.test(file_limit_sort_test, "file_limit_sort")
 	.multi_test(passive_virtual_test_multi, "passive_virtual_management")

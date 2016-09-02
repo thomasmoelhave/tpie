@@ -523,18 +523,6 @@ For an idea of how to fully implement a generic buffering node such as a
 reverser using \c node::add_dependency, see
 \c tpie/pipelining/reverse.h.
 
-\section sec_pipe_priority Flush priorities
-In some cases, you have a pipeline with sidechains that you want to run before
-the rest of the pipeline. This is useful in situations where the sidechain
-outputs an intermediate result that the user can inspect in case a later part
-of the computation crashes. TPIE provides a solution to this problem named
-flush priorities. A phase with a high flush priority will run before
-another with a lower flush priority, if the order to run them is otherwise
-tied.
-
-The flush priority is set to be the maximum flush priority of all nodes in the
-phase. The flush priority of a node is set by calling \ref set_flush_priority.
-
 \section sec_pipe_progress Progress indication
 
 To support automatic progress indication from pipelining,
@@ -772,7 +760,6 @@ left, and a checkmark in the row for each method an implementation may call.
 <tr><th>Framework<br>calls  </th><th>set_name</th><th>add_push_destination
                                                   <br>add_pull_source
                                                   <br>add_dependency
-                                                  <br>set_flush_priority</th>
                                                                          <th>set_memory_fraction
                                                                          <br>set_minimum_memory
                                                                          <br>set_maximum_memory
