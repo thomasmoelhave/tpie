@@ -31,6 +31,16 @@
 namespace tpie {
 namespace bbits {
 
+template <typename T, bool b>
+struct block_size_getter {
+	static constexpr size_t v() {return 0;}
+};
+
+template <typename T>
+struct block_size_getter<T, true> {
+	static constexpr size_t v() {return T::block_size();}
+};
+
 template <typename T, typename O>
 class builder {
 private:
@@ -42,6 +52,10 @@ private:
 	static const bool is_internal = state_type::is_internal;
 
 	static const bool is_static = state_type::is_static;
+
+	static const bool is_serialized = state_type::is_serialized;
+
+	static_assert(!is_serialized || is_static, "The builder currently only supports static serialized trees");
 
 	typedef T value_type;
 
@@ -79,6 +93,9 @@ private:
 
     // Construct a leaf from m
     void construct_leaf(size_t size) {
+		tp_assert(size != 0, "we should not construct an empty leaf");
+		tp_assert(size <= m_items.size(), "we should not construct a leaf with more items then we have");
+		tp_assert(size <= S::max_leaf_size(), "we should not construct a leaf with more items then the max leaf size");
         leaf_summary leaf;
         leaf.leaf = m_state.store().create_leaf();
 
@@ -92,6 +109,11 @@ private:
 		leaf.augment = m_state.m_augmenter(node_type(&m_state, leaf.leaf));
 		m_state.store().flush();
         m_leaves.push_back(leaf);
+
+		if (is_serialized) {
+			tp_assert(m_items.empty(), "we should only construct complete leafs when serializing");
+			m_serialized_size = 0;
+		}
     }
 
     void construct_internal_from_leaves(size_t size) {
@@ -170,7 +192,7 @@ private:
 	* \brief Constructs a leaf. If possible, also constructs internal nodes.
 	*/
 	void extract_nodes() {
-        construct_leaf(desired_leaf_size());
+        construct_leaf(is_serialized?m_items.size() : desired_leaf_size());
 
         if(m_leaves.size() < internal_tipping_point()) return;
         construct_internal_from_leaves(desired_internal_size());
@@ -191,36 +213,51 @@ public:
 	explicit builder(std::string path, comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, !is_internal> =enab() )
         : m_state(store_type(path, true), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
+		, m_serialized_size(0)
+		, m_size(0)
     {}
 
 	template <typename X=enab>
 	explicit builder(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, is_internal> =enab() )
 		: m_state(store_type(), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
+		, m_serialized_size(0)
+		, m_size(0)
     {}
+
 
 	/**
 	* \brief Push a value to the builder. Values are expected to be received in order
 	* \param v The value to be pushed
 	*/
     void push(value_type v) {
-        m_items.push_back(v);
-        m_state.store().set_size(m_state.store().size() + 1); //TODO we should just set the size in the end
-
-        // try to construct nodes from items if possible
-        if(m_items.size() < leaf_tipping_point()) return;
-		extract_nodes();
+		++m_size;
+		if (is_serialized) {
+			size_t s = serialized_size(v);
+			if (m_items.size() == S::max_leaf_size() ||
+				(s + m_serialized_size > block_size_getter<S, is_serialized>::v() && m_serialized_size))
+				extract_nodes();
+			m_items.push_back(v);
+			m_serialized_size += s;
+		} else {
+			m_items.push_back(v);
+			
+			// try to construct nodes from items if possible
+			if(m_items.size() < leaf_tipping_point()) return;
+			extract_nodes();
+		}
     }
-    
+	
 	/**
 	* \brief Constructs and returns a btree from the value that was pushed to the builder. The btree builder should not be used again after this point.
 	*/
     tree_type build(const std::string & metadata = std::string()) {
-        // finish building the tree by traversing all levels and constructing leaves/nodes
+		m_state.store().set_size(m_size);
 
+        // finish building the tree by traversing all levels and constructing leaves/nodes
         // construct one or two leaves if neccesary
         if(m_items.size() > 0) {
-            if(m_items.size() > S::max_leaf_size()) // construct two leaves if necessary
+            if(!is_serialized && m_items.size() > S::max_leaf_size()) // construct two leaves if necessary
                 construct_leaf(m_items.size()/2);
             construct_leaf(m_items.size()); // construct a leaf with the remaining items
         }
@@ -274,6 +311,8 @@ private:
 
 	state_type m_state;
     comp_type m_comp;
+	size_t m_serialized_size;
+	stream_size_type m_size;
 };
 
 } //namespace bbits

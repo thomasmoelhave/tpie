@@ -41,13 +41,11 @@ namespace bbits {
 template <typename T,
 		  typename A,
 		  std::size_t a_,
-		  std::size_t b_
+		  std::size_t b_,
+		  std::size_t bs_
 		  >
 class serialized_store {
 public:
-	static const size_t a = a_?a_:2;
-	static const size_t b = b_?b_:4;
-	
 	/**
 	 * \brief Type of value of items stored
 	 */
@@ -82,10 +80,16 @@ private:
 		static const bool is_trivially_serializable=true;
 	};
 
+	static constexpr size_t block_size() {return bs_?bs_:24*1024;}
+	static constexpr size_t min_internal_size() {return 1;}
+	static constexpr size_t max_internal_size() {return a_ ? a_ : (block_size()  - sizeof(off_t) - sizeof(size_t)) / sizeof(internal_content) ; }
+	static constexpr size_t min_leaf_size() {return 1;}
+	static constexpr size_t max_leaf_size() {return b_ ? b_ : (block_size() - sizeof(off_t) - sizeof(size_t)) / sizeof(T);}
+	
 	struct internal {
 		off_t my_offset; //NOTE not serialized
 		size_t count;
-		internal_content values[b];
+		internal_content values[max_internal_size()];
 		
 		template <typename S>
 		friend void serialize(S & s, const internal & i) {
@@ -98,7 +102,7 @@ private:
 		friend void unserialize(D & d, internal & i) {
 			using tpie::unserialize;
 			unserialize(d, i.count);
-			assert(i.count <= b);
+			//tp_assert(i.count <= max_internal_size(), "too large internal");
 			unserialize(d, i.values, i.values + i.count);
 		}
 	};
@@ -106,7 +110,7 @@ private:
 	struct leaf {
 		off_t my_offset; //NOTE not serialized
 		size_t count;
-		T values[b];
+		T values[max_leaf_size()];
 		
 		template <typename S>
 		friend void serialize(S & s, const leaf & i) {
@@ -119,7 +123,7 @@ private:
 		friend void unserialize(D & d, leaf & i) {
 			using tpie::unserialize;
 			unserialize(d, i.count);
-			assert(i.count <= b);
+			//tp_assert(i.count <= max_leaf_size(), "too large leaf");
 			unserialize(d, i.values, i.values + i.count);
 		}
 	};
@@ -182,12 +186,7 @@ private:
 			}
 		}
 	}
-	
-	static constexpr size_t min_internal_size() {return a;}
-	static constexpr size_t max_internal_size() {return b;}
 
-	static constexpr size_t min_leaf_size() {return a;}
-	static constexpr size_t max_leaf_size() {return b;}
 	
 	void move(internal_type src, size_t src_i,
 			  internal_type dst, size_t dst_i) {
@@ -405,7 +404,9 @@ private:
 
 	template<typename, typename>
 	friend class bbits::builder;
-	
+
+	template <typename, bool>
+	friend class bbits::block_size_getter;
 };
 
 } //namespace bbits

@@ -90,6 +90,11 @@ struct btree_fanout {
 	static const int b = b_;
 };
 
+template <size_t bs_>
+struct btree_blocksize {
+	static const size_t bs = bs_;
+};
+
 using btree_internal = bbits::int_opt<bbits::f_internal>;
 using btree_external = bbits::int_opt<0>;
 
@@ -105,11 +110,12 @@ using btree_not_serialized = bbits::int_opt<0>;
 namespace bbits {
 
 //O = flags, a, b = B-tree parameters, C = comparator, K = key extractor, A = augmenter
-template <int O_, int a_, int b_, typename C_, typename K_, typename A_>
+template <int O_, int a_, int b_, size_t bs_, typename C_, typename K_, typename A_>
 struct Opt {
 	static const int O=O_;
 	static const int a=a_;
 	static const int b=b_;
+	static const size_t bs=bs_;
 	typedef C_ C;
 	typedef K_ K;
 	typedef A_ A;
@@ -120,37 +126,43 @@ struct OptComp {};
 
 template <>
 struct OptComp<> {
-	typedef Opt<0, 0, 0, default_comp, identity_key, empty_augmenter> type;
+	typedef Opt<0, 0, 0, 0, default_comp, identity_key, empty_augmenter> type;
 };
 
 template <int i, typename ... T>
 struct OptComp<int_opt<i> , T...> {
 	typedef typename OptComp<T...>::type P;
-	typedef Opt<P::O | i, P::a, P::b, typename P::C, typename P::K, typename P::A> type;
+	typedef Opt<P::O | i, P::a, P::b, P::bs, typename P::C, typename P::K, typename P::A> type;
 };
 
 template <typename C, typename ... T>
 struct OptComp<btree_comp<C> , T...> {
 	typedef typename OptComp<T...>::type P;
-	typedef Opt<P::O, P::a, P::b, C, typename P::K, typename P::A> type;
+	typedef Opt<P::O, P::a, P::b, P::bs, C, typename P::K, typename P::A> type;
 };
 
 template <typename K, typename ... T>
 struct OptComp<btree_key<K> , T...> {
 	typedef typename OptComp<T...>::type P;
-	typedef Opt<P::O, P::a, P::b, typename P::C, K, typename P::A> type;
+	typedef Opt<P::O, P::a, P::b, P::bs, typename P::C, K, typename P::A> type;
 };
 
 template <typename A, typename ... T>
 struct OptComp<btree_augment<A> , T...> {
 	typedef typename OptComp<T...>::type P;
-	typedef Opt<P::O, P::a, P::b, typename P::C, typename P::K, A> type;
+	typedef Opt<P::O, P::a, P::b, P::bs, typename P::C, typename P::K, A> type;
 };
 
 template <int a, int b, typename ... T>
 struct OptComp<btree_fanout<a, b> , T...> {
 	typedef typename OptComp<T...>::type P;
-	typedef Opt<P::O, a, b, typename P::C, typename P::K, typename P::A> type;
+	typedef Opt<P::O, a, b, P::bs, typename P::C, typename P::K, typename P::A> type;
+};
+
+template <size_t bs, typename ... T>
+struct OptComp<btree_blocksize<bs> , T...> {
+	typedef typename OptComp<T...>::type P;
+	typedef Opt<P::O, P::a, P::b, bs, typename P::C, typename P::K, typename P::A> type;
 };
 
 } //namespace bbits
@@ -192,13 +204,16 @@ class tree;
 template <typename T, typename O>
 class builder;
 
+template <typename, bool>
+class block_size_getter;
+
 template <typename T, typename A, std::size_t a, std::size_t b>
 class internal_store;
 
-template <typename T, typename A, std::size_t a, std::size_t b>
+template <typename T, typename A, std::size_t a, std::size_t b, std::size_t bs>
 class external_store;
 
-template <typename T, typename A, std::size_t a, std::size_t b>
+template <typename T, typename A, std::size_t a, std::size_t b, std::size_t bs>
 class serialized_store;
 
 struct enab {};
@@ -271,8 +286,8 @@ public:
 		bbits::internal_store<value_type, combined_augment, O::a, O::b>,
 		typename std::conditional<
 			is_serialized,
-			bbits::serialized_store<value_type, combined_augment, O::a, O::b>,
-			bbits::external_store<value_type, combined_augment, O::a, O::b>
+			bbits::serialized_store<value_type, combined_augment, O::a, O::b, O::bs>,
+			bbits::external_store<value_type, combined_augment, O::a, O::b, O::bs>
 			>::type
 		>::type store_type;
 	
