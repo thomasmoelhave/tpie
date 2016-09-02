@@ -765,21 +765,6 @@ private:
 
 public:
 	///////////////////////////////////////////////////////////////////////////////
-	/// \brief Returns the flush priority of this node
-	///////////////////////////////////////////////////////////////////////////////
-	memory_size_type get_flush_priority() {
-		return m_flushPriority;
-	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	/// \brief Sets the flush priority of this node
-	/// \param flushPriority the flush priority
-	///////////////////////////////////////////////////////////////////////////////
-	void set_flush_priority(memory_size_type flushPriority) {
-		m_flushPriority = flushPriority;
-	}
-
-	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Count the number of memory buckets
 	///////////////////////////////////////////////////////////////////////////////	
 	size_t buckets() const {return m_buckets.size();}
@@ -817,7 +802,6 @@ private:
 	std::map<std::string, node_token::id_t> m_forwardedToHere;
 
 	datastructuremap_t m_datastructures;
-	memory_size_type m_flushPriority;
 	stream_size_type m_stepsLeft;
 	progress_indicator_base * m_pi;
 	STATE m_state;

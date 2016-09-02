@@ -175,8 +175,6 @@ add_unittest(pipelining
 	split
 	copy_ctor
 	datastructures
-	phase_priority_test
-	set_flush_priority_test
 	node_map
 	subpipeline
 	file_limit_sort
