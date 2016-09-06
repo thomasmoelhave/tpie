@@ -694,6 +694,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset) {
 		tp_assert(is_open(), "truncate: !is_open");
+		stream_size_type oldSize = m_size;
 		uncache_read_writes();
 		if (offset == size())
 			return;
@@ -703,6 +704,8 @@ public:
 			truncate_uncompressed(offset);
 		else
 			throw stream_exception("Arbitrary truncate is not supported");
+
+		increment_temp_file_usage(m_size - oldSize);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -710,6 +713,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(const stream_position & pos) {
 		tp_assert(is_open(), "truncate: !is_open");
+		stream_size_type oldSize = m_size;
 		uncache_read_writes();
 		if (pos.offset() == size())
 			return;
@@ -719,6 +723,8 @@ public:
 			truncate_uncompressed(pos.offset());
 		else
 			truncate_compressed(pos);
+
+		increment_temp_file_usage(m_size - oldSize);
 	}
 
 private:
@@ -782,7 +788,6 @@ private:
 			m_streamBlocks = (offset + m_blockItems - 1) / m_blockItems;
 		}
 		seek(std::min(currentOffset, offset));
-
 	}
 
 	void truncate_compressed(const stream_position & pos) {
