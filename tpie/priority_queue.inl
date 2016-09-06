@@ -718,8 +718,9 @@ void priority_queue<T, Comparator, OPQType>::empty_group(group_type group) {
 
 	mergebuffer.resize(0);
 #ifndef TPIE_NDEBUG
-	std::cout << "memavail after mb free: "
-			  << get_memory_manager().available() << "b" << std::endl;
+	tpie::log_debug()
+		<< "memavail after mb free: "
+		<< get_memory_manager().available() << "b\n";
 #endif
 	{
 
@@ -756,8 +757,9 @@ void priority_queue<T, Comparator, OPQType>::empty_group(group_type group) {
 	}
 
 #ifndef TPIE_NDEBUG
-	std::cout << "memavail before mb alloc: "
-			  << get_memory_manager().available() << "b" << std::endl;
+	tpie::log_debug()
+		<< "memavail before mb alloc: "
+		<< get_memory_manager().available() << "b\n";
 #endif
 	mergebuffer.resize(setting_m*2);;
 
