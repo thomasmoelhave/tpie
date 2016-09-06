@@ -297,8 +297,8 @@ int main(int argc, char **argv) {
 		.test(overflow_test, "overflow")
 		.test(parameter_test<uint64_t>, "parameters", "kb", 50000.0, "bs_kb", 128.0)
 		.test(remove_group_buffer_test<uint64_t>, "remove_group_buffer",
-			  "mmavail", static_cast<memory_size_type>(23552),
-			  "blockfact", 0.000244141f,
+			  "mmavail", static_cast<memory_size_type>((1<<14) + (1<<13) + (1<<10) + (1<<7)),
+			  "blockfact", (float) (1<<9) / (1<<21),
 			  "items", static_cast<stream_size_type>(5000),
 			  "iterations", static_cast<stream_size_type>(100000))
 		;
