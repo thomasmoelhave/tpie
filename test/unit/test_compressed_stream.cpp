@@ -177,9 +177,14 @@ static bool read_back_seek_test_2() {
 		tpie::file_stream<size_t> s;
 		s.open(tf, tpie::access_read_write, 0, tpie::access_sequential, flags);
 		s.seek(0, tpie::file_stream_base::end);
-		s.write(1);
-		s.read_back();
-		s.read_back();
+		s.write(blockSize);
+		for (size_t i = blockSize + 1; i-- > 0; ) {
+			size_t val = s.read_back();
+			if (val != i) {
+				tpie::log_error() << "Got " << val << " instead of " << i << std::endl;
+				return false;
+			}
+		}
 	}
 	return true;
 }
