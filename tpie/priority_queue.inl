@@ -165,8 +165,13 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 		}
 
 		// this is assumed in empty_group.
-		assert(2*setting_m > sizeof(file_stream<T>) + setting_k*(sizeof(T) + sizeof(size_type)
-		                                                         + sizeof(file_stream<T>)));
+		if (2*setting_m <=
+			sizeof(file_stream<T>) +
+			setting_k * (sizeof(T) + sizeof(size_type) +
+						 sizeof(file_stream<T>))) {
+			throw exception("Priority queue: Not enough memory for empty_group. "
+							"Increase allowed memory.");
+		}
 
 	}
 
