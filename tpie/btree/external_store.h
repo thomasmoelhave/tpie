@@ -384,7 +384,7 @@ public:
 	void flush() {}
 	void finalize_build() {}
 	
-	void set_metadata(const std::string & data) {
+	void set_metadata(const std::string & /*data*/) {
 		throw exception("Not yet implemnted.");
 	}
 	
