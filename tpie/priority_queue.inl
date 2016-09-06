@@ -165,7 +165,7 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail, str
 		}
 
 		// this is assumed in empty_group.
-		if (2*setting_m <=
+		if (2*setting_m*sizeof(T) <
 			sizeof(file_stream<T>) +
 			setting_k * (sizeof(T) + sizeof(size_type) +
 						 sizeof(file_stream<T>))) {
