@@ -775,8 +775,10 @@ private:
 				// No need to flush current block, since we are truncating it away.
 			} else {
 				// Changes to the current block may still be visible after the truncate.
-				if (m_bufferDirty)
+				if (m_bufferDirty) {
+					m_updateReadOffsetFromWrite = false;
 					flush_block(l);
+				}
 			}
 			m_buffer.reset();
 			m_bufferDirty = false;
@@ -854,6 +856,7 @@ public:
 					tp_assert(m_bufferDirty, "At end of buffer, but bufferDirty is false?");
 					// Make sure the position we get is not at the end of a block
 					compressor_thread_lock lock(compressor());
+					m_updateReadOffsetFromWrite = false;
 					flush_block(lock);
 					get_buffer(lock, m_streamBlocks);
 					m_nextItem = m_bufferBegin;
@@ -969,8 +972,10 @@ public:
 		if (m_offset == m_size) throw end_of_stream_exception();
 		if (m_nextItem == m_bufferEnd) {
 			compressor_thread_lock l(compressor());
-			if (this->m_bufferDirty)
+			if (this->m_bufferDirty) {
+				m_updateReadOffsetFromWrite = false;
 				flush_block(l);
+			}
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
 		}
@@ -1028,8 +1033,10 @@ public:
 			if (m_offset == 0) throw end_of_stream_exception();
 			uncache_read_writes();
 			compressor_thread_lock l(compressor());
-			if (this->m_bufferDirty)
+			if (this->m_bufferDirty) {
+				m_updateReadOffsetFromWrite = true;
 				flush_block(l);
+			}
 			if (use_compression()) {
 				read_previous_block(l, block_number() - 1);
 			} else {
