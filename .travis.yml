@@ -25,5 +25,7 @@ addons:
       - libboost-filesystem1.55-dev
       - libboost-system1.55-dev
       - libsnappy-dev
+env:
+  - CTEST_OUTPUT_ON_FAILURE=1
 script: mkdir build && cd build && cmake .. && make -j2 && make test
 sudo: false
