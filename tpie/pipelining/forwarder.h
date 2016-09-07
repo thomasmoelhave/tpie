@@ -33,20 +33,20 @@ template <typename dest_t>
 class Forwarder: public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
-	typedef std::vector<std::pair<std::string, boost::any> > values_t;
+	typedef std::vector<std::pair<std::string, any_noncopyable> > values_t;
 	
 	Forwarder(dest_t dest, values_t values)
 		: values(std::move(values)), dest(std::move(dest)) {}
 
 	void prepare() override {
 		for (typename values_t::iterator i=values.begin(); i != values.end(); ++i)
-			forward_any(i->first, i->second);
+			forward_any(i->first, std::move(i->second));
 	}
 
 	template <typename T>
 	void push(T && t) {dest.push(std::forward<T>(t));}
 private:
-	std::vector<std::pair<std::string, boost::any> > values;
+	std::vector<std::pair<std::string, any_noncopyable> > values;
 	dest_t dest;
 };
 
@@ -56,8 +56,8 @@ private:
 /// \brief A pipelining node that will forward values on prepare, and
 // pass though items on push
 ///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> > > > forwarder(std::vector<std::pair<std::string, boost::any> > items) {
-	return factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> >  >(std::move(items));
+inline pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, any_noncopyable> > > > forwarder(std::vector<std::pair<std::string, any_noncopyable> > items) {
+	return factory<bits::Forwarder, std::vector<std::pair<std::string, any_noncopyable> >  >(std::move(items));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,9 +65,9 @@ inline pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, b
 // pass though items on push
 ///////////////////////////////////////////////////////////////////////////////
 template <typename VT>
-pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, boost::any> > > > forwarder(std::string name, VT value) {
-	std::vector<std::pair<std::string, boost::any> > v;
-	v.push_back(std::make_pair(name, boost::any(value)));
+pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, any_noncopyable> > > > forwarder(std::string name, VT value) {
+	std::vector<std::pair<std::string, any_noncopyable> > v;
+	v.push_back(std::make_pair(name, any_noncopyable(value)));
 	return forwarder(std::move(v));
 }
 

@@ -25,6 +25,7 @@
 #include <cmath>
 #include <memory>
 #include <tpie/sysinfo.h>
+#include <tpie/pipelining/forwarder.h>
 #include <tpie/pipelining/virtual.h>
 #include <tpie/pipelining/serialization.h>
 #include <tpie/progress_indicator_arrow.h>
@@ -724,6 +725,8 @@ struct FF2 : public node {
 	FF2(dest_t dest) : dest(std::move(dest)) {
 		add_push_destination(dest);
 	}
+
+	void push(int ) {}
 };
 
 bool fetch_forward_result;
@@ -748,7 +751,13 @@ struct FF3 : public node {
 
 bool fetch_forward_test() {
 	fetch_forward_result = true;
+
+	std::vector<std::pair<std::string, any_noncopyable>> list;
+	list.emplace_back("test3", any_noncopyable(44));
+	list.emplace_back("test4", any_noncopyable(45));
 	pipeline p = make_pipe_begin<FF1>()
+		| forwarder("test2", 43)
+		| forwarder(std::move(list))
 		| make_pipe_middle<FF2>()
 		| make_pipe_end<FF3>()
 		;
@@ -757,6 +766,18 @@ bool fetch_forward_test() {
 	p();
 	if (!fetch_forward_result) return false;
 	if (p.fetch<int>("test") != 42) {
+		log_error() << "Something went wrong" << std::endl;
+		return false;
+	}
+	if (p.fetch<int>("test2") != 43) {
+		log_error() << "Something went wrong" << std::endl;
+		return false;
+	}
+	if (p.fetch<int>("test3") != 44) {
+		log_error() << "Something went wrong" << std::endl;
+		return false;
+	}
+	if (p.fetch<int>("test4") != 45) {
 		log_error() << "Something went wrong" << std::endl;
 		return false;
 	}
