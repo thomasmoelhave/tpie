@@ -282,9 +282,9 @@ Each piece of metadata is identified by a string, and \c can_fetch should be
 called before \c fetch to ensure that the metadata has actually been forwarded.
 
 The method \c fetch takes a required template parameter which is the type of
-data to fetch. Internally, metadata is stored using \c boost::any,
+data to fetch. Internally, metadata is stored using \c any_noncopyable,
 and the method \c fetch_any fetches metadata just like \c fetch, except it
-returns the \c boost::any object directly without using \c boost::any_cast.
+returns the \c any_noncopyable object directly without using \c any_cast.
 An optional third argument \c k may be passed as well. This determines the
 maximum distance that the item should be forwarded. This lets the framework
 avoid doing extra work if the data is only needed in the next few nodes.
