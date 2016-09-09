@@ -193,6 +193,7 @@ add_unittest(pipelining
 	file_limit_sort
 	passive_virtual_management
 	join_split_dealloc
+	nodeset_dealloc
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph optimal_satisfiable_ordering evacuate_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)

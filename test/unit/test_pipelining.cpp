@@ -2158,6 +2158,30 @@ bool join_split_dealloc_test() {
     return true;
 }
 
+template <typename T>
+virtual_chunk <T> virtual_internal_buffer() {
+	struct C : virtual_container {
+		std::vector<T> v;
+	};
+	C * c = new C();
+	node_set ns = make_node_set();
+	auto s = virtual_chunk_end<T>(output_vector(c->v).add_to_set(ns));
+	auto e = virtual_chunk_begin<T>(input_vector(c->v).add_forwarding_dependencies(ns), c);
+	return virtual_chunk<T>(s, e);
+}
+
+bool nodeset_dealloc_test() {
+	expectvector = inputvector;
+	auto vc = virtual_internal_buffer<test_t>();
+
+    pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
+                 | vc
+                 | virtual_chunk_end<test_t>(output_vector(outputvector));
+    p();
+
+	return check_test_vectors();
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2205,5 +2229,6 @@ int main(int argc, char ** argv) {
 	.test(file_limit_sort_test, "file_limit_sort")
 	.multi_test(passive_virtual_test_multi, "passive_virtual_management")
 	.test(join_split_dealloc_test, "join_split_dealloc")
+	.test(nodeset_dealloc_test, "nodeset_dealloc")
 	;
 }
