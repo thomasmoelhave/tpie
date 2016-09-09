@@ -2182,6 +2182,21 @@ bool nodeset_dealloc_test() {
 	return check_test_vectors();
 }
 
+bool pipeline_dealloc_test() {
+	expectvector = inputvector;
+
+	split<int> s;
+	pipeline p = input_vector(inputvector) | s.sink();
+
+	{
+		pipeline p1 = s.source() | output_vector(outputvector);
+	}
+
+	p();
+
+	return check_test_vectors();
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2230,5 +2245,6 @@ int main(int argc, char ** argv) {
 	.multi_test(passive_virtual_test_multi, "passive_virtual_management")
 	.test(join_split_dealloc_test, "join_split_dealloc")
 	.test(nodeset_dealloc_test, "nodeset_dealloc")
+	.test(pipeline_dealloc_test, "pipeline_dealloc")
 	;
 }
