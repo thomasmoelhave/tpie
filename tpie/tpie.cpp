@@ -24,8 +24,6 @@
 #include <tpie/prime.h>
 #include <tpie/memory.h>
 #include <tpie/job.h>
-#include <tpie/compressed/thread.h>
-#include <tpie/compressed/buffer.h>
 #include <tpie/hash.h>
 #include <tpie/tempname.h>
 
@@ -59,20 +57,11 @@ void tpie_init(flags<subsystem> subsystems) {
 	if (subsystems & JOB_MANAGER)
 		init_job();
 
-	if (subsystems & STREAMS) {
-		init_stream_buffer_pool();
-		init_compressor();
-	}
-
 	if (subsystems & HASH)
 		init_hash();
 }
 
 void tpie_finish(flags<subsystem> subsystems) {
-	if (subsystems & STREAMS) {
-		finish_compressor();
-		finish_stream_buffer_pool();
-	}
 
 	if (subsystems & JOB_MANAGER)
 		finish_job();
