@@ -20,7 +20,7 @@
 #ifndef __TPIE_PIPELINING_MERGE_SORTER_H__
 #define __TPIE_PIPELINING_MERGE_SORTER_H__
 
-#include <tpie/compressed/stream.h>
+#include <tpie/file_stream.h>
 #include <tpie/pipelining/sort_parameters.h>
 #include <tpie/pipelining/merger.h>
 #include <tpie/pipelining/node.h>

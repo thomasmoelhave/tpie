@@ -18,13 +18,6 @@ set (HEADERS
         btree/btree_builder.h
 		cache_hint.h
 		comparator.h
-		compressed/buffer.h
-		compressed/direction.h
-		compressed/predeclare.h
-		compressed/request.h
-		compressed/scheme.h
-		compressed/stream.h
-		compressed/thread.h
 		config.h.cmake
 		cpu_timer.h
 		deprecated.h
@@ -151,12 +144,6 @@ set (SOURCES
 	blocks/block_collection.cpp
 	blocks/block_collection_cache.cpp
 	btree/external_store_base.cpp
-	compressed/buffer.cpp
-	compressed/request.cpp
-	compressed/scheme_none.cpp
-	compressed/scheme_snappy.cpp
-	compressed/stream_base.cpp
-	compressed/thread.cpp
 	cpu_timer.cpp
 	file_base.cpp
 	file_manager.cpp

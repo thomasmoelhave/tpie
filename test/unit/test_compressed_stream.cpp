@@ -18,8 +18,9 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
-#include <tpie/compressed/stream.h>
+
 #include <tpie/file_stream.h>
+#include <tpie/array.h>
 
 template <tpie::compression_flags flags>
 class tests {
@@ -871,7 +872,7 @@ static bool write_peek_test(size_t n) {
 
 void create_file(const std::string & path) {
 	tpie::file_stream<int> fs;
-	fs.open(path, tpie::open::write_only);
+	fs.open(path, tpie::access_write);
 	fs.write(42);
 	fs.close();
 }
@@ -926,7 +927,7 @@ bool write_only_test() {
 			fs.write(42);
 		}
 		tpie::file_stream<int> fs;
-		fs.open(tf.path(), tpie::open::write_only);
+		fs.open(tf.path(), tpie::access_write);
 		if (fs.size() != 0) {
 			tpie::log_error() << "Didn't truncate named file" << std::endl;
 			success = false;
@@ -940,7 +941,7 @@ bool write_only_test() {
 			fs.write(42);
 		}
 		tpie::file_stream<int> fs;
-		fs.open(tf, tpie::open::write_only);
+		fs.open(tf, tpie::access_write);
 		if (fs.size() != 0) {
 			tpie::log_error() << "Didn't truncate temp file" << std::endl;
 			success = false;

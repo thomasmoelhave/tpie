@@ -28,7 +28,7 @@
 #include <tpie/portability.h>
 #include <tpie/deprecated.h>
 #include <tpie/stream.h>
-#include <tpie/compressed/stream.h>
+#include <tpie/file_stream.h>
 #include <tpie/tpie_assert.h>
 
 namespace tpie {

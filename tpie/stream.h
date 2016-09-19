@@ -21,7 +21,7 @@
 #define TPIE_STREAM_H
 
 #include <tpie/stream_old.h>
-#include <tpie/compressed/stream.h>
+#include <tpie/file_stream.h>
 
 namespace tpie {
 

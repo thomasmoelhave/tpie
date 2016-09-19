@@ -33,8 +33,16 @@
 #include <tpie/stream_header.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/tempname.h>
+#include <map>
+#include <tpie/array.h>
 
 namespace tpie {
+
+enum compression_flags {
+	compression_none,
+	compression_normal,
+	compression_all
+};	
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Base class of classes that access files.
@@ -207,7 +215,9 @@ public:
 	inline void open(const std::string & path,
 					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
-					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
+					 cache_hint cacheHint=access_sequential,
+					 compression_flags =compression_normal
+		) throw (stream_exception) {
 		self().close();
 		self().open_inner(path, accessType, userDataSize, cacheHint);
 	}
@@ -217,7 +227,8 @@ public:
 	/// when this file is closed.
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(memory_size_type userDataSize=0,
-					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
+					 cache_hint cacheHint=access_sequential,
+					 compression_flags =compression_normal) throw (stream_exception) {
 		self().close();
 		m_ownedTempFile.reset(tpie_new<temp_file>());
 		m_tempFile=m_ownedTempFile.get();
@@ -232,7 +243,8 @@ public:
 	inline void open(temp_file & file,
 					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
-					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
+					 cache_hint cacheHint=access_sequential,
+					 compression_flags =compression_normal) throw (stream_exception) {
 		self().close();
 		m_tempFile=&file;
 		self().open_inner(m_tempFile->path(), accessType, userDataSize, cacheHint);

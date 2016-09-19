@@ -137,21 +137,21 @@ void generic_sort(Stream & instream, Stream & outstream, Compare comp,
 /// \brief Sort elements of a stream using the given STL-style comparator
 /// object.
 ///////////////////////////////////////////////////////////////////////////////
-template<typename T, typename Compare>
-void sort(uncompressed_stream<T> &instream, uncompressed_stream<T> &outstream,
-		  Compare comp, progress_indicator_base & indicator) {
-	bits::generic_sort<uncompressed_stream<T>, T, Compare>(instream, outstream, &comp, &indicator);
-}
+// template<typename T, typename Compare>
+// void sort(uncompressed_stream<T> &instream, uncompressed_stream<T> &outstream,
+// 		  Compare comp, progress_indicator_base & indicator) {
+// 	bits::generic_sort<uncompressed_stream<T>, T, Compare>(instream, outstream, &comp, &indicator);
+// }
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Sort elements of a stream using the less-than operator.
-///////////////////////////////////////////////////////////////////////////////
-template<typename T>
-void sort(uncompressed_stream<T> &instream, uncompressed_stream<T> &outstream,
-		  tpie::progress_indicator_base* indicator=NULL) {
-	std::less<T> comp;
-	sort(instream, outstream, comp, indicator);
-}
+// ///////////////////////////////////////////////////////////////////////////////
+// /// \brief Sort elements of a stream using the less-than operator.
+// ///////////////////////////////////////////////////////////////////////////////
+// template<typename T>
+// void sort(uncompressed_stream<T> &instream, uncompressed_stream<T> &outstream,
+// 		  tpie::progress_indicator_base* indicator=NULL) {
+// 	std::less<T> comp;
+// 	sort(instream, outstream, comp, indicator);
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort elements of a stream using the less-than operator.
@@ -175,11 +175,11 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 /// \brief Sort elements of a stream in-place using the given STL-style
 /// comparator object.
 ///////////////////////////////////////////////////////////////////////////////
-template<typename T, typename Compare>
-void sort(uncompressed_stream<T> &instream, Compare comp,
-		  progress_indicator_base & indicator) {
-	sort(instream, instream, comp, &indicator);
-}
+// template<typename T, typename Compare>
+// void sort(uncompressed_stream<T> &instream, Compare comp,
+// 		  progress_indicator_base & indicator) {
+// 	sort(instream, instream, comp, &indicator);
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort elements of a stream in-place using the given STL-style
@@ -194,11 +194,11 @@ void sort(file_stream<T> &instream, Compare comp,
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort elements of a stream in-place using the less-than operator.
 ///////////////////////////////////////////////////////////////////////////////
-template<typename T>
-void sort(uncompressed_stream<T> &instream, 
-		  progress_indicator_base &indicator) {
-	sort(instream, instream, &indicator);
-}
+// template<typename T>
+// void sort(uncompressed_stream<T> &instream, 
+// 		  progress_indicator_base &indicator) {
+// 	sort(instream, instream, &indicator);
+// }
 
 template<typename T>
 void sort(file_stream<T> &instream,
@@ -211,10 +211,10 @@ void sort(file_stream<T> &instream,
 /// \brief Sort elements of a stream in-place using the less-than operator and
 /// no progress indicator.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-void sort(uncompressed_stream<T> & instream) {
-	sort(instream, instream);
-}
+// template <typename T>
+// void sort(uncompressed_stream<T> & instream) {
+// 	sort(instream, instream);
+// }
 
 }  //  tpie namespace
 

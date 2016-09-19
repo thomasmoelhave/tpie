@@ -26,6 +26,7 @@
 #include <tpie/job.h>
 #include <tpie/hash.h>
 #include <tpie/tempname.h>
+#include <tpie/file_manager.h>
 
 namespace {
 static tpie::memory_size_type the_block_size=0;

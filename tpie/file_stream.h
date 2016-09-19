@@ -20,7 +20,15 @@
 #ifndef TPIE_FILE_STREAM_H
 #define TPIE_FILE_STREAM_H
 
-#include <tpie/compressed/stream.h>
+
+
 #include <tpie/uncompressed_stream.h>
+
+namespace tpie {
+
+template <typename T>
+using file_stream = uncompressed_stream<T>;
+
+}
 
 #endif // TPIE_FILE_STREAM_H

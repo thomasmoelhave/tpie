@@ -34,7 +34,6 @@
 
 #include <tpie/array.h>
 #include <tpie/file_stream.h>
-#include <tpie/compressed/stream.h>
 #include <tpie/util.h>
 
 using tpie::uint64_t;

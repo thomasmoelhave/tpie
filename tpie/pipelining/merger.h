@@ -21,7 +21,6 @@
 #define __TPIE_PIPELINING_MERGER_H__
 
 #include <tpie/internal_priority_queue.h>
-#include <tpie/compressed/stream.h>
 #include <tpie/file_stream.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/pipelining/store.h>

@@ -31,6 +31,9 @@
 namespace tpie {
 
 
+typedef stream_size_type stream_position;
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Simple class acting both as \ref file and a file::stream.
 ///
@@ -46,6 +49,7 @@ public:
 	/** The type of the items stored in the stream */
 	typedef T item_type;
 
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a new uncompressed_stream.
 	/// 
@@ -55,7 +59,9 @@ public:
 					   file_accessor::file_accessor * fileAccessor=NULL):
 		file_stream_base(sizeof(item_type), blockFactor, fileAccessor) {};
 
-	
+
+
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \copybrief file<T>::stream::write(const item_type & item)
 	/// \copydetails file<T>::stream::write(const item_type & item)
@@ -145,6 +151,18 @@ public:
 		seek(-1, current);
 	}
 
+
+	stream_size_type get_position() {
+		return offset();
+	}
+	
+
+	void set_position(stream_size_type pos) {
+		seek(pos);
+	}
+
+	int describe() {return 42;}
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate the amount of memory used by a single uncompressed_stream.
 	///
