@@ -72,11 +72,13 @@ public:
 				if (p1 == std::string::npos ||
 					p3 == std::string::npos ||
 					p5 == std::string::npos) continue;
-				
-				update(line.substr(head.size(), p1 - head.size()),
-					   boost::lexical_cast<float>(line.substr(p2, p3-p2)),
-					   boost::lexical_cast<stream_size_type>(line.substr(p4, p5-p4)));
-
+				try {
+					update(line.substr(head.size(), p1 - head.size()),
+						boost::lexical_cast<float>(line.substr(p2, p3-p2)),
+						boost::lexical_cast<stream_size_type>(line.substr(p4, p5-p4)));
+				} catch (boost::bad_lexical_cast&) {
+					continue;
+				}
 			}
 		}
 		dirty=false;
