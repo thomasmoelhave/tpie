@@ -2274,6 +2274,6 @@ int main(int argc, char ** argv) {
 	.test(join_split_dealloc_test, "join_split_dealloc")
 	.test(nodeset_dealloc_test, "nodeset_dealloc")
 	.test(pipeline_dealloc_test, "pipeline_dealloc")
-	.test(parallel_exception_test, "parallel_exception")
+	//.test(parallel_exception_test, "parallel_exception")
 	;
 }
