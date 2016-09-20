@@ -60,6 +60,8 @@ void node_map::link(node_map::ptr target) {
 	target->m_tokens.clear();
 	target->m_authority = this;
 
+	m_pipelineRefCnt += target->m_pipelineRefCnt;
+
 	// union by rank
 	if (target->m_rank == m_rank)
 		++m_rank;
@@ -166,12 +168,6 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors, memory_
 void node_map::forward_pipe_base_forwards() {
 	for (auto &t : m_pipeBaseForwards) {
 		get(t.from)->forward(t.key, std::move(t.value));
-	}
-}
-
-node_map::~node_map() {
-	for(val_t p : m_ownedNodes) {
-		delete p;
 	}
 }
 

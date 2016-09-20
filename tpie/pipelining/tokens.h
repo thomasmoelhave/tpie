@@ -115,6 +115,7 @@ public:
 	typedef std::unordered_map<std::string, any_noncopyable> forwardmap_t;
 
 	typedef boost::intrusive_ptr<node_map> ptr;
+	typedef std::unique_ptr<node> owned_ptr;
 
 	struct pipe_base_forward_t {
 		id_t from;
@@ -122,7 +123,7 @@ public:
 		any_noncopyable value;
 	};
 
-	static  ptr create() {
+	static ptr create() {
 		return ptr(new node_map);
 	}
 
@@ -230,23 +231,37 @@ public:
 		if (m->m_refCnt == 0) delete m;
 	}
 
-	// Add a node that will be owned and deleted by the node map
-	// The ptr should have been created with new
-	void add_owned_node(val_t ptr) {
-		m_ownedNodes.push_back(ptr);
+	void increment_pipeline_ref() {
+		assert_authoritative();
+		m_pipelineRefCnt++;
 	}
 
-	~node_map();
+	void decrement_pipeline_ref() {
+		assert_authoritative();
+		m_pipelineRefCnt--;
+		if (m_pipelineRefCnt == 0) {
+			// Make sure we are not dealloc while cleaning up owned nodes
+			ptr thisPtr(this);
+
+			// Dealloc owned nodes as no pipeline references this node map anymore
+			m_ownedNodes.clear();
+		}
+	}
+
+	void add_owned_node(owned_ptr p) {
+		m_ownedNodes.push_back(std::move(p));
+	}
 
 private:
 	map_t m_tokens;
 	size_t m_refCnt;
+	size_t m_pipelineRefCnt;
 	relmap_t m_relations;
 	relmap_t m_relationsInv;
 	datastructuremap_t m_datastructures;
 	forwardmap_t m_pipelineForwards;
 	std::vector<pipe_base_forward_t> m_pipeBaseForwards;
-	std::vector<val_t> m_ownedNodes;
+	std::vector<owned_ptr> m_ownedNodes;
 
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 	size_t out_degree(const relmap_t & map, id_t from) const;
@@ -257,6 +272,7 @@ private:
 
 	node_map()
 		: m_refCnt(0)
+		, m_pipelineRefCnt(0)
 		, m_rank(0)
 	{
 	}

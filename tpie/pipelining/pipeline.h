@@ -38,6 +38,12 @@ namespace bits {
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline_base_base {
 public:
+	pipeline_base_base() = default;
+	pipeline_base_base(const pipeline_base_base &) = default;
+	pipeline_base_base & operator=(const pipeline_base_base &) = default;
+	pipeline_base_base(pipeline_base_base &&) = default;
+	pipeline_base_base & operator=(pipeline_base_base &&) = default;
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Generate a GraphViz plot of the pipeline
 	///
@@ -134,17 +140,25 @@ public:
 	typedef typename fact_t::constructed_type gen_t;
 
 	pipeline_impl(fact_t & factory) {
-		gen_t * r = new gen_t(factory.construct());
 		this->m_memory = factory.memory();
-		this->m_nodeMap = r->get_node_map()->find_authority();
-		this->m_nodeMap->add_owned_node(r);
+
+		auto n = std::unique_ptr<gen_t>(new gen_t(factory.construct()));
+		this->m_nodeMap = n->get_node_map()->find_authority();
+		this->m_nodeMap->increment_pipeline_ref();
+		this->m_nodeMap->add_owned_node(std::move(n));
 	}
 
-	pipeline_impl(const pipeline_impl &) = delete;
-	pipeline_impl(pipeline_impl &&) = default;
+	pipeline_impl(const pipeline_impl & o) = delete;
+	pipeline_impl & operator=(const pipeline_impl & o) = delete;
 
-	pipeline_impl & operator=(const pipeline_impl &) = delete;
-	pipeline_impl & operator=(pipeline_impl &&) = default;
+	pipeline_impl(pipeline_impl && o) = default;
+	pipeline_impl & operator=(pipeline_impl && o) = default;
+
+	~pipeline_impl() override {
+		if (this->m_nodeMap) {
+			this->m_nodeMap->find_authority()->decrement_pipeline_ref();
+		}
+	}
 };
 
 } // namespace bits
