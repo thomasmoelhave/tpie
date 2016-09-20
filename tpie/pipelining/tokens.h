@@ -229,6 +229,15 @@ public:
 		m->m_refCnt--;
 		if (m->m_refCnt == 0) delete m;
 	}
+
+	// Add a node that will be owned and deleted by the node map
+	// The ptr should have been created with new
+	void add_owned_node(val_t ptr) {
+		m_ownedNodes.push_back(ptr);
+	}
+
+	~node_map();
+
 private:
 	map_t m_tokens;
 	size_t m_refCnt;
@@ -237,6 +246,7 @@ private:
 	datastructuremap_t m_datastructures;
 	forwardmap_t m_pipelineForwards;
 	std::vector<pipe_base_forward_t> m_pipeBaseForwards;
+	std::vector<val_t> m_ownedNodes;
 
 	size_t out_degree(const relmap_t & map, id_t from, node_relation rel) const;
 	size_t out_degree(const relmap_t & map, id_t from) const;

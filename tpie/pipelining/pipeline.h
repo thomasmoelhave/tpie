@@ -133,11 +133,11 @@ class pipeline_impl : public pipeline_base {
 public:
 	typedef typename fact_t::constructed_type gen_t;
 
-	pipeline_impl(fact_t & factory)
-		: r(factory.construct())
-	{
+	pipeline_impl(fact_t & factory) {
+		gen_t * r = new gen_t(factory.construct());
 		this->m_memory = factory.memory();
-		this->m_nodeMap = r.get_node_map();
+		this->m_nodeMap = r->get_node_map()->find_authority();
+		this->m_nodeMap->add_owned_node(r);
 	}
 
 	pipeline_impl(const pipeline_impl &) = delete;
@@ -145,10 +145,6 @@ public:
 
 	pipeline_impl & operator=(const pipeline_impl &) = delete;
 	pipeline_impl & operator=(pipeline_impl &&) = default;
-
-
-private:
-	gen_t r;
 };
 
 } // namespace bits

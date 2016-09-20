@@ -55,6 +55,8 @@ void node_map::link(node_map::ptr target) {
 	}
 	std::move(target->m_pipeBaseForwards.begin(), target->m_pipeBaseForwards.end(),
 			  std::back_inserter(m_pipeBaseForwards));
+	std::move(target->m_ownedNodes.begin(), target->m_ownedNodes.end(),
+			  std::back_inserter(m_ownedNodes));
 	target->m_tokens.clear();
 	target->m_authority = this;
 
@@ -164,6 +166,12 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors, memory_
 void node_map::forward_pipe_base_forwards() {
 	for (auto &t : m_pipeBaseForwards) {
 		get(t.from)->forward(t.key, std::move(t.value));
+	}
+}
+
+node_map::~node_map() {
+	for(val_t p : m_ownedNodes) {
+		delete p;
 	}
 }
 
