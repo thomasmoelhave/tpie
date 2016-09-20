@@ -2197,6 +2197,34 @@ bool pipeline_dealloc_test() {
 	return check_test_vectors();
 }
 
+struct parallel_exception_test_exception {
+};
+
+template <typename dest_t>
+struct exception_thrower : public node {
+	dest_t dest;
+	exception_thrower(dest_t dest) : dest(std::move(dest)) {}
+
+	void go() override {
+		dest.push(1);
+		throw parallel_exception_test_exception();
+	}
+};
+
+bool parallel_exception_test() {
+	pipeline p = make_pipe_begin<exception_thrower>()
+		| parallel(splitter())
+		| null_sink<int>();
+
+	try {
+		p();
+	} catch(parallel_exception_test_exception) {
+		return true;
+	}
+
+	return false;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2246,5 +2274,6 @@ int main(int argc, char ** argv) {
 	.test(join_split_dealloc_test, "join_split_dealloc")
 	.test(nodeset_dealloc_test, "nodeset_dealloc")
 	.test(pipeline_dealloc_test, "pipeline_dealloc")
+	.test(parallel_exception_test, "parallel_exception")
 	;
 }
