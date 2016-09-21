@@ -2,24 +2,23 @@ matrix:
   include:
     - os: linux
       dist: trusty
+      sudo: required
       compiler: gcc
     - os: linux
       dist: trusty
+      sudo: required
       compiler: clang
     - os: osx
       compiler: clang
+      sudo: false
 language: cpp
 before install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install boost snappy; fi
 addons:
   apt:
       sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.6
       - boost-latest
       packages:
-      - gcc-4.8
-      - g++-4.8
       - libboost-date-time1.55-dev
       - libboost-filesystem1.55-dev
       - libboost-system1.55-dev
@@ -28,4 +27,3 @@ env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=1
 script: mkdir build && cd build && cmake .. && make -j2 && make test
-sudo: false
