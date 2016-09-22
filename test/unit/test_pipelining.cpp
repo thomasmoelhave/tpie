@@ -2200,29 +2200,84 @@ bool pipeline_dealloc_test() {
 struct parallel_exception_test_exception {
 };
 
-template <typename dest_t>
-struct exception_thrower : public node {
-	dest_t dest;
-	exception_thrower(dest_t dest) : dest(std::move(dest)) {}
+struct exception_thrower_end : public node {
+	int where;
 
-	void go() override {
-		dest.push(1);
-		throw parallel_exception_test_exception();
+	exception_thrower_end(int where) : where(where) {}
+
+#define TPIE_TEST_THROW(func, i) \
+	void func() override { \
+		if (where == i) throw parallel_exception_test_exception(); \
 	}
+
+	TPIE_TEST_THROW(prepare, 0);
+	TPIE_TEST_THROW(propagate, 1);
+	TPIE_TEST_THROW(begin, 2);
+	TPIE_TEST_THROW(go, 3);
+	TPIE_TEST_THROW(end, 4);
+#undef TPIE_TEST_THROW
+
+	void push(int) {};
+};
+
+template <typename dest_t>
+struct exception_thrower : public exception_thrower_end {
+	dest_t dest;
+	exception_thrower(dest_t dest, int where) : exception_thrower_end(where), dest(std::move(dest)) {}
 };
 
 bool parallel_exception_test() {
-	pipeline p = make_pipe_begin<exception_thrower>()
-		| parallel(splitter())
-		| null_sink<int>();
+	bool fail = false;
 
-	try {
-		p();
-	} catch(parallel_exception_test_exception) {
-		return true;
+	for (int i = 0; i < 5; i++) {
+		{
+			pipeline p = make_pipe_begin<exception_thrower>(i)
+				| parallel(splitter())
+				| null_sink<int>();
+
+			try {
+				p();
+				log_error() << "Exception was not thrown (begin): " << i << std::endl;
+				fail = true;
+			} catch (parallel_exception_test_exception) {
+			}
+		}
+
+		if (i == 3) {
+			// go() is only called on initiator nodes
+			continue;
+		}
+
+		{
+			pipeline p = input_vector(inputvector)
+				| parallel(splitter())
+				| make_pipe_middle<exception_thrower>(i)
+				| parallel(splitter())
+				| null_sink<int>();
+
+			try {
+				p();
+				log_error() << "Exception was not thrown (middle): " << i << std::endl;
+				fail = true;
+			} catch (parallel_exception_test_exception) {
+			}
+		}
+
+		{
+			pipeline p = input_vector(inputvector)
+				| parallel(splitter())
+				| make_pipe_end<exception_thrower_end>(i);
+
+			try {
+				p();
+				log_error() << "Exception was not thrown (end): " << i << std::endl;
+				fail = true;
+			} catch (parallel_exception_test_exception) {
+			}
+		}
 	}
 
-	return false;
+	return !fail;
 }
 
 int main(int argc, char ** argv) {
@@ -2274,6 +2329,6 @@ int main(int argc, char ** argv) {
 	.test(join_split_dealloc_test, "join_split_dealloc")
 	.test(nodeset_dealloc_test, "nodeset_dealloc")
 	.test(pipeline_dealloc_test, "pipeline_dealloc")
-	//.test(parallel_exception_test, "parallel_exception")
+	.test(parallel_exception_test, "parallel_exception")
 	;
 }
