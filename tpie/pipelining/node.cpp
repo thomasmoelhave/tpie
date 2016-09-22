@@ -91,8 +91,13 @@ node::node(node && other)
 }
 
 node & node::operator=(node && other) {
-	this->~node();
-	new (this)node(std::move(other));
+	token.assign(other.token, this);
+	m_parameters = std::move(other.m_parameters);
+	m_buckets = std::move(other.m_buckets);
+	m_stepsLeft = std::move(other.m_stepsLeft);
+	m_pi = std::move(other.m_pi);
+	m_state = std::move(other.m_state);
+	m_plotOptions = std::move(other.m_plotOptions);
 	return *this;
 }
 

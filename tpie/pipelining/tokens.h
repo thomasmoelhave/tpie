@@ -318,6 +318,22 @@ public:
 		m_tokens->set_token(m_id, newOwner);
 	}
 
+	void assign(const node_token & other, val_t newOwner, bool freshToken = false) {
+		m_tokens = other.m_tokens->find_authority();
+		m_id = other.id();
+		m_free = false;
+		if (freshToken) {
+			if (!other.m_free)
+				throw exception("Trying to take ownership of a non-free token");
+			if (m_tokens->get(m_id) != 0)
+				throw exception("A token already has an owner, but m_free is true - contradiction");
+		} else {
+			if (other.m_free)
+				throw exception("Trying to copy a free token");
+		}
+		m_tokens->set_token(m_id, newOwner);
+	}
+
 	// Use for the advanced case when a node_token is allocated before the node
 	inline node_token()
 		: m_tokens(bits::node_map::create())

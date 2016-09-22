@@ -1661,7 +1661,7 @@ public:
 		set_name("Node map tester leaf");
 	}
 
-	node_map_tester(node_map_tester && copy, no_move_tag)
+	node_map_tester(node_map_tester copy, no_move_tag)
 		: dest(new node_map_tester(std::move(copy)))
 	{
 		set_name("Node map tester non-leaf");

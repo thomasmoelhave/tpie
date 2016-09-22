@@ -474,8 +474,7 @@ protected:
 	node();
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Copy constructor. We need to define this explicitly since the
-	/// node_token needs to know its new owner.
+	/// \brief Copy constructor.
 	///////////////////////////////////////////////////////////////////////////
 	node(const node & other) = delete;
 	node & operator=(const node & other) = delete;
