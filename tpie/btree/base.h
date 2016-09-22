@@ -205,7 +205,7 @@ template <typename T, typename O>
 class builder;
 
 template <typename, bool>
-class block_size_getter;
+struct block_size_getter;
 
 template <typename T, typename A, std::size_t a, std::size_t b>
 class internal_store;

@@ -406,7 +406,7 @@ private:
 	friend class bbits::builder;
 
 	template <typename, bool>
-	friend class bbits::block_size_getter;
+	friend struct bbits::block_size_getter;
 };
 
 } //namespace bbits
