@@ -28,6 +28,11 @@ block_collection::block_collection(std::string fileName, memory_size_type blockS
 	: m_collection(fileName + ".queue", blockSize)
 	, m_writeable(writeable)
 {
+#if defined(TPIE_NDEBUG)
+	// Suppress warning about m_writeable not being used in release builds
+	((void)m_writeable);
+#endif
+
 	if(writeable) {
 		m_accessor.open_rw_new(fileName);
 		return;
