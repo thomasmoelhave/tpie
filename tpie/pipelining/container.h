@@ -140,6 +140,12 @@ F container_construct_copy(container<T1...> & cont, T2 && ... a) {
 	return bits::dispatch_gen<sizeof...(T1)>::type::template run_copy<F>(cont, std::move(a)...);
 }
 
+class bad_any_noncopyable_copy: public std::exception {
+public:
+	const char * what() const noexcept override {return "bad any_noncopyable copy";}
+};
+
+
 namespace bits {
 
 class any_noncopyable_cont_base {
@@ -148,9 +154,10 @@ public:
 	virtual const std::type_info & type() const {
 		return typeid(void);
 	}
+	virtual any_noncopyable_cont_base * copy() const = 0;
 };
 
-template <typename T>
+template <typename T, bool can_copy = std::is_copy_constructible<T>::value>
 class any_noncopyable_cont: public any_noncopyable_cont_base {
 public:
 	any_noncopyable_cont(T value): value(move_if_movable<T>(value)) {}
@@ -158,7 +165,26 @@ public:
 	const std::type_info & type() const override {
 		return typeid(value);
 	}
+
+	virtual any_noncopyable_cont_base * copy() const {
+		throw bad_any_noncopyable_copy();
+	}
 };
+
+template <typename T>
+class any_noncopyable_cont<T, true>: public any_noncopyable_cont_base {
+public:
+	any_noncopyable_cont(T value): value(move_if_movable<T>(value)) {}
+	T value;
+	const std::type_info & type() const override {
+		return typeid(value);
+	}
+
+	virtual any_noncopyable_cont_base * copy() const {
+		return new any_noncopyable_cont<T, true>(value);
+	}
+};
+
 
 } //namespace bits
 
@@ -192,6 +218,10 @@ public:
 	
 	void reset() {cont.reset();}
 	
+	any_noncopyable copy() const {
+		return any_noncopyable(cont->copy());
+	}
+
 	template <typename T>
 	friend const T & any_cast(const any_noncopyable & a);
 	
@@ -206,6 +236,9 @@ public:
 		return val->type();
 	}
 private:
+	explicit any_noncopyable(bits::any_noncopyable_cont_base * elm)
+		: cont(elm) {}
+	
 	std::unique_ptr<bits::any_noncopyable_cont_base> cont;
 };
 
