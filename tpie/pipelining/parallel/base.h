@@ -590,7 +590,18 @@ protected:
 	}
 
 	~before() {
-		m_worker.join();
+		// If we were destructed because of an exception,
+		// we should stop the worker thread
+		{
+			state_base::lock_t lock(st.mutex);
+			if (st.get_state(parId) == IDLE) {
+				st.transition_state(parId, IDLE, DONE);
+			}
+		}
+		st.workerCond[parId].notify_one();
+		if (m_worker.joinable()) {
+			m_worker.join();
+		}
 	}
 
 public:
