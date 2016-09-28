@@ -303,6 +303,7 @@ public:
 		while (written != n) {
 			if (m_index >= m_blockSize) {
 				// virtual invocation
+				// PROBLEM: m_index = 0 after
 				next_block();
 			}
 
@@ -311,8 +312,10 @@ public:
 
 			memory_size_type readSize = std::min(remaining, blockRemaining);
 
-			i = std::copy(m_block.get() + m_index,
-						  m_block.get() + (m_index + readSize),
+			memory_size_type index = reverse? m_blockSize - m_index: m_index;
+
+			i = std::copy(m_block.get() + index,
+						  m_block.get() + (index + readSize),
 						  i);
 
 			written += readSize;
@@ -333,18 +336,23 @@ public:
 	void unserialize(T & v) {
 		memory_size_type start = m_index;
 
+		memory_size_type n;
 		if (reverse) {
-			memory_size_type n;
-			read(reinterpret_cast<char * const>(&n), sizeof n);
+			m_index += sizeof n;
+			read((char *)&n, sizeof n);
+			m_index += sizeof n + n;
 		}
 
 		using tpie::unserialize;
 		unserialize(*this, v);
 
-		memory_size_type expectedN = m_index - start;
-		memory_size_type n;
-		read(reinterpret_cast<char * const>(&n), sizeof n);
-		tp_assert(expectedN == n, "Bad unserialize tail size");
+		if (reverse) {
+			m_index += sizeof n + n;
+		} else {
+			memory_size_type expectedN = m_index - start;
+			read((char *)&n, sizeof n);
+			tp_assert(expectedN == n, "Bad unserialize tail size");
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////

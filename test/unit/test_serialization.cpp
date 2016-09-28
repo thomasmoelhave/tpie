@@ -357,13 +357,9 @@ bool new_test() {
 	{
 		serialization_writer wr;
 		wr.open(f.path());
-		std::string s1 = "foo", s2 = "bar";
+		std::string s1 = "foo", s2 = "barrr";
 		wr.serialize(s1);
 		wr.serialize(s2);
-
-		std::vector<int> v = {1,2,3};
-
-		wr.serialize(v.begin(), v.end());
 
 		wr.close();
 	}
@@ -380,9 +376,18 @@ bool new_test() {
 		log_debug() << s2 << std::endl;
 	}
 
-	temp_file f("/tmp/foo2.tpie", true);
 	{
-		serialization_
+		serialization_reverse_reader rd;
+		rd.open(f.path());
+		rd.reverse = true;
+
+		std::string s1, s2;
+		rd.unserialize(s1);
+		rd.unserialize(s2);
+		rd.close();
+
+		log_debug() << s1 << std::endl;
+		log_debug() << s2 << std::endl;
 	}
 
 	return true;
