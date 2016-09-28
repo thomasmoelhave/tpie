@@ -107,14 +107,14 @@ private:
 #pragma pack(push, 1)
 	struct stream_header_t {
 		static const uint64_t magicConst = 0xfa340f49edbada67ll;
-		static const uint64_t versionConst = 1;
+		static const uint64_t versionConst = 2;
 
 		uint64_t magic;
 		uint64_t version;
 		uint64_t size;
 		// bool has funny semantics with regards to equality. we want to reject
 		// invalid bool values (>1), but that is not easy to express with a C++
-		// bool variable.
+		// bool variable
 		char cleanClose;
 		char reverse;
 	};

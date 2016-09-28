@@ -31,6 +31,7 @@
 #include <tpie/array.h>
 #include <tpie/tempname.h>
 #include <algorithm>
+#include "tpie_assert.h"
 
 namespace tpie {
 
@@ -97,6 +98,7 @@ public:
 	public:
 		serializer(serialization_writer & wr) : wr(wr) {}
 
+
 		void write(const char * const s, const memory_size_type n) {
 			const char * i = s;
 			memory_size_type written = 0;
@@ -133,9 +135,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void serialize(const T & v) {
+		memory_size_type start = m_index;
+
 		using tpie::serialize;
 		serializer s(*this);
 		serialize(s, v);
+
+		memory_size_type n = m_index - start;
+		s.write(reinterpret_cast<const char * const>(&n), sizeof n);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -147,9 +154,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void serialize(IT a, IT b) {
+		memory_size_type start = m_index;
+
 		using tpie::serialize;
 		serializer s(*this);
 		serialize(s, a, b);
+
+		memory_size_type n = m_index - start;
+		s.write(reinterpret_cast<const char * const>(&n), sizeof n);
 	}
 };
 
@@ -275,6 +287,8 @@ protected:
 	virtual void next_block() = 0;
 
 public:
+	bool reverse = false;
+
 	void close();
 
 	///////////////////////////////////////////////////////////////////////////
@@ -284,7 +298,6 @@ public:
 	/// \param n  Number of bytes to read.
 	///////////////////////////////////////////////////////////////////////////
 	void read(char * const s, const memory_size_type n) {
-		// TODO: inline some of this
 		char * i = s;
 		memory_size_type written = 0;
 		while (written != n) {
@@ -318,8 +331,20 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void unserialize(T & v) {
+		memory_size_type start = m_index;
+
+		if (reverse) {
+			memory_size_type n;
+			read(reinterpret_cast<char * const>(&n), sizeof n);
+		}
+
 		using tpie::unserialize;
 		unserialize(*this, v);
+
+		memory_size_type expectedN = m_index - start;
+		memory_size_type n;
+		read(reinterpret_cast<char * const>(&n), sizeof n);
+		tp_assert(expectedN == n, "Bad unserialize tail size");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -333,8 +358,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void unserialize(IT a, IT b) {
+		memory_size_type start = m_index;
+
 		using tpie::unserialize;
 		unserialize(*this, a, b);
+
+		memory_size_type expectedN = m_index - start;
+		memory_size_type n;
+		read(reinterpret_cast<char * const>(&n), sizeof n);
+		tp_assert(expectedN == n, "Bad unserialize tail size");
 	}
 
 	static memory_size_type memory_usage() { return block_size(); }

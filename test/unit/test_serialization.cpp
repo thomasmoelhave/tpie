@@ -352,6 +352,42 @@ bool stream_temp_test() {
 		&& tmpUsage3 > tmpUsage2;
 }
 
+bool new_test() {
+	temp_file f("/tmp/foo.tpie", true);
+	{
+		serialization_writer wr;
+		wr.open(f.path());
+		std::string s1 = "foo", s2 = "bar";
+		wr.serialize(s1);
+		wr.serialize(s2);
+
+		std::vector<int> v = {1,2,3};
+
+		wr.serialize(v.begin(), v.end());
+
+		wr.close();
+	}
+
+	{
+		serialization_reader rd;
+		rd.open(f.path());
+		std::string s1, s2;
+		rd.unserialize(s1);
+		rd.unserialize(s2);
+		rd.close();
+
+		log_debug() << s1 << std::endl;
+		log_debug() << s2 << std::endl;
+	}
+
+	temp_file f("/tmp/foo2.tpie", true);
+	{
+		serialization_
+	}
+
+	return true;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 		.test(safe_test, "safe")
@@ -362,5 +398,6 @@ int main(int argc, char ** argv) {
 		.test(stream_reopen_test, "stream_reopen")
 		.test(stream_reverse_test, "stream_reverse")
 		.test(stream_temp_test, "stream_temp")
+		.test(new_test, "new")
 		;
 }
