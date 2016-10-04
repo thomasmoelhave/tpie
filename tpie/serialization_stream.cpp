@@ -315,10 +315,7 @@ void serialization_reader_base::open(std::string path, bool reverse) {
 	header.read();
 	header.verify();
 	m_size = header.get_size();
-	if (reverse && !header.get_reverse())
-		;//throw stream_exception("Opened a non-reverse stream for reverse reading");
-	if (!reverse && header.get_reverse())
-		;//throw stream_exception("Opened a reverse stream for non-reverse reading");
+	m_reverse = reverse;
 	guard.commit();
 }
 
@@ -385,7 +382,7 @@ void serialization_reverse_reader::next_block() /*override*/ {
 		throw end_of_stream_exception();
 	--m_blockNumber;
 	read_block(m_blockNumber);
-	//std::reverse(m_block.begin(), m_block.begin() + m_blockSize);
+	std::reverse(m_block.begin(), m_block.begin() + m_blockSize);
 }
 
 serialization_reverse_reader::serialization_reverse_reader()

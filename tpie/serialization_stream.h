@@ -90,6 +90,18 @@ private:
 
 	void write_block();
 
+	template <typename ...Args>
+	void serialize_impl(Args && ...args) {
+		memory_size_type start = m_index;
+
+		using tpie::serialize;
+		serializer s(*this);
+		serialize(s, std::forward<Args>(args)...);
+
+		memory_size_type n = m_index - start;
+		s.write((char *)&n, sizeof n);
+	}
+
 public:
 
 	class serializer {
@@ -97,7 +109,6 @@ public:
 
 	public:
 		serializer(serialization_writer & wr) : wr(wr) {}
-
 
 		void write(const char * const s, const memory_size_type n) {
 			const char * i = s;
@@ -135,14 +146,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void serialize(const T & v) {
-		memory_size_type start = m_index;
-
-		using tpie::serialize;
-		serializer s(*this);
-		serialize(s, v);
-
-		memory_size_type n = m_index - start;
-		s.write(reinterpret_cast<const char * const>(&n), sizeof n);
+		serialize_impl(v);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -154,14 +158,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void serialize(IT a, IT b) {
-		memory_size_type start = m_index;
-
-		using tpie::serialize;
-		serializer s(*this);
-		serialize(s, a, b);
-
-		memory_size_type n = m_index - start;
-		s.write(reinterpret_cast<const char * const>(&n), sizeof n);
+		serialize_impl(a, b);
 	}
 };
 
@@ -178,6 +175,29 @@ class serialization_reverse_writer : public bits::serialization_writer_base {
 	std::vector<char> m_serializationBuffer;
 
 	void write_block();
+
+	template <typename ...Args>
+	void serialize_impl(Args && ...args) {
+		memory_size_type start = m_index;
+
+		memory_size_type n;
+		char *nptr = (char *)&n;
+		read(nptr, sizeof n);
+		std::reverse(nptr, nptr + sizeof n);
+
+		m_buf = new char[n];
+		m_bufp = m_buf;
+		read_raw(m_buf, n);
+		std::reverse(m_buf, m_buf + n);
+
+		using tpie::serialize;
+		serializer s(*this);
+		serialize(s, std::forward<Args>(args)...);
+
+		tp_assert(start + n + sizeof n == m_index, "unserialize didn't read correct number of bytes");
+		delete[] m_buf;
+		m_buf = nullptr;
+	}
 
 public:
 
@@ -239,9 +259,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void serialize(const T & v) {
-		using tpie::serialize;
-		serializer s(*this);
-		serialize(s, v);
+		serialize_impl(v);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -253,9 +271,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void serialize(IT a, IT b) {
-		using tpie::serialize;
-		serializer s(*this);
-		serialize(s, a, b);
+		serialize_impl(a, b);
 	}
 };
 
@@ -276,6 +292,9 @@ protected:
 	stream_size_type m_size;
 	memory_size_type m_index;
 	memory_size_type m_blockSize;
+	bool m_reverse;
+	char * m_buf = nullptr;
+	char * m_bufp;
 
 	serialization_reader_base();
 
@@ -286,9 +305,61 @@ protected:
 	// Check if EOF is reached, call read_block(blk) to reset m_index/m_blockSize.
 	virtual void next_block() = 0;
 
-public:
-	bool reverse = false;
+	void read_raw(char * const s, const memory_size_type n) {
+		char * i = s;
+		memory_size_type written = 0;
+		while (written != n) {
+			if (m_index >= m_blockSize) {
+				next_block();
+			}
 
+			memory_size_type remaining = n - written;
+			memory_size_type blockRemaining = m_blockSize - m_index;
+
+			memory_size_type readSize = std::min(remaining, blockRemaining);
+
+			memory_size_type index = m_index;
+
+			i = std::copy(m_block.get() + index,
+						  m_block.get() + (index + readSize),
+						  i);
+
+			written += readSize;
+			m_index += readSize;
+		}
+	}
+
+	template <typename ...Args>
+	void unserialize_impl(Args && ...args) {
+		memory_size_type start = m_index;
+
+		memory_size_type n;
+		if (m_reverse) {
+			char *nptr = (char *)&n;
+			read(nptr, sizeof n);
+			std::reverse(nptr, nptr + sizeof n);
+
+			m_buf = new char[n];
+			m_bufp = m_buf;
+			read_raw(m_buf, n);
+			std::reverse(m_buf, m_buf + n);
+		}
+
+		using tpie::unserialize;
+		unserialize(*this, std::forward<Args>(args)...);
+
+		if (m_reverse) {
+			tp_assert(start + n + sizeof n == m_index, "unserialize didn't read correct number of bytes");
+			delete[] m_buf;
+			m_buf = nullptr;
+		} else {
+			memory_size_type expectedN = m_index - start;
+			read((char *)&n, sizeof n);
+			tp_assert(expectedN == n, "Bad unserialize tail size");
+		}
+	}
+
+public:
 	void close();
 
 	///////////////////////////////////////////////////////////////////////////
@@ -298,29 +369,12 @@ public:
 	/// \param n  Number of bytes to read.
 	///////////////////////////////////////////////////////////////////////////
 	void read(char * const s, const memory_size_type n) {
-		char * i = s;
-		memory_size_type written = 0;
-		while (written != n) {
-			if (m_index >= m_blockSize) {
-				// virtual invocation
-				// PROBLEM: m_index = 0 after
-				next_block();
-			}
-
-			memory_size_type remaining = n - written;
-			memory_size_type blockRemaining = m_blockSize - m_index;
-
-			memory_size_type readSize = std::min(remaining, blockRemaining);
-
-			memory_size_type index = reverse? m_blockSize - m_index: m_index;
-
-			i = std::copy(m_block.get() + index,
-						  m_block.get() + (index + readSize),
-						  i);
-
-			written += readSize;
-			m_index += readSize;
+		if (!m_buf) {
+			read_raw(s, n);
+			return;
 		}
+		std::copy(m_bufp, m_bufp + n, s);
+		m_bufp += n;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -334,25 +388,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void unserialize(T & v) {
-		memory_size_type start = m_index;
-
-		memory_size_type n;
-		if (reverse) {
-			m_index += sizeof n;
-			read((char *)&n, sizeof n);
-			m_index += sizeof n + n;
-		}
-
-		using tpie::unserialize;
-		unserialize(*this, v);
-
-		if (reverse) {
-			m_index += sizeof n + n;
-		} else {
-			memory_size_type expectedN = m_index - start;
-			read((char *)&n, sizeof n);
-			tp_assert(expectedN == n, "Bad unserialize tail size");
-		}
+		unserialize_impl(v);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -366,15 +402,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void unserialize(IT a, IT b) {
-		memory_size_type start = m_index;
-
-		using tpie::unserialize;
-		unserialize(*this, a, b);
-
-		memory_size_type expectedN = m_index - start;
-		memory_size_type n;
-		read(reinterpret_cast<char * const>(&n), sizeof n);
-		tp_assert(expectedN == n, "Bad unserialize tail size");
+		unserialize_impl(a, b);
 	}
 
 	static memory_size_type memory_usage() { return block_size(); }
