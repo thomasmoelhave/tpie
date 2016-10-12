@@ -146,9 +146,11 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 
 namespace tpie {
 	void finish_tempfile() {
-		while(!subdirs.empty()) {
-			if(!subdirs.top().empty())
-				boost::filesystem::remove_all(subdirs.top());
+		while (!subdirs.empty()) {
+			if (!subdirs.top().empty()) {
+				boost::system::error_code c;
+				boost::filesystem::remove_all(subdirs.top(), c);
+			}	
 			subdirs.pop();
 		}
 	}
