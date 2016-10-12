@@ -41,18 +41,11 @@ void node_map::link(node_map::ptr target) {
 	if (target->m_rank > m_rank)
 		return target->link(this);
 
-	for (mapit i = target->begin(); i != target->end(); ++i) {
-		set_token(i->first, i->second);
-	}
-	for (relmapit i = target->m_relations.begin(); i != target->m_relations.end(); ++i) {
-		m_relations.insert(*i);
-	}
-	for (relmapit i = target->m_relationsInv.begin(); i != target->m_relationsInv.end(); ++i) {
-		m_relationsInv.insert(*i);
-	}
-	for (auto i = target->m_pipelineForwards.begin(); i != target->m_pipelineForwards.end(); ++i) {
-		m_pipelineForwards[i->first] = std::move(i->second);
-	}
+	for (auto & i: *target) set_token(i.first, i.second);
+	m_relations.insert(target->m_relations.begin(), target->m_relations.end());
+	m_relationsInv.insert(target->m_relationsInv.begin(), target->m_relationsInv.end());
+	for (auto & i: target->m_pipelineForwards) m_pipelineForwards[i.first] = std::move(i.second);
+	
 	std::move(target->m_pipeBaseForwards.begin(), target->m_pipeBaseForwards.end(),
 			  std::back_inserter(m_pipeBaseForwards));
 	std::move(target->m_ownedNodes.begin(), target->m_ownedNodes.end(),
