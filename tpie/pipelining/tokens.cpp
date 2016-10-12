@@ -50,7 +50,7 @@ void node_map::link(node_map::ptr target) {
 	for (relmapit i = target->m_relationsInv.begin(); i != target->m_relationsInv.end(); ++i) {
 		m_relationsInv.insert(*i);
 	}
-	for (auto i = target->m_pipelineForwards.begin(); i != m_pipelineForwards.end(); ++i) {
+	for (auto i = target->m_pipelineForwards.begin(); i != target->m_pipelineForwards.end(); ++i) {
 		m_pipelineForwards[i->first] = std::move(i->second);
 	}
 	std::move(target->m_pipeBaseForwards.begin(), target->m_pipeBaseForwards.end(),
