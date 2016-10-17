@@ -66,7 +66,9 @@ public:
 	internal_store(internal_store && o)
 		: m_root(o.m_root)
 		, m_height(o.m_height)
-		, m_size(o.m_size) {
+		, m_size(o.m_size)
+		, m_metadata(o.m_metadata)
+		, m_bucket(o.m_bucket) {
 		o.m_root = nullptr;
 		o.m_size = 0;
 		o.m_height = 0;
@@ -82,8 +84,8 @@ private:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit internal_store(): 
-		m_root(nullptr), m_height(0), m_size(0) {}
+	explicit internal_store(memory_bucket_ref bucket): 
+		m_root(nullptr), m_height(0), m_size(0), m_bucket(bucket) {}
 
 	
 	struct internal_content {
@@ -106,13 +108,15 @@ private:
 	
 	void dispose(void * node, size_t depth) {
 		if (depth + 1 == m_height) {
-			delete static_cast<leaf *>(node);
+			tpie_delete(static_cast<leaf *>(node));
+			if (m_bucket) m_bucket->count -= sizeof(leaf);
 			return;
 		}
 		internal * in = static_cast<internal*>(node);
 		for (size_t i=0; i != in->count; ++i)
 			dispose(in->values[i].ptr, depth + 1);
-		delete in;
+		tpie_delete(in);
+		if (m_bucket) m_bucket->count -= sizeof(internal);
 	}
 	
 	~internal_store() {
@@ -177,13 +181,30 @@ private:
 		node->count = i;
 	}
 
-	leaf_type create_leaf() {return new leaf();}
+	leaf_type create_leaf() {
+		auto l = tpie_new<leaf>();
+		if (m_bucket) m_bucket->count += sizeof(leaf);
+		return l;
+	}
 	leaf_type create(leaf_type) {return create_leaf();}
-	internal_type create_internal() {return new internal();}
+
+	internal_type create_internal() {
+		auto i = tpie_new<internal>();
+		if (m_bucket) m_bucket->count += sizeof(internal);
+		return i;
+	}
+
 	internal_type create(internal_type) {return create_internal();}
 
-	void destroy(internal_type node) {delete node;}
-	void destroy(leaf_type node) {delete node;}
+	void destroy(internal_type node) {
+		if (m_bucket && node) m_bucket->count -= sizeof(internal);
+		tpie_delete(node);
+	}
+
+	void destroy(leaf_type node) {
+		if (m_bucket && node) m_bucket->count -= sizeof(leaf);
+		tpie_delete(node);
+	}
 
 	void set_root(internal_type node) {m_root = node;}
 	void set_root(leaf_type node) {m_root = node;}
@@ -240,17 +261,18 @@ private:
 	void finalize_build() {}
 
 	void set_metadata(const std::string & data) {
-		metadata = data;
+		m_metadata = data;
 	}
 	
 	std::string get_metadata() {
-		return metadata;
+		return m_metadata;
 	}
 	
 	void * m_root;
 	size_t m_height;
 	size_t m_size;
-	std::string metadata;
+	std::string m_metadata;
+	memory_bucket_ref m_bucket;
 
 	template <typename>
 	friend class ::tpie::btree_node;

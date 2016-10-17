@@ -597,8 +597,11 @@ public:
 	 * Construct a btree with the given storage
 	 */
 	template <typename X=enab>
-	explicit tree(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, is_internal> =enab() ): 
-		m_state(store_type(), std::move(augmenter), keyextract_type()),
+	explicit tree(comp_type comp=comp_type(),
+				  augmenter_type augmenter=augmenter_type(),
+				  memory_bucket_ref bucket=memory_bucket_ref(),
+				  enable<X, is_internal> =enab() ):
+		m_state(store_type(bucket), std::move(augmenter), keyextract_type()),
 		m_comp(comp) {}
 	
 	friend class bbits::builder<T, O>;
