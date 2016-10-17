@@ -23,6 +23,7 @@
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
 #include <tpie/tpie_assert.h>
+#include <tpie/memory.h>
 #include <cstddef>
 
 namespace tpie {

@@ -23,6 +23,7 @@
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
 #include <tpie/btree/node.h>
+#include <tpie/memory.h>
 
 #include <cstddef>
 #include <deque>
@@ -218,8 +219,9 @@ public:
     {}
 
 	template <typename X=enab>
-	explicit builder(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, is_internal> =enab() )
-		: m_state(store_type(), std::move(augmenter), typename state_type::keyextract_type())
+	explicit builder(comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(),
+					 memory_bucket_ref bucket=memory_bucket_ref(), enable<X, is_internal> =enab() )
+		: m_state(store_type(bucket), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
 		, m_serialized_size(0)
 		, m_size(0)

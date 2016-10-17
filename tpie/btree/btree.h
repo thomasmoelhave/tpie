@@ -23,7 +23,7 @@
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
 #include <tpie/btree/node.h>
-
+#include <tpie/memory.h>
 #include <cstddef>
 #include <vector>
 
