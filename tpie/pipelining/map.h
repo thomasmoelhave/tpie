@@ -98,12 +98,12 @@ public:
 };
 
 
-template <typename IT, typename F>
+template <typename F>
 class map_sink_t: public node {
 private:
 	F functor;
 public:
-	typedef IT item_type;
+	typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
 
 	map_sink_t(const F & functor):
 		functor(functor) {
@@ -149,9 +149,9 @@ pipe_middle<tempfactory<bits::map_temp_t<F>, F> > map(const F & functor) {
 	return tempfactory<bits::map_temp_t<F>, F >(functor);
 }
 
-template <typename item_type, typename F>
-pipe_end<termfactory<bits::map_sink_t<item_type, F>, F> > map_sink(const F & functor) {
-	return termfactory<bits::map_sink_t<item_type, F>, F >(functor);
+template <typename F>
+pipe_end<termfactory<bits::map_sink_t<F>, F> > map_sink(const F & functor) {
+	return termfactory<bits::map_sink_t<F>, F >(functor);
 }
 
 } //namespace pipelining
