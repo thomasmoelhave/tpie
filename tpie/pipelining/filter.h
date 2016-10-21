@@ -38,7 +38,8 @@ public:
 		F functor;
 		dest_t dest;
 	public:
-		typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
+		typedef typename std::decay<typename unary_traits<F>::argument_type>::type funct_arg_type;
+		typedef typename push_type<dest_t, funct_arg_type>::type item_type;
 		type(dest_t dest, const F & functor):
 			functor(functor), dest(std::move(dest)) {
 			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
