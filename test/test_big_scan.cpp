@@ -65,7 +65,6 @@ typedef struct app_info{
 class Item{
 public:
     Item();
-    ~Item(){};
     stream_size_type convert();
     Item operator ++(int j);
     friend std::ostream& operator << (std::ostream & out, const Item & it);

@@ -77,7 +77,6 @@ typedef struct app_info{
 class SortItem{
   public:
     SortItem(long key_=0);
-    ~SortItem(){};
     long key;        //key to sort on
     bool operator<(const SortItem& rhs) const {
       return (this->key<rhs.key);
