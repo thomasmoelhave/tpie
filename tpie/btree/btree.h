@@ -605,7 +605,11 @@ public:
 		m_comp(comp) {}
 	
 	friend class bbits::builder<T, O>;
-	
+
+	const comp_type & comp() const {
+		return m_comp;
+	}
+		
 private:
 	explicit tree(state_type state, comp_type comp):
 		m_state(std::move(state)),

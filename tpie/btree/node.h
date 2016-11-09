@@ -306,7 +306,7 @@ public:
 	
 	size_t index() const {return m_index;}
 
-	btree_node<S> is_leaf() const {
+	btree_node<S> get_leaf() const {
 		return btree_node<S>(m_state, m_path, m_leaf);
 	}
 	
