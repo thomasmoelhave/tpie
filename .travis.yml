@@ -3,7 +3,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      compiler: gcc
+      compiler: gcc-5
     - os: linux
       dist: trusty
       sudo: required
@@ -13,12 +13,18 @@ matrix:
       sudo: false
 language: cpp
 before install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install boost snappy; fi
+  - if [ -n "$_CC" ]; then export CC=$_CC; fi
+  - if [ -n "$_CXX" ]; then export CXX=$_CXX; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install boost snappy; fi 
 addons:
   apt:
-      sources:
+    sources:
       - boost-latest
-      packages:
+      - ubuntu-toolchain-r-test
+    packages:
+      # Needed for gcc target and also clang for libstdc++-5-dev
+      - gcc-5
+      - g++-5
       - libboost-date-time1.55-dev
       - libboost-filesystem1.55-dev
       - libboost-system1.55-dev
