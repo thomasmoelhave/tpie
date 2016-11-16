@@ -245,7 +245,7 @@ template <typename S>
 ss_augment rank_sum(const btree_iterator<S> & i) {
 	ss_augment ans(0,0);
 	size_t idx=i.index();
-	btree_node<S> n=i.is_leaf();
+	btree_node<S> n=i.get_leaf();
 	while (true) {
 		if (n.is_leaf()) {
 			for (size_t i=0; i < idx; ++i) {
