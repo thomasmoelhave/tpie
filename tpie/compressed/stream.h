@@ -35,6 +35,7 @@
 #include <tpie/compressed/request.h>
 #include <tpie/compressed/stream_position.h>
 #include <tpie/compressed/direction.h>
+#include <type_traits>
 
 namespace tpie {
 
