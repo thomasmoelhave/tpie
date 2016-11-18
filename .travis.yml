@@ -15,7 +15,7 @@ matrix:
       compiler: clang
       sudo: false
 language: cpp
-before install:
+before_install:
   - if [ -n "$_CC" ]; then export CC=$_CC; fi
   - if [ -n "$_CXX" ]; then export CXX=$_CXX; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install boost snappy; fi 
