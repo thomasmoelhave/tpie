@@ -4,6 +4,9 @@ matrix:
       dist: trusty
       sudo: required
       compiler: gcc-5
+      env:
+        - _CC=gcc-5
+        - _CXX=g++-5
     - os: linux
       dist: trusty
       sudo: required
