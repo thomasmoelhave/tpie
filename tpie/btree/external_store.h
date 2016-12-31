@@ -118,6 +118,8 @@ public:
 			path, blockSize(), cacheSize(), true);
 	}
 
+	external_store(external_store&& other) noexcept = default;
+
 	~external_store() {
 		m_collection.reset();
 	}

@@ -27,16 +27,20 @@
 
 #include <cstddef>
 
+#include <boost/noncopyable.hpp>
+
 namespace tpie {
 namespace bbits {
 
-class external_store_base {
+class external_store_base : boost::noncopyable {
 public:
 
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
 	external_store_base(const std::string & path);
+
+	external_store_base(external_store_base&& other) noexcept;
 
 	~external_store_base();
 
@@ -45,6 +49,7 @@ protected:
 	std::string m_path;
 	size_t m_height;
 	size_t m_size;
+	bool m_moved;
 };
 
 } //namespace bbits
