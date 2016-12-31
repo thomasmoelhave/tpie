@@ -24,6 +24,7 @@
 #include <tpie/tpie_log.h>
 #include <sstream>
 #include <tpie/sysinfo.h>
+#include <atomic>
 
 namespace tpie {
 
@@ -64,8 +65,10 @@ int teststream_buf::sync() {
 }
 
 teststream::teststream(bool do_time): std::ostream(&m_buff), failed(0), total(0), do_time(do_time) {
+	std::atomic_signal_fence(std::memory_order_acq_rel);
 	if (do_time) 
 		time = test_now();
+	std::atomic_signal_fence(std::memory_order_acq_rel);
 };
 bool teststream::success() {return failed ==0;}
 
@@ -77,12 +80,14 @@ void result_manip(teststream & s, bool success) {
 		s.failed++;
 	}
 	s.total++;
+	std::atomic_signal_fence(std::memory_order_acq_rel);
 	if (s.do_time) {
 		test_time ntime = test_now();
 		s << " " << test_millisecs(s.time, ntime) << " ms";
 		s.time = ntime;
 	}
 	s << std::endl;
+	std::atomic_signal_fence(std::memory_order_acq_rel);
 	
 
 }
@@ -295,12 +300,17 @@ namespace bits {
 		, result(false)
 	{
 		t->start_test(name);
+		std::atomic_signal_fence(std::memory_order_acq_rel);
 		if (t->do_time)
 			m_time = test_now();
+		std::atomic_signal_fence(std::memory_order_acq_rel);
 	}
 
 	test_runner::~test_runner() {
-		t->end_test(result, t->do_time?test_millisecs(m_time, test_now()): 0);
+		std::atomic_signal_fence(std::memory_order_acq_rel);
+		auto now = test_now();
+		std::atomic_signal_fence(std::memory_order_acq_rel);
+		t->end_test(result, t->do_time?test_millisecs(m_time, now): 0);
 	}
 
 	void test_runner::set_result(bool result) {
