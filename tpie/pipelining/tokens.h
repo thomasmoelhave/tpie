@@ -83,6 +83,7 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/optional.hpp>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace tpie {
 
@@ -161,6 +162,10 @@ public:
 
 	size_t size() const {
 		return m_tokens.size();
+	}
+
+	void no_forward_through(id_t id) {
+		m_noForwardThrough.insert(id);
 	}
 
 	// union-find
@@ -260,6 +265,7 @@ private:
 	relmap_t m_relationsInv;
 	datastructuremap_t m_datastructures;
 	forwardmap_t m_pipelineForwards;
+	std::unordered_set<id_t> m_noForwardThrough;
 	std::vector<pipe_base_forward_t> m_pipeBaseForwards;
 	std::vector<owned_ptr> m_ownedNodes;
 

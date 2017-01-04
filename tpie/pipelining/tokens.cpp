@@ -44,6 +44,7 @@ void node_map::link(node_map::ptr target) {
 	for (auto & i: *target) set_token(i.first, i.second);
 	m_relations.insert(target->m_relations.begin(), target->m_relations.end());
 	m_relationsInv.insert(target->m_relationsInv.begin(), target->m_relationsInv.end());
+	m_noForwardThrough.insert(target->m_noForwardThrough.begin(), target->m_noForwardThrough.end());
 	for (auto & i: target->m_pipelineForwards) m_pipelineForwards[i.first] = std::move(i.second);
 	
 	std::move(target->m_pipeBaseForwards.begin(), target->m_pipeBaseForwards.end(),
@@ -120,7 +121,8 @@ void node_map::get_successors(id_t from, std::vector<id_t> & successors, memory_
 		seen.insert(v);
 		successors.push_back(v);
 
-		if(d == k) continue;
+		if (d != 0 && forward_only && m_noForwardThrough.count(v)) continue;
+		if (d == k) continue;
 
 		{
 			std::pair<relmapit, relmapit> is = m_relations.equal_range(v);

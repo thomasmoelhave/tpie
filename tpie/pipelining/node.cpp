@@ -257,6 +257,10 @@ any_noncopyable & node::fetch_any(std::string key) {
 	return *value;
 }
 
+void node::no_forward_through() {
+	get_node_map()->find_authority()->no_forward_through(get_id());
+}
+
 node::maybeany_t node::get_forwarded_data_maybe(std::string key) {
 	auto it = m_forwardedFromHere.find(key);
 	if (it == m_forwardedFromHere.end()) {
