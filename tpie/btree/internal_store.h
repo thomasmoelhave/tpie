@@ -76,9 +76,12 @@ public:
 	}
 		
 	internal_store & operator=(internal_store && o) {
-		this->~internal_store();
-		new (this) internal_store(o);
-		return this;
+		std::swap(m_root, o.m_root);
+		std::swap(m_height, o.m_height);
+		std::swap(m_size, o.m_size);
+		std::swap(m_metadata, o.m_metadata);
+		std::swap(m_bucket, o.m_bucket);
+		return *this;
 	}
 	
 private:	
