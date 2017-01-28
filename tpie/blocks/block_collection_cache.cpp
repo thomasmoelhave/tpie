@@ -45,6 +45,7 @@ block_collection_cache::~block_collection_cache() {
 block_handle block_collection_cache::get_free_block() {
 	block_handle h = m_collection.get_free_block();
 	block * cache_b = tpie_new<block>(m_blockSize);
+	prepare_cache();
 	add_to_cache(h, cache_b, true);
 	return h;
 }
@@ -82,6 +83,8 @@ void block_collection_cache::prepare_cache() {
 }
 
 void block_collection_cache::add_to_cache(block_handle handle, block * b, bool dirty) {
+    tp_assert(m_curSize < m_maxSize, "must not be full");
+
 	m_blockList.push_back(handle);
 	block_list_t::iterator list_pos = m_blockList.end();
 	--list_pos;
