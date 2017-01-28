@@ -95,6 +95,10 @@ private:
 	void prepare_cache();
 
 	void add_to_cache(block_handle handle, block * b, bool dirty);
+
+	// Register that item is now the most recently used one.
+	void used(block_information_t& item);
+
 public:
 	/**
 	 * \brief Reads the content of a block from disk
