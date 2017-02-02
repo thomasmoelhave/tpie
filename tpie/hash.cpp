@@ -106,5 +106,4 @@ uint32_t BufferedHash::finalize() {
 	return h;
 }
 
-+
 } // namespace tpie
