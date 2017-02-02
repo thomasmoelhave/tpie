@@ -35,7 +35,7 @@
 #include <tpie/compressed/request.h>
 #include <tpie/compressed/stream_position.h>
 #include <tpie/compressed/direction.h>
-#include <type_traits>
+#include <tpie/stream_writable.h>
 
 namespace tpie {
 
@@ -509,42 +509,9 @@ private:
 /// A `tpie::stream_exception` is thrown if the user has violated a
 /// precondition (for instance by passing an invalid parameter).
 ///////////////////////////////////////////////////////////////////////////////
-
-/*
- * We require that the item type T of a file_stream to be trivially copyable,
- * but we relax this condition for std::pair.
- *
- * std::pair<T1, T2> is not required by the standard to be trivially copyable
- * if T1 and T2 are trivially copyable.
- * This means that no compiler implements std::pair so it is trivially copyable in that case.
- *
- * To avoid having to write our own implementation of std::pair and require everybody who uses a file_stream to use it.
- * The standard requires that the copy constructor on the std::pair be default, so memcopying it is not undefined behaviour.
- */
-template <typename T>
-class is_trivially_copyable_override {
-private:
-	template <typename TT>
-	static char magic(typename TT::trivially_copyable*);
-	template <typename TT>
-	static long magic(...);
-public:
-	static bool const value=sizeof(magic<T>((std::true_type*)nullptr))==sizeof(char);
-};
-
-template <typename T>
-struct is_std_pair_trivially_copyable :
-		std::integral_constant<bool, std::is_trivially_copyable<T>::value || is_trivially_copyable_override<T>::value>
-{};
-
-template <typename T1, typename T2>
-struct is_std_pair_trivially_copyable<std::pair<T1, T2>> :
-	std::integral_constant<bool, is_std_pair_trivially_copyable<T1>::value && is_std_pair_trivially_copyable<T2>::value>
-{};
-
 template <typename T>
 class file_stream : public compressed_stream_base {
-	static_assert(is_std_pair_trivially_copyable<T>::value, "file_stream item type must be trivially copyable");
+	static_assert(is_stream_writable<T>::value, "file_stream item type must be trivially copyable");
 
 	using compressed_stream_base::seek_state;
 
