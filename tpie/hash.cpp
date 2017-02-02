@@ -40,4 +40,71 @@ void init_hash() {
 			hash_codes[i][j] = dist(rng);
 }
 
+
+BufferedHash::BufferedHash(size_t seed) {
+	value = seed;
+	cur = buff;
+	stop = buff + 1024;
+}
+
+void BufferedHash::copy(const BufferedHash & o) {
+	value = o.value;
+	memcpy(buff, o.buff, o.cur - o.buff);
+	cur = buff + (o.cur - o.buff);
+	stop = buff + 1024;
+}
+
+void BufferedHash::flush() {
+	// murmur hash
+	const size_t len = cur - buff;
+	if (len < 4) return;
+
+	const uint32_t* key_x4 = (const uint32_t*) buff;
+
+	size_t i = len >> 2;
+	auto h = value;
+	do {
+		uint32_t k = *key_x4++;
+		k *= 0xcc9e2d51;
+		k = (k << 15) | (k >> 17);
+		k *= 0x1b873593;
+		h ^= k;
+		h = (h << 13) | (h >> 19);
+		h += (h << 2) + 0xe6546b64;
+	} while (--i);
+	value = h;
+
+
+	auto start = buff + ((len >> 2) << 2);
+	memcpy(buff, start, cur - start);
+	cur = buff + (cur - start);
+}
+
+uint32_t BufferedHash::finalize() {
+	// murmur hash
+	auto h = value;
+	const size_t len = cur - buff;
+	if (len & 3) {
+		size_t i = len & 3;
+		uint32_t k = 0;
+		auto key = &buff[i - 1];
+		do {
+			k <<= 8;
+			k |= *key--;
+		} while (--i);
+		k *= 0xcc9e2d51;
+		k = (k << 15) | (k >> 17);
+		k *= 0x1b873593;
+		h ^= k;
+	}
+	h ^= len;
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+	return h;
+}
+
++
 } // namespace tpie

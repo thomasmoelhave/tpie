@@ -19,12 +19,8 @@
 #ifndef __TPIE_HASH_H__
 #define __TPIE_HASH_H__
 
-#include <tpie/array.h>
-#include <tpie/unused.h>
-#include <cmath>
-#include <algorithm>
-#include <iostream>
-#include <tpie/prime.h>
+#include <tpie/util.h>
+#include <cstring>
 
 namespace tpie {
 
@@ -113,6 +109,102 @@ struct hash<std::string> {
 		return h(s.c_str());
 	}
 };
+
+
+// Predeclare reflect
+template <typename R, typename T, typename ... TT>
+bool reflect(R & r, T && v, TT && ... vs);
+
+struct BufferedHash {
+public:
+	BufferedHash(size_t seed=0);
+	BufferedHash(BufferedHash && o) {copy(o);}
+	BufferedHash(const BufferedHash & o) {copy(o);}
+	BufferedHash & operator=(BufferedHash && o) {copy(o); return *this;}
+	BufferedHash & operator=(const BufferedHash & o) {copy(o); return *this;}
+
+	void add(const char * data, size_t length) {
+		const char * istart = data;
+		const char * iend = data + length;
+		while (iend - istart > stop - cur) {
+			memcpy(cur, istart, stop - cur);
+			istart += stop - cur;
+			cur = stop;
+			flush();
+		}
+		memcpy(cur, istart, iend - istart);
+		cur += (iend - istart);
+	}
+
+	template <typename T>
+	void add(const T & v) {
+		add(reinterpret_cast<const char *>(&v), sizeof(v));
+	}
+
+	uint32_t finalize();
+private:
+	void flush();
+	void copy(const BufferedHash & o);
+
+	char buff[1024];
+	char * stop;
+	char * cur;
+	uint32_t value;
+};
+
+template <typename H, typename T>
+inline void ghash(H & h, const T & t);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Buffer based hash reflector
+///////////////////////////////////////////////////////////////////////////////
+template <typename H>
+struct HashReflector {
+public:
+	static constexpr bool write = false;
+	static constexpr bool arithmetic = true;
+	static constexpr bool string = true;
+	static constexpr bool trivialSerializable = false;
+
+	HashReflector(H & h): h(h) {}
+
+	void begin(const char *) {}
+	void end() {}
+	void beginArray(size_t x) {h.add(x);}
+	void endArray() {}
+	void name(const char *) {}
+	void beginStaticArray(size_t) {}
+	void endStaticArray() {}
+
+	template <typename T>
+	bool operator()(const T & v) {
+		h.add(v);
+		return true;
+	}
+
+	bool operator()(const std::string & v) {
+		h.add(v.size());
+		h.add(v.c_str(), v.size());
+		return true;
+	}
+
+	template <typename T>
+	bool apply(const T & v) {
+		ghash(h, v);
+		return true;
+	}
+private:
+	H & h;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Hash t using reflection
+///////////////////////////////////////////////////////////////////////////////
+template <typename H, typename T>
+inline void ghash(H & h, const T & t) {
+	HashReflector<H> r(h);
+	reflect(r, t);
+}
 
 } // namespace tpie
 
