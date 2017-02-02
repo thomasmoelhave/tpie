@@ -226,6 +226,9 @@ public:
 	fact_t factory;
 };
 
+
+class empty_pipe_middle;
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipe_middle
 ///
@@ -276,6 +279,11 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// The pipe operator combines this generator/filter with another filter.
+	///////////////////////////////////////////////////////////////////////////
+	pipe_middle	operator|(empty_pipe_middle && r) {return pipe_middle(std::move(factory));}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// This pipe operator combines this generator/filter with a terminator to
 	/// make a pipeline.
 	///////////////////////////////////////////////////////////////////////////
@@ -288,6 +296,34 @@ public:
 
 	fact_t factory;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// \class empty_pipe_middle
+///
+/// A empty_pipe_middle class has no effect
+///////////////////////////////////////////////////////////////////////////////
+class empty_pipe_middle : public bits::pipe_nonterm_base<empty_pipe_middle> {
+public:
+	empty_pipe_middle() = default;
+	empty_pipe_middle(const empty_pipe_middle &) = delete;
+	empty_pipe_middle(empty_pipe_middle &&) = default;
+	empty_pipe_middle & operator=(const empty_pipe_middle &) = delete;
+	empty_pipe_middle & operator=(empty_pipe_middle &&) = default;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// The pipe operator combines this generator/filter with another filter.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	pipe_middle<fact_t> operator|(pipe_middle<fact_t> && r) const {return std::move(r);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// This pipe operator combines this generator/filter with a terminator to
+	/// make a pipeline.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	pipe_end<fact_t> operator|(pipe_end<fact_t> && r) const {return std::move(r);}
+};
+
 
 template <typename fact_t>
 class pipe_begin : public bits::pipe_nonterm_base<pipe_begin<fact_t> > {
@@ -327,6 +363,8 @@ public:
 		factory.set_destination_kind_push();
 		return bits::pair_factory<fact_t, fact2_t>(std::move(factory), std::move(r.factory));
 	}
+
+	pipe_begin operator|(empty_pipe_middle && r) {return pipe_begin(std::move(factory));}
 
 	template <typename fact2_t>
 	bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
