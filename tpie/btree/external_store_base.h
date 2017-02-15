@@ -27,12 +27,10 @@
 
 #include <cstddef>
 
-#include <boost/noncopyable.hpp>
-
 namespace tpie {
 namespace bbits {
 
-class external_store_base : boost::noncopyable {
+class external_store_base {
 public:
 
 	/**
@@ -43,6 +41,9 @@ public:
 	external_store_base(external_store_base&& other) noexcept;
 
 	~external_store_base();
+
+	external_store_base(const external_store_base&) = delete;
+	external_store_base& operator=(const external_store_base&) = delete;
 
 protected:
 	blocks::block_handle m_root;
