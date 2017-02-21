@@ -38,13 +38,19 @@ public:
 	 */
 	external_store_base(const std::string & path);
 
+	external_store_base(external_store_base&& other) noexcept;
+
 	~external_store_base();
+
+	external_store_base(const external_store_base&) = delete;
+	external_store_base& operator=(const external_store_base&) = delete;
 
 protected:
 	blocks::block_handle m_root;
 	std::string m_path;
 	size_t m_height;
 	size_t m_size;
+	bool m_moved;
 };
 
 } //namespace bbits

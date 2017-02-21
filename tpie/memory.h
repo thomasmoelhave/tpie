@@ -159,7 +159,7 @@ template <typename T,
 	bool x=std::is_polymorphic<T>::value
 >
 struct __object_addr {
-	void * operator()(T * o) {return static_cast<void *>(o);}
+	void * operator()(T * o) {return const_cast<void*>(static_cast<const void*>(o));}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,7 +167,7 @@ struct __object_addr {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct __object_addr<T, true> {
-	void * operator()(T * o) {return dynamic_cast<void *>(o);}
+	void * operator()(T * o) {return const_cast<void*>(dynamic_cast<const void *>(o));}
 };
 #endif
 

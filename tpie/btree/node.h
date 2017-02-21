@@ -222,12 +222,17 @@ class btree_iterator: public boost::iterator_facade<
 	btree_iterator<S>,
 	typename S::value_type const,
 	boost::bidirectional_traversal_tag> {
+
+public:
+	// Do not declare value type as private!
+	// It is a required iterator typedef.
+	typedef typename S::value_type value_type;
+
 private:
 	typedef S state_type;
 	typedef typename S::store_type store_type;
 	typedef typename store_type::internal_type internal_type;
 	typedef typename store_type::leaf_type leaf_type;
-	typedef typename S::value_type value_type;
 	typedef typename S::key_type key_type;
 
 	const state_type * m_state;
