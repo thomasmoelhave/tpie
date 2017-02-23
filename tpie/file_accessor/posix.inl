@@ -143,12 +143,9 @@ bool posix::is_open() const {
 }
 
 void posix::close_i() {
-	if (m_fd != 0) {
-		if (::close(m_fd) == 0) {
-			get_file_manager().decrement_open_file_count();
-		}
-	}
-	m_fd=0;
+	if (m_fd == 0) return;
+	if (::close(m_fd) == -1) throw_errno();
+	get_file_manager().decrement_open_file_count();
 }
 
 void posix::truncate_i(stream_size_type bytes) {

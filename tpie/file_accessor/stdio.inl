@@ -103,11 +103,10 @@ void stdio::open(const std::string & path,
 }
 
 void stdio::close() {
-	if (m_fd && m_write) write_header(true);
-	if (m_fd != 0) {
-		::fclose(m_fd);
-		get_file_manager().decrement_open_file_count();
-	}
+	if (m_fd == 0) return;
+	if (m_write) write_header(true);
+	if (::fclose(m_fd) != 0) throw_errno();
+	get_file_manager().decrement_open_file_count();
 	m_fd=0;
 }
 

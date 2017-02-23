@@ -124,11 +124,9 @@ bool win32::is_open() const {
 }
 
 void win32::close_i() {
-	if (m_fd != INVALID_HANDLE_VALUE) {
-		if(CloseHandle(m_fd)) {
-			get_file_manager().decrement_open_file_count();
-		}
-	}
+	if (m_fd == INVALID_HANDLE_VALUE) return;
+	if (!CloseHandle(m_fd)) throw_getlasterror();
+	get_file_manager().decrement_open_file_count();
 	m_fd=INVALID_HANDLE_VALUE;
 }
 
