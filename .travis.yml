@@ -5,9 +5,9 @@ matrix:
       sudo: required
       compiler: gcc-5
       env:
+        - CMAKE_BUILD_TYPE=Release
         - _CC=gcc-5
         - _CXX=g++-5
-        - CMAKE_BUILD_TYPE=Release
     - os: linux
       dist: trusty
       sudo: required
@@ -25,9 +25,9 @@ matrix:
       sudo: required
       compiler: gcc-5
       env:
+        - CMAKE_BUILD_TYPE=Debug
         - _CC=gcc-5
         - _CXX=g++-5
-        - CMAKE_BUILD_TYPE=Debug
     - os: linux
       dist: trusty
       sudo: required
