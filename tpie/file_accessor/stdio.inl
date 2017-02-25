@@ -38,20 +38,20 @@ namespace file_accessor {
 #endif
 
 stdio::stdio():
-	m_fd(0) {
+	m_f(nullptr) {
 	invalidateLocation();
 }
 
 inline void stdio::read_i(void * data, memory_size_type size) {
-	if (::fread(data, 1, size, m_fd) != size) throw_errno();
+	if (::fread(data, 1, size, m_f) != size) throw_errno();
 }
 
 inline void stdio::write_i(const void * data, memory_size_type size) {
-	if (::fwrite(data, 1, size, m_fd) != size) throw_errno();
+	if (::fwrite(data, 1, size, m_f) != size) throw_errno();
 }
 
 inline void stdio::seek_i(stream_size_type offset) {
-	if (::fseeko(m_fd, offset, SEEK_SET) != 0) throw_errno();
+	if (::fseeko(m_f, offset, SEEK_SET) != 0) throw_errno();
 }
 	
 void stdio::open(const std::string & path,
@@ -71,23 +71,23 @@ void stdio::open(const std::string & path,
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
-		m_fd = ::fopen(path.c_str(), "wb");
-		if (m_fd == 0) throw_errno();
+		m_f = ::fopen(path.c_str(), "wb");
+		if (m_f == nullptr) throw_errno();
 		m_size = 0;
 		write_header(false);
 		char * buf = new char[userDataSize];
 		write_user_data(buf);
 		delete[] buf;
 	} else if (!write && read) {
-		m_fd = ::fopen(path.c_str(), "rb");
-		if (m_fd == 0) throw_errno();
+		m_f = ::fopen(path.c_str(), "rb");
+		if (m_f == nullptr) throw_errno();
 		read_header();
 	} else {
-		m_fd = ::fopen(path.c_str(), "r+b");
-		if (m_fd == 0) {
+		m_f = ::fopen(path.c_str(), "r+b");
+		if (m_f == nullptr) {
 			if (errno != ENOENT) throw_errno();
-			m_fd = ::fopen(path.c_str(), "w+b");
-			if (m_fd == 0) throw_errno();
+			m_f = ::fopen(path.c_str(), "w+b");
+			if (m_f == nullptr) throw_errno();
 			m_size=0;
 			write_header(false);
 			char * buf = new char[userDataSize];
@@ -99,15 +99,15 @@ void stdio::open(const std::string & path,
 		}
 	}
 	get_file_manager().increment_open_file_count();
-	setvbuf(m_fd, NULL, _IONBF, 0);
+	setvbuf(m_f, NULL, _IONBF, 0);
 }
 
 void stdio::close() {
-	if (m_fd == 0) return;
+	if (m_f == nullptr) return;
 	if (m_write) write_header(true);
-	if (::fclose(m_fd) != 0) throw_errno();
+	if (::fclose(m_f) != 0) throw_errno();
 	get_file_manager().decrement_open_file_count();
-	m_fd=0;
+	m_f = nullptr;
 }
 
 void stdio::truncate(stream_size_type size) {

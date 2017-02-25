@@ -35,7 +35,7 @@ namespace file_accessor {
 
 class stdio: public file_accessor_crtp<stdio> {
 private:
-	FILE * m_fd;
+	FILE * m_f;
 	bool m_write;
 
 	friend class file_accessor_crtp<stdio>;
