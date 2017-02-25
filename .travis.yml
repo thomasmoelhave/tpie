@@ -60,4 +60,9 @@ addons:
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=1
-script: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" .. && make -j2 && make test
+script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" ..
+  - make -j2
+  - make test
