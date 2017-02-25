@@ -166,7 +166,7 @@ public:
 		return typeid(value);
 	}
 
-	virtual any_noncopyable_cont_base * copy() const {
+	any_noncopyable_cont_base * copy() const override {
 		throw bad_any_noncopyable_copy();
 	}
 };
@@ -180,7 +180,7 @@ public:
 		return typeid(value);
 	}
 
-	virtual any_noncopyable_cont_base * copy() const {
+	any_noncopyable_cont_base * copy() const override {
 		return new any_noncopyable_cont<T, true>(value);
 	}
 };

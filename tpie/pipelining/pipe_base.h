@@ -281,7 +281,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// The pipe operator combines this generator/filter with another filter.
 	///////////////////////////////////////////////////////////////////////////
-	pipe_middle	operator|(empty_pipe_middle && r) {return pipe_middle(std::move(factory));}
+	pipe_middle	operator|(empty_pipe_middle &&) {return pipe_middle(std::move(factory));}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// This pipe operator combines this generator/filter with a terminator to
@@ -364,7 +364,7 @@ public:
 		return bits::pair_factory<fact_t, fact2_t>(std::move(factory), std::move(r.factory));
 	}
 
-	pipe_begin operator|(empty_pipe_middle && r) {return pipe_begin(std::move(factory));}
+	pipe_begin operator|(empty_pipe_middle &&) {return pipe_begin(std::move(factory));}
 
 	template <typename fact2_t>
 	bits::pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >

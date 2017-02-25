@@ -359,7 +359,7 @@ class serialization_reader : public bits::serialization_reader_base {
 	stream_size_type m_blockNumber;
 
 protected:
-	virtual void next_block() /*override*/;
+	void next_block() override;
 
 public:
 	serialization_reader();
@@ -385,7 +385,7 @@ class serialization_reverse_reader : public bits::serialization_reader_base {
 	stream_size_type m_blockNumber;
 
 protected:
-	virtual void next_block() /*override*/;
+	void next_block() override;
 
 public:
 	serialization_reverse_reader();
