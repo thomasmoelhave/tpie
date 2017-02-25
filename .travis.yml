@@ -7,13 +7,38 @@ matrix:
       env:
         - _CC=gcc-5
         - _CXX=g++-5
+        - CMAKE_BUILD_TYPE=Release
     - os: linux
       dist: trusty
       sudo: required
       compiler: clang
+      env:
+        - CMAKE_BUILD_TYPE=Release
     - os: osx
       compiler: clang
       sudo: false
+      env:
+        - CMAKE_BUILD_TYPE=Release
+
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: gcc-5
+      env:
+        - _CC=gcc-5
+        - _CXX=g++-5
+        - CMAKE_BUILD_TYPE=Debug
+    - os: linux
+      dist: trusty
+      sudo: required
+      compiler: clang
+      env:
+        - CMAKE_BUILD_TYPE=Debug
+    - os: osx
+      compiler: clang
+      sudo: false
+      env:
+        - CMAKE_BUILD_TYPE=Debug
 language: cpp
 before_install:
   - if [ -n "$_CC" ]; then export CC=$_CC; fi
@@ -35,4 +60,4 @@ addons:
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=1
-script: mkdir build && cd build && cmake .. && make -j2 && make test
+script: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" .. && make -j2 && make test
