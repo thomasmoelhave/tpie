@@ -363,6 +363,7 @@ protected:
 
 public:
 	serialization_reader();
+	virtual ~serialization_reader() = default;
 
 	void open(std::string path);
 	void open(temp_file & tempFile);
