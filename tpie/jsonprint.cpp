@@ -91,7 +91,7 @@ public:
 
 JSONReflector::JSONReflector(std::ostream & o, bool pretty) {
 	p = new JSONReflectorP(o, pretty);
-	p->stack.push_back({0, true, false});
+	p->stack.push_back({0, true, false, 0});
 }
 
 JSONReflector::~JSONReflector() {
