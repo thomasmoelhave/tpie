@@ -64,9 +64,11 @@ before_install:
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew update;
-      brew install snappy;
-      if [[ "$_CC" == "gcc-"* ]]; then
-        brew install "${_CC/-/@}";
+      if [[ "$CC" == "gcc-"* ]]; then
+        brew install "${CC/-/@}";
+        brew install --cc="$CC" snappy;
+      else
+        brew install snappy;
       fi;
     fi
 addons:
