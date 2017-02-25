@@ -40,7 +40,7 @@ void posix::throw_errno(std::string path /*=std::string()*/) {
 }
 
 posix::posix()
-	: m_fd(0)
+	: m_fd(-1)
 	, m_cacheHint(access_normal)
 {
 }
@@ -139,14 +139,14 @@ void posix::open_rw_new(const std::string & path) {
 }
 
 bool posix::is_open() const {
-	return m_fd != 0;
+	return m_fd != -1;
 }
 
 void posix::close_i() {
-	if (m_fd == 0) return;
+	if (m_fd == -1) return;
 	if (::close(m_fd) == -1) throw_errno();
 	get_file_manager().decrement_open_file_count();
-	m_fd = 0;
+	m_fd = -1;
 }
 
 void posix::truncate_i(stream_size_type bytes) {
