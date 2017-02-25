@@ -1,6 +1,14 @@
+language: cpp
+
+env:
+  global:
+    - CTEST_OUTPUT_ON_FAILURE=1
+
 # All this duplication is required :/
 matrix:
   include:
+# == Release ==
+# Linux
     - os: linux
       dist: trusty
       sudo: required
@@ -12,22 +20,28 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
+      compiler: gcc-6
+      env:
+        - CMAKE_BUILD_TYPE=Release
+        - _CC=gcc-6
+        - _CXX=g++-6
+    - os: linux
+      dist: trusty
+      sudo: required
       compiler: clang
       env:
-        - CMAKE_BUILD_TYPE=Release
-    - os: osx
-      sudo: false
-      compiler: gcc
-      env:
-        - CMAKE_BUILD_TYPE=Release
-        - _CC=gcc-5
-        - _CXX=g++-5
+       - CMAKE_BUILD_TYPE=Release
+
+# OS X
     - os: osx
       compiler: clang
       sudo: false
       env:
         - CMAKE_BUILD_TYPE=Release
 
+
+# == Debug ==
+# Linux
     - os: linux
       dist: trusty
       sudo: required
@@ -39,55 +53,58 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
+      compiler: gcc-6
+      env:
+        - CMAKE_BUILD_TYPE=Debug
+        - _CC=gcc-6
+        - _CXX=g++-6
+    - os: linux
+      dist: trusty
+      sudo: required
       compiler: clang
       env:
         - CMAKE_BUILD_TYPE=Debug
-    - os: osx
-      sudo: false
-      compiler: gcc
-      env:
-        - CMAKE_BUILD_TYPE=Debug
-        - _CC=gcc-5
-        - _CXX=g++-5
+
+# OS X
     - os: osx
       compiler: clang
       sudo: false
       env:
         - CMAKE_BUILD_TYPE=Debug
-language: cpp
-before_install:
-  - if [ -n "$_CC" ]; then
-      export CC=$_CC;
-    fi
-  - if [ -n "$_CXX" ]; then
-      export CXX=$_CXX;
-    fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update;
-      if [[ "$CC" == "gcc-"* ]]; then
-        brew install "${CC/-/@}";
-        brew install --cc="$CC" snappy;
-      else
-        brew install snappy;
-      fi;
-    fi
+
 addons:
   apt:
     sources:
       - boost-latest
       - ubuntu-toolchain-r-test
     packages:
-      # Needed for gcc target and also clang for libstdc++-5-dev
-      - gcc-5
-      - g++-5
       - libboost-date-time1.55-dev
       - libboost-filesystem1.55-dev
       - libboost-system1.55-dev
       - libsnappy-dev
-env:
-  global:
-    - CTEST_OUTPUT_ON_FAILURE=1
+
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update;
+      brew install snappy;
+    else
+      sudo apt-get update;
+      if [[ "$_CC" == "gcc-"* ]]; then
+        sudo apt-get install "$_CC" "$_CXX";
+      else
+        sudo apt-get install libstdc++-5-dev;
+      fi;
+    fi
+  - if [[ -n "$_CC" ]]; then
+      export CC=$_CC;
+    fi
+  - if [[ -n "$_CXX" ]]; then
+      export CXX=$_CXX;
+    fi
+
 script:
+  - $CC --version
+  - $CXX --version
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" ..
