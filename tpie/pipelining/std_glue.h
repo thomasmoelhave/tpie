@@ -41,6 +41,8 @@ public:
 		add_push_destination(this->dest);
 	}
 
+	input_vector_t(dest_t dest, std::vector<T, A> && input) = delete;
+
 	void propagate() override {
 		forward("items", static_cast<stream_size_type>(input.size()));
 		set_steps(input.size());
@@ -64,6 +66,8 @@ public:
 	
 	pull_input_vector_t(const std::vector<T, A> & input) : input(input) {}
 
+	pull_input_vector_t(std::vector<T, A> && input) = delete;
+
 	void propagate() override {
 		forward("items", static_cast<stream_size_type>(input.size()));
 	}
@@ -85,6 +89,8 @@ public:
 	typedef T item_type;
 
 	output_vector_t(std::vector<T, A> & output) : output(output) {}
+
+	output_vector_t(std::vector<T, A> && output) = delete;
 
 	void push(const T & item) {
 		output.push_back(item);
@@ -147,6 +153,8 @@ template<typename T, typename A>
 inline pipe_begin<tfactory<bits::input_vector_t, Args<T, A>, const std::vector<T, A> &> > input_vector(const std::vector<T, A> & input) {
 	return {input};
 }
+template<typename T, typename A>
+pipe_begin<tfactory<bits::input_vector_t, Args<T, A>, const std::vector<T, A> &> > input_vector(std::vector<T, A> && input) = delete;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining nodes that pushes the contents of the given vector to the
@@ -157,6 +165,8 @@ template<typename T, typename A>
 inline pullpipe_begin<termfactory<bits::pull_input_vector_t<T, A>, const std::vector<T, A> &> > pull_input_vector(const std::vector<T, A> & input) {
 	return {input};
 }
+template<typename T, typename A>
+pullpipe_begin<termfactory<bits::pull_input_vector_t<T, A>, const std::vector<T, A> &> > pull_input_vector(std::vector<T, A> && input) = delete;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining node that pushes items to the given vector.
@@ -166,6 +176,8 @@ template <typename T, typename A>
 inline pipe_end<termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &> > output_vector(std::vector<T, A> & output) {
 	return termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &>(output);
 }
+template <typename T, typename A>
+pipe_end<termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &> > output_vector(std::vector<T, A> && output) = delete;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining nodes that applies to given functor to items in
