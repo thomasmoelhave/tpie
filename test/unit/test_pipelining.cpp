@@ -899,10 +899,13 @@ bool forward_unique_ptr_test() {
 }
 
 bool forward_multiple_pipelines_test() {
+	std::vector<int> v1{3, 2, 1};
+	std::vector<int> v2{5, 6, 7};
+
 	passive_sorter<int> ps;
-	pipeline p = input_vector(std::vector<int>{3, 2, 1}) | ps.input();
+	pipeline p = input_vector(v1) | ps.input();
 	p.forward("test", 8);
-	pipeline p_ = input_vector(std::vector<int>{5, 6, 7}) | add_pairs(ps.output()) | null_sink<int>();
+	pipeline p_ = input_vector(v2) | add_pairs(ps.output()) | null_sink<int>();
 	p();
 	int val = p_.fetch<int>("test");
 	return val == 8;
