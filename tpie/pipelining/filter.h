@@ -20,6 +20,7 @@
 #ifndef __TPIE_PIPELINING_FILTER_H__
 #define __TPIE_PIPELINING_FILTER_H__
 
+#include <tpie/pipelining/map.h>
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
