@@ -96,6 +96,8 @@ struct subpipeline {
 		p.reset(new bits::subpipeline_impl<item_type, T>(std::move(from)));
 		return *this;
 	}
+
+	void clear() {p.reset();}
 	
 	void push(const item_type & item) {p->push(item);}
 
@@ -147,8 +149,8 @@ struct subpipeline {
 		return *any_cast<T>(&a);
 	}
 
-	void forward_any(std::string key, const any_noncopyable & value) {
-		return p->forward_any(key, value);
+	void forward_any(std::string key, any_noncopyable value) {
+		return p->forward_any(key, std::move(value));
 	}
 
 	template <typename T>
