@@ -71,6 +71,19 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~progress_indicator_base();
 
+
+	progress_indicator_base(progress_indicator_base&& o);
+	progress_indicator_base & operator=(progress_indicator_base&& o);
+	
+	/// Deleted default constructor.
+	progress_indicator_base() = delete;
+	/// Deleted copy constructor.
+	progress_indicator_base(const progress_indicator_base &) = delete;
+	/// Deleted assignment operator.
+	progress_indicator_base & operator=(const progress_indicator_base &) = delete;
+
+
+	
 	///////////////////////////////////////////////////////////////////////////
 	///  Record an increment to the indicator and advance the indicator.
 	///////////////////////////////////////////////////////////////////////////
@@ -172,13 +185,6 @@ private:
 	/// \brief  Recompute m_remainingSteps and call the virtual refresh().
 	///////////////////////////////////////////////////////////////////////////
 	void call_refresh();
-
-	/// Deleted default constructor.
-	progress_indicator_base();
-	/// Deleted copy constructor.
-	progress_indicator_base(const progress_indicator_base &);
-	/// Deleted assignment operator.
-	progress_indicator_base & operator=(const progress_indicator_base &);
 };
 
 }  //  tpie namespace

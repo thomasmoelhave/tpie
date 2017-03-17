@@ -54,6 +54,8 @@ public:
 			   log_group_mode::type logGroupMode=log_group_mode::enabled);
 	
 	progress_indicator_subindicator();
+	progress_indicator_subindicator(progress_indicator_subindicator && o);
+	progress_indicator_subindicator & operator=(progress_indicator_subindicator && o);
 	
 	progress_indicator_subindicator(progress_indicator_base * parent,
 									stream_size_type outerRange,

@@ -32,6 +32,16 @@ void progress_indicator_subindicator::pop_breadcrumb() {
 	if (m_parent) m_parent->pop_breadcrumb();
 }
 
+progress_indicator_subindicator::progress_indicator_subindicator()
+	: progress_indicator_base(0)
+	, m_parent(nullptr)
+#ifndef TPIE_NDEBUG
+	, m_init_called(false)
+	, m_done_called(false)
+#endif
+{}
+	  
+
 /**
  * \param parent The parent indecator of this indicator
  * \param outerRange The range this indicator ocupices of its outer indicator
@@ -48,8 +58,39 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 }
 
 
-progress_indicator_subindicator::progress_indicator_subindicator():
-	progress_indicator_base(0) {}
+
+progress_indicator_subindicator::progress_indicator_subindicator(progress_indicator_subindicator && o)
+	: progress_indicator_base(std::move(o))
+	, m_parent(o.m_parent)
+	, m_outerRange(o.m_outerRange)
+	, m_oldValue(o.m_oldValue)
+	, m_crumb(o.m_crumb)
+	, m_importance(o.m_importance)
+	, m_logGroupMode(o.m_logGroupMode)
+#ifndef TPIE_NDEBUG
+	, m_init_called(o.m_init_called)
+	, m_done_called(o.m_done_called)
+#endif
+{
+#ifndef TPIE_NDEBUG
+	m_init_called = false;
+#endif
+	m_parent = nullptr;
+}
+
+progress_indicator_subindicator & progress_indicator_subindicator::operator=(progress_indicator_subindicator && o) {
+	progress_indicator_base::operator=(std::move(o));
+	std::swap(m_parent, o.m_parent);
+	std::swap(m_outerRange, o.m_outerRange);
+	std::swap(m_oldValue, o.m_oldValue);
+	std::swap(m_crumb, o.m_crumb);
+	std::swap(m_importance, o.m_importance);
+	std::swap(m_logGroupMode, o.m_logGroupMode);
+#ifndef TPIE_NDEBUG
+	std::swap(m_init_called, o.m_init_called);
+	std::swap(m_done_called, m_done_called);
+#endif
+}
 
 void progress_indicator_subindicator::setup(progress_indicator_base * parent,
 											stream_size_type outerRange,

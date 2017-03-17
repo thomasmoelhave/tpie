@@ -62,14 +62,31 @@ struct progress_indicator_base::refresh_impl {
 progress_indicator_base::progress_indicator_base(stream_size_type range)
 	: m_range(range)
 	, m_current(0)
-	, m_predictor(0)
+	, m_predictor(nullptr)
 {
 	m_refreshImpl = new progress_indicator_base::refresh_impl;
 }
 
+progress_indicator_base::progress_indicator_base(progress_indicator_base&& o)
+	: m_range(o.m_range)
+	, m_current(o.m_current)
+	, m_predictor(o.m_predictor)
+	, m_refreshImpl(o.m_refreshImpl) {
+	o.m_predictor = nullptr;
+	o.m_refreshImpl = nullptr;
+}
+
+progress_indicator_base & progress_indicator_base::operator=(progress_indicator_base&& o) {
+	std::swap(m_range, o.m_range);
+	std::swap(m_current, o.m_current);
+	std::swap(m_predictor, o.m_predictor);
+	std::swap(m_refreshImpl, o.m_refreshImpl);
+}
+
+
 /*virtual*/ progress_indicator_base::~progress_indicator_base() {
 	delete m_refreshImpl;
-	m_refreshImpl = NULL;
+	m_refreshImpl = nullptr;
 };
 
 void progress_indicator_base::call_refresh() {
