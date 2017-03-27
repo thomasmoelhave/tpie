@@ -42,6 +42,8 @@ namespace {
 		else
 			return out << typeid(*p).name() << " (" << n.id << ')';
 	}
+
+	size_t idc = 1;
 } // default namespace
 
 namespace tpie {
@@ -109,12 +111,29 @@ void pipeline_base_base::plot_impl(std::ostream & out, bool full) {
 	out << '}' << std::endl;
 }
 
+
+struct CurrentPipeSetter {
+	bits::pipeline_base_base * pipe;
+	
+	CurrentPipeSetter(bits::pipeline_base_base * pipe): pipe(pipe) {
+		std::lock_guard<std::mutex> guard(current_pipelines_mutex);
+		current_pipelines.insert(pipe);
+	}
+	
+	~CurrentPipeSetter() {
+		std::lock_guard<std::mutex> guard(current_pipelines_mutex);
+		current_pipelines.erase(pipe);
+	}
+};
+	
 void pipeline_base::operator()(stream_size_type items, progress_indicator_base & pi,
 							   const memory_size_type initialFiles,
 							   const memory_size_type initialMemory,
 							   const char * file, const char * function) {
 	node_map::ptr map = m_nodeMap->find_authority();
 	runtime rt(map);
+
+	CurrentPipeSetter cpc(this);
 	rt.go(items, pi, initialFiles, initialMemory, file, function);
 
 	/*
@@ -143,7 +162,9 @@ void pipeline_base::operator()(stream_size_type items, progress_indicator_base &
 	g.go_all(items, pi);
 	*/
 }
-
+	
+pipeline_base_base::pipeline_base_base(): m_uid(idc++) {}
+	
 void pipeline_base_base::forward_any(std::string key, any_noncopyable value) {
 	get_node_map()->find_authority()->forward(key, std::move(value));
 }
@@ -219,20 +240,40 @@ void subpipeline_base::begin(stream_size_type items, progress_indicator_base & p
 							 const char * file, const char * function) {
 	rt.reset(new runtime(m_nodeMap->find_authority()));
 	gc = rt->go_init(items, pi, filesAvailable, mem, file, function);
+
+	{
+		std::lock_guard<std::mutex> guard(current_pipelines_mutex);
+		current_pipelines.insert(this);
+	}
+	
 	rt->go_until(gc.get(), frontNode);
 }
 	
 void subpipeline_base::end() {
 	rt->go_until(gc.get(), nullptr);
+
+	{
+		std::lock_guard<std::mutex> guard(current_pipelines_mutex);
+		current_pipelines.erase(this);
+	}
+		
 	gc.reset();
 	rt.reset();
 }
 
 	
+subpipeline_base::~subpipeline_base() {
+	if (rt) {
+		std::lock_guard<std::mutex> guard(current_pipelines_mutex);
+		current_pipelines.erase(this);
+	}
+}
+	
+	
 } // namespace bits
 
-pipeline * pipeline::m_current = NULL;
-	
+std::unordered_set<bits::pipeline_base_base *> current_pipelines;
+std::mutex current_pipelines_mutex;
 
 } // namespace pipelining
 

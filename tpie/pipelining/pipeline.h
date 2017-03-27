@@ -25,6 +25,8 @@
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_null.h>
 #include <tpie/file_manager.h>
+#include <unordered_set>
+#include <mutex>
 
 namespace tpie {
 
@@ -32,13 +34,14 @@ namespace pipelining {
 
 namespace bits {
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline_base
 /// Virtual superclass for pipelines and subpipelines
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline_base_base {
 public:
-	pipeline_base_base() = default;
+	pipeline_base_base();
 	pipeline_base_base(const pipeline_base_base &) = default;
 	pipeline_base_base & operator=(const pipeline_base_base &) = default;
 	pipeline_base_base(pipeline_base_base &&) = default;
@@ -88,10 +91,13 @@ public:
 		return m_nodeMap;
 	}
 
-	void output_memory(std::ostream & o) const;	
-protected:
-	node_map::ptr m_nodeMap;	
+	void output_memory(std::ostream & o) const;
 
+	size_t uid() const {return m_uid;};
+protected:
+	
+	node_map::ptr m_nodeMap;	
+	size_t m_uid;
 private:
 	void plot_impl(std::ostream & out, bool full);	
 };
@@ -163,6 +169,10 @@ public:
 
 } // namespace bits
 
+
+extern std::unordered_set<bits::pipeline_base_base *> current_pipelines;
+extern std::mutex current_pipelines_mutex;
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline
 ///
@@ -170,16 +180,6 @@ public:
 /// pipeline_impl type.
 ///////////////////////////////////////////////////////////////////////////////
 class pipeline {
-private:
-	struct CurrentPipeSetter {
-		pipeline * old;
-		CurrentPipeSetter(pipeline * self) {
-			old = m_current;
-			m_current = self;
-		}
-
-		~CurrentPipeSetter() {m_current = old;}
-	};
 public:
 	pipeline() {}
 	pipeline(pipeline &&) = default;
@@ -201,28 +201,24 @@ public:
 	pipeline(const std::shared_ptr<bits::pipeline_base> & p): p(p) {}
 
 	void operator()() {
-		CurrentPipeSetter _(this);
 		progress_indicator_null pi;
 		(*p)(1, pi, get_file_manager().available(), get_memory_manager().available(), nullptr, nullptr);
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,
 					const char * file, const char * function) {
-		CurrentPipeSetter _(this);
 		(*p)(items, pi, get_file_manager().available(), get_memory_manager().available(), file, function);
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,
 					memory_size_type mem,
 					const char * file, const char * function) {
-		CurrentPipeSetter _(this);
 		(*p)(items, pi, get_file_manager().available(), mem, file, function);
 	}
 
 	void operator()(stream_size_type items, progress_indicator_base & pi,
 			memory_size_type filesAvailable, memory_size_type mem,
 					const char * file, const char * function) {
-		CurrentPipeSetter _(this);
 		(*p)(items, pi, filesAvailable, mem, file, function);
 	}
 	
@@ -271,10 +267,7 @@ public:
 	}
 
 	void output_memory(std::ostream & o) const {p->output_memory(o);}
-
-	static pipeline * current() {return m_current;}
 private:
-	static pipeline * m_current;
 	std::shared_ptr<bits::pipeline_base> p;
 };
 

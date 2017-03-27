@@ -37,6 +37,7 @@ public:
 		begin(items, pi, get_file_manager().available(), mem, file, function);
 	}
 	void end();
+	~subpipeline_base();
 protected:
 	node * frontNode;
 private:
@@ -139,16 +140,16 @@ struct subpipeline {
 		return p->can_fetch(key);
 	}
 
-	any_noncopyable fetch_any(std::string key) {
+	any_noncopyable & fetch_any(std::string key) {
 		return p->fetch_any(key);
 	}
 
 	template <typename T>
-	T fetch(std::string key) {
-		any_noncopyable a = fetch_any(key);
-		return *any_cast<T>(&a);
+	T & fetch(std::string key) {
+		any_noncopyable &a = fetch_any(key);
+		return any_cast<T>(a);
 	}
-
+	
 	void forward_any(std::string key, any_noncopyable value) {
 		return p->forward_any(key, std::move(value));
 	}
