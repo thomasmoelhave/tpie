@@ -10,8 +10,8 @@ platform:
 
 # specify custom environment variables
 environment:
-  BOOST_ROOT: C:\Libraries\boost_1_60_0
-  BOOST_LIBRARYDIR: C:\Libraries\boost_1_60_0\lib64-msvc-14.0
+  BOOST_ROOT: C:/Libraries/boost_1_60_0
+  BOOST_LIBRARYDIR: C:/Libraries/boost_1_60_0/lib64-msvc-14.0
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
@@ -24,7 +24,7 @@ init:
   - cmd: msbuild /version
 
 # clone directory
-clone_folder: C:\projects\tpie
+clone_folder: C:/projects/tpie
 
 # branches to build
 branches:
@@ -37,7 +37,7 @@ branches:
 
 # scripts to run before build
 before_build:
-  - cmd: cd C:\projects\tpie
+  - cmd: cd C:/projects/tpie
   - cmd: md build
   - cmd: cd build
   - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
@@ -46,9 +46,9 @@ before_build:
 
 build:
   parallel: true                           # enable MSBuild parallel builds
-  project: C:\projects\tpie\build\tpie.sln # path to Visual Studio solution or project
+  project: C:/projects/tpie/build/tpie.sln # path to Visual Studio solution or project
 
 test_script:
-  - cmd: cd C:\projects\tpie
+  - cmd: cd C:/projects/tpie
   - cmd: cd build
   - cmd: ctest --timeout 30 -j 2 --output-on-failure -C "%CONFIG%" ctest 
