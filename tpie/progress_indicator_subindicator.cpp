@@ -90,6 +90,7 @@ progress_indicator_subindicator & progress_indicator_subindicator::operator=(pro
 	std::swap(m_init_called, o.m_init_called);
 	std::swap(m_done_called, m_done_called);
 #endif
+	return *this;
 }
 
 void progress_indicator_subindicator::setup(progress_indicator_base * parent,

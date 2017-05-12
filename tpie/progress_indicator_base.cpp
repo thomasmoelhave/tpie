@@ -81,6 +81,7 @@ progress_indicator_base & progress_indicator_base::operator=(progress_indicator_
 	std::swap(m_current, o.m_current);
 	std::swap(m_predictor, o.m_predictor);
 	std::swap(m_refreshImpl, o.m_refreshImpl);
+	return *this;
 }
 
 
