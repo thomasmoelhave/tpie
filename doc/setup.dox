@@ -2,9 +2,9 @@
 \page setup Compiling and installing TPIE
 
 
-You will need <a href="http://git-scm.org">Git</a>, <a
-href="http://cmake.org">CMake</a>, <a
-href="http://boost.org">Boost</a> and a C++ compiler in order to use
+You will need <a href="https://git-scm.org/">Git</a>, <a
+href="https://cmake.org/">CMake</a>, <a
+href="http://www.boost.org/">Boost</a> and a C++ compiler in order to use
 TPIE on any system. Once these dependencies have been installed, you
 should be able to use the steps in this section to compile and install
 TPIE.
@@ -32,7 +32,7 @@ make
 This will generate the static library \c libtpie.a in the \c build/tpie folder.
 The unit test executables are placed in the \c test/unit folder and are prefixed
 with the token \c ut-.
-To run the unit tests, use <a href="http://www.cmake.org/cmake/help/ctest-2-8-docs.html">CTest</a>:
+To run the unit tests, use <a href="https://cmake.org/cmake/help/latest/manual/ctest.1.html">CTest</a>:
 
 \verbatim
 ctest
@@ -55,7 +55,7 @@ directory.
 
 <h4>CPack Installation</h4>
 
-You can use <a href="http://www.cmake.org/cmake/help/cpack-2-8-docs.html">CPack</a> to build various binary packages that can be used to
+You can use <a href="https://cmake.org/cmake/help/latest/manual/cpack.1.html">CPack</a> to build various binary packages that can be used to
 install TPIE on your computer, or on other computers:
 
 \verbatim
@@ -76,11 +76,10 @@ To link your application with TPIE, may manually specify the linker flags
 Clone the <a href="https://github.com/thomasmoelhave/tpie">git
 repository</a> at <tt>git://github.com/thomasmoelhave/tpie.git</tt>,
 perhaps using <a
-href="http://code.google.com/p/tortoisegit/">TortoiseGit</a> or <a
-href="http://code.google.com/p/gitextensions/">Git Extensions</a>, and
+href="https://tortoisegit.org/">TortoiseGit</a> or <a
+href="https://gitextensions.github.io/">Git Extensions</a>, and
 set up the build environment using CMake, perhaps using the CMake
-GUI. TPIE is known to work with the Microsoft Visual Studio 2008 and
-2010 compilers. Be sure to select a 64-bit build when your platform
+GUI. TPIE is known to work with the Microsoft Visual Studio 2015 compiler. Be sure to select a 64-bit build when your platform
 supports it.
 
 
