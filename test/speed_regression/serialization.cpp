@@ -145,7 +145,7 @@ public:
 		wr.open(path);
 		item it;
 		for (size_t j = 0; j < items; ++j) {
-			it = j;
+			it.a = j;
 			wr.serialize(it);
 		}
 		wr.close();
