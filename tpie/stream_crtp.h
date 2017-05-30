@@ -47,7 +47,7 @@ public:
 	/// \param offset Where to move the logical offset to.
 	/// \param whence Move the offset relative to what.
 	/////////////////////////////////////////////////////////////////////////
-	inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception) {
+	inline void seek(stream_offset_type offset, offset_type whence=beginning) {
 		assert(self().get_file().is_open());
 		if (whence == end)
 			offset += self().size();
@@ -162,7 +162,7 @@ protected:
 	// Since this is called from file<T>::stream and file_stream<T>, we cannot
 	// have the implementation in its own object.
 	template <typename IT, typename Stream>
-	static inline void read_array(Stream & stream, const IT & start, const IT & end) throw(stream_exception) {
+	static inline void read_array(Stream & stream, const IT & start, const IT & end) {
 		typedef typename Stream::item_type T;
 		IT i = start;
 		while (i != end) {
@@ -208,7 +208,7 @@ protected:
 	/////////////////////////////////////////////////////////////////////////////
 	// See read_array note above.
 	template <typename IT, typename Stream>
-	static inline void write_array(Stream & stream, const IT & start, const IT & end) throw(stream_exception) {
+	static inline void write_array(Stream & stream, const IT & start, const IT & end) {
 		typedef typename Stream::item_type T;
 		IT i = start;
 		while (i != end) {

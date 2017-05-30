@@ -23,11 +23,6 @@
 /// \file file.h Streams that support substreams.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef _MSC_VER
-//Yes we know you do not support throw(stream_exception)
-#pragma warning( disable: 4290 ) 
-#endif //_MSC_VER
-
 #include <limits>
 #include <tpie/file_base.h>
 namespace tpie {
@@ -158,7 +153,7 @@ public:
 		///
 		/// \param item The item to write to the stream.
 		/////////////////////////////////////////////////////////////////////////
- 		inline void write(const item_type& item) throw(stream_exception) {
+ 		inline void write(const item_type& item) {
 			assert(get_file().is_open());
 #ifndef NDEBUG
 			if (!get_file().is_writable())

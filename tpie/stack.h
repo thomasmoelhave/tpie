@@ -102,7 +102,7 @@ public:
     ///
     /// \param  t    The item to push onto the stack.
     ////////////////////////////////////////////////////////////////////
-	inline void push(const T & t) throw(stream_exception) {
+	inline void push(const T & t) {
 		if (m_buffer.size() == m_bufferItems) empty_buffer();
 		m_buffer[m_bufferItems++] = t;
 	}
@@ -110,7 +110,7 @@ public:
     ////////////////////////////////////////////////////////////////////
     /// \brief Pops one item from the stack.
     ////////////////////////////////////////////////////////////////////
-	inline const T & pop() throw(stream_exception) {
+	inline const T & pop() {
 		if (m_bufferItems) return m_buffer[--m_bufferItems];
 		const T & item = m_stream.read_back();
 		return item;
@@ -119,7 +119,7 @@ public:
     ////////////////////////////////////////////////////////////////////
     /// \brief Peeks at the topmost item on the stack.
     ////////////////////////////////////////////////////////////////////
-	inline const T & top() throw(stream_exception) {
+	inline const T & top() {
 		if (m_bufferItems) return m_buffer[m_bufferItems-1];
 		m_buffer[0] = m_stream.read_back();
 		m_stream.read();

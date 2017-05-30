@@ -61,7 +61,7 @@ public:
 	/// \copydetails file<T>::stream::write(const item_type & item)
 	/// \sa file<T>::stream::write(const item_type & item)
 	/////////////////////////////////////////////////////////////////////////
-	inline void write(const item_type & item) throw(stream_exception) {
+	inline void write(const item_type & item) {
 		assert(m_open);
 #ifndef NDEBUG
 		if (!is_writable())
@@ -78,7 +78,7 @@ public:
 	/// \sa file<T>::stream::write(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
-	inline void write(const IT & start, const IT & end) throw(stream_exception) {
+	inline void write(const IT & start, const IT & end) {
 		assert(m_open);
 		write_array(*this, start, end);
 	}
@@ -88,7 +88,7 @@ public:
 	/// \copydetails file<T>::stream::read()
 	/// \sa file<T>::stream::read()
 	/////////////////////////////////////////////////////////////////////////
-	inline const item_type & read() throw(stream_exception) {
+	inline const item_type & read() {
 		assert(m_open);
 		const item_type & x = peek();
 		++m_index;
@@ -101,7 +101,7 @@ public:
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
-	inline void read(const IT & start, const IT & end) throw(stream_exception) {
+	inline void read(const IT & start, const IT & end) {
 		assert(m_open);
 		read_array(*this, start, end);
 	}
@@ -111,7 +111,7 @@ public:
 	/// \copydetails file<T>::stream::read_back()
 	/// \sa file<T>::stream::read_back()
 	/////////////////////////////////////////////////////////////////////////
-	inline const item_type & read_back() throw(stream_exception) {
+	inline const item_type & read_back() {
 		assert(m_open);
 		skip_back();
 		return peek();

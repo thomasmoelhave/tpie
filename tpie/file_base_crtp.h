@@ -122,7 +122,7 @@ public:
 	/// copyable.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename TT>
-	void read_user_data(TT & data) throw(stream_exception) {
+	void read_user_data(TT & data) {
 		assert(m_open);
 		if (sizeof(TT) != user_data_size()) throw io_exception("Wrong user data size");
 		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&data), sizeof(TT));
@@ -149,7 +149,7 @@ public:
 	/// copyable.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename TT>
-	void write_user_data(const TT & data) throw(stream_exception) {
+	void write_user_data(const TT & data) {
 		assert(m_open);
 		if (sizeof(TT) > max_user_data_size()) throw io_exception("Wrong user data size");
 		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data), sizeof(TT));
@@ -207,7 +207,7 @@ public:
 	inline void open(const std::string & path,
 					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
-					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
+					 cache_hint cacheHint=access_sequential) {
 		self().close();
 		self().open_inner(path, accessType, userDataSize, cacheHint);
 	}
@@ -217,7 +217,7 @@ public:
 	/// when this file is closed.
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(memory_size_type userDataSize=0,
-					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
+					 cache_hint cacheHint=access_sequential) {
 		self().close();
 		m_ownedTempFile.reset(tpie_new<temp_file>());
 		m_tempFile=m_ownedTempFile.get();
@@ -232,7 +232,7 @@ public:
 	inline void open(temp_file & file,
 					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
-					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
+					 cache_hint cacheHint=access_sequential) {
 		self().close();
 		m_tempFile=&file;
 		self().open_inner(m_tempFile->path(), accessType, userDataSize, cacheHint);
@@ -243,7 +243,7 @@ public:
 	///
 	/// Note all streams into the file must be freed before you call close.
 	/////////////////////////////////////////////////////////////////////////
-	inline void close() throw(stream_exception) {
+	inline void close() {
 		if (m_open) m_fileAccessor->close();
 		m_open = false;
 		m_tempFile = NULL;
@@ -273,7 +273,7 @@ protected:
 	inline void open_inner(const std::string & path,
 						   access_type accessType,
 						   memory_size_type userDataSize,
-						   cache_hint cacheHint) throw(stream_exception) {
+						   cache_hint cacheHint) {
 		m_canRead = accessType == access_read || accessType == access_read_write;
 		m_canWrite = accessType == access_write || accessType == access_read_write;
 		const bool preferCompression = false;

@@ -48,7 +48,7 @@ public:
 	///
 	/// This will close the file and resources used by buffers and such.
 	/////////////////////////////////////////////////////////////////////////
-	inline void close() throw(stream_exception) {
+	inline void close() {
 		if (m_open) flush_block();
 		tpie_delete_array(m_block.data, m_itemSize * m_blockItems);
 		m_block.data = 0;
@@ -111,7 +111,7 @@ protected:
 	inline void open_inner(const std::string & path,
 						   access_type accessType,
 						   memory_size_type userDataSize,
-						   cache_hint cacheHint) throw (stream_exception) {
+						   cache_hint cacheHint) {
 		p_t::open_inner(path, accessType, userDataSize, cacheHint);
 
 		m_blockStartIndex = 0;
