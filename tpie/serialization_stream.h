@@ -24,6 +24,7 @@
 /// \file serialization_stream.h  Stream of serializable items.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie.h>
 #include <tpie/serialization2.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <memory>
@@ -39,7 +40,7 @@ namespace bits {
 class serialization_writer_base {
 public:
 	static memory_size_type block_size() {
-		return 2*1024*1024;
+		return FILE_STREAM_BLOCK_SIZE;
 	}
 
 private:

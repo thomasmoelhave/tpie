@@ -102,7 +102,7 @@ memory_size_type get_block_size() {
 	if (the_block_size == 0) {
 		const char * v = getenv("TPIE_BLOCK_SIZE");
 		if (v != NULL) the_block_size = atol(v);
-		if (the_block_size == 0) the_block_size=1024*1024*2; //Default block size is 2MB
+		if (the_block_size == 0) the_block_size=FILE_STREAM_BLOCK_SIZE; //Default block size is 2MB
 	}
 	return the_block_size;
 }
