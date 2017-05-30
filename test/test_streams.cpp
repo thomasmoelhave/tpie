@@ -3,6 +3,9 @@
 #include <chrono>
 
 #include <tpie/tpie.h>
+#include <tpie/uncompressed_stream.h>
+#include <tpie/file_stream.h>
+#include <tpie/serialization_stream.h>
 
 using namespace tpie;
 
@@ -46,20 +49,25 @@ int main(int argc, char ** argv) {
 
 	auto start = std::chrono::steady_clock::now();
 
-	/*
-	switch (item_type) {
-	case 0:
-		run_test<int, file_stream<int>>(setup, test, oflags);
-		break;
-	case 1:
-		run_test<string_generator, serialized_file_stream<std::string>>(setup, test, oflags);
-		break;
-	case 2:
-		run_test<keyed_generator, file_stream<keyed_generator::keyed_struct>>(setup, test, oflags);
-		break;
-	default:
-		die("item_type out of range");
-	}*/
+	if (item_type == 0) {
+		if (compression) {
+			file_stream<int> f;
+		} else {
+			uncompressed_stream<int> f;
+		}
+	} else if (item_type == 1) {
+		assert(!compression);
+		serialization_writer f1;
+		serialization_reader f2;
+		serialization_reverse_writer f3;
+		serialization_reverse_reader f4;
+	} else if (item_type == 2) {
+		if (compression) {
+
+		} else {
+
+		}
+	}
 
 	auto end = std::chrono::steady_clock::now();
 	std::chrono::duration<double> duration = end - start;
