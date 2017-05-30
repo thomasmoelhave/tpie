@@ -249,6 +249,7 @@ int stress(size_t actions=1024*1024*10, size_t max_size=1024*1024*128) {
 						++location;
 					}
 				}
+				break;
 			}
 			case 5: //WRITE ARRAY
 			{
