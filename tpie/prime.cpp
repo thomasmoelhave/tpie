@@ -41,7 +41,7 @@ public:
 			if (!sieve[i>>1]) continue;
 			++pc;
 			size_t i2=i+i;
-			for (size_t j=i2+i; j < mr; j += i2) sieve[j>>1] = false;
+			for (size_t j=i*i; j < mr; j += i2) sieve[j>>1] = false;
 		}
 		m_pr.resize(pc);
 		size_t p=1;
