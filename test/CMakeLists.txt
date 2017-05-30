@@ -21,6 +21,8 @@ add_tpie_test(test_ami_stack)
 add_tpie_test(test_sort)
 add_tpie_test(test_big_scan)
 
+add_tpie_test(test_streams)
+
 add_executable(test_pipelining pipelining.cpp)
 set_target_properties(test_pipelining PROPERTIES FOLDER tpie/test)
 target_link_libraries(test_pipelining tpie )
