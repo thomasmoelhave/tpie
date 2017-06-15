@@ -186,6 +186,7 @@ template <typename T>
 class zero_source_t: public node {
 public:
 	typedef T item_type;
+	void propagate() override { forward("items", stream_size_type(0)); };
 
 	T pull() {tpie_unreachable();}
 	bool can_pull() {return false;}
