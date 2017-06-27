@@ -1,7 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <chrono>
-
 #include <tpie/tpie.h>
 #include <tpie/uncompressed_stream.h>
 #include <tpie/file_stream.h>
@@ -12,61 +8,47 @@ using namespace tpie;
 constexpr size_t block_size() { return FILE_STREAM_BLOCK_SIZE; }
 
 #define TEST_DIR "/hdd/tmp/tpie_old_speed_test/"
+#define TEST_OLD_STREAMS
 
-size_t file_size = 1ull * 1024 * 1024 * 1024;
-size_t blocks = file_size / block_size();
-
-std::vector<std::string> words;
+#include <compressed_stream_test/speed_test_common.h>
 
 int main(int argc, char ** argv) {
-	if (argc != 6) {
-		std::cerr << "Usage: " << argv[0] << " compression readahead item_type test setup\n";
-		return EXIT_FAILURE;
-	}
-	bool compression = (bool)std::atoi(argv[1]);
-	bool readahead = (bool)std::atoi(argv[2]);
-	int item_type = std::atoi(argv[3]);
-	int test = std::atoi(argv[4]);
-	bool setup = (bool)std::atoi(argv[5]);
+	speed_test_init(argc, argv);
 
-	std::cerr << "Test info:\n"
-			  << "  Block size:  " << block_size() << "\n"
-			  << "  Compression: " << compression << "\n"
-			  << "  Readahead:   " << readahead << "\n"
-			  << "  Item type:   " << item_type << "\n"
-			  << "  Test:        " << test << "\n"
-			  << "  Action:      " << (setup? "Setup": "Run test") << "\n";
-
-	{
-		std::ifstream word_stream("/usr/share/dict/words");
-		std::string w;
-		while (word_stream >> w) {
-			words.push_back(w);
-		}
-	}
+	if (cmd_options.readahead) skip();
 
 	tpie_init();
 
 	auto start = std::chrono::steady_clock::now();
 
-	if (item_type == 0) {
-		if (compression) {
+	switch (cmd_options.item_type) {
+	case 0:
+		if (cmd_options.compression) {
+			run_test<int_generator, file_stream<int>>();
 			file_stream<int> f;
 		} else {
+			run_test<int_generator, uncompressed_stream<int>>();
 			uncompressed_stream<int> f;
 		}
-	} else if (item_type == 1) {
-		assert(!compression);
+		break;
+	case 1: {
+		skip();
+		if (cmd_options.compression) skip();
 		serialization_writer f1;
 		serialization_reader f2;
 		serialization_reverse_writer f3;
 		serialization_reverse_reader f4;
-	} else if (item_type == 2) {
-		if (compression) {
-
+		break;
+	}
+	case 2:
+		if (cmd_options.compression) {
+			run_test<keyed_generator, file_stream<keyed_generator::keyed_struct>>();
 		} else {
-
+			run_test<keyed_generator, uncompressed_stream<keyed_generator::keyed_struct>>();
 		}
+		break;
+	default:
+		die("item_type out of range");
 	}
 
 	auto end = std::chrono::steady_clock::now();
