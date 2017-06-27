@@ -194,9 +194,9 @@ public:
 		p.runLength = p.internalReportThreshold = runLength;
 		p.fanout = p.finalFanout = fanout;
 		m_parametersSet = true;
-		log_debug() << "Manually set merge sort run length and fanout\n";
-		log_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*item_size + file_stream<element_type>::memory_usage()) << ")\n";
-		log_debug() << "Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl;
+		log_pipe_debug() << "Manually set merge sort run length and fanout\n";
+		log_pipe_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*item_size + file_stream<element_type>::memory_usage()) << ")\n";
+		log_pipe_debug() << "Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -288,7 +288,7 @@ public:
 	inline void begin() {
 		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
 		if (!m_parametersSet) calculate_parameters();
-		log_debug() << "Start forming input runs" << std::endl;
+		log_pipe_debug() << "Start forming input runs" << std::endl;
 		m_currentRunItems = array<store_type>(0, allocator<store_type>(m_bucket));
 		m_currentRunItems.resize((size_t)p.runLength);
 		m_runFiles.resize(p.fanout*2);
@@ -392,18 +392,18 @@ public:
 	inline void evacuate() {
 		tp_assert(m_state == stMerge || m_state == stReport, "Wrong phase");
 		if (m_reportInternal) {
-			log_debug() << "Evacuate merge_sorter (" << this << ") in internal reporting mode" << std::endl;
+			log_pipe_debug() << "Evacuate merge_sorter (" << this << ") in internal reporting mode" << std::endl;
 			m_reportInternal = false;
 			memory_size_type runCount = (m_currentRunItemCount > 0) ? 1 : 0;
 			empty_current_run();
 			m_currentRunItems.resize(0);
 			initialize_final_merger(0, runCount);
 		} else if (m_state == stMerge) {
-			log_debug() << "Evacuate merge_sorter (" << this << ") before merge in external reporting mode (noop)" << std::endl;
+			log_pipe_debug() << "Evacuate merge_sorter (" << this << ") before merge in external reporting mode (noop)" << std::endl;
 			m_runPositions.evacuate();
 			return;
 		}
-		log_debug() << "Evacuate merge_sorter (" << this << ") before reporting in external reporting mode" << std::endl;
+		log_pipe_debug() << "Evacuate merge_sorter (" << this << ") before reporting in external reporting mode" << std::endl;
 		m_merger.reset();
 		m_evacuated = true;
 		m_runPositions.evacuate();
@@ -430,9 +430,9 @@ private:
 	// postcondition: m_currentRunItemCount = 0
 	inline void empty_current_run() {
 		if (m_finishedRuns < 10)
-			log_debug() << "Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl;
+			log_pipe_debug() << "Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl;
 		else if (m_finishedRuns == 10)
-			log_debug() << "..." << std::endl;
+			log_pipe_debug() << "..." << std::endl;
 		file_stream<element_type> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
 		for (memory_size_type i = 0; i < m_currentRunItemCount; ++i)
@@ -474,15 +474,15 @@ private:
 		m_runPositions.next_level();
 		m_runPositions.final_level(p.fanout);
 		if (runCount > p.finalFanout) {
-			log_debug() << "Run count in final level (" << runCount << ") is greater than the final fanout (" << p.finalFanout << ")\n";
+			log_pipe_debug() << "Run count in final level (" << runCount << ") is greater than the final fanout (" << p.finalFanout << ")\n";
 
 			memory_size_type i = p.finalFanout-1;
 			memory_size_type n = runCount-i;
-			log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
+			log_pipe_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
 			dummy_progress_indicator pi;
 			m_finalMergeSpecialRunNumber = merge_runs(finalMergeLevel, i, n, pi);
 		} else {
-			log_debug() << "Run count in final level (" << runCount << ") is less or equal to the final fanout (" << p.finalFanout << ")" << std::endl;
+			log_pipe_debug() << "Run count in final level (" << runCount << ") is less or equal to the final fanout (" << p.finalFanout << ")" << std::endl;
 			m_finalMergeSpecialRunNumber = std::numeric_limits<memory_size_type>::max();
 		}
 		reinitialize_final_merger();
@@ -496,12 +496,12 @@ public:
 			array<file_stream<element_type> > in(p.finalFanout);
 			for (memory_size_type i = 0; i < p.finalFanout-1; ++i) {
 				open_run_file_read(in[i], m_finalMergeLevel, i);
-				log_debug() << "Run " << i << " is at offset " << in[i].offset() << " and has size " << in[i].size() << std::endl;
+				log_pipe_debug() << "Run " << i << " is at offset " << in[i].offset() << " and has size " << in[i].size() << std::endl;
 			}
 			open_run_file_read(in[p.finalFanout-1], m_finalMergeLevel+1, m_finalMergeSpecialRunNumber);
 			log_debug() << "Special large run is at offset " << in[p.finalFanout-1].offset() << " and has size " << in[p.finalFanout-1].size() << std::endl;
 			stream_size_type runLength = calculate_run_length(p.runLength, p.fanout, m_finalMergeLevel+1);
-			log_debug() << "Run length " << runLength << std::endl;
+			log_pipe_debug() << "Run length " << runLength << std::endl;
 			m_merger.reset(in, runLength);
 		} else {
 			initialize_merger(m_finalMergeLevel, 0, m_finalRunCount);
@@ -553,16 +553,16 @@ private:
 		memory_size_type mergeLevel = 0;
 		memory_size_type runCount = m_finishedRuns;
 		while (runCount > p.fanout) {
-			log_debug() << "Merge " << runCount << " runs in merge level " << mergeLevel << '\n';
+			log_pipe_debug() << "Merge " << runCount << " runs in merge level " << mergeLevel << '\n';
 			m_runPositions.next_level();
 			memory_size_type newRunCount = 0;
 			for (memory_size_type i = 0; i < runCount; i += p.fanout) {
 				memory_size_type n = std::min(runCount-i, p.fanout);
 
 				if (newRunCount < 10)
-					log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
+					log_pipe_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
 				else if (newRunCount == 10)
-					log_debug() << "..." << std::endl;
+					log_pipe_debug() << "..." << std::endl;
 
 				merge_runs(mergeLevel, i, n, pi);
 				++newRunCount;
@@ -570,7 +570,7 @@ private:
 			++mergeLevel;
 			runCount = newRunCount;
 		}
-		log_debug() << "Final merge level " << mergeLevel << " has " << runCount << " runs" << std::endl;
+		log_pipe_debug() << "Final merge level " << mergeLevel << " has " << runCount << " runs" << std::endl;
 		initialize_final_merger(mergeLevel, runCount);
 
 		m_state = stReport;
@@ -703,24 +703,24 @@ private:
 		// Phase 2 (merge):
 		// Run length: unbounded
 		// Fanout: determined by the size of our merge heap and the stream memory usage.
-		log_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
+		log_pipe_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
 		p.fanout = calculate_fanout(p.memoryPhase2, p.filesPhase2);
 		if (fanout_memory_usage(p.fanout) > p.memoryPhase2) {
-			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << fanout_memory_usage(p.fanout) << ")\n";
+			log_pipe_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << fanout_memory_usage(p.fanout) << ")\n";
 			p.memoryPhase2 = fanout_memory_usage(p.fanout);
 		}
 
 		// Phase 3 (final merge & report):
 		// Run length: unbounded
 		// Fanout: determined by the stream memory usage.
-		log_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
+		log_pipe_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
 		p.finalFanout = calculate_fanout(p.memoryPhase3, p.filesPhase3);
 
 		if (p.finalFanout > p.fanout)
 			p.finalFanout = p.fanout;
 
 		if (fanout_memory_usage(p.finalFanout) > p.memoryPhase3) {
-			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase3 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
+			log_pipe_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase3 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
 			p.memoryPhase3 = fanout_memory_usage(p.finalFanout);
 		}
 
@@ -731,7 +731,7 @@ private:
 		memory_size_type streamMemory = file_stream<element_type>::memory_usage();
 		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 
-		log_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
+		log_pipe_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
 		memory_size_type min_m1 = 128*1024 / item_size + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
 		if (p.memoryPhase1 < min_m1) {
 			log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
@@ -750,23 +750,23 @@ private:
 
 			set_items(m_maxItems);
 
-		log_debug() << "Calculated merge sort parameters\n";
-		p.dump(log_debug());
-		log_debug() << std::endl;
+		log_pipe_debug() << "Calculated merge sort parameters\n";
+		p.dump(log_pipe_debug());
+		log_pipe_debug() << std::endl;
 
-		log_debug() << "Merge sort phase 1: "
+		log_pipe_debug() << "Merge sort phase 1: "
 			<< p.memoryPhase1 << " b available, " << memory_usage_phase_1(p) << " b expected" << std::endl;
 		if (memory_usage_phase_1(p) > p.memoryPhase1) {
 			log_warning() << "Merge sort phase 1 exceeds the alloted memory usage: "
 				<< p.memoryPhase1 << " b available, but " << memory_usage_phase_1(p) << " b expected" << std::endl;
 		}
-		log_debug() << "Merge sort phase 2: "
+		log_pipe_debug() << "Merge sort phase 2: "
 			<< p.memoryPhase2 << " b available, " << memory_usage_phase_2(p) << " b expected" << std::endl;
 		if (memory_usage_phase_2(p) > p.memoryPhase2) {
 			log_warning() << "Merge sort phase 2 exceeds the alloted memory usage: "
 				<< p.memoryPhase2 << " b available, but " << memory_usage_phase_2(p) << " b expected" << std::endl;
 		}
-		log_debug() << "Merge sort phase 3: "
+		log_pipe_debug() << "Merge sort phase 3: "
 			<< p.memoryPhase3 << " b available, " << memory_usage_phase_3(p) << " b expected" << std::endl;
 		if (memory_usage_phase_3(p) > p.memoryPhase3) {
 			log_warning() << "Merge sort phase 3 exceeds the alloted memory usage: "
@@ -828,7 +828,7 @@ public:
 		if (m_maxItems < p.runLength) {
 			memory_size_type newRunLength =
 				std::max(memory_size_type(m_maxItems), p.internalReportThreshold);
-			log_debug() << "Decreasing run length from " << p.runLength
+			log_pipe_debug() << "Decreasing run length from " << p.runLength
 				<< " to " << newRunLength
 				<< " since at most " << m_maxItems << " items will be pushed,"
 				<< " and the internal report threshold is "
@@ -841,8 +841,8 @@ public:
 			// upper bound, leading to unacceptable performance in practice;
 			// thus, internalReportThreshold is used as a stopgap/failsafe.
 			p.runLength = newRunLength;
-			p.dump(log_debug());
-			log_debug() << std::endl;
+			p.dump(log_pipe_debug());
+			log_pipe_debug() << std::endl;
 		}
 	}
 

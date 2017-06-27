@@ -171,6 +171,11 @@ inline logstream & log_debug() {return get_log_by_level(LOG_DEBUG);}
 ///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_mem_debug() {return get_log_by_level(LOG_MEM_DEBUG);}
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing pipe_debug log messages.
+///////////////////////////////////////////////////////////////////////////////
+inline logstream & log_pipe_debug() {return get_log_by_level(LOG_PIPE_DEBUG);}
+
 class scoped_log_enabler {
 private:
 	bool m_orig;
@@ -212,6 +217,8 @@ private:
 			return log_debug();
 		case LOG_MEM_DEBUG:
 			return log_mem_debug();
+		case LOG_PIPE_DEBUG:
+			return log_pipe_debug();
 		case LOG_USER1:
 		case LOG_USER2:
 		case LOG_USER3:

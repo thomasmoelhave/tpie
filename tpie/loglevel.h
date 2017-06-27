@@ -55,6 +55,8 @@ enum log_level {
 	
 	/** Logging level for warnings concerning memory allocation and deallocation. */
 	LOG_MEM_DEBUG,
+
+	LOG_PIPE_DEBUG,
 	
 	/** Logging levels to be further defined by user applications. */
 	LOG_USER1,

@@ -1474,18 +1474,18 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 
 		if (rel != memory_share_depends) {
 			// Black edge
-			log_debug() << "Black edge: " << fromPhase << " -> " << toPhase << std::endl;
+			log_pipe_debug() << "Black edge: " << fromPhase << " -> " << toPhase << std::endl;
 			blackEdges.push_back({fromPhase, toPhase});
 			continue;
 		}
 
 		if (from->can_evacuate()) {
 			// Red edge
-			log_debug() << "Red edge: " << fromPhase << " -> " << toPhase << std::endl;
+			log_pipe_debug() << "Red edge: " << fromPhase << " -> " << toPhase << std::endl;
 			redEdges.push_back({fromPhase, toPhase});
 		} else {
 			// Green edge
-			log_debug() << "Green edge: " << fromPhase << " -> " << toPhase << std::endl;
+			log_pipe_debug() << "Green edge: " << fromPhase << " -> " << toPhase << std::endl;
 
 			// Check if we already have a green edge from fromPhase or to toPhase
 			// If so one of edges can't be satisfied, but all green edges must be satisfied
@@ -1684,7 +1684,7 @@ void runtime::evacuate_all(const std::vector<node *> & phase,
 			continue;
 		if (node->can_evacuate()) {
 			node->evacuate();
-			tpie::log_debug() << "Evacuated node " << node->get_id() << std::endl;
+			tpie::log_pipe_debug() << "Evacuated node " << node->get_id() << std::endl;
 		} else {
 			tpie::log_warning() << "Need to evacuate but not possible." << node->get_id() << std::endl;
 		}
@@ -1733,7 +1733,7 @@ void runtime::assign_files(const std::vector<std::vector<node *> > & phases,
 
 		double c = get_files_factor(files, frt);
 #ifndef TPIE_NDEBUG
-		frt.print_usage(c, log_debug());
+		frt.print_usage(c, log_pipe_debug());
 #endif // TPIE_NDEBUG
 		set_resource_being_assigned(phases[phase], FILES);
 		frt.assign_usage(c);
@@ -1748,7 +1748,7 @@ void runtime::reassign_files(const std::vector<std::vector<node *> > & phases,
 	file_runtime frt(phases[phase]);
 	double c = get_files_factor(files, frt);
 #ifndef TPIE_NDEBUG
-	frt.print_usage(c, log_debug());
+	frt.print_usage(c, log_pipe_debug());
 #endif // TPIE_NDEBUG
 	set_resource_being_assigned(phases[phase], FILES);
 	frt.assign_usage(c);
@@ -1817,7 +1817,7 @@ void runtime::assign_memory(const std::vector<std::vector<node *> > & phases,
 
 		double c = get_memory_factor(memory, phase, mrt, drt, true);
 #ifndef TPIE_NDEBUG
-		mrt.print_usage(c, log_debug());
+		mrt.print_usage(c, log_pipe_debug());
 #endif // TPIE_NDEBUG
 		set_resource_being_assigned(phases[phase], MEMORY);
 		mrt.assign_usage(c);
@@ -1834,7 +1834,7 @@ void runtime::reassign_memory(const std::vector<std::vector<node *> > & phases,
 	memory_runtime mrt(phases[phase]);
 	double c = get_memory_factor(memory, phase, mrt, drt, true);
 #ifndef TPIE_NDEBUG
-	mrt.print_usage(c, log_debug());
+	mrt.print_usage(c, log_pipe_debug());
 #endif // TPIE_NDEBUG
 	set_resource_being_assigned(phases[phase], MEMORY);
 	mrt.assign_usage(c);
