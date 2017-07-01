@@ -12,6 +12,70 @@ constexpr size_t block_size() { return FILE_STREAM_BLOCK_SIZE; }
 
 #include <compressed_stream_test/speed_test_common.h>
 
+template <typename T>
+struct serialization_adapter {
+	serialization_writer writer;
+	serialization_reader reader;
+	serialization_reverse_reader reverse_reader;
+
+	static const int end = -1;
+
+	std::string current_path;
+	bool opened[3] = {};
+
+	~serialization_adapter() {
+		writer.close();
+		reader.close();
+		reverse_reader.close();
+	}
+
+	template <typename S>
+	void ensure_open(S & s) {
+		void * p = &s;
+		int i = p == &writer? 0: (p == &reader? 1: 2);
+        if (!opened[i]) {
+			s.open(current_path);
+			opened[i] = true;
+		}
+	}
+
+	void open(std::string path, access_type, size_t, cache_hint) {
+		current_path = path;
+	}
+
+	void write(T v) {
+        ensure_open(writer);
+		writer.serialize(v);
+	}
+
+	template <typename IT>
+	void write(IT a, IT b) {
+		ensure_open(writer);
+		writer.serialize(a, b);
+	}
+
+	T read() {
+		ensure_open(reader);
+		T v;
+		reader.unserialize(v);
+		return v;
+	}
+
+	bool can_read() {
+		ensure_open(reader);
+		return reader.can_read();
+	}
+
+	T read_back() {
+		ensure_open(reverse_reader);
+		T v;
+		reverse_reader.unserialize(v);
+		return v;
+	}
+
+	void seek(int, int) {}
+};
+
 int main(int argc, char ** argv) {
 	speed_test_init(argc, argv);
 
@@ -32,12 +96,8 @@ int main(int argc, char ** argv) {
 		}
 		break;
 	case 1: {
-		skip();
 		if (cmd_options.compression) skip();
-		serialization_writer f1;
-		serialization_reader f2;
-		serialization_reverse_writer f3;
-		serialization_reverse_reader f4;
+        run_test<string_generator, serialization_adapter<std::string>>();
 		break;
 	}
 	case 2:
