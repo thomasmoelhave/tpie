@@ -15,27 +15,41 @@ constexpr size_t block_size() { return FILE_STREAM_BLOCK_SIZE; }
 template <typename T>
 struct serialization_adapter {
 	serialization_writer writer;
+	serialization_reverse_writer reverse_writer;
 	serialization_reader reader;
 	serialization_reverse_reader reverse_reader;
 
 	static const int end = -1;
 
 	std::string current_path;
-	bool opened[3] = {};
+	int opened = -1;
 
 	~serialization_adapter() {
-		if (opened[0]) writer.close();
-		if (opened[1]) reader.close();
-		if (opened[2]) reverse_reader.close();
+		switch (opened) {
+		case 0: writer.close(); break;
+		case 1: reverse_writer.close(); break;
+		case 2: reader.close(); break;
+		case 3: reverse_reader.close(); break;
+		}
 	}
 
 	template <typename S>
 	void ensure_open(S & s) {
-		void * p = &s;
-		int i = p == &writer? 0: (p == &reader? 1: 2);
-        if (!opened[i]) {
+		void * sp = &s;
+
+		int i = 0;
+		for (void * p : std::initializer_list<void *>{&writer, &reverse_reader, &reader, &reverse_reader}) {
+			if (p == sp) {
+				break;
+			}
+			i++;
+		}
+
+		if (opened == -1) {
 			s.open(current_path);
-			opened[i] = true;
+			opened = i;
+		} else {
+			assert(opened == i);
 		}
 	}
 
@@ -44,12 +58,20 @@ struct serialization_adapter {
 	}
 
 	void write(T v) {
-		writer.serialize(v);
+		if (opened == 0) {
+			writer.serialize(v);
+		} else {
+			reverse_writer.serialize(v);
+		}
 	}
 
 	template <typename IT>
 	void write(IT a, IT b) {
-		writer.serialize(a, b);
+		if (opened == 0) {
+			writer.serialize(a, b);
+		} else {
+			reverse_writer.serialize(a, b);
+		}
 	}
 
 	T read() {
@@ -68,6 +90,14 @@ struct serialization_adapter {
 		return v;
 	}
 
+	size_t size() {
+		switch (opened) {
+		case 2: return reader.size();
+		case 3: return reverse_reader.size();
+		}
+		die("Can't find size of serialization_writer");
+	}
+
 	void seek(int, int) {}
 };
 
@@ -75,6 +105,11 @@ struct serialization_adapter {
 template <typename T>
 void ensure_open_write(serialization_adapter<T> & fs) {
 	fs.ensure_open(fs.writer);
+}
+
+template <typename T>
+void ensure_open_write_back(serialization_adapter<T> & fs) {
+	fs.ensure_open(fs.reverse_writer);
 }
 
 template <typename T>
