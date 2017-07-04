@@ -2200,7 +2200,7 @@ bool pipeline_dealloc_test() {
 	return check_test_vectors();
 }
 
-struct parallel_exception_test_exception {
+struct exception_test_exception {
 };
 
 struct exception_thrower_end : public node {
@@ -2210,7 +2210,7 @@ struct exception_thrower_end : public node {
 
 #define TPIE_TEST_THROW(func, i) \
 	void func() override { \
-		if (where == i) throw parallel_exception_test_exception(); \
+		if (where == i) throw exception_test_exception(); \
 	}
 
 	TPIE_TEST_THROW(prepare, 0);
@@ -2234,15 +2234,16 @@ bool parallel_exception_test() {
 
 	for (int i = 0; i < 5; i++) {
 		{
+			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i)
 				| parallel(splitter())
 				| null_sink<int>();
 
 			try {
-				p();
+				p(5, pi, TPIE_FSI);
 				log_error() << "Exception was not thrown (begin): " << i << std::endl;
 				fail = true;
-			} catch (parallel_exception_test_exception) {
+			} catch (exception_test_exception) {
 			}
 		}
 
@@ -2252,6 +2253,7 @@ bool parallel_exception_test() {
 		}
 
 		{
+			progress_indicator_arrow pi("Test", 0);
 			pipeline p = input_vector(inputvector)
 				| parallel(splitter())
 				| make_pipe_middle<exception_thrower>(i)
@@ -2259,28 +2261,197 @@ bool parallel_exception_test() {
 				| null_sink<int>();
 
 			try {
-				p();
+				p(5, pi, TPIE_FSI);
 				log_error() << "Exception was not thrown (middle): " << i << std::endl;
 				fail = true;
-			} catch (parallel_exception_test_exception) {
+			} catch (exception_test_exception) {
 			}
 		}
 
 		{
+			progress_indicator_arrow pi("Test", 0);
 			pipeline p = input_vector(inputvector)
 				| parallel(splitter())
 				| make_pipe_end<exception_thrower_end>(i);
 
 			try {
-				p();
+				p(5, pi, TPIE_FSI);
 				log_error() << "Exception was not thrown (end): " << i << std::endl;
 				fail = true;
-			} catch (parallel_exception_test_exception) {
+			} catch (exception_test_exception) {
 			}
 		}
 	}
 
 	return !fail;
+}
+
+bool exception_test() {
+	bool fail = false;
+
+	for (int i = 0; i < 5; i++) {
+		{
+			progress_indicator_arrow pi("Test", 0);
+			pipeline p = make_pipe_begin<exception_thrower>(i) | splitter() | null_sink<int>();
+			try {
+				p(5, pi, TPIE_FSI);
+				log_error() << "Exception was not thrown (begin): " << i << std::endl;
+				fail = true;
+			} catch (exception_test_exception) {
+			}
+		}
+
+		if (i == 3) {
+			// go() is only called on initiator nodes
+			continue;
+		}
+
+		{
+			progress_indicator_arrow pi("Test", 0);
+			pipeline p = input_vector(inputvector)
+				| splitter()
+				| make_pipe_middle<exception_thrower>(i)
+				| splitter()
+				| null_sink<int>();
+
+			try {
+				p(5, pi, TPIE_FSI);
+				log_error() << "Exception was not thrown (middle): " << i << std::endl;
+				fail = true;
+			} catch (exception_test_exception) {
+			}
+		}
+
+		{
+			progress_indicator_arrow pi("Test", 0);
+			pipeline p = input_vector(inputvector)
+				| splitter()
+				| make_pipe_end<exception_thrower_end>(i);
+
+			try {
+				p(5, pi, TPIE_FSI);
+				log_error() << "Exception was not thrown (end): " << i << std::endl;
+				fail = true;
+			} catch (exception_test_exception) {
+			}
+		}
+	}
+
+	return !fail;
+}
+
+bool subpipeline_exception_test() {
+	bool fail = false;
+
+	for (int i = 0; i < 5; i++) {
+		if (i == 3) {
+			// go() is only called on initiator nodes
+			continue;
+		}
+
+		{
+			progress_indicator_arrow pi("Test", 0);
+			subpipeline<int> p(splitter()
+							   | make_pipe_middle<exception_thrower>(i)
+							   | splitter()
+							   | null_sink<int>());
+			try {
+				p.begin(5, pi, 1234, TPIE_FSI);
+				for (int i=0; i < 20; ++i)
+					p.push(i);
+				p.end();
+				log_error() << "Exception was not thrown (middle): " << i << std::endl;
+				fail = true;
+			} catch (exception_test_exception) {
+			}
+		}
+
+		{
+			progress_indicator_arrow pi("Test", 0);
+			subpipeline<int> p(splitter()
+							   | make_pipe_end<exception_thrower_end>(i));
+			try {
+				p.begin(5, pi, 1234, TPIE_FSI);
+				for (int i=0; i < 20; ++i)
+					p.push(i);
+				p.end();
+				log_error() << "Exception was not thrown (end): " << i << std::endl;
+				fail = true;
+			} catch (exception_test_exception) {
+			}
+		}
+	}
+
+	return !fail;
+}
+
+
+
+struct subpipe_thing_help: node {
+	int cur;
+	void begin() override {
+		cur = fetch<int>("first");
+	}
+
+	void push(int i) {
+		if (i == 2 && cur == 2) throw exception_test_exception();
+	}
+};
+
+template <typename dest_t>
+struct subpipe_thing: node {
+	dest_t dest;
+	int cur;
+	std::unique_ptr<tpie::progress_indicator_subindicator> pi;
+	subpipeline<int> sp;
+
+	subpipe_thing(dest_t dest): dest(std::move(dest)) {
+		set_steps(6);
+	}
+
+	void begin() override {
+		cur = -1;
+	}
+
+	void tail() {
+		if (cur == -1) return;
+		sp.end();
+		sp = subpipeline<int>();
+		pi.reset();
+	}
+
+	void push(std::pair<int, int> i) {
+		if (i.first != cur) {
+			tail();
+			sp = make_pipe_end<subpipe_thing_help>();
+			cur = i.first;
+			pi.reset(new tpie::progress_indicator_subindicator(proxy_progress_indicator(), 3));
+			sp.forward("first", cur);
+			sp.begin(3, *pi, get_available_memory(), TPIE_FSI);
+		}
+		sp.push(i.second);
+	}
+
+	void end() override {
+		tail();
+	}
+};
+
+bool subpipeline_exception_test2() {
+	std::vector<std::pair<int, int>> in = {{1,1},{1,2},{1,3},{2,1},{2,2},{2,3}};
+	try {
+		progress_indicator_arrow pi("Test", 0);
+		pipeline p =
+			input_vector(in)
+			| make_pipe_middle<subpipe_thing>()
+			| null_sink<std::pair<int,int>>();
+
+		p(in.size(), pi, TPIE_FSI);
+		log_error() << "Exception was not thrown" << std::endl;
+	} catch (exception_test_exception) {
+		return true;
+	}
+	return false;
 }
 
 int main(int argc, char ** argv) {
@@ -2333,5 +2504,8 @@ int main(int argc, char ** argv) {
 	.test(nodeset_dealloc_test, "nodeset_dealloc")
 	.test(pipeline_dealloc_test, "pipeline_dealloc")
 	.test(parallel_exception_test, "parallel_exception")
+	.test(exception_test, "exception")
+	.test(subpipeline_exception_test, "subpipeline_exception")
+	.test(subpipeline_exception_test2, "subpipeline_exception2")
 	;
 }

@@ -196,6 +196,9 @@ add_unittest(pipelining
 	nodeset_dealloc
 	pipeline_dealloc
 	parallel_exception
+	exception_test,
+	subpipeline_exception_test,
+	subpipeline_exception_test2,
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph optimal_satisfiable_ordering evacuate_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)
