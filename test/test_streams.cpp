@@ -39,7 +39,7 @@ struct serialization_adapter {
 		}
 	}
 
-	void open(std::string path, access_type, size_t, cache_hint) {
+	void open(std::string path, open::type, size_t) {
 		current_path = path;
 	}
 
@@ -93,12 +93,6 @@ int main(int argc, char ** argv) {
 	if (cmd_options.readahead) skip();
 
 	tpie_init();
-
-	if (!cmd_options.compression) {
-		compressor_thread & compressorThread = the_compressor_thread();
-		compressor_thread_lock lock(compressorThread);
-		compressorThread.set_preferred_compression(lock, compression_scheme::none);
-	}
 
 	auto start = std::chrono::steady_clock::now();
 
