@@ -24,9 +24,9 @@ struct serialization_adapter {
 	bool opened[3] = {};
 
 	~serialization_adapter() {
-		writer.close();
-		reader.close();
-		reverse_reader.close();
+		if (opened[0]) writer.close();
+		if (opened[1]) reader.close();
+		if (opened[2]) reverse_reader.close();
 	}
 
 	template <typename S>
@@ -44,30 +44,25 @@ struct serialization_adapter {
 	}
 
 	void write(T v) {
-        ensure_open(writer);
 		writer.serialize(v);
 	}
 
 	template <typename IT>
 	void write(IT a, IT b) {
-		ensure_open(writer);
 		writer.serialize(a, b);
 	}
 
 	T read() {
-		ensure_open(reader);
 		T v;
 		reader.unserialize(v);
 		return v;
 	}
 
 	bool can_read() {
-		ensure_open(reader);
 		return reader.can_read();
 	}
 
 	T read_back() {
-		ensure_open(reverse_reader);
 		T v;
 		reverse_reader.unserialize(v);
 		return v;
@@ -75,6 +70,22 @@ struct serialization_adapter {
 
 	void seek(int, int) {}
 };
+
+
+template <typename T>
+void ensure_open_write(serialization_adapter<T> & fs) {
+	fs.ensure_open(fs.writer);
+}
+
+template <typename T>
+void ensure_open_read(serialization_adapter<T> & fs) {
+	fs.ensure_open(fs.reader);
+}
+
+template <typename T>
+void ensure_open_read_back(serialization_adapter<T> & fs) {
+	fs.ensure_open(fs.reverse_reader);
+}
 
 int main(int argc, char ** argv) {
 	speed_test_init(argc, argv);
