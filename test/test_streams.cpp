@@ -94,17 +94,17 @@ int main(int argc, char ** argv) {
 
 	tpie_init();
 
+	if (!cmd_options.compression) {
+		compressor_thread & compressorThread = the_compressor_thread();
+		compressor_thread_lock lock(compressorThread);
+		compressorThread.set_preferred_compression(lock, compression_scheme::none);
+	}
+
 	auto start = std::chrono::steady_clock::now();
 
 	switch (cmd_options.item_type) {
 	case 0:
-		if (cmd_options.compression) {
-			run_test<int_generator, file_stream<int>>();
-			file_stream<int> f;
-		} else {
-			run_test<int_generator, uncompressed_stream<int>>();
-			uncompressed_stream<int> f;
-		}
+		run_test<int_generator, file_stream<int>>();
 		break;
 	case 1: {
 		if (cmd_options.compression) skip();
@@ -112,11 +112,7 @@ int main(int argc, char ** argv) {
 		break;
 	}
 	case 2:
-		if (cmd_options.compression) {
-			run_test<keyed_generator, file_stream<keyed_generator::keyed_struct>>();
-		} else {
-			run_test<keyed_generator, uncompressed_stream<keyed_generator::keyed_struct>>();
-		}
+		run_test<keyed_generator, file_stream<keyed_generator::keyed_struct>>();
 		break;
 	default:
 		die("item_type out of range");
