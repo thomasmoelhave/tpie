@@ -394,6 +394,7 @@ private:
 		tp_assert(roots.size() > 0, "No nodes with indegree 0!");
 
 		result_t best;
+		best.satisfied = 0;
 		bool first = true;
 		auto rootsCopy = roots;
 		for (node_t u : rootsCopy) {
@@ -486,7 +487,7 @@ private:
 		}
 
 		bool noBest = true;
-		size_t bestSatisfied;
+		size_t bestSatisfied = 0;
 		disjoint_sets<size_t> bestContractedNodes;
 		std::unordered_map<size_t, graph<size_t>> bestContractedPaths;
 		graph<size_t> bestContractedGraph;
