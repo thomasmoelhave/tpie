@@ -256,7 +256,7 @@ void execution_time_predictor::start_execution(stream_size_type n) {
 }
 
 time_type execution_time_predictor::end_execution() {
-	if (m_id == prime_hash(std::string()) || !s_store_times) return 0;
+	if (m_id == prime_hash(std::string()) || !s_store_times || std::uncaught_exception()) return 0;
 	time_type t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = db->db[m_id];
