@@ -100,6 +100,9 @@ public:
 		, m_readOffset(1111111111111111111ull)
 		, m_blockSize(std::numeric_limits<memory_size_type>::max())
 	{
+		#ifndef NDEBUG
+		std::fill(m_storage.begin(), m_storage.end(), 0);
+		#endif
 	}
 
 	compressor_buffer_state::type get_state() const {
