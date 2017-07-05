@@ -890,24 +890,16 @@ std::string get_phase_name(const std::vector<node *> & phase) {
 ///////////////////////////////////////////////////////////////////////////////
 class progress_indicators {
 public:
-	progress_indicators(): fp(nullptr), m_nulls(false) {}
+	progress_indicators(): m_nulls(false) {}
 
 	progress_indicators(const progress_indicators & o) = delete;
 	progress_indicators & operator =(const progress_indicators & o) = delete;
-	progress_indicators & operator =(const progress_indicators && o) = delete;
-	progress_indicators(progress_indicators && o): fp(o.fp), m_nulls(o.m_nulls), m_progressIndicators(std::move(o.m_progressIndicators)) {
-		o.fp = nullptr;
-		o.m_progressIndicators.clear();
-	}
+
+	progress_indicators(progress_indicators && o) = default;
+	progress_indicators & operator =(progress_indicators && o) = default;
 
 	~progress_indicators() {
 		if (fp) fp->done();
-		for (size_t i = 0; i < m_progressIndicators.size(); ++i) {
-			delete m_progressIndicators[i];
-		}
-		m_progressIndicators.resize(0);
-		delete fp;
-		fp = nullptr;
 	}
 
 	void init(stream_size_type n,
@@ -921,12 +913,12 @@ public:
 		if (!file|| !function) {
 			m_nulls = true;
 			for (size_t i = 0; i < N; ++i) 
-				m_progressIndicators[i] = new progress_indicator_null();
+				m_progressIndicators[i] = std::make_unique<progress_indicator_null>();
 			return;
 		}
 		m_nulls = false;
 		
-		fp = new fractional_progress(&pi);
+		fp = std::make_unique<fractional_progress>(&pi);
 		std::size_t uuid = 0;
 		for (size_t i = 0; i < N; ++i) {
 			for (node * n: phases[i])
@@ -935,7 +927,7 @@ public:
 			char id[128];
 			// since an int like i cannot be 17 chars long, this cannot overflow
 			sprintf(id, "p%03d:%.100s:%08llX", (int)i, name.c_str(), (unsigned long long)uuid);
-			m_progressIndicators[i] = new fractional_subindicator(
+			m_progressIndicators[i] = std::make_unique<fractional_subindicator>(
 				*fp, id, file, function, n, name.c_str());
 		}
 		fp->init();
@@ -944,9 +936,9 @@ public:
 private:
 	friend class phase_progress_indicator;
 
-	fractional_progress * fp;
+	std::unique_ptr<fractional_progress> fp;
 	bool m_nulls;
-	std::vector<progress_indicator_base *> m_progressIndicators;
+	std::vector<std::unique_ptr<progress_indicator_base> > m_progressIndicators;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -969,7 +961,7 @@ public:
 
 	phase_progress_indicator(progress_indicators & pi, size_t phaseNumber,
 							 const std::vector<node *> & nodes, bool emptyFace)
-		: m_pi(pi.m_progressIndicators[phaseNumber])
+		: m_pi(pi.m_progressIndicators[phaseNumber].get())
 	{
 		if (emptyFace && !pi.m_nulls)
 			static_cast<fractional_subindicator*>(m_pi)->set_crumb("");
