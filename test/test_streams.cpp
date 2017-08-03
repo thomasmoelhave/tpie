@@ -91,11 +91,8 @@ struct serialization_adapter {
 	}
 
 	size_t size() {
-		switch (opened) {
-		case 2: return reader.size();
-		case 3: return reverse_reader.size();
-		}
-		die("Can't find size of serialization_writer");
+		// reader and reverse_reader returns physical file size, not logical
+		return no_file_size;
 	}
 
 	void seek(int, int) {}
@@ -108,7 +105,7 @@ void ensure_open_write(serialization_adapter<T> & fs) {
 }
 
 template <typename T>
-void ensure_open_write_back(serialization_adapter<T> & fs) {
+void ensure_open_write_reverse(serialization_adapter<T> & fs) {
 	fs.ensure_open(fs.reverse_writer);
 }
 
@@ -118,7 +115,7 @@ void ensure_open_read(serialization_adapter<T> & fs) {
 }
 
 template <typename T>
-void ensure_open_read_back(serialization_adapter<T> & fs) {
+void ensure_open_read_reverse(serialization_adapter<T> & fs) {
 	fs.ensure_open(fs.reverse_reader);
 }
 
