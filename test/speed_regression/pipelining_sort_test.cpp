@@ -119,7 +119,7 @@ void test(testparams & p) {
 			m.set_parameters(p.runLength, p.fanout);
 		}
 		m.begin();
-		test_t x;
+		test_t x = test_t();
 		for (stream_size_type j = 0; j < p.elements; ++j) {
 			x = j;
 			m.push(x);
