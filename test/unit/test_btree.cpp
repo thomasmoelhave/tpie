@@ -417,11 +417,10 @@ bool bound_test(TA<TT...>, A && ... a) {
 
 template<typename ... TT, typename ... A>
 bool reopen_test(TA<TT...>, A && ... a) {
-	if (!build_test(TA<TT...>(), std::forward<A>(a)...)) {
+	if (!build_test(TA<TT...>(), a...)) {
 		return false;
 	}
-
-	btree<int, TT...>  tree(std::forward<A>(a)...);
+	btree<int, btree_augment<ss_augmenter>, TT...>  tree(a...);
 	set<int> tree2;
 
 	for (size_t i=0; i < 50000; ++i) {
@@ -502,6 +501,11 @@ bool external_reopen_test() {
 	return reopen_test(TA<btree_external>(), tmp.path());
 }
 
+bool external_static_reopen_test() {
+	temp_file tmp;
+	return reopen_test(TA<btree_external, btree_static>(), tmp.path());
+}
+
 bool serialized_build_test() {
     temp_file tmp;
     return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path());
@@ -529,6 +533,7 @@ int main(int argc, char **argv) {
         .test(external_build_test, "external_build")
 		.test(external_bound_test, "external_bound")
 		.test(external_reopen_test, "external_reopen")
+		.test(external_static_reopen_test, "external_static_reopen")
 		.test(serialized_build_test, "serialized_build")
 		.test(serialized_reopen_test, "serialized_reopen");
 }
