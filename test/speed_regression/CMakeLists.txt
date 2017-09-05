@@ -1,4 +1,4 @@
-set (SPEED_DEPS testtime.h stat.h)
+set (SPEED_DEPS blocksize_2MB.h blocksize_128KB.h fractile.h testinfo.h testtime.h stat.h)
 
 list(APPEND SPEED_DEPS "${PROJECT_SOURCE_DIR}/tpie/sysinfo.h")
 
