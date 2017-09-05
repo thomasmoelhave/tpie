@@ -128,8 +128,12 @@ private:
 		}
 	};
 	
-	struct header {
-		static constexpr uint64_t good_magic = 0x8bbd51bfe5e3d477, current_version = 0;
+	struct header_v0 {
+		/*
+		 * Version 0: initial
+		 * Version 1: added flags
+		 */
+		static constexpr uint64_t good_magic = 0x8bbd51bfe5e3d477, current_version = 1;
 		uint64_t magic;
 		uint64_t version; // 0
 		off_t root; // offset of root
@@ -138,6 +142,10 @@ private:
 		off_t metadata_offset;
 		off_t metadata_size;
 	};
+
+	struct header : header_v0 {
+		btree_flags::type flags;
+	};
 	
 	typedef std::shared_ptr<internal> internal_type;
 	typedef std::shared_ptr<leaf> leaf_type;
@@ -145,7 +153,7 @@ private:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit serialized_store(const std::string & path, bool write_only=false): 
+	explicit serialized_store(const std::string & path, bool write_only=false, btree_flags::type flags=btree_flags::defaults):
 		m_height(0), m_size(0), metadata_offset(0), metadata_size(0), path(path) {
 		f.reset(new std::fstream());
 		header h;
@@ -159,20 +167,28 @@ private:
 			f->open(path, std::ios_base::in | std::ios_base::binary);
 			if (!f->is_open())
 				throw invalid_file_exception("Open failed");
-			f->read(reinterpret_cast<char *>(&h), sizeof(h));
+			f->read(reinterpret_cast<char *>(&h), sizeof(header_v0));
 			if (!*f) 
 				throw invalid_file_exception("Unable to read header");
 			
 			if (h.magic != header::good_magic) 
 				throw invalid_file_exception("Bad magic");
-				
-			if (h.version != header::current_version)
+
+			if (h.version == 0) {
+				h.flags = btree_flags::defaults;
+			} else if (h.version == 1) {
+				f->read(reinterpret_cast<char *>(&h.flags), sizeof(h.flags));
+			} else {
 				throw invalid_file_exception("Bad version");
-		
+			}
+
 			m_height = h.height;
 			m_size = h.size;
 			metadata_offset = h.metadata_offset;
 			metadata_size = h.metadata_size;
+
+			m_compressed = h.flags & btree_flags::compressed;
+
 			if (m_height == 1) {
 				root_leaf = std::make_shared<leaf>();
 				root_leaf->my_offset = h.root;
@@ -339,7 +355,7 @@ private:
 	void finalize_build() {
 		// Should call flush() first.
 		assert(!current_internal && !current_leaf);
-		
+
 		header h;
 		h.magic = header::good_magic;
 		h.version = header::current_version;
@@ -355,6 +371,7 @@ private:
 		h.size = m_size;
 		h.metadata_offset = metadata_offset;
 		h.metadata_size = metadata_size;
+		h.flags = m_compressed? btree_flags::compressed: btree_flags::defaults;
 		f->seekp(0);
 		f->write(reinterpret_cast<char *>(&h), sizeof(h));
 		f->close();
@@ -384,6 +401,7 @@ private:
 	size_t m_height;
 	size_t m_size;
 	off_t metadata_offset, metadata_size;
+	bool m_compressed;
 	
 	std::string path;
 	std::unique_ptr<std::fstream> f;

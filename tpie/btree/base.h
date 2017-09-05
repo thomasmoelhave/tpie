@@ -107,6 +107,25 @@ using btree_ordered = bbits::int_opt<0>;
 using btree_serialized = bbits::int_opt<bbits::f_serialized>;
 using btree_not_serialized = bbits::int_opt<0>;
 
+namespace btree_flags {
+	enum type : uint64_t {
+		compressed = 0x1,
+
+		defaults = 0
+	};
+
+#define T std::underlying_type<type>::type
+#define OP_IMPL(op) \
+    inline constexpr type operator op(type f1, type f2) { return static_cast<type>(T(f1) op T(f2)); } \
+    inline type & operator op##=(type & f1, type f2) { return f1 = f1 op f2; }
+	OP_IMPL(|)
+	OP_IMPL(&)
+	OP_IMPL(^)
+#undef OP_IMPL
+	inline constexpr type operator~(type f) { return static_cast<type>(~T(f)); }
+#undef T
+} // namespace btree_flags
+
 namespace bbits {
 
 //O = flags, a, b = B-tree parameters, C = comparator, K = key extractor, A = augmenter
