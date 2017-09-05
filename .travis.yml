@@ -4,6 +4,9 @@ env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=1
 
+notifications:
+  email: false
+
 # All this duplication is required :/
 matrix:
   include:
