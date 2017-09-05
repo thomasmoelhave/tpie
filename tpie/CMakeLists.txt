@@ -9,10 +9,12 @@ set (HEADERS
 		blocks/block_collection.h
 		blocks/block_collection_cache.h
 		blocks/freespace_collection.h
+		btree.h
 		btree/base.h
 		btree/internal_store.h
 		btree/external_store.h
 		btree/external_store_base.h
+		btree/serialized_store.h
 		btree/node.h
 		btree/btree.h
         btree/btree_builder.h
@@ -24,6 +26,7 @@ set (HEADERS
 		compressed/request.h
 		compressed/scheme.h
 		compressed/stream.h
+		compressed/stream_position.h
 		compressed/thread.h
 		config.h.cmake
 		cpu_timer.h
@@ -37,17 +40,20 @@ set (HEADERS
 		file_manager.h
 		file_stream.h
 		file_stream_base.h
+		file_base_crtp.inl
 		file_accessor/byte_stream_accessor.h
 		file_accessor/file_accessor.h
 		file_accessor/stream_accessor.h
 		file_accessor/stream_accessor_base.h
 		file_accessor/stream_accessor_base.inl
+		flags.h
 		execution_time_predictor.h
 		internal_sort.h
 		internal_queue.h
 		internal_stack.h
 		internal_vector.h
 		internal_stack_vector_base.h
+		is_simple_iterator.h
 		job.h
 		loglevel.h
 		logstream.h
@@ -55,22 +61,32 @@ set (HEADERS
 		merge_sorted_runs.h
 		memory.h
 		persist.h
+		pipelining.h
+		pipelining/ami_glue.h
 		pipelining/buffer.h
+		pipelining/chunker.h
 		pipelining/container.h
 		pipelining/exception.h
 		pipelining/factory_base.h
 		pipelining/factory_helpers.h
 		pipelining/file_stream.h
+		pipelining/filter.h
+		pipelining/forwarder.h
 		pipelining/helpers.h
+		pipelining/internal_buffer.h
 		pipelining/join.h
 		pipelining/maintain_order_type.h
+		pipelining/map.h
 		pipelining/merge.h
 		pipelining/merge_sorter.h
 		pipelining/merger.h
 		pipelining/node.h
 		pipelining/node_map_dump.h
 		pipelining/node_name.h
+		pipelining/node_set.h
+		pipelining/node_traits.h
 		pipelining/numeric.h
+		pipelining/ordered_merge.h
 		pipelining/pair_factory.h
 		pipelining/parallel.h
 		pipelining/parallel/aligned_array.h
@@ -81,15 +97,24 @@ set (HEADERS
 		pipelining/parallel/worker_state.h
 		pipelining/pipe_base.h
 		pipelining/pipeline.h
+		pipelining/predeclare.h
+		pipelining/priority_type.h
 		pipelining/reverse.h
+		pipelining/serialization.h
 		pipelining/serialization_sort.h
 		pipelining/sort.h
+		pipelining/sort_parameters.h
+		pipelining/split.h
 		pipelining/std_glue.h
 		pipelining/stdio.h
+		pipelining/store.h
+		pipelining/subpipeline.h
 		pipelining/tokens.h
 		pipelining/uniq.h
 		pipelining/virtual.h
+		pipelining/visit.h
 		portability.h
+		pretty_print.h
 		internal_priority_queue.h
 		priority_queue.inl
 		priority_queue.h
@@ -119,8 +144,11 @@ set (HEADERS
 		stack.h
 		stream.h
 		stream_crtp.h
+		stream_crtp.inl
 		stream_header.h
+		stream_old.h
 		stream_usage.h
+		stream_writable.h
 		sysinfo.h
 		tpie_assert.h
 		tpie_log.h
@@ -144,6 +172,7 @@ set (HEADERS
 		unittest.h
 		maybe.h
 		tiny.h
+		reflect.h
 		)
 
 set (SOURCES
