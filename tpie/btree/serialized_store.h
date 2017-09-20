@@ -26,6 +26,7 @@
 #include <tpie/serialization2.h>
 #include <cstddef>
 #include <fstream>
+#include <lz4.h>
 
 namespace tpie {
 namespace bbits {
@@ -85,49 +86,102 @@ private:
 	static constexpr size_t max_internal_size() {return a_ ? a_ : (block_size()  - sizeof(off_t) - sizeof(size_t)) / sizeof(internal_content) ; }
 	static constexpr size_t min_leaf_size() {return 1;}
 	static constexpr size_t max_leaf_size() {return b_ ? b_ : (block_size() - sizeof(off_t) - sizeof(size_t)) / sizeof(T);}
-	
+
+	class serilization_buffer {
+	public:
+		serilization_buffer() = default;
+		serilization_buffer(size_t n) : m_buffer(n) {}
+
+		void read(char * buf, size_t size) {
+			assert(m_index + size <= m_buffer.size());
+			memcpy(buf, m_buffer.data() + m_index, size);
+			m_index += size;
+		}
+
+		void write(const char * buf, size_t size) {
+            if (m_index + size > m_buffer.size()) {
+				m_buffer.resize(m_index + size);
+			}
+			memcpy(m_buffer.data() + m_index, buf, size);
+			m_index += size;
+		}
+
+		size_t size() {
+			return m_buffer.size();
+		}
+
+		char * data() {
+			return m_buffer.data();
+		}
+
+	private:
+		std::vector<char> m_buffer;
+		size_t m_index = 0;
+	};
+
+	template <typename S, typename N>
+	void serialize(S & s, const N & i) const {
+		using tpie::serialize;
+
+		if (m_compressed) {
+			serilization_buffer uncompressed_buffer(sizeof(i.count) + sizeof(*i.values) * i.count);
+			serialize(uncompressed_buffer, i.count);
+			serialize(uncompressed_buffer, i.values, i.values + i.count);
+
+			int uncompressed_size = uncompressed_buffer.size();
+
+			int max_compressed_size = LZ4_compressBound(uncompressed_size);
+			std::vector<char> compressed_buffer(max_compressed_size);
+
+			int compressed_size = LZ4_compress_default(uncompressed_buffer.data(), compressed_buffer.data(), uncompressed_size, max_compressed_size);
+			tp_assert(compressed_size != 0, "B-tree compression failed");
+
+			s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
+			s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
+			s.write(compressed_buffer.data(), compressed_size);
+		} else {
+			serialize(s, i.count);
+			serialize(s, i.values, i.values + i.count);
+		}
+	}
+
+	template <typename D, typename N>
+	void unserialize(D & d, N & i) const {
+		using tpie::unserialize;
+
+		if (m_compressed) {
+			int uncompressed_size, compressed_size;
+			d.read(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
+			d.read(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
+
+			std::vector<char> compressed_buffer(compressed_size);
+			d.read(compressed_buffer.data(), compressed_size);
+
+			serilization_buffer uncompressed_buffer(uncompressed_size);
+
+			int r = LZ4_decompress_fast(compressed_buffer.data(), uncompressed_buffer.data(), uncompressed_size);
+			tp_assert(r == compressed_size, "B-tree decompression failed");
+
+			unserialize(uncompressed_buffer, i.count);
+			unserialize(uncompressed_buffer, i.values, i.values + i.count);
+		} else {
+			unserialize(d, i.count);
+			unserialize(d, i.values, i.values + i.count);
+		}
+	}
+
 	struct internal {
 		off_t my_offset; //NOTE not serialized
 		size_t count;
 		internal_content values[max_internal_size()];
-		
-		template <typename S>
-		friend void serialize(S & s, const internal & i) {
-			using tpie::serialize;
-			serialize(s, i.count);
-			serialize(s, i.values, i.values + i.count);
-		}
-		
-		template <typename D>
-		friend void unserialize(D & d, internal & i) {
-			using tpie::unserialize;
-			unserialize(d, i.count);
-			//tp_assert(i.count <= max_internal_size(), "too large internal");
-			unserialize(d, i.values, i.values + i.count);
-		}
 	};
-	
+
 	struct leaf {
 		off_t my_offset; //NOTE not serialized
 		size_t count;
 		T values[max_leaf_size()];
-		
-		template <typename S>
-		friend void serialize(S & s, const leaf & i) {
-			using tpie::serialize;
-			serialize(s, i.count);
-			serialize(s, i.values, i.values + i.count);
-		}
-		
-		template <typename D>
-		friend void unserialize(D & d, leaf & i) {
-			using tpie::unserialize;
-			unserialize(d, i.count);
-			//tp_assert(i.count <= max_leaf_size(), "too large leaf");
-			unserialize(d, i.values, i.values + i.count);
-		}
 	};
-	
+
 	struct header_v0 {
 		/*
 		 * Version 0: initial
@@ -162,6 +216,8 @@ private:
 			if (!f->is_open())
 				throw invalid_file_exception("Open failed");
 			memset(&h, 0, sizeof(h));
+			h.flags = flags;
+            m_compressed = h.flags & btree_flags::compressed;
 			f->write(reinterpret_cast<char *>(&h), sizeof(h));
 		} else {
 			f->open(path, std::ios_base::in | std::ios_base::binary);
@@ -175,7 +231,7 @@ private:
 				throw invalid_file_exception("Bad magic");
 
 			if (h.version == 0) {
-				h.flags = btree_flags::defaults;
+				h.flags = btree_flags::defaults_v0;
 			} else if (h.version == 1) {
 				f->read(reinterpret_cast<char *>(&h.flags), sizeof(h.flags));
 			} else {

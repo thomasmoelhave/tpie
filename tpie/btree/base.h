@@ -111,7 +111,8 @@ namespace btree_flags {
 	enum type : uint64_t {
 		compressed = 0x1,
 
-		defaults = 0
+		defaults = 0,
+		defaults_v0 = defaults,
 	};
 
 #define T std::underlying_type<type>::type
