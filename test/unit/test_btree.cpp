@@ -25,6 +25,8 @@
 #include <set>
 #include <map>
 #include <numeric>
+#include <boost/filesystem/path.hpp>
+
 using namespace tpie;
 using namespace std;
 
@@ -287,11 +289,31 @@ void print(btree_node<S> & n) {
 	std::cout << ")";
 }
 
+template<typename ... TT>
+btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags::type =btree_flags::defaults) {
+	return btree<int, btree_augment<ss_augmenter>, TT...>(path, c, au);
+};
+
+template<typename ... TT>
+btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp c, ss_augmenter au) {
+	return btree<int, btree_augment<ss_augmenter>, TT...>(c, au);
+};
+
+template<typename ... TT>
+btree_builder<int, btree_augment<ss_augmenter>, TT...> get_builder(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags::type flags=btree_flags::defaults) {
+	return btree_builder<int, btree_augment<ss_augmenter>, TT...>(path, c, au, flags);
+};
+
+template<typename ... TT>
+btree_builder<int, btree_augment<ss_augmenter>, TT...> get_builder(TA<TT...>, default_comp c, ss_augmenter au) {
+	return btree_builder<int, btree_augment<ss_augmenter>, TT...>(c, au);
+};
+
 template<typename ... TT, typename ... A>
-bool augment_test(TA<TT...>, A && ... a) {
+bool augment_test(TA<TT...> ta, A && ... a) {
 	default_comp c;
 	ss_augmenter au;
-	btree<int, btree_augment<ss_augmenter>, TT...> tree(std::forward<A>(a)..., c, au);
+	auto tree = get_btree(ta, c, au, std::forward<A>(a)...);
 	std::vector<int> x;
     for (int i=0; i < 1234; ++i) x.push_back(i);
 	std::random_shuffle(x.begin(), x.end());
@@ -328,10 +350,10 @@ bool augment_test(TA<TT...>, A && ... a) {
 }
 
 template<typename ... TT, typename ... A>
-bool build_test(TA<TT...>, A && ... a) {
+bool build_test(TA<TT...> ta, A && ... a) {
     default_comp c;
     ss_augmenter au;
-    btree_builder<int, btree_augment<ss_augmenter>, TT...> builder(std::forward<A>(a)..., c, au);
+	auto builder = get_builder(ta, c, au, std::forward<A>(a)...);
 	set<int> tree2;
 
 	for (size_t i=0; i < 50000; ++i) {
@@ -416,11 +438,13 @@ bool bound_test(TA<TT...>, A && ... a) {
 
 
 template<typename ... TT, typename ... A>
-bool reopen_test(TA<TT...>, A && ... a) {
-	if (!build_test(TA<TT...>(), a...)) {
+bool reopen_test(TA<TT...> ta, A && ... a) {
+	if (!build_test(ta, std::forward<A>(a)...)) {
 		return false;
 	}
-	btree<int, btree_augment<ss_augmenter>, TT...>  tree(a...);
+	default_comp c;
+	ss_augmenter au;
+	auto tree = get_btree(ta, c, au, std::forward<A>(a)...);
 	set<int> tree2;
 
 	for (size_t i=0; i < 50000; ++i) {
@@ -516,6 +540,35 @@ bool serialized_reopen_test() {
 	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path());
 }
 
+bool serialized_compressed_build_test() {
+	temp_file tmp;
+	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compressed);
+}
+
+bool serialized_compressed_reopen_test() {
+	temp_file tmp;
+	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compressed);
+}
+
+bool serialized_read_old_format() {
+	std::string old_path = (boost::filesystem::path(__FILE__).parent_path() / "test_btree_old_serialized.tpie").string();
+
+	default_comp c;
+	ss_augmenter au;
+	auto tree = get_btree(TA<btree_external, btree_serialized, btree_static>(), c, au, old_path, btree_flags::defaults_v0);
+
+	set<int> tree2;
+
+	for (size_t i=0; i < 50000; ++i) {
+		tree2.insert(i);
+	}
+
+	TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size");
+	TEST_ENSURE(compare(tree, tree2), "Compare failed");
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(internal_basic_test, "internal_basic")
@@ -535,7 +588,10 @@ int main(int argc, char **argv) {
 		.test(external_reopen_test, "external_reopen")
 		.test(external_static_reopen_test, "external_static_reopen")
 		.test(serialized_build_test, "serialized_build")
-		.test(serialized_reopen_test, "serialized_reopen");
+		.test(serialized_reopen_test, "serialized_reopen")
+        .test(serialized_compressed_build_test, "serialized_compressed_build")
+		.test(serialized_compressed_reopen_test, "serialized_compressed_reopen")
+		.test(serialized_read_old_format, "serialized_read_old_format");
 }
 
 
