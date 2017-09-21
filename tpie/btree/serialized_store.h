@@ -26,7 +26,10 @@
 #include <tpie/serialization2.h>
 #include <cstddef>
 #include <fstream>
+
+#ifdef TPIE_HAS_LZ4
 #include <lz4.h>
+#endif
 
 namespace tpie {
 namespace bbits {
@@ -124,6 +127,7 @@ private:
 		using tpie::serialize;
 
 		if (m_compressed) {
+#ifdef TPIE_HAS_LZ4
 			serilization_buffer uncompressed_buffer(sizeof(i.count) + sizeof(*i.values) * i.count);
 			serialize(uncompressed_buffer, i.count);
 			serialize(uncompressed_buffer, i.values, i.values + i.count);
@@ -139,6 +143,9 @@ private:
 			s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
 			s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
 			s.write(compressed_buffer.data(), compressed_size);
+#else
+			throw exception("This code shouldn't be reachable");
+#endif
 		} else {
 			serialize(s, i.count);
 			serialize(s, i.values, i.values + i.count);
@@ -150,6 +157,7 @@ private:
 		using tpie::unserialize;
 
 		if (m_compressed) {
+#ifdef TPIE_HAS_LZ4
 			int uncompressed_size, compressed_size;
 			d.read(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
 			d.read(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
@@ -164,6 +172,9 @@ private:
 
 			unserialize(uncompressed_buffer, i.count);
 			unserialize(uncompressed_buffer, i.values, i.values + i.count);
+#else
+            throw exception("This code shouldn't be reachable");
+#endif
 		} else {
 			unserialize(d, i.count);
 			unserialize(d, i.values, i.values + i.count);
@@ -203,9 +214,18 @@ private:
 	
 	typedef std::shared_ptr<internal> internal_type;
 	typedef std::shared_ptr<leaf> leaf_type;
+
+	void set_flags(btree_flags::type flags) {
+		m_compressed = flags & btree_flags::compressed;
+#ifndef TPIE_HAS_LZ4
+        if (m_compressed) throw exception("Can't use a compressed B-tree without LZ4 installed");
+#endif
+	}
 	
 	/**
 	 * \brief Construct a new empty btree storage
+	 *
+	 * flags are currently ignored when write_only is false
 	 */
 	explicit serialized_store(const std::string & path, bool write_only=false, btree_flags::type flags=btree_flags::defaults):
 		m_height(0), m_size(0), metadata_offset(0), metadata_size(0), path(path) {
@@ -217,7 +237,7 @@ private:
 				throw invalid_file_exception("Open failed");
 			memset(&h, 0, sizeof(h));
 			h.flags = flags;
-            m_compressed = h.flags & btree_flags::compressed;
+			set_flags(flags);
 			f->write(reinterpret_cast<char *>(&h), sizeof(h));
 		} else {
 			f->open(path, std::ios_base::in | std::ios_base::binary);
@@ -243,7 +263,7 @@ private:
 			metadata_offset = h.metadata_offset;
 			metadata_size = h.metadata_size;
 
-			m_compressed = h.flags & btree_flags::compressed;
+            set_flags(h.flags);
 
 			if (m_height == 1) {
 				root_leaf = std::make_shared<leaf>();

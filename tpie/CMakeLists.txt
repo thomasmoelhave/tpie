@@ -233,6 +233,10 @@ if(TPIE_HAS_SNAPPY)
 	target_link_libraries(tpie ${Snappy_LIBRARY})
 endif(TPIE_HAS_SNAPPY)
 
+if(TPIE_HAS_LZ4)
+	target_link_libraries(tpie ${LZ4_LIBRARY})
+endif(TPIE_HAS_LZ4)
+
 install(TARGETS tpie
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib)

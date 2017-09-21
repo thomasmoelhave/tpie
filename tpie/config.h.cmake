@@ -67,6 +67,7 @@
 #endif
 
 #cmakedefine TPIE_HAS_SNAPPY
+#cmakedefine TPIE_HAS_LZ4
 
 #ifdef _WIN32
 #ifndef NOMINMAX

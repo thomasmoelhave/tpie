@@ -27,6 +27,15 @@
 #include <numeric>
 #include <boost/filesystem/path.hpp>
 
+#ifdef TPIE_HAS_LZ4
+#define SKIP_IF_NO_LZ4 {}
+#else
+#define SKIP_IF_NO_LZ4 { \
+		log_warning() << "ut-btree: No LZ4 support built in!" << std::endl; \
+		return true; \
+	}
+#endif
+
 using namespace tpie;
 using namespace std;
 
@@ -541,11 +550,13 @@ bool serialized_reopen_test() {
 }
 
 bool serialized_compressed_build_test() {
+	SKIP_IF_NO_LZ4;
 	temp_file tmp;
 	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compressed);
 }
 
 bool serialized_compressed_reopen_test() {
+	SKIP_IF_NO_LZ4;
 	temp_file tmp;
 	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compressed);
 }
