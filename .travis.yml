@@ -31,9 +31,11 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      compiler: clang
+      compiler: clang-3.9
       env:
-       - CMAKE_BUILD_TYPE=Release
+        - CMAKE_BUILD_TYPE=Release
+        - _CC=clang-3.9
+        - _CXX=clang++-3.9
 
 # OS X
     - os: osx
@@ -64,9 +66,11 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      compiler: clang
+      compiler: clang-3.9
       env:
         - CMAKE_BUILD_TYPE=Debug
+        - _CC=clang-3.9
+        - _CXX=clang++-3.9
 
 # OS X
     - os: osx
@@ -80,6 +84,7 @@ addons:
     sources:
       - boost-latest
       - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-3.9
     packages:
       - libboost-date-time1.55-dev
       - libboost-filesystem1.55-dev
@@ -92,7 +97,7 @@ install:
       brew install snappy;
     else
       sudo apt-get update;
-      if [[ "$_CC" == "gcc-"* ]]; then
+      if [[ "$_CC" == "gcc-"* || "$_CC" == "clang-"* ]]; then
         sudo apt-get install "$_CC" "$_CXX";
       else
         sudo apt-get install libstdc++-5-dev;
