@@ -2286,6 +2286,28 @@ bool parallel_exception_test() {
 	return !fail;
 }
 
+bool parallel_exception_2_test() {
+	bool fail = false;
+
+	for (int i = 0; i < 5; i++) {
+		if (i == 3) continue; //Skip go, as it is not called on a pipe middle
+		progress_indicator_arrow pi("Test", 0);
+		pipeline p = input_vector(inputvector)
+			| parallel(make_pipe_middle<exception_thrower>(i))
+			| null_sink<int>();
+		
+		try {
+			p(5, pi, TPIE_FSI);
+			log_error() << "Exception was not thrown: " << i << std::endl;
+				fail = true;
+		} catch (exception_test_exception) {
+		}
+	}
+
+	return !fail;
+}
+
+
 bool exception_test() {
 	bool fail = false;
 
@@ -2504,6 +2526,7 @@ int main(int argc, char ** argv) {
 	.test(nodeset_dealloc_test, "nodeset_dealloc")
 	.test(pipeline_dealloc_test, "pipeline_dealloc")
 	.test(parallel_exception_test, "parallel_exception")
+	.test(parallel_exception_2_test, "parallel_exception_2")
 	.test(exception_test, "exception")
 	.test(subpipeline_exception_test, "subpipeline_exception")
 	.test(subpipeline_exception_test2, "subpipeline_exception2")
