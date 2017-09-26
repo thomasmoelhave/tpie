@@ -201,6 +201,7 @@ add_unittest(pipelining
 	nodeset_dealloc
 	pipeline_dealloc
 	parallel_exception
+	parallel_exception_2
 	exception
 	subpipeline_exception
 	subpipeline_exception2

@@ -241,6 +241,8 @@ public:
 	/** Shared state, must have mutex to write. */
 	size_t runningWorkers;
 
+	std::exception_ptr eptr;
+	
 	/// Must not be used concurrently.
 	void set_input_ptr(size_t idx, node * v) {
 		m_inputs[idx] = v;
@@ -685,9 +687,15 @@ private:
 			}
 			lock.unlock();
 
-			// virtual invocation
-			push_all(m_buffer->get_input());
-
+			try {
+				// virtual invocation
+				push_all(m_buffer->get_input());
+			} catch (...) {
+				lock.lock();
+				st.eptr = std::current_exception();
+				st.producerCond.notify_one();
+				continue;
+			}
 			lock.lock();
 		}
 	}
@@ -826,7 +834,7 @@ private:
 	/// Like has_ready_pipe, this function sets this->readyIdx if and only if
 	/// it returns true.
 	///////////////////////////////////////////////////////////////////////////
-	bool has_outputting_pipe() {
+	bool has_outputting_pipe(bool maintainOrder) {
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
 			switch (st->get_state(i)) {
 				case INITIALIZING:
@@ -835,7 +843,7 @@ private:
 					break;
 				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
-					if (st->opts.maintainOrder && m_outputOrder.front() != i)
+					if (maintainOrder && m_outputOrder.front() != i)
 						break;
 					readyIdx = i;
 					return true;
@@ -895,6 +903,43 @@ private:
 		}
 	}
 
+
+	void handle_exceptions(state_base::lock_t & lock) {
+		if (!st->eptr) return;
+		
+		bool done = false;
+		while (!done) {
+			while (!has_outputting_pipe(false)) {
+				if (!has_processing_pipe()) {
+					done = true;
+					break;
+				}
+				// All items pushed; wait for processors to complete
+				st->producerCond.wait(lock);
+			}
+			
+			if (done) break;
+
+			if (st->get_state(readyIdx) == PARTIAL_OUTPUT) {
+				st->transition_state(readyIdx, PARTIAL_OUTPUT, PROCESSING);
+				st->workerCond[readyIdx].notify_one();
+				continue;
+			}
+			st->transition_state(readyIdx, OUTPUTTING, IDLE);
+		}
+		// Notify all workers that all processing is done
+		for (size_t i = 0; i < st->opts.numJobs; ++i) {
+			st->transition_state(i, IDLE, DONE);
+			st->workerCond[i].notify_one();
+		}
+		// Wait for workers to stop
+		while (st->runningWorkers > 0)
+			st->producerCond.wait(lock);
+
+		// Rethow the exception atleast
+		std::rethrow_exception(st->eptr);
+	}
+	
 public:
 	template <typename consumer_t>
 	producer(stateptr st, consumer_t cons)
@@ -927,6 +972,8 @@ public:
 		while (st->runningWorkers != st->opts.numJobs) {
 			st->producerCond.wait(lock);
 		}
+
+		handle_exceptions(lock);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -947,6 +994,8 @@ public:
 		}
 		state_base::lock_t lock(st->mutex);
 
+		handle_exceptions(lock);
+		
 		flush_steps();
 
 		empty_input_buffer(lock);
@@ -955,9 +1004,12 @@ public:
 private:
 	void empty_input_buffer(state_base::lock_t & lock) {
 		while (written > 0) {
-			while (!has_ready_pipe()) {
+			while (!st->eptr && !has_ready_pipe()) {
 				st->producerCond.wait(lock);
 			}
+
+			handle_exceptions(lock);
+
 			switch (st->get_state(readyIdx)) {
 				case INITIALIZING:
 					throw tpie::exception("State 'INITIALIZING' not expected at this point");
@@ -1018,7 +1070,7 @@ public:
 
 		bool done = false;
 		while (!done) {
-			while (!has_outputting_pipe()) {
+			while (!st->eptr && !has_outputting_pipe(st->opts.maintainOrder)) {
 				if (!has_processing_pipe()) {
 					done = true;
 					break;
@@ -1026,6 +1078,9 @@ public:
 				// All items pushed; wait for processors to complete
 				st->producerCond.wait(lock);
 			}
+			
+			handle_exceptions(lock);
+			
 			if (done) break;
 
 			// virtual invocation
@@ -1051,11 +1106,12 @@ public:
 			st->transition_state(i, IDLE, DONE);
 			st->workerCond[i].notify_one();
 		}
-		while (st->runningWorkers > 0) {
+		while (!st->eptr && st->runningWorkers > 0) {
 			st->producerCond.wait(lock);
 		}
 		// All workers terminated
 
+		handle_exceptions(lock);
 		flush_steps();
 	}
 };
