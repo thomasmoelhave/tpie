@@ -692,6 +692,7 @@ private:
 				push_all(m_buffer->get_input());
 			} catch (...) {
 				lock.lock();
+				st.transition_state(parId, PROCESSING, IDLE);
 				st.eptr = std::current_exception();
 				st.producerCond.notify_one();
 				continue;
