@@ -130,7 +130,7 @@ int main(int argc, char ** argv) {
 
 	switch (cmd_options.item_type) {
 	case 0:
-		run_test<int_generator, file_stream<int>>();
+		run_test<int_generator, file_stream<long long>>();
 		break;
 	case 1: {
 		if (cmd_options.compression) skip();
