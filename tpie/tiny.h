@@ -413,6 +413,43 @@ public:
 	}
 
 	/**
+	 * \brief Returns an iterator pointing to the first element that
+	 * is not less than key.
+	 */
+	template <typename K>
+	iterator lower_bound(const K & key) noexcept {
+		return std::lower_bound(inner.begin(), inner.end(), key, comp);
+	}
+
+	/**
+	 * \brief Returns an iterator pointing to the first element that
+	 * is not less than key.
+	 */
+	template <typename K>
+	const_iterator lower_bound(const K & key) const noexcept {
+		return std::lower_bound(inner.begin(), inner.end(), key, comp);
+	}
+
+	/**
+	 * \brief Returns an iterator pointing to the first element that
+	 * is greater than key.
+	 */
+	template <typename K>
+	iterator upper_bound(const K & key) noexcept {
+		return std::upper_bound(inner.begin(), inner.end(), key, comp);
+	}
+
+	/**
+	 * \brief Returns an iterator pointing to the first element that
+	 * is greater than key.
+	 */
+	template <typename K>
+	const_iterator upper_bound(const K & key) const noexcept {
+		return std::upper_bound(inner.begin(), inner.end(), key, comp);
+	}
+
+	
+	/**
 	 * \brief Returns the function object that compares the keys,
 	 * which is a copy of this container's constructor argument comp.
 	 */
