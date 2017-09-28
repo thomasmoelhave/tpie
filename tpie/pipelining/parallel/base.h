@@ -241,7 +241,7 @@ public:
 	/** Shared state, must have mutex to write. */
 	size_t runningWorkers;
 
-	/** Exception thrown in worker thread to be rethrown in main thread. *//
+	/** Exception thrown in worker thread to be rethrown in main thread. */
 	std::exception_ptr eptr;
 
 	/// Must not be used concurrently.
