@@ -90,11 +90,12 @@ addons:
       - libboost-filesystem1.55-dev
       - libboost-system1.55-dev
       - libsnappy-dev
+      - liblz4-dev
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew update;
-      brew install snappy;
+      brew install snappy lz4;
     else
       sudo apt-get update;
       if [[ "$_CC" == "gcc-"* || "$_CC" == "clang-"* ]]; then

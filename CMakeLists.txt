@@ -60,6 +60,32 @@ if(TPIE_USE_SNAPPY)
 	endif(${Snappy_FOUND})
 endif(TPIE_USE_SNAPPY)
 
+## LZ4
+option(TPIE_USE_LZ4 "Use LZ4, Extremely Fast Compression algorithm" ON)
+if(TPIE_USE_LZ4)
+	find_package(LZ4)
+	if(${LZ4_FOUND})
+		set(TPIE_HAS_LZ4 ON)
+		include_directories(${LZ4_INCLUDE_DIR})
+	else(${LZ4_FOUND})
+		set(TPIE_HAS_LZ4 OFF)
+	endif(${LZ4_FOUND})
+endif(TPIE_USE_LZ4)
+
+
+## ZSTD
+option(TPIE_USE_ZSTD "Use ZSTD, Compression algorithm" ON)
+if(TPIE_USE_ZSTD)
+	find_package(ZSTD)
+	if(${LZ4_FOUND})
+		set(TPIE_HAS_ZSTD ON)
+		include_directories(${ZSTD_INCLUDE_DIR})
+	else(${LZ4_FOUND})
+		set(TPIE_HAS_ZSTD OFF)
+	endif(${LZ4_FOUND})
+endif(TPIE_USE_ZSTD)
+
+
 #### Installation paths
 #Default paths
 set(BIN_INSTALL_DIR bin)

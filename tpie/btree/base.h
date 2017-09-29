@@ -107,6 +107,49 @@ using btree_ordered = bbits::int_opt<0>;
 using btree_serialized = bbits::int_opt<bbits::f_serialized>;
 using btree_not_serialized = bbits::int_opt<0>;
 
+enum btree_flags : uint64_t {
+	compress_none = 0x0,
+	compress_lz4 = 0x1,
+	compress_snappy = 0x2,
+	compress_zstd = 0x3,
+	compression_mask = 0xFF,
+	compression_level_mask = 0xFF00,
+	compress_level_default = 0x0000,
+	compress_level_1 = 0x0100,
+	compress_level_2 = 0x0200,
+	compress_level_3 = 0x0300,
+	compress_level_4 = 0x0400,
+	compress_level_5 = 0x0500,
+	compress_level_6 = 0x0600,
+	compress_level_7 = 0x0700,
+	compress_level_8 = 0x0800,
+	compress_level_9 = 0x0900,
+	compress_level_10 = 0x0A00,
+	compress_level_11 = 0x0B00,
+	compress_level_12 = 0x0C00,
+	compress_level_13 = 0x0D00,
+	compress_level_14 = 0x0E00,
+	compress_level_15 = 0x0F00,
+	compress_level_16 = 0x1000,
+	compress_level_17 = 0x1100,
+	compress_level_18 = 0x1200,
+	compress_level_19 = 0x1300,
+	compress_level_20 = 0x1400,
+	compress_level_21 = 0x1500,
+	compress_level_22 = 0x1600,
+	compress_default = compress_level_default | compress_lz4,
+	read = 0x010000,
+	write = 0x020000,
+	defaults = read | write,
+	defaults_v0 = read | write
+};
+
+inline constexpr btree_flags operator |(btree_flags f1, btree_flags f2) { return static_cast<btree_flags>(uint64_t(f1) | uint64_t(f2)); }
+inline btree_flags & operator |=(btree_flags & f1, btree_flags f2) { return f1 = f1 | f2; }
+inline constexpr btree_flags operator &(btree_flags f1, btree_flags f2) { return static_cast<btree_flags>(uint64_t(f1) & uint64_t(f2)); }
+inline btree_flags & operator &=(btree_flags & f1, btree_flags f2) { return f1 = f1 & f2; }
+inline constexpr btree_flags operator ~(btree_flags f1) { return static_cast<btree_flags>(~uint64_t(f1)); }
+
 namespace bbits {
 
 //O = flags, a, b = B-tree parameters, C = comparator, K = key extractor, A = augmenter

@@ -111,13 +111,13 @@ public:
 	/**
 	 * \brief Construct a new empty btree storage
 	 */
-	explicit external_store(const std::string & path, bool /*write_only*/=false) //TODO maybe use this?
+	explicit external_store(const std::string & path, btree_flags /*flags*/=btree_flags::defaults)
 	: external_store_base(path)
-	{
-		m_collection = std::make_shared<blocks::block_collection_cache>(
-			path, blockSize(), cacheSize(), true);
-	}
-
+		{
+			m_collection = std::make_shared<blocks::block_collection_cache>(
+				path, blockSize(), cacheSize(), true);
+		}
+			
 	external_store(external_store&& other) noexcept = default;
 
 	~external_store() {

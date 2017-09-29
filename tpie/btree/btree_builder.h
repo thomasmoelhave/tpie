@@ -211,8 +211,9 @@ public:
 	* \brief Construct a btree builder with the given storage
 	*/
 	template <typename X=enab>
-	explicit builder(std::string path, comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(), enable<X, !is_internal> =enab() )
-        : m_state(store_type(path, true), std::move(augmenter), typename state_type::keyextract_type())
+	explicit builder(std::string path, comp_type comp=comp_type(), augmenter_type augmenter=augmenter_type(),
+					 btree_flags flags=btree_flags::defaults, enable<X, !is_internal> =enab() )
+        : m_state(store_type(path, (flags | btree_flags::write) & ~btree_flags::read ), std::move(augmenter), typename state_type::keyextract_type())
         , m_comp(comp)
 		, m_serialized_size(0)
 		, m_size(0)
