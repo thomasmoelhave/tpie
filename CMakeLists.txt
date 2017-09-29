@@ -72,6 +72,20 @@ if(TPIE_USE_LZ4)
 	endif(${LZ4_FOUND})
 endif(TPIE_USE_LZ4)
 
+
+## ZSTD
+option(TPIE_USE_ZSTD "Use ZSTD, Compression algorithm" ON)
+if(TPIE_USE_ZSTD)
+	find_package(ZSTD)
+	if(${LZ4_FOUND})
+		set(TPIE_HAS_ZSTD ON)
+		include_directories(${ZSTD_INCLUDE_DIR})
+	else(${LZ4_FOUND})
+		set(TPIE_HAS_ZSTD OFF)
+	endif(${LZ4_FOUND})
+endif(TPIE_USE_ZSTD)
+
+
 #### Installation paths
 #Default paths
 set(BIN_INSTALL_DIR bin)
