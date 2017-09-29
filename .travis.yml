@@ -97,9 +97,12 @@ install:
       brew install snappy;
     else
       sudo apt-get update;
-      if [[ "$_CC" == "gcc-"* || "$_CC" == "clang-"* ]]; then
+      if [[ "$_CC" == "gcc-"* ]]; then
         sudo apt-get install "$_CC" "$_CXX";
       else
+        if [[ "$_CC" == "clang-"* ]]; then
+          sudo apt-get install "$_CC";
+        fi;
         sudo apt-get install libstdc++-5-dev;
       fi;
     fi
