@@ -5,6 +5,9 @@ macro(add_unittest NAME)
   if(TPIE_HAS_SNAPPY)
     target_link_libraries(ut-${NAME} ${Snappy_LIBRARY})
   endif(TPIE_HAS_SNAPPY)
+  if(TPIE_HAS_LZ4)
+	  target_link_libraries(ut-${NAME} ${LZ4_LIBRARY})
+  endif(TPIE_HAS_LZ4)
   set(MTESTS ${ARGV})
   list(REMOVE_AT MTESTS 0)
   foreach(TEST ${MTESTS})
@@ -78,7 +81,9 @@ add_unittest(btree
 	external_build
 	external_iterator
 	external_key_and_compare
+	external_reopen
 	serialized_build
+	serialized_reopen
 	)
 	
 add_unittest(disjoint_set basic memory)
