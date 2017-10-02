@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2014, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -36,13 +36,31 @@
 	}
 #endif
 
+#ifdef TPIE_HAS_SNAPPY
+#define SKIP_IF_NO_SNAPPY {}
+#else
+#define SKIP_IF_NO_SNAPPY { \
+		log_warning() << "ut-btree: No Snappy support built in!" << std::endl; \
+		return true; \
+	}
+#endif
+
+#ifdef TPIE_HAS_ZSTD
+#define SKIP_IF_NO_ZSTD {}
+#else
+#define SKIP_IF_NO_ZSTD { \
+		log_warning() << "ut-btree: No zstd support built in!" << std::endl; \
+		return true; \
+	}
+#endif
+
 using namespace tpie;
 using namespace std;
 
 template <typename ... TT>
 class TA {};
 
-template <typename node_t, typename iter_t> 
+template <typename node_t, typename iter_t>
 bool compare(node_t & n, iter_t & i, iter_t end) {
 	if (n.is_leaf()) {
 		for (size_t j=0; j < n.count(); ++j) {
@@ -72,7 +90,7 @@ template<typename ... TT, typename ... A>
 bool basic_test(TA<TT...>, A && ... a) {
 	btree<int, TT...> tree(std::forward<A>(a)...);
 	set<int> tree2;
-	
+
 	std::vector<int> x(12); //34);
 	std::iota(x.begin(), x.end(), 0);
 	std::random_shuffle(x.begin(), x.end());
@@ -99,13 +117,13 @@ template<typename ... TT, typename ... A>
 bool iterator_test(TA<TT...>, A && ... a) {
 	btree<int, TT...> tree(std::forward<A>(a)...);
 	set<int> tree2;
-	
+
 	std::vector<int> x;
     for (int i=0; i < 1234; ++i) {
         x.push_back(i);
 	}
 	std::random_shuffle(x.begin(), x.end());
-	
+
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
 		tree2.insert(x[i]);
@@ -118,7 +136,7 @@ bool iterator_test(TA<TT...>, A && ... a) {
 	set<int>::iterator e2 = tree2.end();
 	auto i1 = b1;
 	set<int>::iterator i2 = b2;
-	
+
 	while (true) {
 		if ((i1 == e1) != (i2 == e2)) return false;
 		if (i2 == e2) break;
@@ -126,7 +144,7 @@ bool iterator_test(TA<TT...>, A && ... a) {
 		++i1;
 		++i2;
 	}
-	
+
 	while (true) {
 		--i1;
 		--i2;
@@ -166,7 +184,7 @@ struct comparator {
 	bool operator()(const first_argument_type & a, const first_argument_type & b) const {
 		return c(a.value, b.value);
 	}
-	
+
 	comp_t c;
 };
 
@@ -189,7 +207,7 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 		btree_comp<comparator<std::greater<int> > >,
 		TT...> tree(std::forward<A>(a)..., comp);
 	std::map<uncomparable<int>, int, comparator<std::greater<int> > > tree2(comp);
-	
+
 	std::vector<item> x;
     for (int i=0; i < 1234; ++i) {
 		item it;
@@ -215,7 +233,7 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 		++i1;
 		++i2;
 	}
-	
+
 	std::random_shuffle(x.begin(), x.end());
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.erase(x[i].key);
@@ -385,7 +403,7 @@ bool unordered_test(TA<TT...>, A && ... a) {
 		bool operator==(const item & o) const noexcept {return v == o.v;}
 		bool operator!=(const item & o) const noexcept {return v != o.v;}
 	};
-	
+
     btree_builder<item, btree_unordered, TT...> builder(std::forward<A>(a)...);
 	std::vector<item> tree2;
 
@@ -549,16 +567,40 @@ bool serialized_reopen_test() {
 	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path());
 }
 
-bool serialized_compressed_build_test() {
+bool serialized_lz4_build_test() {
 	SKIP_IF_NO_LZ4;
 	temp_file tmp;
 	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_lz4);
 }
 
-bool serialized_compressed_reopen_test() {
+bool serialized_lz4_reopen_test() {
 	SKIP_IF_NO_LZ4;
 	temp_file tmp;
 	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_lz4);
+}
+
+bool serialized_snappy_build_test() {
+	SKIP_IF_NO_SNAPPY;
+	temp_file tmp;
+	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_snappy);
+}
+
+bool serialized_snappy_reopen_test() {
+	SKIP_IF_NO_LZ4;
+	temp_file tmp;
+	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_snappy);
+}
+
+bool serialized_zstd_build_test() {
+	SKIP_IF_NO_ZSTD;
+	temp_file tmp;
+	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_zstd);
+}
+
+bool serialized_zstd_reopen_test() {
+	SKIP_IF_NO_ZSTD;
+	temp_file tmp;
+	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_zstd);
 }
 
 bool serialized_read_old_format() {
@@ -600,9 +642,11 @@ int main(int argc, char **argv) {
 		.test(external_static_reopen_test, "external_static_reopen")
 		.test(serialized_build_test, "serialized_build")
 		.test(serialized_reopen_test, "serialized_reopen")
-        .test(serialized_compressed_build_test, "serialized_compressed_build")
-		.test(serialized_compressed_reopen_test, "serialized_compressed_reopen")
+        .test(serialized_lz4_build_test, "serialized_lz4_build")
+		.test(serialized_lz4_reopen_test, "serialized_lz4_reopen")
+        .test(serialized_snappy_build_test, "serialized_snappy_build")
+		.test(serialized_snappy_reopen_test, "serialized_snappy_reopen")
+        .test(serialized_zstd_build_test, "serialized_zstd_build")
+		.test(serialized_zstd_reopen_test, "serialized_zstd_reopen")
 		.test(serialized_read_old_format, "serialized_read_old_format");
 }
-
-
