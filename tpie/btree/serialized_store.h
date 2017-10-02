@@ -247,7 +247,7 @@ private:
 			serilization_buffer uncompressed_buffer(uncompressed_size);
 
 			size_t r = ZSTD_decompress(uncompressed_buffer.data(), uncompressed_size, compressed_buffer.data(), compressed_size);
-			if (r != compressed_size)
+			if ((int)r != compressed_size)
 				throw io_exception("B-tree decompression failed");
 			
 			unserialize(uncompressed_buffer, i.count);

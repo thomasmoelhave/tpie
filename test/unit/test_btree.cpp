@@ -299,7 +299,7 @@ void print(btree_node<S> & n) {
 }
 
 template<typename ... TT>
-btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags::type =btree_flags::defaults) {
+btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags =btree_flags::defaults) {
 	return btree<int, btree_augment<ss_augmenter>, TT...>(path, c, au);
 };
 
@@ -309,7 +309,7 @@ btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp
 };
 
 template<typename ... TT>
-btree_builder<int, btree_augment<ss_augmenter>, TT...> get_builder(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags::type flags=btree_flags::defaults) {
+btree_builder<int, btree_augment<ss_augmenter>, TT...> get_builder(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags flags=btree_flags::defaults) {
 	return btree_builder<int, btree_augment<ss_augmenter>, TT...>(path, c, au, flags);
 };
 
@@ -552,13 +552,13 @@ bool serialized_reopen_test() {
 bool serialized_compressed_build_test() {
 	SKIP_IF_NO_LZ4;
 	temp_file tmp;
-	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compressed);
+	return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_lz4);
 }
 
 bool serialized_compressed_reopen_test() {
 	SKIP_IF_NO_LZ4;
 	temp_file tmp;
-	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compressed);
+	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_lz4);
 }
 
 bool serialized_read_old_format() {
