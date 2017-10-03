@@ -586,7 +586,7 @@ bool serialized_snappy_build_test() {
 }
 
 bool serialized_snappy_reopen_test() {
-	SKIP_IF_NO_LZ4;
+	SKIP_IF_NO_SNAPPY;
 	temp_file tmp;
 	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path(), btree_flags::compress_snappy);
 }
