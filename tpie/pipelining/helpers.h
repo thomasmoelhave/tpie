@@ -468,6 +468,48 @@ private:
 	dest_t dest;
 };
 
+template <typename src_t, typename equal_t>
+class pull_unique_t : public node {
+public:
+	typedef typename pull_type<src_t>::type item_type;
+
+	pull_unique_t(src_t src, equal_t equal)
+		: equal(equal), src(std::move(src)) {}
+	
+	void begin() override {
+		has_item = src.can_pull();
+		if (!has_item) return;
+		item = src.pull();
+	}
+
+	bool can_pull() {
+		return has_item;
+	}
+
+	item_type over() {
+		has_item = false;
+		return item;
+	}
+
+	item_type pull() {
+		if (!src.can_pull()) return over();
+
+		item_type next;
+		do next = src.pull();
+		while (src.can_pull() && equal(item, next));
+
+		if (equal(item, next)) return over();
+		std::swap(next, item);
+		return next;
+	}
+
+private:
+	bool has_item;
+	equal_t equal;
+	item_type item;
+	src_t src;
+};
+
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -671,12 +713,24 @@ pull_source(pullpipe_begin<fact_t> from) {
 /// \brief Filter consecutive duplicates out
 ///
 /// When items are pushed in 
-/// Whenever a pushed itme is same as the previous, it is dropped
+/// Whenever a pushed item is same as the previous, it is dropped
 ///////////////////////////////////////////////////////////////////////////////
 template <typename equal_t>
 pipe_middle<tfactory<bits::unique_t, Args<equal_t>, equal_t> > unique(equal_t equal) {
 	return {equal};
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Pull version of unique
+///
+/// When items are pulled in 
+/// Whenever a pulled item is same as the previous, it is dropped
+///////////////////////////////////////////////////////////////////////////////
+template <typename equal_t>
+pullpipe_middle<tfactory<bits::pull_unique_t, Args<equal_t>, equal_t> > pull_unique(equal_t equal) {
+	return {equal};
+}
+
 
 }
 
