@@ -1,5 +1,4 @@
-# doc/CMakeLists.txt uses configure_file behavior from CMake 2.8
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 project(tpie)
 
@@ -7,38 +6,22 @@ if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-include_directories(.)
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 #### CONFIG.H Checks:
 include(CheckIncludeFiles)
 
-if(NOT WIN32) 
-	add_definitions("-Wall -Wextra")
-endif(NOT WIN32)
-
-if(WIN32)
-	add_definitions("-DWIN32_LEAN_AND_MEAN /bigobj")
-endif(WIN32)
-
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 #### Dependencies
-## Boost
-set(Boost_ADDITIONAL_VERSIONS "1.40.0" "1.40" "1.41" "1.41.0" "1.42" "1.42.0" "1.43" "1.43.0" "1.44" "1.44.0" "1.45" "1.45.0")
+
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
-	set(Boost_USE_STATIC_LIBS    ON)
+	set(Boost_USE_STATIC_LIBS ON)
 endif(WIN32)
-find_package(Boost COMPONENTS date_time filesystem system REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories( ${Boost_LIBRARY_DIRS} )
+find_package(Boost 1.40.0 COMPONENTS date_time filesystem system REQUIRED)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-if(TPIE_FRACTIONDB_DIR_INL) 
-  include_directories(${TPIE_FRACTIONDB_DIR_INL})
-endif(TPIE_FRACTIONDB_DIR_INL)
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
@@ -54,7 +37,6 @@ if(TPIE_USE_SNAPPY)
 	find_package(Snappy)
 	if(${Snappy_FOUND})
 		set(TPIE_HAS_SNAPPY ON)
-		include_directories(${Snappy_INCLUDE_DIR})
 	else(${Snappy_FOUND})
 		set(TPIE_HAS_SNAPPY OFF)
 	endif(${Snappy_FOUND})
@@ -66,7 +48,6 @@ if(TPIE_USE_LZ4)
 	find_package(LZ4)
 	if(${LZ4_FOUND})
 		set(TPIE_HAS_LZ4 ON)
-		include_directories(${LZ4_INCLUDE_DIR})
 	else(${LZ4_FOUND})
 		set(TPIE_HAS_LZ4 OFF)
 	endif(${LZ4_FOUND})
@@ -79,7 +60,6 @@ if(TPIE_USE_ZSTD)
 	find_package(ZSTD)
 	if(${ZSTD_FOUND})
 		set(TPIE_HAS_ZSTD ON)
-		include_directories(${ZSTD_INCLUDE_DIR})
 	else(${ZSTD_FOUND})
 		set(TPIE_HAS_ZSTD OFF)
 	endif(${ZSTD_FOUND})
@@ -102,8 +82,6 @@ set(INSTALL_TARGETS_DEFAULT_ARGS
 	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
 	ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 )
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (CMAKE_BUILD_TYPE) 
   string(TOUPPER ${CMAKE_BUILD_TYPE} bt)

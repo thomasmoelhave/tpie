@@ -14,3 +14,9 @@ set(Snappy_PROCESS_INCLUDES Snappy_INCLUDE_DIR)
 set(Snappy_PROCESS_LIBS Snappy_LIBRARY)
 
 libfind_process(Snappy)
+
+if (SNAPPY_FOUND)
+  add_library(snappy SHARED IMPORTED)
+  set_property(TARGET snappy PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SNAPPY_INCLUDE_DIR})
+  set_property(TARGET snappy PROPERTY IMPORTED_LOCATION ${SNAPPY_LIBRARY})
+endif()

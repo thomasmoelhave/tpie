@@ -8,13 +8,14 @@ set (COMMON_DEPS
 		test_portability.h
 	)
 
-add_library(test_common ${COMMON_DEPS})
+add_library(test_common STATIC ${COMMON_DEPS})
 set_target_properties(test_common PROPERTIES FOLDER tpie/test)
+target_link_libraries(test_common tpie)
 
 macro(add_tpie_test NAME)
 	add_executable(${NAME} ${NAME}.cpp) 
 	set_target_properties(${NAME} PROPERTIES FOLDER tpie/test)
-	target_link_libraries(${NAME} tpie test_common )
+	target_link_libraries(${NAME} test_common )
 endmacro(add_tpie_test)
 
 add_tpie_test(test_ami_stack)
@@ -55,4 +56,4 @@ target_link_libraries(test_job_overhead tpie)
 
 add_executable(atomic_stats test_atomic_stats.cpp)
 set_target_properties(atomic_stats PROPERTIES FOLDER tpie/test)
-target_link_libraries(atomic_stats tpie ${Boost_LIBRARIES})
+target_link_libraries(atomic_stats tpie)

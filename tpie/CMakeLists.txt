@@ -226,19 +226,36 @@ set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
 add_library(tpie ${HEADERS} ${SOURCES})
-target_link_libraries(tpie ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(tpie Boost::date_time Boost::filesystem Boost::system Threads::Threads)
+target_include_directories(tpie PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/..)
+
+set_property(TARGET tpie PROPERTY CXX_STANDARD 14)
+
+if(TPIE_FRACTIONDB_DIR_INL)
+  target_include_directories(tpie PUBLIC ${TPIE_FRACTIONDB_DIR_INL})
+endif(TPIE_FRACTIONDB_DIR_INL)
+
+target_compile_definitions(tpie PUBLIC -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
+if(NOT WIN32)
+  target_compile_options(tpie PUBLIC -Wall -Wextra)
+endif(NOT WIN32)
+
+if(WIN32)
+  target_compile_definitions(tpie PUBLIC -DWIN32_LEAN_AND_MEAN /bigobj)
+endif(WIN32)
+
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 if(TPIE_HAS_SNAPPY)
-	target_link_libraries(tpie ${Snappy_LIBRARY})
+	target_link_libraries(tpie snappy)
 endif(TPIE_HAS_SNAPPY)
 
 if(TPIE_HAS_LZ4)
-	target_link_libraries(tpie ${LZ4_LIBRARY})
+	target_link_libraries(tpie lz4)
 endif(TPIE_HAS_LZ4)
 
 if(TPIE_HAS_ZSTD)
-	target_link_libraries(tpie ${ZSTD_LIBRARY})
+	target_link_libraries(tpie zstd)
 endif(TPIE_HAS_ZSTD)
 
 install(TARGETS tpie
