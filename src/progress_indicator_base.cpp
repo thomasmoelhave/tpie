@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include "progress_indicator_base.h"
+#include <tpie/progress_indicator_base.h>
 #include <tpie/tpie_assert.h>
 
 namespace {

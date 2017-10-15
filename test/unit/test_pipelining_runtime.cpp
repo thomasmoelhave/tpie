@@ -19,7 +19,7 @@
 
 #include "common.h"
 #include <tpie/pipelining/runtime.h>
-#include <tpie/pipelining/runtime.cpp>
+#include "../../src/pipelining/runtime.cpp"
 #include <tpie/pipelining/node.h>
 
 using namespace tpie;

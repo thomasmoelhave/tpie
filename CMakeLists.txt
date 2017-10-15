@@ -93,10 +93,17 @@ endif()
 set(TPIE_S ${CMAKE_CURRENT_SOURCE_DIR})
 set(TPIE_B ${CMAKE_CURRENT_BINARY_DIR})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
-add_subdirectory(tpie)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/include/tpie/config.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
 
+
+
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/src/sysinfo.cpp" @ONLY)
+
+
+add_subdirectory(src)
 add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)

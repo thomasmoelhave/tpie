@@ -1,6 +1,6 @@
 set (SPEED_DEPS blocksize_2MB.h blocksize_128KB.h fractile.h testinfo.h testtime.h stat.h)
 
-list(APPEND SPEED_DEPS "${PROJECT_SOURCE_DIR}/tpie/sysinfo.h")
+list(APPEND SPEED_DEPS "${PROJECT_SOURCE_DIR}/include/tpie/sysinfo.h")
 
 add_executable(btree_speed_test btree.cpp ${SPEED_DEPS})
 target_link_libraries(btree_speed_test tpie)

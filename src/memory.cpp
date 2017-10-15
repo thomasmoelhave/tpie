@@ -18,13 +18,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include "memory.h"
+#include <tpie/memory.h>
 #include <iostream>
 #include <sstream>
-#include "tpie_log.h"
+#include <tpie/tpie_log.h>
 #include <cstring>
 #include <cstdlib>
-#include "pretty_print.h"
+#include <tpie/pretty_print.h>
 
 namespace tpie {
 
