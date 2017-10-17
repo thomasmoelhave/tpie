@@ -173,35 +173,19 @@ std::string tempname::get_actual_path() {
 	return dir;
 }
 
-bool tempname::try_directory(const std::string& path, const std::string& subdir) {
+bool tempname::try_directory(const std::string& path) {
 	boost::filesystem::path p = path;
-	if(!subdir.empty())
-		p = p / subdir;
-
-	bool exists = boost::filesystem::exists(p);
-
-
-	if (exists && !boost::filesystem::is_directory(p))
+	if (!boost::filesystem::is_directory(p))
 		return false;
-
-	if (!exists) {
-		try {
-			boost::filesystem::create_directory(p);
-		}
-		catch(boost::filesystem::filesystem_error) {
-			return false;
-		}
-	}
-
 	boost::filesystem::path f = p / construct_name("", get_timestamp(), "");
-	if(boost::filesystem::exists(f)) return false;
+	if(boost::filesystem::exists(f))
+		return false;
 
 #if BOOST_FILESYSTEM_VERSION == 3
 	std::string file_path = f.string();
 #else
 	std::string file_path = f.directory_string();
 #endif
-
 	try {
 		{
 			tpie::file_accessor::raw_file_accessor accessor;
@@ -209,17 +193,13 @@ bool tempname::try_directory(const std::string& path, const std::string& subdir)
 			int i = 0xbadf00d;
 			accessor.write_i(static_cast<const void*>(&i), sizeof(i));
 		}
-		if(exists)
-			boost::filesystem::remove_all(file_path);
-		else
-			boost::filesystem::remove_all(p);
+		boost::filesystem::remove(file_path);
 		return true;
 	}
 	catch(tpie::exception) {}
 	catch (boost::filesystem::filesystem_error) {}
 
 	return false;
-	// remove file
 }
 
 void tempname::set_default_path(const std::string&  path, const std::string& subdir) {

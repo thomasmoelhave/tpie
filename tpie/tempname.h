@@ -88,9 +88,8 @@ namespace tpie {
 		/// \brief Tests whether a temporary path is usable for tpie
 		///
 		/// \param path The path to test
-		/// \param subdir Subdirectory of the temporary path, will be created if it does not exist.
 		///////////////////////////////////////////////////////////////////////
-		static bool try_directory(const std::string& path, const std::string& subdir="");
+		static bool try_directory(const std::string& path);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Sets the default temporary path.
