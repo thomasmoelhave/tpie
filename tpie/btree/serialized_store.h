@@ -227,7 +227,7 @@ private:
 			serilization_buffer uncompressed_buffer(uncompressed_size);
 
 			int r = LZ4_decompress_fast(compressed_buffer.data(), uncompressed_buffer.data(), uncompressed_size);
-			if (r != compressed_size)
+			if (r != uncompressed_size)
 				throw io_exception("B-tree decompression failed");
 			
 			unserialize(uncompressed_buffer, i.count);
@@ -247,7 +247,7 @@ private:
 			serilization_buffer uncompressed_buffer(uncompressed_size);
 
 			size_t r = ZSTD_decompress(uncompressed_buffer.data(), uncompressed_size, compressed_buffer.data(), compressed_size);
-			if ((int)r != compressed_size)
+			if ((int)r != uncompressed_size)
 				throw io_exception("B-tree decompression failed");
 			
 			unserialize(uncompressed_buffer, i.count);
