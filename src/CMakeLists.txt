@@ -7,6 +7,7 @@ add_library(tpie
 	blocks/block_collection.cpp
 	blocks/block_collection_cache.cpp
 	btree/external_store_base.cpp
+	btree/serialized_store.cpp
 	compressed/buffer.cpp
 	compressed/request.cpp
 	compressed/scheme_none.cpp
