@@ -517,6 +517,17 @@ sort(const pred_t & p) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining node that sorts large elements indirectly by using 
+/// a store and the given predicate.
+///////////////////////////////////////////////////////////////////////////////
+template <typename store_t, typename pred_t>
+inline pipe_middle<bits::sort_factory<pred_t, store_t> >
+store_sort(const pred_t & p, store_t store=store_t()) {
+	typedef bits::sort_factory<pred_t, store_t> fact;
+	return pipe_middle<fact>(fact(p, store)).name("Sort");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A pipelining node that sorts large elements indirectly by using 
 /// a storeand a given predicate.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pred_t, typename store_t>
