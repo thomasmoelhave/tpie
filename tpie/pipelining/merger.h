@@ -89,17 +89,23 @@ public:
 		itemsRead.resize(in.size(), 1);
 	}
 
-	inline static memory_size_type memory_usage(memory_size_type fanout) {
-		return sizeof(merger)
-			- sizeof(internal_priority_queue<std::pair<store_type, size_t>, predwrap>) // pq
-			+ static_cast<memory_size_type>(internal_priority_queue<std::pair<store_type, size_t>, predwrap>::memory_usage(fanout)) // pq
-			- sizeof(array<file_stream<element_type> >) // in
-			+ static_cast<memory_size_type>(array<file_stream<element_type> >::memory_usage(fanout)) // in
-			- fanout*sizeof(file_stream<element_type>) // in file_streams
-			+ fanout*file_stream<element_type>::memory_usage() // in file_streams
-			- sizeof(array<size_t>) // itemsRead
-			+ static_cast<memory_size_type>(array<size_t>::memory_usage(fanout)) // itemsRead
-			;
+	// Compute memory usage as a function of the fanout
+	static constexpr linear_memory_usage memory_usage() noexcept {
+		return
+			linear_memory_usage(-sizeof(file_stream<element_type>) //in filestreams,
+								+ file_stream<element_type>::memory_usage(), //in filestreams
+								sizeof(merger) 
+								- sizeof(internal_priority_queue<std::pair<store_type, size_t>, predwrap>) //pq
+								- sizeof(array<file_stream<element_type> >) //in
+								- sizeof(array<size_t>)) // itemsRead
+			+ array<size_t>::memory_usage() //itemsRead
+			+ internal_priority_queue<std::pair<store_type, size_t>, predwrap>::memory_usage() //pq
+			+ array<file_stream<element_type> >::memory_usage(); //in
+	}
+	
+	
+	static constexpr memory_size_type memory_usage(memory_size_type fanout) noexcept {
+		return memory_usage().usage(fanout);
 	}
 
 	class predwrap {

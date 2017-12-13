@@ -59,6 +59,31 @@ const char directory_delimiter = '\\';
 const char directory_delimiter = '/';
 #endif
 
+struct linear_memory_usage {
+	const double coefficient;
+	const double overhead;
+	constexpr linear_memory_usage(const double coefficient, const double overhead) noexcept :
+	coefficient(coefficient), overhead(overhead) {}
+
+	constexpr memory_size_type usage(memory_size_type size) const noexcept {
+		return static_cast<memory_size_type>(
+			floor(static_cast<double>(size) * coefficient + overhead));
+	}
+
+	constexpr friend linear_memory_usage operator * (const linear_memory_usage & o, double scale) noexcept {
+		return linear_memory_usage(o.coefficient * scale, o.overhead * scale);
+	}
+
+	constexpr friend linear_memory_usage operator + (const linear_memory_usage & o, double value) noexcept {
+		return linear_memory_usage(o.coefficient, o.overhead + value);
+	}
+
+    constexpr friend linear_memory_usage operator + (const linear_memory_usage & l, const linear_memory_usage & r) noexcept {
+		return linear_memory_usage(l.coefficient + r.coefficient, l.overhead * r.overhead);
+	}
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Base class of data structures with linear memory usage.
 ///
@@ -78,7 +103,7 @@ struct linear_memory_base {
 	/// \param size The number of elements to support
 	/// \return The amount of memory required in bytes
 	///////////////////////////////////////////////////////////////////////////
-	static memory_size_type memory_usage(memory_size_type size) {
+	static constexpr memory_size_type memory_usage(memory_size_type size) noexcept {
 		return static_cast<memory_size_type>(
 			floor(static_cast<double>(size) * child_t::memory_coefficient() + child_t::memory_overhead()));
 	}
@@ -90,9 +115,14 @@ struct linear_memory_base {
 	/// \param memory The number of bytes the structure is allowed to occupy
 	/// \return The number of elements that will fit in the structure
 	///////////////////////////////////////////////////////////////////////////
-	inline static memory_size_type memory_fits(memory_size_type memory) {
+	static constexpr memory_size_type memory_fits(memory_size_type memory) noexcept {
 		return static_cast<memory_size_type>(
 			floor((memory - child_t::memory_overhead()) / child_t::memory_coefficient()));
+	}
+
+
+	static constexpr linear_memory_usage memory_usage() noexcept {
+		return linear_memory_usage(child_t::memory_coefficient(), child_t::memory_overhead());
 	}
 };
 

@@ -795,11 +795,15 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type fanout_memory_usage(memory_size_type fanout) {
-		return merger<specific_store_t, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
+	static constexpr linear_memory_usage fanout_memory_usage() noexcept {
+		return merger<specific_store_t, pred_t>::memory_usage()
 			+ bits::run_positions::memory_usage()
 			+ file_stream<element_type>::memory_usage() // output stream
 			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
+	}
+	
+	static constexpr memory_size_type fanout_memory_usage(memory_size_type fanout) noexcept {
+		return fanout_memory_usage().usage(fanout);
 	}
 
 public:

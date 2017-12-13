@@ -155,7 +155,7 @@ public:
 	/// \copybrief linear_memory_structure_doc::memory_coefficient()
 	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	///////////////////////////////////////////////////////////////////////////
-	static double memory_coefficient() {
+	static constexpr double memory_coefficient() noexcept {
 		return tpie::array<T>::memory_coefficient();
 	}
 
@@ -163,7 +163,7 @@ public:
 	/// \copybrief linear_memory_structure_doc::memory_overhead()
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
-	static double memory_overhead() {
+	static constexpr double memory_overhead() noexcept {
 		return tpie::array<T>::memory_overhead() - sizeof(tpie::array<T>) + sizeof(internal_priority_queue);
 	}
 
