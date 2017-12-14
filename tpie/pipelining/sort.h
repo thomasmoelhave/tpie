@@ -115,10 +115,10 @@ public:
 	sort_pull_output_t(sorterptr sorter)
 		: sort_output_base<T, pred_t, store_t>(sorter)
 	{
-		this->set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase3);
+		this->set_minimum_resource_usage(FILES, this->m_sorter->minimumFilesPhase3);
 		this->set_resource_fraction(FILES, 1.0);
-		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
-		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
+		this->set_minimum_memory(this->m_sorter->minimum_memory_phase_3());
+		this->set_maximum_memory(this->m_sorter->maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 		this->set_memory_fraction(1.0);
 		this->set_plot_options(node::PLOT_BUFFERED);
@@ -176,10 +176,10 @@ public:
 		, dest(std::move(dest))
 	{
 		this->add_push_destination(dest);
-		this->set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase3);
+		this->set_minimum_resource_usage(FILES, this->m_sorter->minimumFilesPhase3);
 		this->set_resource_fraction(FILES, 1.0);
-		this->set_minimum_memory(sorter_t::minimum_memory_phase_3());
-		this->set_maximum_memory(sorter_t::maximum_memory_phase_3());
+		this->set_minimum_memory(this->m_sorter->minimum_memory_phase_3());
+		this->set_maximum_memory(this->m_sorter->maximum_memory_phase_3());
 		this->set_name("Write sorted output", PRIORITY_INSIGNIFICANT);
 		this->set_memory_fraction(1.0);
 		this->set_plot_options(node::PLOT_BUFFERED);
@@ -241,9 +241,9 @@ public:
 	}
 
 	void init() {
-		set_minimum_resource_usage(FILES, sorter_t::minimumFilesPhase2);
+		set_minimum_resource_usage(FILES, this->m_sorter->minimumFilesPhase2);
 		set_resource_fraction(FILES, 1.0);
-		set_minimum_memory(sorter_t::minimum_memory_phase_2());
+		set_minimum_memory(this->m_sorter->minimum_memory_phase_2());
 		set_name("Perform merge heap", PRIORITY_SIGNIFICANT);
 		set_memory_fraction(1.0);
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);

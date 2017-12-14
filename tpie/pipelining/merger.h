@@ -105,7 +105,7 @@ public:
 	
 	
 	static constexpr memory_size_type memory_usage(memory_size_type fanout) noexcept {
-		return memory_usage().usage(fanout);
+		return memory_usage()(fanout);
 	}
 
 	class predwrap {

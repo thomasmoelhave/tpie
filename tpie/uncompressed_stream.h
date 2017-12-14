@@ -153,9 +153,9 @@ public:
 	/// file accessor to open, leave this to be true.
 	/// \returns The amount of memory maximally used by the count file_streams.
 	///////////////////////////////////////////////////////////////////////////
-	inline static memory_size_type memory_usage(
+	static constexpr memory_size_type memory_usage(
 		float blockFactor=1.0,
-		bool includeDefaultFileAccessor=true) throw() {
+		bool includeDefaultFileAccessor=true) noexcept {
 		// TODO
 		memory_size_type x = sizeof(uncompressed_stream);
 		x += block_memory_usage(blockFactor); // allocated in constructor

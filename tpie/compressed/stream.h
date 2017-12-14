@@ -542,7 +542,7 @@ public:
 		}
 	}
 
-	static memory_size_type memory_usage(double blockFactor=1.0) {
+	static constexpr memory_size_type memory_usage(double blockFactor=1.0) noexcept {
 		// m_buffer is included in m_buffers memory usage
 		return sizeof(file_stream)
 			+ sizeof(temp_file) // m_ownedTempFile

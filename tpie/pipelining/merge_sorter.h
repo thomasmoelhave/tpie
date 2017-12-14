@@ -66,7 +66,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Memory usage when open and not evacuated.
 	///////////////////////////////////////////////////////////////////////////
-	static memory_size_type memory_usage();
+	static memory_size_type memory_usage() noexcept;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Switch from `closed` to `open` state.
@@ -134,6 +134,251 @@ private:
 
 } // namespace bits
 
+class merge_sorter_base {
+public:
+	merge_sorter_base(
+		linear_memory_usage fanout_memory_usage,
+		memory_size_type item_size,
+		memory_size_type element_file_stream_memory_usage);
+
+	static const memory_size_type defaultFiles = 253; // Default number of files available, when not using set_available_files
+	static const memory_size_type minimumFilesPhase1 = 1;
+	static const memory_size_type maximumFilesPhase1 = 1;
+	static const memory_size_type minimumFilesPhase2 = 5;
+	static const memory_size_type maximumFilesPhase2 = std::numeric_limits<memory_size_type>::max();
+	static const memory_size_type minimumFilesPhase3 = 5;
+	static const memory_size_type maximumFilesPhase3 = std::numeric_limits<memory_size_type>::max();
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Enable setting run length and fanout manually (for testing
+	/// purposes).
+	///////////////////////////////////////////////////////////////////////////
+	void set_parameters(memory_size_type runLength, memory_size_type fanout);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given amount of files.
+	/// \param f Files available for phase 1, 2 and 3
+	///////////////////////////////////////////////////////////////////////////
+	void set_available_files(memory_size_type f) {
+		p.filesPhase1 = p.filesPhase2 = p.filesPhase3 = f;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given amount of files.
+	/// \param f1 Files available for phase 1
+	/// \param f2 Files available for phase 2
+	/// \param f3 Files available for phase 3
+	///////////////////////////////////////////////////////////////////////////
+	void set_available_files(memory_size_type f1, memory_size_type f2, memory_size_type f3) {
+		p.filesPhase1 = f1;
+		p.filesPhase2 = f2;
+		p.filesPhase3 = f3;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given memory amount.
+	/// \param m Memory available for phase 1, 2 and 3
+	///////////////////////////////////////////////////////////////////////////
+	void set_available_memory(memory_size_type m) {
+		p.memoryPhase1 = p.memoryPhase2 = p.memoryPhase3 = m;
+		check_not_started();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given memory amount.
+	/// \param m1 Memory available for phase 1
+	/// \param m2 Memory available for phase 2
+	/// \param m3 Memory available for phase 3
+	///////////////////////////////////////////////////////////////////////////
+	void set_available_memory(memory_size_type m1, memory_size_type m2, memory_size_type m3) {
+		p.memoryPhase1 = m1;
+		p.memoryPhase2 = m2;
+		p.memoryPhase3 = m3;
+		check_not_started();
+	}
+
+	stream_size_type item_count() {
+		return m_itemCount;
+	}
+
+
+	memory_size_type evacuated_usage() const {
+		return 2*p.fanout*sizeof(temp_file);
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Set upper bound on number of items pushed.
+	///
+	/// If the number of items to push is less than the size of a single run,
+	/// this method will decrease the run size to that.
+	/// This may make it easier for the sorter to go into internal reporting
+	/// mode.
+	///////////////////////////////////////////////////////////////////////////
+	void set_items(stream_size_type n);
+
+	void set_owner(tpie::pipelining::node * n);
+
+	void set_phase_1_files(memory_size_type f1) {
+		p.filesPhase1 = f1;
+		check_not_started();
+	}
+
+	void set_phase_2_files(memory_size_type f2) {
+		p.filesPhase2 = f2;
+		check_not_started();
+	}
+
+	void set_phase_3_files(memory_size_type f3) {
+		p.filesPhase3 = f3;
+		check_not_started();
+	}
+
+	void set_phase_1_memory(memory_size_type m1) {
+		p.memoryPhase1 = m1;
+		check_not_started();
+	}
+
+	void set_phase_2_memory(memory_size_type m2) {
+		p.memoryPhase2 = m2;
+		check_not_started();
+	}
+
+	void set_phase_3_memory(memory_size_type m3) {
+		p.memoryPhase3 = m3;
+		check_not_started();
+	}
+
+	bool is_calc_free() const {
+		tp_assert(m_state == stMerge, "Wrong phase");
+		return m_reportInternal || m_finishedRuns <= p.fanout;
+	}
+
+	
+	memory_size_type minimum_memory_phase_1() noexcept {
+		// Our *absolute minimum* memory requirements are a single item and
+		// twice as many temp_files as the fanout.
+		// However, our fanout calculation does not take the memory available
+		// in this phase (run formation) into account.
+		// Thus, we assume the largest fanout, meaning we might overshoot.
+		// If we do overshoot, we will just spend the extra bytes on a run length
+		// longer than 1, which is probably what the user wants anyway.
+		sort_parameters tmp_p((sort_parameters()));
+		tmp_p.runLength = 1;
+		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), 0);
+		return phase_1_memory(tmp_p);
+	}
+
+	memory_size_type minimum_memory_phase_2() noexcept {
+		return m_fanout_memory_usage(calculate_fanout(0, 0));
+	}
+
+	memory_size_type minimum_memory_phase_3() noexcept {
+		return m_fanout_memory_usage(calculate_fanout(0, 0));
+	}
+
+	constexpr memory_size_type maximum_memory_phase_3() noexcept {
+		return std::numeric_limits<memory_size_type>::max();
+	}
+
+	memory_size_type phase_1_memory(const sort_parameters & params) noexcept {
+		return params.runLength * m_item_size
+			+ bits::run_positions::memory_usage()
+			+ m_element_file_stream_memory_usage
+			+ 2*params.fanout*sizeof(temp_file);
+	}
+
+	constexpr memory_size_type phase_2_memory(const sort_parameters & params) noexcept {
+		return m_fanout_memory_usage(params.fanout);
+	}
+
+	constexpr memory_size_type phase_3_memory(const sort_parameters & params) noexcept {
+		return m_fanout_memory_usage(params.finalFanout);
+	}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// calculate_parameters helper
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type calculate_fanout(memory_size_type availableMemory, memory_size_type availableFiles) noexcept;
+	
+protected:
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given memory amount.
+	///////////////////////////////////////////////////////////////////////////
+	void calculate_parameters();
+	
+	// Checks if we should still be able to change parameters
+	void check_not_started() {
+		if (m_state != stNotStarted) {
+			throw tpie::exception("Can't change parameters after merge sorting has started");
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// initialize_merger helper.
+	///////////////////////////////////////////////////////////////////////////
+	static stream_size_type calculate_run_length(stream_size_type initialRunLength, memory_size_type fanout, memory_size_type mergeLevel) {
+		stream_size_type runLength = initialRunLength;
+		for (memory_size_type i = 0; i < mergeLevel; ++i) {
+			runLength *= fanout;
+		}
+		return runLength;
+	}
+
+	enum state_type {
+		stNotStarted,
+		stRunFormation,
+		stMerge,
+		stReport
+	};
+
+	const linear_memory_usage m_fanout_memory_usage;
+    const memory_size_type m_item_size, m_element_file_stream_memory_usage;
+	
+	std::unique_ptr<memory_bucket> m_bucketPtr;
+	memory_bucket_ref m_bucket;
+
+	array<temp_file> m_runFiles;
+
+	state_type m_state;
+
+	sort_parameters p;
+	bool m_parametersSet;
+
+	bits::run_positions m_runPositions;
+
+	// Number of runs already written to disk.
+	// On 32-bit systems, we could in principle support more than 2^32 finished runs,
+	// but keeping this as a memory_size_type is nicer when doing the actual merges.
+	stream_size_type m_finishedRuns;
+
+	// Number of items in current run buffer.
+	// Used to index into m_currentRunItems, so memory_size_type.
+	memory_size_type m_currentRunItemCount;
+
+	bool m_reportInternal;
+
+	// When doing internal reporting: the number of items already reported
+	// Used in comparison with m_currentRunItemCount
+	memory_size_type m_itemsPulled;
+
+	stream_size_type m_itemCount;
+
+	stream_size_type m_maxItems;
+	
+	bool m_evacuated;
+	bool m_finalMergeInitialized;
+	memory_size_type m_finalMergeLevel;
+	memory_size_type m_finalRunCount;
+	memory_size_type m_finalMergeSpecialRunNumber;
+
+	tpie::pipelining::node * m_owning_node;
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Merge sorting consists of three phases.
 ///
@@ -147,7 +392,7 @@ private:
 /// simple array traversal.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, bool UseProgress, typename pred_t = std::less<T>, typename store_t=default_store>
-class merge_sorter {
+class merge_sorter: public merge_sorter_base {
 private:
 	typedef typename store_t::template element_type<T>::type TT;
 	typedef typename store_t::template specific<TT> specific_store_t;
@@ -160,132 +405,21 @@ public:
 
 	typedef std::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
-
-	static const memory_size_type defaultFiles = 253; // Default number of files available, when not using set_available_files
-	static const memory_size_type minimumFilesPhase1 = 1;
-	static const memory_size_type maximumFilesPhase1 = 1;
-	static const memory_size_type minimumFilesPhase2 = 5;
-	static const memory_size_type maximumFilesPhase2 = std::numeric_limits<memory_size_type>::max();
-	static const memory_size_type minimumFilesPhase3 = 5;
-	static const memory_size_type maximumFilesPhase3 = std::numeric_limits<memory_size_type>::max();
-
-	inline merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
-		: m_bucketPtr(new memory_bucket())
- 		, m_bucket(memory_bucket_ref(m_bucketPtr.get()))
-		, m_state(stNotStarted)
-		, p()
-		, m_parametersSet(false)
+	
+	merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
+		: merge_sorter_base(fanout_memory_usage(), specific_store_t::item_size, file_stream<element_type>::memory_usage())
 		, m_store(store.template get_specific<element_type>())
 		, m_merger(pred, m_store, m_bucket)
 		, m_currentRunItems(m_bucket)
-		, m_maxItems(std::numeric_limits<stream_size_type>::max())
 		, pred(pred)
-		, m_evacuated(false)
-		, m_finalMergeInitialized(false)
-		, m_owning_node(nullptr)
 		{}
 	
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Enable setting run length and fanout manually (for testing
-	/// purposes).
-	///////////////////////////////////////////////////////////////////////////
-	inline void set_parameters(memory_size_type runLength, memory_size_type fanout) {
-		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
-		p.runLength = p.internalReportThreshold = runLength;
-		p.fanout = p.finalFanout = fanout;
-		m_parametersSet = true;
-		log_pipe_debug() << "Manually set merge sort run length and fanout\n";
-		log_pipe_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*item_size + file_stream<element_type>::memory_usage()) << ")\n";
-		log_pipe_debug() << "Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate parameters from given amount of files.
-	/// \param f Files available for phase 1, 2 and 3
-	///////////////////////////////////////////////////////////////////////////
-	inline void set_available_files(memory_size_type f) {
-		p.filesPhase1 = p.filesPhase2 = p.filesPhase3 = f;
-		check_not_started();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate parameters from given amount of files.
-	/// \param f1 Files available for phase 1
-	/// \param f2 Files available for phase 2
-	/// \param f3 Files available for phase 3
-	///////////////////////////////////////////////////////////////////////////
-	inline void set_available_files(memory_size_type f1, memory_size_type f2, memory_size_type f3) {
-		p.filesPhase1 = f1;
-		p.filesPhase2 = f2;
-		p.filesPhase3 = f3;
-		check_not_started();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate parameters from given memory amount.
-	/// \param m Memory available for phase 1, 2 and 3
-	///////////////////////////////////////////////////////////////////////////
-	inline void set_available_memory(memory_size_type m) {
-		p.memoryPhase1 = p.memoryPhase2 = p.memoryPhase3 = m;
-		check_not_started();
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate parameters from given memory amount.
-	/// \param m1 Memory available for phase 1
-	/// \param m2 Memory available for phase 2
-	/// \param m3 Memory available for phase 3
-	///////////////////////////////////////////////////////////////////////////
-	inline void set_available_memory(memory_size_type m1, memory_size_type m2, memory_size_type m3) {
-		p.memoryPhase1 = m1;
-		p.memoryPhase2 = m2;
-		p.memoryPhase3 = m3;
-		check_not_started();
-	}
-
-private:
-	// Checks if we should still be able to change parameters
-	inline void check_not_started() {
-		if (m_state != stNotStarted) {
-			throw tpie::exception("Can't change parameters after merge sorting has started");
-		}
-	}
 
 public:
-	inline void set_phase_1_files(memory_size_type f1) {
-		p.filesPhase1 = f1;
-		check_not_started();
-	}
-
-	inline void set_phase_2_files(memory_size_type f2) {
-		p.filesPhase2 = f2;
-		check_not_started();
-	}
-
-	inline void set_phase_3_files(memory_size_type f3) {
-		p.filesPhase3 = f3;
-		check_not_started();
-	}
-
-	inline void set_phase_1_memory(memory_size_type m1) {
-		p.memoryPhase1 = m1;
-		check_not_started();
-	}
-
-	inline void set_phase_2_memory(memory_size_type m2) {
-		p.memoryPhase2 = m2;
-		check_not_started();
-	}
-
-	inline void set_phase_3_memory(memory_size_type m3) {
-		p.memoryPhase3 = m3;
-		check_not_started();
-	}
-
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initiate phase 1: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
-	inline void begin() {
+	void begin() {
 		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
 		if (!m_parametersSet) calculate_parameters();
 		log_pipe_debug() << "Start forming input runs" << std::endl;
@@ -301,7 +435,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push item to merge sorter during phase 1.
 	///////////////////////////////////////////////////////////////////////////
-	inline void push(item_type && item) {
+	void push(item_type && item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
 			sort_current_run();
@@ -312,7 +446,7 @@ public:
 		++m_itemCount;
 	}
 	
-	inline void push(const item_type & item) {
+	void push(const item_type & item) {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		if (m_currentRunItemCount >= p.runLength) {
 			sort_current_run();
@@ -326,7 +460,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief End phase 1.
 	///////////////////////////////////////////////////////////////////////////
-	inline void end() {
+	void end() {
 		tp_assert(m_state == stRunFormation, "Wrong phase");
 		sort_current_run();
 
@@ -368,16 +502,12 @@ public:
 		m_state = stMerge;
 	}
 
-	inline bool is_calc_free() const {
-		tp_assert(m_state == stMerge, "Wrong phase");
-		return m_reportInternal || m_finishedRuns <= p.fanout;
-	}
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Perform phase 2: Performing all merges in the merge tree except
 	/// the last one.
 	///////////////////////////////////////////////////////////////////////////
-	inline void calc(typename Progress::base & pi) {
+	void calc(typename Progress::base & pi) {
 		tp_assert(m_state == stMerge, "Wrong phase");
 		if (!m_reportInternal) {
 			prepare_pull(pi);
@@ -389,7 +519,7 @@ public:
 		m_state = stReport;
 	}
 
-	inline void evacuate() {
+	void evacuate() {
 		tp_assert(m_state == stMerge || m_state == stReport, "Wrong phase");
 		if (m_reportInternal) {
 			log_pipe_debug() << "Evacuate merge_sorter (" << this << ") in internal reporting mode" << std::endl;
@@ -409,11 +539,11 @@ public:
 		m_runPositions.evacuate();
 	}
 
-	inline void evacuate_before_merging() {
+	void evacuate_before_merging() {
 		if (m_state == stMerge) evacuate();
 	}
 
-	inline void evacuate_before_reporting() {
+	void evacuate_before_reporting() {
 		if (m_state == stReport && (!m_reportInternal || m_itemsPulled == 0)) evacuate();
 	}
 
@@ -422,13 +552,13 @@ private:
 	// Phase 1 helpers.
 	///////////////////////////////////////////////////////////////////////////
 
-	inline void sort_current_run() {
+	void sort_current_run() {
 		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, 
 					  bits::store_pred<pred_t, specific_store_t>(pred));
 	}
 
 	// postcondition: m_currentRunItemCount = 0
-	inline void empty_current_run() {
+	void empty_current_run() {
 		if (m_finishedRuns < 10)
 			log_pipe_debug() << "Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl;
 		else if (m_finishedRuns == 10)
@@ -445,7 +575,7 @@ private:
 	/// Prepare m_merger for merging the runNumber'th to the
 	/// (runNumber+runCount)'th run in mergeLevel.
 	///////////////////////////////////////////////////////////////////////////
-	inline void initialize_merger(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount) {
+	void initialize_merger(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount) {
 		// runCount is a memory_size_type since we must be able to have that
 		// many file_streams open at the same time.
 
@@ -462,7 +592,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Prepare m_merger for merging the runCount runs in finalMergeLevel.
 	///////////////////////////////////////////////////////////////////////////
-	inline void initialize_final_merger(memory_size_type finalMergeLevel, memory_size_type runCount) {
+	void initialize_final_merger(memory_size_type finalMergeLevel, memory_size_type runCount) {
 		if (m_finalMergeInitialized) {
 			reinitialize_final_merger();
 			return;
@@ -489,7 +619,7 @@ private:
 	}
 
 public:
-	inline void reinitialize_final_merger() {
+	void reinitialize_final_merger() {
 		tp_assert(m_finalMergeInitialized, "reinitialize_final_merger while !m_finalMergeInitialized");
 		m_runPositions.unevacuate();
 		if (m_finalMergeSpecialRunNumber != std::numeric_limits<memory_size_type>::max()) {
@@ -511,23 +641,12 @@ public:
 
 private:
 	///////////////////////////////////////////////////////////////////////////
-	/// initialize_merger helper.
-	///////////////////////////////////////////////////////////////////////////
-	static inline stream_size_type calculate_run_length(stream_size_type initialRunLength, memory_size_type fanout, memory_size_type mergeLevel) {
-		stream_size_type runLength = initialRunLength;
-		for (memory_size_type i = 0; i < mergeLevel; ++i) {
-			runLength *= fanout;
-		}
-		return runLength;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
 	/// Merge the runNumber'th to the (runNumber+runCount)'th in mergeLevel
 	/// into mergeLevel+1.
 	/// \returns The run number in mergeLevel+1 that was written to.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename ProgressIndicator>
-	inline memory_size_type merge_runs(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount, ProgressIndicator & pi) {
+	memory_size_type merge_runs(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount, ProgressIndicator & pi) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<element_type> out;
 		memory_size_type nextRunNumber = runNumber/p.fanout;
@@ -542,7 +661,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Phase 2: Merge all runs and initialize merger for public pulling.
 	///////////////////////////////////////////////////////////////////////////
-	inline void prepare_pull(typename Progress::base & pi) {
+	void prepare_pull(typename Progress::base & pi) {
 		m_runPositions.unevacuate();
 
 		// Compute merge depth (number of passes over data).
@@ -582,7 +701,7 @@ public:
 	/// In phase 3, return true if there are more items in the final merge
 	/// phase.
 	///////////////////////////////////////////////////////////////////////////
-	inline bool can_pull() {
+	bool can_pull() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal) return m_itemsPulled < m_currentRunItemCount;
 		else {
@@ -594,7 +713,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// In phase 3, fetch next item in the final merge phase.
 	///////////////////////////////////////////////////////////////////////////
-	inline item_type pull() {
+	item_type pull() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
 			store_type el = std::move(m_currentRunItems[m_itemsPulled++]);
@@ -607,51 +726,7 @@ public:
 		}
 	}
 
-	inline stream_size_type item_count() {
-		return m_itemCount;
-	}
-
-	static memory_size_type memory_usage_phase_1(const sort_parameters & params) {
-		return params.runLength * item_size
-			+ bits::run_positions::memory_usage()
-			+ file_stream<element_type>::memory_usage()
-			+ 2*params.fanout*sizeof(temp_file);
-	}
-
-	static memory_size_type minimum_memory_phase_1() {
-		// Our *absolute minimum* memory requirements are a single item and
-		// twice as many temp_files as the fanout.
-		// However, our fanout calculation does not take the memory available
-		// in this phase (run formation) into account.
-		// Thus, we assume the largest fanout, meaning we might overshoot.
-		// If we do overshoot, we will just spend the extra bytes on a run length
-		// longer than 1, which is probably what the user wants anyway.
-		sort_parameters tmp_p((sort_parameters()));
-		tmp_p.runLength = 1;
-		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), 0);
-		return memory_usage_phase_1(tmp_p);
-	}
-
-	static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
-		return fanout_memory_usage(params.fanout);
-	}
-
-	static memory_size_type minimum_memory_phase_2() {
-		return fanout_memory_usage(calculate_fanout(0, 0));
-	}
-
-	static memory_size_type memory_usage_phase_3(const sort_parameters & params) {
-		return fanout_memory_usage(params.finalFanout);
-	}
-
-	static memory_size_type minimum_memory_phase_3() {
-		return fanout_memory_usage(calculate_fanout(0, 0));
-	}
-
-	static memory_size_type maximum_memory_phase_3() {
-		return std::numeric_limits<memory_size_type>::max();
-	}
-
+	
 	memory_size_type actual_memory_phase_3() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal)
@@ -660,137 +735,8 @@ public:
 		else
 			return fanout_memory_usage(m_finalRunCount);
 	}
-
-	inline memory_size_type evacuated_memory_usage() const {
-		return 2*p.fanout*sizeof(temp_file);
-	}
-
+	
 private:
-	static memory_size_type clamp(memory_size_type lo, memory_size_type val, memory_size_type hi) {
-		return std::max(lo, std::min(val, hi));
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate parameters from given memory amount.
-	///////////////////////////////////////////////////////////////////////////
-	inline void calculate_parameters() {
-		tp_assert(m_state == stNotStarted, "Merge sorting already begun");
-
-		if(!p.filesPhase1)
-			p.filesPhase1 = clamp(minimumFilesPhase1, defaultFiles, maximumFilesPhase1);
-		if(!p.filesPhase2)
-			p.filesPhase2 = clamp(minimumFilesPhase2, defaultFiles, maximumFilesPhase2);
-		if(!p.filesPhase3)
-			p.filesPhase3 = clamp(minimumFilesPhase3, defaultFiles, maximumFilesPhase3);
-
-		if(p.filesPhase1 < minimumFilesPhase1)
-			throw tpie::exception("file limit for phase 1 too small (" + std::to_string(p.filesPhase1) + " < " + std::to_string(minimumFilesPhase1) + ")");
-		if(p.filesPhase2 < minimumFilesPhase2)
-			throw tpie::exception("file limit for phase 2 too small (" + std::to_string(p.filesPhase2) + " < " + std::to_string(minimumFilesPhase2) + ")");
-		if(p.filesPhase3 < minimumFilesPhase3)
-			throw tpie::exception("file limit for phase 3 too small (" + std::to_string(p.filesPhase3) + " < " + std::to_string(minimumFilesPhase3) + ")");
-
-		if (!p.filesPhase1)
-			throw tpie::exception("memory limit for phase 1 not set");
-		if (!p.filesPhase2)
-			throw tpie::exception("memory limit for phase 2 not set");
-		if (!p.filesPhase3)
-			throw tpie::exception("memory limit for phase 3 not set");
-
-		// We must set aside memory for temp_files in m_runFiles.
-		// m_runFiles contains fanout*2 temp_files, so calculate fanout before run length.
-
-		// Phase 2 (merge):
-		// Run length: unbounded
-		// Fanout: determined by the size of our merge heap and the stream memory usage.
-		log_pipe_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
-		p.fanout = calculate_fanout(p.memoryPhase2, p.filesPhase2);
-		if (fanout_memory_usage(p.fanout) > p.memoryPhase2) {
-			log_pipe_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << fanout_memory_usage(p.fanout) << ")\n";
-			p.memoryPhase2 = fanout_memory_usage(p.fanout);
-		}
-
-		// Phase 3 (final merge & report):
-		// Run length: unbounded
-		// Fanout: determined by the stream memory usage.
-		log_pipe_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
-		p.finalFanout = calculate_fanout(p.memoryPhase3, p.filesPhase3);
-
-		if (p.finalFanout > p.fanout)
-			p.finalFanout = p.fanout;
-
-		if (fanout_memory_usage(p.finalFanout) > p.memoryPhase3) {
-			log_pipe_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase3 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
-			p.memoryPhase3 = fanout_memory_usage(p.finalFanout);
-		}
-
-		// Phase 1 (run formation):
-		// Run length: determined by the number of items we can hold in memory.
-		// Fanout: unbounded
-
-		memory_size_type streamMemory = file_stream<element_type>::memory_usage();
-		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
-
-		log_pipe_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-		memory_size_type min_m1 = 128*1024 / item_size + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
-		if (p.memoryPhase1 < min_m1) {
-			log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
-			p.memoryPhase1 = min_m1;
-		}
-		p.runLength = (p.memoryPhase1 - bits::run_positions::memory_usage() - streamMemory - tempFileMemory)/item_size;
-
-		p.internalReportThreshold = (std::min(p.memoryPhase1,
-											  std::min(p.memoryPhase2,
-													   p.memoryPhase3))
-									 - tempFileMemory)/item_size;
-		if (p.internalReportThreshold > p.runLength)
-			p.internalReportThreshold = p.runLength;
-
-		m_parametersSet = true;
-
-			set_items(m_maxItems);
-
-		log_pipe_debug() << "Calculated merge sort parameters\n";
-		p.dump(log_pipe_debug());
-		log_pipe_debug() << std::endl;
-
-		log_pipe_debug() << "Merge sort phase 1: "
-			<< p.memoryPhase1 << " b available, " << memory_usage_phase_1(p) << " b expected" << std::endl;
-		if (memory_usage_phase_1(p) > p.memoryPhase1) {
-			log_warning() << "Merge sort phase 1 exceeds the alloted memory usage: "
-				<< p.memoryPhase1 << " b available, but " << memory_usage_phase_1(p) << " b expected" << std::endl;
-		}
-		log_pipe_debug() << "Merge sort phase 2: "
-			<< p.memoryPhase2 << " b available, " << memory_usage_phase_2(p) << " b expected" << std::endl;
-		if (memory_usage_phase_2(p) > p.memoryPhase2) {
-			log_warning() << "Merge sort phase 2 exceeds the alloted memory usage: "
-				<< p.memoryPhase2 << " b available, but " << memory_usage_phase_2(p) << " b expected" << std::endl;
-		}
-		log_pipe_debug() << "Merge sort phase 3: "
-			<< p.memoryPhase3 << " b available, " << memory_usage_phase_3(p) << " b expected" << std::endl;
-		if (memory_usage_phase_3(p) > p.memoryPhase3) {
-			log_warning() << "Merge sort phase 3 exceeds the alloted memory usage: "
-				<< p.memoryPhase3 << " b available, but " << memory_usage_phase_3(p) << " b expected" << std::endl;
-		}
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// calculate_parameters helper
-	///////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type calculate_fanout(memory_size_type availableMemory, memory_size_type availableFiles) {
-		memory_size_type fanout_lo = 2;
-		memory_size_type fanout_hi = availableFiles - 2;
-		// binary search
-		while (fanout_lo < fanout_hi - 1) {
-			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
-			if (fanout_memory_usage(mid) <= availableMemory) {
-				fanout_lo = mid;
-			} else {
-				fanout_hi = mid;
-			}
-		}
-		return fanout_lo;
-	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// calculate_parameters helper
@@ -803,69 +749,16 @@ private:
 	}
 	
 	static constexpr memory_size_type fanout_memory_usage(memory_size_type fanout) noexcept {
-		return fanout_memory_usage().usage(fanout);
+		return fanout_memory_usage()(fanout);
 	}
 
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Set upper bound on number of items pushed.
-	///
-	/// If the number of items to push is less than the size of a single run,
-	/// this method will decrease the run size to that.
-	/// This may make it easier for the sorter to go into internal reporting
-	/// mode.
-	///////////////////////////////////////////////////////////////////////////
-	void set_items(stream_size_type n) {
-		if (m_state != stNotStarted)
-			throw exception("Wrong state in set_items: state is not stNotStarted");
-
-		m_maxItems = n;
-
-		if (!m_parametersSet) {
-			// We will handle this later in calculate_parameters
-			return;
-		}
-
-		// If the item upper bound is less than a run,
-		// then it might pay off to decrease the length of a run
-		// so that we can avoid I/O altogether.
-		if (m_maxItems < p.runLength) {
-			memory_size_type newRunLength =
-				std::max(memory_size_type(m_maxItems), p.internalReportThreshold);
-			log_pipe_debug() << "Decreasing run length from " << p.runLength
-				<< " to " << newRunLength
-				<< " since at most " << m_maxItems << " items will be pushed,"
-				<< " and the internal report threshold is "
-				<< p.internalReportThreshold
-				<< ". New merge sort parameters:\n";
-			// In principle, we could decrease runLength to m_maxItems,
-			// but setting runLength below internalReportThreshold does not
-			// give additional benefits.
-			// Furthermore, buggy code could call set_items with a very low
-			// upper bound, leading to unacceptable performance in practice;
-			// thus, internalReportThreshold is used as a stopgap/failsafe.
-			p.runLength = newRunLength;
-			p.dump(log_pipe_debug());
-			log_pipe_debug() << std::endl;
-		}
-	}
-
-	void set_owner(tpie::pipelining::node * n) {
-		if (m_owning_node != nullptr)
-			m_bucketPtr = std::move(m_owning_node->bucket(0));
-
-		if (n != nullptr)
-			n->bucket(0) = std::move(m_bucketPtr);
-
-		m_owning_node = n;
-	}
-private:
+ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Figure out the index in m_runFiles of the given run.
 	/// \param mergeLevel  Distance from leaves of merge tree.
 	/// \param runNumber  Index in current merge level.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type run_file_index(memory_size_type mergeLevel, memory_size_type runNumber) {
+	memory_size_type run_file_index(memory_size_type mergeLevel, memory_size_type runNumber) {
 		// runNumber is a memory_size_type since it is used as an index into
 		// m_runFiles.
 
@@ -896,59 +789,14 @@ private:
 		fs.set_position(m_runPositions.get_position(mergeLevel, runNumber));
 	}
 
-	enum state_type {
-		stNotStarted,
-		stRunFormation,
-		stMerge,
-		stReport
-	};
-
-
-	std::unique_ptr<memory_bucket> m_bucketPtr;
-	memory_bucket_ref m_bucket;
-
-	array<temp_file> m_runFiles;
-
 	state_type m_state;
-
-	sort_parameters p;
-	bool m_parametersSet;
-
 	specific_store_t m_store;
 	merger<specific_store_t, pred_t> m_merger;
-
-	bits::run_positions m_runPositions;
-
-	// Number of runs already written to disk.
-	// On 32-bit systems, we could in principle support more than 2^32 finished runs,
-	// but keeping this as a memory_size_type is nicer when doing the actual merges.
-	stream_size_type m_finishedRuns;
 
 	// current run buffer. size 0 before begin(), size runLength after begin().
 	array<store_type> m_currentRunItems;
 
-	// Number of items in current run buffer.
-	// Used to index into m_currentRunItems, so memory_size_type.
-	memory_size_type m_currentRunItemCount;
-
-	bool m_reportInternal;
-
-	// When doing internal reporting: the number of items already reported
-	// Used in comparison with m_currentRunItemCount
-	memory_size_type m_itemsPulled;
-
-	stream_size_type m_itemCount;
-
-	stream_size_type m_maxItems;
-
 	pred_t pred;
-	bool m_evacuated;
-	bool m_finalMergeInitialized;
-	memory_size_type m_finalMergeLevel;
-	memory_size_type m_finalRunCount;
-	memory_size_type m_finalMergeSpecialRunNumber;
-
-	tpie::pipelining::node * m_owning_node;
 };
 
 } // namespace tpie
