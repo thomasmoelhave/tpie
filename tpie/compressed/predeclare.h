@@ -42,6 +42,7 @@ class compressor_buffer;
 class compressor_request;
 
 // stream.h
+class compressed_stream_base_p;
 class compressed_stream_base;
 template <typename T> class file_stream;
 

@@ -29,12 +29,7 @@
 #include <tpie/tempname.h>
 #include <tpie/file_base_crtp.h>
 #include <tpie/file_stream_base.h>
-#include <tpie/file_accessor/byte_stream_accessor.h>
-#include <tpie/compressed/thread.h>
-#include <tpie/compressed/buffer.h>
-#include <tpie/compressed/request.h>
 #include <tpie/compressed/stream_position.h>
-#include <tpie/compressed/direction.h>
 #include <tpie/stream_writable.h>
 
 namespace tpie {
@@ -71,52 +66,10 @@ struct open {
 	{ return (open::type) ((int) a ^ (int) b); }
 	friend inline open::type operator~(open::type a)
 	{ return (open::type) ~(int) a; }
-
-	static type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
-		return (type) ((
-
-			(accessType == access_read) ? read_only :
-			(accessType == access_write) ? write_only :
-			defaults) | (
-
-			(cacheHint == tpie::access_normal) ? access_normal :
-			(cacheHint == tpie::access_random) ? access_random :
-			defaults) | (
-
-			(compressionFlags == tpie::compression_normal) ? compression_normal :
-			(compressionFlags == tpie::compression_all) ? compression_all :
-			defaults));
-	}
-
-	static cache_hint translate_cache(open::type openFlags) {
-		const open::type cacheFlags =
-			openFlags & (open::access_normal | open::access_random);
-
-		if (cacheFlags == open::access_normal)
-			return tpie::access_normal;
-		else if (cacheFlags == open::access_random)
-			return tpie::access_random;
-		else if (!cacheFlags)
-			return tpie::access_sequential;
-		else
-			throw tpie::stream_exception("Invalid cache flags supplied");
-	}
-
-	static compression_flags translate_compression(open::type openFlags) {
-		const open::type compressionFlags =
-			openFlags & (open::compression_normal | open::compression_all);
-
-		if (compressionFlags == open::compression_normal)
-			return tpie::compression_normal;
-		else if (compressionFlags == open::compression_all)
-			return tpie::compression_all;
-		else if (!compressionFlags)
-			return tpie::compression_none;
-		else
-			throw tpie::stream_exception("Invalid compression flags supplied");
-	}
 };
 
+
+class compressed_stream_base_p;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Base class containing the implementation details that are
@@ -124,7 +77,7 @@ struct open {
 ///////////////////////////////////////////////////////////////////////////////
 class compressed_stream_base {
 public:
-	typedef std::shared_ptr<compressor_buffer> buffer_t;
+	friend class compressed_stream_base_p;
 
 	static const file_stream_base::offset_type beginning = file_stream_base::beginning;
 	static const file_stream_base::offset_type end = file_stream_base::end;
@@ -147,22 +100,31 @@ protected:
 	// Non-virtual, protected destructor
 	~compressed_stream_base();
 
-	void open_inner(const std::string & path,
-					open::type openFlags,
-					memory_size_type userDataSize);
 
-	compressor_thread & compressor() { return the_compressor_thread(); }
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Compute number of cheap, unchecked reads/writes we can do from
+	/// now.
+	///////////////////////////////////////////////////////////////////////////
+	void cache_read_writes();
 
+	void peak_unlikely();
+	
+	void read_back_unlikely();
+	
+	void write_unlikely(const char * item);
+
+	static memory_size_type memory_usage(double blockFactor=1.0) noexcept;
+	
 public:
-	bool is_readable() const throw() { return m_canRead; }
+	bool is_readable() const noexcept;
 
-	bool is_writable() const throw() { return m_canWrite; }
+	bool is_writable() const noexcept;
 
-	static memory_size_type block_size(double blockFactor) throw ();
+	static memory_size_type block_size(double blockFactor) noexcept;
 
-	static double calculate_block_factor(memory_size_type blockSize) throw ();
+	static double calculate_block_factor(memory_size_type blockSize) noexcept;
 
-	static memory_size_type block_memory_usage(double blockFactor);
+	static memory_size_type block_memory_usage(double blockFactor) noexcept;
 
 	memory_size_type block_items() const;
 
@@ -206,19 +168,14 @@ public:
 			  access_type accessType,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  compression_flags compressionFlags=compression_none)
-	{
-		open(path, open::translate(accessType, cacheHint, compressionFlags), userDataSize);
-	}
+			  compression_flags compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Deprecated interface for opening an unnamed temporary stream.
 	///////////////////////////////////////////////////////////////////////////
 	void open(memory_size_type userDataSize,
 			  cache_hint cacheHint=access_sequential,
-			  compression_flags compressionFlags=compression_none) {
-		open(open::translate(access_read_write, cacheHint, compressionFlags), userDataSize);
-	}
+			  compression_flags compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Deprecated interface for opening a temporary stream.
@@ -227,33 +184,22 @@ public:
 			  access_type accessType,
 			  memory_size_type userDataSize = 0,
 			  cache_hint cacheHint=access_sequential,
-			  compression_flags compressionFlags=compression_none) {
-		open(file, open::translate(accessType, cacheHint, compressionFlags), userDataSize);
-	}
+			  compression_flags compressionFlags=compression_none);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Deprecated interface for opening a named stream.
 	///////////////////////////////////////////////////////////////////////////
-	void open(const std::string & path, compression_flags compressionFlags) {
-		const memory_size_type userDataSize = 0;
-		open(path, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
-	}
+	void open(const std::string & path, compression_flags compressionFlags);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Deprecated interface for opening an unnamed temporary stream.
 	///////////////////////////////////////////////////////////////////////////
-	void open(compression_flags compressionFlags) {
-		const memory_size_type userDataSize = 0;
-		open(open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
-	}
+	void open(compression_flags compressionFlags);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Deprecated interface for opening a temporary stream.
 	///////////////////////////////////////////////////////////////////////////
-	void open(temp_file & file, compression_flags compressionFlags) {
-		const memory_size_type userDataSize = 0;
-		open(file, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
-	}
+	void open(temp_file & file, compression_flags compressionFlags);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Open and possibly create a stream.
@@ -316,163 +262,9 @@ public:
 
 	void close();
 
-protected:
-	void finish_requests(compressor_thread_lock & l);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Blocks to take the compressor lock.
-	///
-	/// Precondition: use_compression()
-	///
-	/// TODO: Should probably investigate when this reports a useful value.
-	///////////////////////////////////////////////////////////////////////////
-	stream_size_type last_block_read_offset(compressor_thread_lock & l);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Blocks to take the compressor lock.
-	///
-	/// Precondition: use_compression()
-	///
-	/// TODO: Should probably investigate when this reports a useful value.
-	///////////////////////////////////////////////////////////////////////////
-	stream_size_type current_file_size(compressor_thread_lock & l);
-
-	bool use_compression() { return m_byteStreamAccessor.get_compressed(); }
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Reset cheap read/write counts to zero so that the next
-	/// read/write operation will check stream state properly.
-	///////////////////////////////////////////////////////////////////////////
-	void uncache_read_writes() {
-		m_cachedReads = m_cachedWrites = 0;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Truncate to zero size.
-	///////////////////////////////////////////////////////////////////////////
-	void truncate_zero();
-
-	void truncate_uncompressed(stream_size_type offset);
-
-	void truncate_compressed(const stream_position & pos);
+	bool is_open() const noexcept;
 	
-	///////////////////////////////////////////////////////////////////////////
-	/// Blocks to take the compressor lock.
-	///
-	/// Precondition: seekState != none
-	///
-	/// Sets seekState to none.
-	///
-	/// If anything fails, the stream is closed by a close_on_fail_guard.
-	///////////////////////////////////////////////////////////////////////////
-	void perform_seek(read_direction::type dir=read_direction::forward);
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Gets buffer for given block and sets bufferBegin and bufferEnd,
-	/// and sets bufferDirty to false.
-	///////////////////////////////////////////////////////////////////////////
-	void get_buffer(compressor_thread_lock & l, stream_size_type blockNumber); 
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Blocks to take the compressor lock.
-	///
-	/// Precondition: m_bufferDirty == true.
-	/// Postcondition: m_bufferDirty == false.
-	///
-	/// Does not get a new block buffer.
-	///////////////////////////////////////////////////////////////////////////
-	void flush_block(compressor_thread_lock & lock);
-
-	void maybe_update_read_offset(compressor_thread_lock & lock);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Reads next block according to nextReadOffset/nextBlockSize.
-	///
-	/// Updates m_readOffset with the new read offset.
-	///////////////////////////////////////////////////////////////////////////
-	void read_next_block(compressor_thread_lock & lock, stream_size_type blockNumber);
-
-	void read_previous_block(compressor_thread_lock & lock, stream_size_type blockNumber);
-
-
-	void read_block(compressor_thread_lock & lock,
-					stream_size_type readOffset,
-					read_direction::type readDirection);
-
-
-	stream_size_type block_number(stream_size_type offset) {
-		return offset / m_blockItems;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Compute the number of the block containing the next
-	/// read/written item.
-	///
-	/// Precondition: m_buffer.get() != 0.
-	/// Precondition: m_seekState == none
-	///////////////////////////////////////////////////////////////////////////
-	stream_size_type block_number() {
-		return block_number(m_offset);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Compute the number of the block currently loaded into m_buffer.
-	///
-	/// Precondition: m_buffer.get() != 0.
-	/// Precondition: m_seekState == none
-	///////////////////////////////////////////////////////////////////////////
-	stream_size_type buffer_block_number() {
-		stream_size_type blockNumber = block_number();
-		if (m_nextItem == m_bufferEnd)
-			return blockNumber - 1;
-		else
-			return blockNumber;
-	}
-
-	memory_size_type block_item_index(stream_size_type offset) {
-		stream_size_type i = offset % m_blockItems;
-		memory_size_type cast = static_cast<memory_size_type>(i);
-		tp_assert(!(i != cast), "Block item index out of bounds");
-		return cast;
-	}
-
-	memory_size_type block_item_index() {
-		return block_item_index(m_offset);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Compute number of cheap, unchecked reads/writes we can do from
-	/// now.
-	///////////////////////////////////////////////////////////////////////////
-	void cache_read_writes();
-
-	void peak_unlikely();
-	
-	void read_back_unlikely();
-	
-	void write_unlikely(const char * item);
-	
-public:
-	bool is_open() const { return m_open; }
-
-	stream_size_type size() const { return m_size; }
-
-	stream_size_type file_size() const { return size(); }
-
-	stream_size_type offset() const {
-		switch (m_seekState) {
-			case seek_state::none:
-				return m_offset;
-			case seek_state::beginning:
-				return 0;
-			case seek_state::end:
-				return size();
-			case seek_state::position:
-				return m_nextPosition.offset();
-		}
-		tp_assert(false, "offset: Unreachable statement; m_seekState invalid");
-		return 0; // suppress compiler warning
-	}
+	stream_size_type offset() const;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  For debugging: Describe the internal stream state in a string.
@@ -482,15 +274,8 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  For debugging: Describe the internal stream state in a string.
 	///////////////////////////////////////////////////////////////////////////
-	std::string describe() {
-		std::stringstream ss;
-		describe(ss);
-		return ss.str();
-	}
+	std::string describe();
 
-	void post_open() {
-		seek(0);
-	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Precondition: is_open()
@@ -530,17 +315,17 @@ public:
 	/// \c get_position.
 	///////////////////////////////////////////////////////////////////////////
 	void set_position(const stream_position & pos);
+
+	stream_size_type size() const { return m_size; }
+
+	stream_size_type file_size() const { return size(); }
+
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Check if the next call to read() will succeed or not.
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read() {
-		if (m_cachedReads > 0)
-			return true;
-
-		if (!this->m_open)
-			return false;
-
+		if (m_cachedReads > 0)	return true;
 		return offset() < size();
 	}
 
@@ -548,80 +333,20 @@ public:
 	/// \brief  Check if the next call to read_back() will succeed or not.
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read_back() {
-		if (!this->m_open)
-			return false;
-
 		return offset() > 0;
 	}
 protected:
-	/** Whether the current block must be written out to disk before being ejected.
-	 * Invariants:
-	 * If m_bufferDirty is true and use_compression() is true,
-	 * block_number() is either m_streamBlocks or m_streamBlocks - 1.
-	 * If block_number() is m_streamBlocks, m_bufferDirty is true.
-	 */
-	bool m_bufferDirty;
-	/** Number of items in a logical block. */
-	memory_size_type m_blockItems;
-	/** Size (in bytes) of a logical (uncompressed) block. */
-	memory_size_type m_blockSize;
-	/** Whether we are open for reading. */
-	bool m_canRead;
-	/** Whether we are open for writing. */
-	bool m_canWrite;
-	/** Whether we are open. */
-	bool m_open;
-	/** Size of a single item. itemSize * blockItems == blockSize. */
-	memory_size_type m_itemSize;
 	/** Number of cheap, unchecked reads we can do next. */
 	memory_size_type m_cachedReads;
 	/** Number of cheap, unchecked writes we can do next. */
 	memory_size_type m_cachedWrites;
-	/** The anonymous temporary file we have opened (when appropriate). */
-	tpie::unique_ptr<temp_file> m_ownedTempFile;
-	/** The temporary file we have opened (when appropriate).
-	 * When m_ownedTempFile.get() != 0, m_tempFile == m_ownedTempFile.get(). */
-	temp_file * m_tempFile;
-	/** File accessor. */
-	file_accessor::byte_stream_accessor<default_raw_file_accessor> m_byteStreamAccessor;
+	
 	/** Number of logical items in the stream. */
 	stream_size_type m_size;
 	/** Buffer manager for this entire stream. */
-	stream_buffers m_buffers;
-	/** Buffer holding the items of the block currently being read/written. */
-	buffer_t m_buffer;
-
-	/** The number of blocks written to the file.
-	 * We must always have (m_streamBlocks+1) * m_blockItems <= m_size. */
-	stream_size_type m_streamBlocks;
-
-	/** When use_compression() is true:
-	 * Read offset of the last block in the stream.
-	 * Necessary to support seeking to the end. */
-	stream_size_type m_lastBlockReadOffset;
-	stream_size_type m_currentFileSize;
-
-	/** Response from compressor thread; protected by compressor thread mutex. */
-	compressor_response m_response;
-
-	/** When use_compression() is true:
-	 * Indicates whether m_response is the response to a write request.
-	 * Used for knowing where to read next in read/read_back.
-	 * */
-	bool m_updateReadOffsetFromWrite = false;
-	stream_size_type m_lastWriteBlockNumber;
-
+	
 	seek_state::type m_seekState;
-
-	/** Position relating to the currently loaded buffer.
-	 * readOffset is only valid during reading.
-	 * Invariants:
-	 *
-	 * If use_compression() == false, readOffset == 0.
-	 * If offset == 0, then readOffset == block_item_index() == block_number() == 0.
-	 */
-	stream_size_type m_readOffset;
-
+	
 	/** Offset of next item to read/write, relative to beginning of stream.
 	 * Invariants:
 	 *
@@ -637,18 +362,16 @@ protected:
 	 */
 	stream_size_type m_offset;
 
-	/** If seekState is `position`, seek to this position before reading/writing. */
-	stream_position m_nextPosition;
-
-	stream_size_type m_nextReadOffset;
-
 	/** Only when m_buffer.get() != 0: First item in writable buffer. */
 	char * m_bufferBegin;
-	/** Only when m_buffer.get() != 0: End of writable buffer. */
-	char * m_bufferEnd;
 
+/** Only when m_buffer.get() != 0: End of writable buffer. */
+	char * m_bufferEnd;
+		
 	/** Next item in buffer to read/write. */
 	char * m_nextItem;
+
+	compressed_stream_base_p * m_p;
 };
 
 
@@ -683,23 +406,11 @@ public:
 	file_stream(double blockFactor=1.0)
 		: compressed_stream_base(sizeof(T), blockFactor) {}
 	
-	~file_stream() {
-		try {
-			close();
-		} catch (std::exception & e) {
-			log_error() << "Someone threw an error in file_stream::~file_stream: " << e.what() << std::endl;
-			abort();
-		}
+	static memory_size_type memory_usage(double blockFactor=1.0) noexcept {
+		// m_buffer is included in m_buffers memory usage
+		return sizeof(file_stream) + compressed_stream_base::memory_usage(blockFactor);
 	}
 
-	static constexpr memory_size_type memory_usage(double blockFactor=1.0) noexcept {
-		// m_buffer is included in m_buffers memory usage
-		return sizeof(file_stream)
-			+ sizeof(temp_file) // m_ownedTempFile
-			+ stream_buffers::memory_usage(block_size(blockFactor)) // m_buffers;
-			;
-	}
-public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Reads next item from stream if can_read() == true.
 	///
@@ -785,8 +496,6 @@ public:
 	void write(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) write(*i);
 	}
-
-private:
 };
 
 } // namespace tpie
