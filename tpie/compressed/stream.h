@@ -131,7 +131,6 @@ public:
 	static const file_stream_base::offset_type current = file_stream_base::current;
 
 	typedef file_stream_base::offset_type offset_type;
-
 protected:
 	struct seek_state {
 		enum type {
@@ -710,6 +709,91 @@ protected:
 					static_cast<memory_size_type>(size() - offset());
 			}
 		}
+	}
+	
+	void peak_unlikely() {
+		if (m_seekState != seek_state::none) perform_seek();
+		if (m_offset == m_size) throw end_of_stream_exception();
+		if (m_nextItem == m_bufferEnd) {
+			compressor_thread_lock l(compressor());
+			if (this->m_bufferDirty) {
+				m_updateReadOffsetFromWrite = false;
+				flush_block(l);
+			}
+			// At this point, block_number() == buffer_block_number() + 1
+			read_next_block(l, block_number());
+		}
+	}
+
+	void read_back_unlikely() {
+		if (m_seekState != seek_state::none) {
+			if (offset() == 0) throw end_of_stream_exception();
+			perform_seek(read_direction::backward);
+		}
+		if (m_nextItem == m_bufferBegin) {
+			if (m_offset == 0) throw end_of_stream_exception();
+			uncache_read_writes();
+			compressor_thread_lock l(compressor());
+			if (this->m_bufferDirty) {
+				m_updateReadOffsetFromWrite = true;
+				flush_block(l);
+			}
+			if (use_compression()) {
+				read_previous_block(l, block_number() - 1);
+			} else {
+				read_next_block(l, block_number() - 1);
+				m_nextItem = m_bufferEnd;
+			}
+		}
+	}
+
+	
+	void write_unlikely(const char * item) {
+		if (m_seekState != seek_state::none) perform_seek();
+
+		if (!use_compression()) {
+			if (m_nextItem == m_bufferEnd) {
+				compressor_thread_lock lock(compressor());
+				if (m_bufferDirty) {
+					m_updateReadOffsetFromWrite = true;
+					flush_block(lock);
+				}
+				if (offset() == size()) {
+					get_buffer(lock, m_streamBlocks);
+					m_nextItem = m_bufferBegin;
+				} else {
+					read_next_block(lock, block_number());
+				}
+			}
+			if (offset() == m_size) ++m_size;
+			memcpy(m_nextItem, item, m_itemSize);
+			m_nextItem += m_itemSize;
+			this->m_bufferDirty = true;
+			++m_offset;
+			cache_read_writes();
+			return;
+		}
+
+		if (m_offset != size())
+			throw stream_exception("Non-appending write attempted");
+
+		if (m_nextItem == m_bufferEnd) {
+			compressor_thread_lock l(compressor());
+			if (m_bufferDirty) {
+				m_updateReadOffsetFromWrite = true;
+				flush_block(l);
+			}
+			get_buffer(l, m_streamBlocks);
+			m_nextItem = m_bufferBegin;
+		}
+		
+		memcpy(m_nextItem, item, m_itemSize);
+		m_nextItem += m_itemSize;
+		this->m_bufferDirty = true;
+		++m_size;
+		++m_offset;
+
+		cache_read_writes();
 	}
 	
 public:
@@ -1305,21 +1389,13 @@ inline void compressed_stream_base::perform_seek(read_direction::type dir) {
 template <typename T>
 class file_stream : public compressed_stream_base {
 	static_assert(is_stream_writable<T>::value, "file_stream item type must be trivially copyable");
-
-	using compressed_stream_base::seek_state;
-
 public:
-
 	typedef T item_type;
 	
 	file_stream(double blockFactor=1.0)
-		: compressed_stream_base(sizeof(T), blockFactor)
-	{
-	}
-
-	// This destructor would not need to be virtual if we could use
-	// final (non-subclassable) classes, but that is a C++11 feature.
-	virtual ~file_stream() {
+		: compressed_stream_base(sizeof(T), blockFactor) {}
+	
+	~file_stream() {
 		try {
 			close();
 		} catch (std::exception & e) {
@@ -1332,7 +1408,7 @@ public:
 		// m_buffer is included in m_buffers memory usage
 		return sizeof(file_stream)
 			+ sizeof(temp_file) // m_ownedTempFile
-			+ stream_buffers::memory_usage(block_size(blockFactor)) // m_buffers
+			+ stream_buffers::memory_usage(block_size(blockFactor)) // m_buffers;
 			;
 	}
 public:
@@ -1347,20 +1423,21 @@ public:
 	/// in before the call to read().
 	///////////////////////////////////////////////////////////////////////////
 	const T & read() {
-		if (m_cachedReads > 0) {
-			--m_cachedReads;
-			++m_offset;
+		if (m_cachedReads == 0) {
+			peak_unlikely();
 			const T & res = *reinterpret_cast<const T*>(m_nextItem);
+			++m_offset;
 			m_nextItem += sizeof(T);
+			cache_read_writes();
 			return res;
 		}
-		const T & res = peek();
+		--m_cachedReads;
 		++m_offset;
+		const T & res = *reinterpret_cast<const T*>(m_nextItem);
 		m_nextItem += sizeof(T);
-		cache_read_writes();
 		return res;
 	}
-
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// Peeks next item from stream if can_read() == true.
 	///
@@ -1372,20 +1449,7 @@ public:
 	/// in before the call to peek().
 	///////////////////////////////////////////////////////////////////////////
 	const T & peek() {
-		if (m_cachedReads > 0) {
-			return *reinterpret_cast<const T*>(m_nextItem);
-		}
-		if (m_seekState != seek_state::none) perform_seek();
-		if (m_offset == m_size) throw end_of_stream_exception();
-		if (m_nextItem == m_bufferEnd) {
-			compressor_thread_lock l(compressor());
-			if (this->m_bufferDirty) {
-				m_updateReadOffsetFromWrite = false;
-				flush_block(l);
-			}
-			// At this point, block_number() == buffer_block_number() + 1
-			read_next_block(l, block_number());
-		}
+		if (m_cachedReads == 0) peak_unlikely();
 		return *reinterpret_cast<const T*>(m_nextItem);
 	}
 
@@ -1407,89 +1471,26 @@ public:
 	void read(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) *i = read();
 	}
-
+	
 	const T & read_back() {
-		if (m_seekState != seek_state::none) {
-			if (offset() == 0) throw end_of_stream_exception();
-			perform_seek(read_direction::backward);
-		}
-		if (m_nextItem == m_bufferBegin) {
-			if (m_offset == 0) throw end_of_stream_exception();
-			uncache_read_writes();
-			compressor_thread_lock l(compressor());
-			if (this->m_bufferDirty) {
-				m_updateReadOffsetFromWrite = true;
-				flush_block(l);
-			}
-			if (use_compression()) {
-				read_previous_block(l, block_number() - 1);
-			} else {
-				read_next_block(l, block_number() - 1);
-				m_nextItem = m_bufferEnd;
-			}
-		}
+		if (m_seekState != seek_state::none || m_nextItem == m_bufferBegin) read_back_unlikely();
 		++m_cachedReads;
 		--m_offset;
 		m_nextItem -= sizeof(T);
 		return *reinterpret_cast<const T *>(m_nextItem);
 	}
-
+	
 	void write(const T & item) {
-		if (m_cachedWrites > 0) {
-			*reinterpret_cast<T*>(m_nextItem) = item;
-			m_nextItem += sizeof(T);
-			++m_size;
-			++m_offset;
-			--m_cachedWrites;
+		if (m_cachedWrites == 0) {
+			write_unlikely(reinterpret_cast<const char*>(&item));
 			return;
 		}
-
-		if (m_seekState != seek_state::none) perform_seek();
-
-		if (!use_compression()) {
-			if (m_nextItem == m_bufferEnd) {
-				compressor_thread_lock lock(compressor());
-				if (m_bufferDirty) {
-					m_updateReadOffsetFromWrite = true;
-					flush_block(lock);
-				}
-				if (offset() == size()) {
-					get_buffer(lock, m_streamBlocks);
-					m_nextItem = m_bufferBegin;
-				} else {
-					read_next_block(lock, block_number());
-				}
-			}
-			if (offset() == m_size) ++m_size;
-			*reinterpret_cast<T*>(m_nextItem) = item;
-			m_nextItem += sizeof(T);
-			this->m_bufferDirty = true;
-			++m_offset;
-			cache_read_writes();
-			return;
-		}
-
-		if (m_offset != size())
-			throw stream_exception("Non-appending write attempted");
-
-		if (m_nextItem == m_bufferEnd) {
-			compressor_thread_lock l(compressor());
-			if (m_bufferDirty) {
-				m_updateReadOffsetFromWrite = true;
-				flush_block(l);
-			}
-			get_buffer(l, m_streamBlocks);
-			m_nextItem = m_bufferBegin;
-		}
-
-		
-		*reinterpret_cast<T*>(m_nextItem) = item;
+		memcpy(m_nextItem, &item, sizeof(T));
 		m_nextItem += sizeof(T);
-		this->m_bufferDirty = true;
 		++m_size;
 		++m_offset;
-
-		cache_read_writes();
+		--m_cachedWrites;
+		return;
 	}
 
 	template <typename IT>
