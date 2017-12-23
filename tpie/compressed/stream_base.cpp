@@ -48,6 +48,9 @@ compressed_stream_base::compressed_stream_base(memory_size_type itemSize,
 	, m_offset(0)
 	, m_nextPosition(/* not a position */)
 	, m_nextReadOffset(0)
+	, m_bufferBegin(nullptr)
+	, m_bufferEnd(nullptr)
+	, m_nextItem(nullptr)
 {
 	// Empty constructor.
 }
