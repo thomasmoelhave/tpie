@@ -525,9 +525,9 @@ public:
 
 	file_stream(double blockFactor=1.0)
 		: compressed_stream_base(sizeof(T), blockFactor)
-		, m_bufferBegin(0)
-		, m_bufferEnd(0)
-		, m_nextItem(0)
+		, m_bufferBegin(nullptr)
+		, m_bufferEnd(nullptr)
+		, m_nextItem(nullptr)
 	{
 	}
 
@@ -675,7 +675,7 @@ public:
 					size() - buffer_block_number() * m_blockItems;
 				memory_size_type cast = static_cast<memory_size_type>(blockItemIndex);
 				tp_assert(blockItemIndex == cast, "seek: blockItemIndex out of bounds");
-				m_nextItem = m_bufferBegin + cast;
+				m_nextItem = m_bufferBegin + cast * sizeof(T);
 
 				m_offset = size();
 				m_seekState = seek_state::none;
@@ -765,7 +765,7 @@ private:
 				m_offset = offset;
 				memory_size_type blockItemIndex =
 					static_cast<memory_size_type>(offset - m_streamBlocks * m_blockItems);
-				m_nextItem = m_bufferBegin + blockItemIndex;
+				m_nextItem = m_bufferBegin + sizeof(T) * blockItemIndex;
 			}
 			m_bufferDirty = true;
 			m_seekState = seek_state::none;
@@ -818,7 +818,7 @@ private:
 			m_offset = offset;
 			memory_size_type blockItemIndex =
 				static_cast<memory_size_type>(offset - m_streamBlocks * m_blockItems);
-			m_nextItem = m_bufferBegin + blockItemIndex;
+			m_nextItem = m_bufferBegin + sizeof(T) * blockItemIndex;
 		}
 		m_bufferDirty = true;
 
@@ -924,7 +924,7 @@ public:
 
 			m_readOffset = pos.read_offset();
 			m_offset = pos.offset();
-			m_nextItem = m_bufferBegin + block_item_index();
+			m_nextItem = m_bufferBegin + sizeof(T) * block_item_index();
 			m_seekState = seek_state::none;
 			return;
 		}
@@ -948,11 +948,13 @@ public:
 		if (m_cachedReads > 0) {
 			--m_cachedReads;
 			++m_offset;
-			return *m_nextItem++;
+			const T & res = *reinterpret_cast<const T*>(m_nextItem);
+			m_nextItem += sizeof(T);
+			return res;
 		}
 		const T & res = peek();
 		++m_offset;
-		++m_nextItem;
+		m_nextItem += sizeof(T);
 		cache_read_writes();
 		return res;
 	}
@@ -969,7 +971,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	const T & peek() {
 		if (m_cachedReads > 0) {
-			return *m_nextItem;
+			return *reinterpret_cast<const T*>(m_nextItem);
 		}
 		if (m_seekState != seek_state::none) perform_seek();
 		if (m_offset == m_size) throw end_of_stream_exception();
@@ -982,7 +984,7 @@ public:
 			// At this point, block_number() == buffer_block_number() + 1
 			read_next_block(l, block_number());
 		}
-		return *m_nextItem;
+		return *reinterpret_cast<const T*>(m_nextItem);
 	}
 
 	void skip() {
@@ -1049,12 +1051,14 @@ public:
 		}
 		++m_cachedReads;
 		--m_offset;
-		return *--m_nextItem;
+		m_nextItem -= sizeof(T);
+		return *reinterpret_cast<const T *>(m_nextItem);
 	}
 
 	void write(const T & item) {
 		if (m_cachedWrites > 0) {
-			*m_nextItem++ = item;
+			*reinterpret_cast<T*>(m_nextItem) = item;
+			m_nextItem += sizeof(T);
 			++m_size;
 			++m_offset;
 			--m_cachedWrites;
@@ -1078,7 +1082,8 @@ public:
 				}
 			}
 			if (offset() == m_size) ++m_size;
-			*m_nextItem++ = item;
+			*reinterpret_cast<T*>(m_nextItem) = item;
+			m_nextItem += sizeof(T);
 			this->m_bufferDirty = true;
 			++m_offset;
 			cache_read_writes();
@@ -1098,7 +1103,9 @@ public:
 			m_nextItem = m_bufferBegin;
 		}
 
-		*m_nextItem++ = item;
+		
+		*reinterpret_cast<T*>(m_nextItem) = item;
+		m_nextItem += sizeof(T);
 		this->m_bufferDirty = true;
 		++m_size;
 		++m_offset;
@@ -1188,7 +1195,7 @@ private:
 					m_nextReadOffset = m_nextPosition.read_offset();
 				}
 				read_next_block(l, blockNumber);
-				m_nextItem = m_bufferBegin + blockItemIndex;
+				m_nextItem = m_bufferBegin + sizeof(T) * blockItemIndex;
 			}
 
 			m_offset = m_nextPosition.offset();
@@ -1217,7 +1224,7 @@ private:
 					m_nextReadOffset = last_block_read_offset(l);
 				}
 				read_next_block(l, m_streamBlocks - 1);
-				m_nextItem = m_bufferBegin + blockItemIndex;
+				m_nextItem = m_bufferBegin + sizeof(T) * blockItemIndex;
 				m_offset = size();
 			}
 		} else {
@@ -1239,8 +1246,8 @@ private:
 		buffer_t().swap(m_buffer);
 		m_buffer = this->m_buffers.get_buffer(l, blockNumber);
 		while (m_buffer->is_busy()) compressor().wait_for_request_done(l);
-		m_bufferBegin = reinterpret_cast<T *>(m_buffer->get());
-		m_bufferEnd = m_bufferBegin + block_items();
+		m_bufferBegin = m_buffer->get();
+		m_bufferEnd = m_bufferBegin + sizeof(T) * block_items();
 		this->m_bufferDirty = false;
 	}
 
@@ -1276,8 +1283,8 @@ private:
 		m_lastBlockReadOffset = std::numeric_limits<stream_size_type>::max();
 		m_currentFileSize = std::numeric_limits<stream_size_type>::max();
 
-		if (m_nextItem == NULL) throw exception("m_nextItem is NULL");
-		if (m_bufferBegin == NULL) throw exception("m_bufferBegin is NULL");
+		if (m_nextItem == nullptr) throw exception("m_nextItem is NULL");
+		if (m_bufferBegin == nullptr) throw exception("m_bufferBegin is NULL");
 		memory_size_type blockItems = m_blockItems;
 		if (blockItems + blockNumber * m_blockItems > size()) {
 			blockItems =
@@ -1475,11 +1482,11 @@ private:
 			m_cachedWrites = 0;
 			m_cachedReads = 0;
 		} else if (offset() == size()) {
-			m_cachedWrites = m_bufferDirty ? m_bufferEnd - m_nextItem : 0;
+			m_cachedWrites = m_bufferDirty ? ((m_bufferEnd - m_nextItem) / sizeof(T)) : 0;
 			m_cachedReads = 0;
 		} else {
 			m_cachedWrites = 0;
-			m_cachedReads = m_bufferEnd - m_nextItem;
+			m_cachedReads = (m_bufferEnd - m_nextItem) / sizeof(T);
 			if (offset() + m_cachedReads > size()) {
 				m_cachedReads =
 					static_cast<memory_size_type>(size() - offset());
@@ -1489,12 +1496,12 @@ private:
 
 private:
 	/** Only when m_buffer.get() != 0: First item in writable buffer. */
-	T * m_bufferBegin;
+	char * m_bufferBegin;
 	/** Only when m_buffer.get() != 0: End of writable buffer. */
-	T * m_bufferEnd;
+	char * m_bufferEnd;
 
 	/** Next item in buffer to read/write. */
-	T * m_nextItem;
+	char * m_nextItem;
 };
 
 } // namespace tpie
