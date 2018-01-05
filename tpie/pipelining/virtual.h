@@ -368,6 +368,13 @@ public:
 
 		return *this;
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Test if it is not an empty chunk
+	///////////////////////////////////////////////////////////////////////////
+	explicit operator bool() const noexcept {
+		return m_src != nullptr;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -475,6 +482,13 @@ public:
 		m_recv->set_destination(acc::get_source(dest));
 		return virtual_chunk_end<Input>(*this, dest);
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Test if it is not an empty chunk
+	///////////////////////////////////////////////////////////////////////////
+	explicit operator bool() const noexcept {
+		return m_src != nullptr;
+	}
 };
 
 template <typename Input>
@@ -571,6 +585,13 @@ public:
 		m_recv->set_destination(acc::get_source(dest));
 		return virtual_chunk_base(this->m_nodeMap,
 								  bits::virt_node::combine(get_node(), dest.get_node()));
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Test if it is not an empty chunk
+	///////////////////////////////////////////////////////////////////////////
+	explicit operator bool() const noexcept {
+		return m_recv != nullptr;
 	}
 };
 
