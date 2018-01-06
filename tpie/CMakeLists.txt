@@ -226,19 +226,19 @@ set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
 add_library(tpie ${HEADERS} ${SOURCES})
-target_link_libraries(tpie ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(tpie Boost::boost Boost::filesystem Boost::system Boost::date_time Threads::Threads)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 if(TPIE_HAS_SNAPPY)
-	target_link_libraries(tpie ${Snappy_LIBRARY})
+	target_link_libraries(tpie snappy)
 endif(TPIE_HAS_SNAPPY)
 
 if(TPIE_HAS_LZ4)
-	target_link_libraries(tpie ${LZ4_LIBRARY})
+	target_link_libraries(tpie lz4)
 endif(TPIE_HAS_LZ4)
 
 if(TPIE_HAS_ZSTD)
-	target_link_libraries(tpie ${ZSTD_LIBRARY})
+	target_link_libraries(tpie zstd)
 endif(TPIE_HAS_ZSTD)
 
 install(TARGETS tpie
