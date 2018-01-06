@@ -204,7 +204,7 @@ public:
 	}
 
 
-	memory_size_type evacuated_usage() const {
+	memory_size_type evacuated_memory_usage() const {
 		return 2*p.fanout*sizeof(temp_file);
 	}
 
@@ -279,7 +279,7 @@ public:
 		return m_fanout_memory_usage(calculate_fanout(0, 0));
 	}
 
-	constexpr memory_size_type maximum_memory_phase_3() noexcept {
+	memory_size_type maximum_memory_phase_3() noexcept {
 		return std::numeric_limits<memory_size_type>::max();
 	}
 
@@ -290,11 +290,11 @@ public:
 			+ 2*params.fanout*sizeof(temp_file);
 	}
 
-	constexpr memory_size_type phase_2_memory(const sort_parameters & params) noexcept {
+	memory_size_type phase_2_memory(const sort_parameters & params) noexcept {
 		return m_fanout_memory_usage(params.fanout);
 	}
 
-	constexpr memory_size_type phase_3_memory(const sort_parameters & params) noexcept {
+	memory_size_type phase_3_memory(const sort_parameters & params) noexcept {
 		return m_fanout_memory_usage(params.finalFanout);
 	}
 	
@@ -789,7 +789,6 @@ private:
 		fs.set_position(m_runPositions.get_position(mergeLevel, runNumber));
 	}
 
-	state_type m_state;
 	specific_store_t m_store;
 	merger<specific_store_t, pred_t> m_merger;
 

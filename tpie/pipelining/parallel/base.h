@@ -28,6 +28,7 @@
 #include <tpie/pipelining/parallel/options.h>
 #include <tpie/pipelining/parallel/worker_state.h>
 #include <tpie/pipelining/parallel/aligned_array.h>
+#include <thread>
 
 namespace tpie {
 

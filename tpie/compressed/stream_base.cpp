@@ -640,7 +640,7 @@ public:
 		// so that it is destructed after we free the lock.
 		close_on_fail_guard closeOnFail(m_o);
 	
-		tp_assert(!(m_seekState == compressed_stream_base::seek_state::none), "perform_seek when seekState is none");
+		tp_assert(!(m_o->m_seekState == compressed_stream_base::seek_state::none), "perform_seek when seekState is none");
 	
 		uncache_read_writes();
 	
@@ -671,7 +671,7 @@ public:
 			// by changing seekState to end.
 			// Thus, we know for sure that size() != 0, and so the
 			// read_next_block will not yield an end_of_stream_exception.
-			tp_assert(!(size() == 0), "Seek beginning when size is zero");
+			tp_assert(!(m_o->size() == 0), "Seek beginning when size is zero");
 			if (use_compression()) {
 				m_nextReadOffset = 0;
 			}
