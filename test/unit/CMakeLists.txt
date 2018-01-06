@@ -89,7 +89,7 @@ add_unittest(btree
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic parameters remove_group_buffer)
 add_unittest(external_queue basic empty_size sized large)
-add_unittest(external_sort amismall small tiny)
+add_unittest(external_sort small tiny)
 add_unittest(external_stack new named-new ami named-ami io)
 add_unittest(file_count basic)
 add_unittest(filestream memory)

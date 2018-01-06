@@ -20,6 +20,7 @@
 #include <tpie/file_stream.h>
 #include <tpie/sort.h>
 #include "fractile.h"
+#include <boost/filesystem.hpp>
 
 class fractile_file_stream {
 	tpie::file_stream<item_type> sorted;

@@ -1,6 +1,3 @@
-#add_subdirectory(matrix)
-#add_subdirectory(rtree)
-#add_subdirectory(bkdtree)
 add_subdirectory(convex_hull)
 add_subdirectory(merge_fractions)
 add_subdirectory(pipelining_datastructures)
