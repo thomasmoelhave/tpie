@@ -137,35 +137,37 @@ void serialized_store_base::set_flags(btree_flags flags) {
 }
 
 std::vector<char> serialized_store_base::compress(const serilization_buffer & uncompressed_buffer) const {
-	int uncompressed_size = uncompressed_buffer.size(), max_compressed_size = 0, compressed_size = 0;
+	size_t uncompressed_size = uncompressed_buffer.size(), compressed_size = 0;
 	std::vector<char> compressed_buffer;
 	switch (m_flags & btree_flags::compression_mask) {
 #ifdef TPIE_HAS_LZ4
-	case compress_lz4:
-		max_compressed_size = LZ4_compressBound(uncompressed_size);
+	case compress_lz4: {
+		auto max_compressed_size = LZ4_compressBound(uncompressed_size);
 		compressed_buffer.resize(max_compressed_size);
 		compressed_size = LZ4_compress_default(uncompressed_buffer.data(), compressed_buffer.data(), uncompressed_size, max_compressed_size);
 		break;
+	}
+		
 #endif
 #ifdef TPIE_HAS_ZSTD
-	case compress_zstd:
-		max_compressed_size = ZSTD_compressBound(uncompressed_size);
+	case compress_zstd: {
+		auto max_compressed_size = ZSTD_compressBound(uncompressed_size);
 		compressed_buffer.resize(max_compressed_size);
-		{
-			int level = (uint64_t)(flags & btree_flags::compression_level_mask) >> 8;
-			if (level == 0) level = 5;
-			compressed_size = ZSTD_compress(compressed_buffer.data(), max_compressed_size, uncompressed_buffer.data(), uncompressed_size, level);
-		}
+		int level = (uint64_t)(flags & btree_flags::compression_level_mask) >> 8;
+		if (level == 0) level = 5;
+		compressed_size = ZSTD_compress(compressed_buffer.data(), max_compressed_size, uncompressed_buffer.data(), uncompressed_size, level);
 		break;
+	}
 #endif
 #ifdef TPIE_HAS_SNAPPY
-	case compress_snappy:
-		max_compressed_size = snappy::MaxCompressedLength(uncompressed_size);
+	case compress_snappy:  {
+		auto max_compressed_size = snappy::MaxCompressedLength(uncompressed_size);
 		compressed_buffer.resize(max_compressed_size);
 		compressed_size = max_compressed_size;
 		snappy::RawCompress(uncompressed_buffer.data(), uncompressed_size,
 							compressed_buffer.data(), &compressed_size);
 		break;
+	}
 #endif
 	default:
 		throw exception("Unknown compression, this code shouldn't be reachable");
@@ -176,7 +178,7 @@ std::vector<char> serialized_store_base::compress(const serilization_buffer & un
 	return compressed_buffer;
 }
 
-serialized_store_base::serilization_buffer serialized_store_base::uncompress(const std::vector<char> & compressed_buffer, int uncompressed_size) const {
+serialized_store_base::serilization_buffer serialized_store_base::uncompress(const std::vector<char> & compressed_buffer, size_t uncompressed_size) const {
 	serilization_buffer uncompressed_buffer(uncompressed_size);
 	bool success;
 	switch (m_flags & btree_flags::compression_mask) {
@@ -188,14 +190,12 @@ serialized_store_base::serilization_buffer serialized_store_base::uncompress(con
 #endif
 #ifdef TPIE_HAS_ZSTD
 	case compress_zstd:
-		success = ZSTD_decompress(uncompressed_buffer.data(), uncompressed_size, compressed_buffer.data(), compressed_size)
+		success = ZSTD_decompress(uncompressed_buffer.data(), uncompressed_size, compressed_buffer.data(), compressed_buffer.size())
 			== uncompressed_size;
 #endif
 #ifdef TPIE_HAS_SNAPPY
 	case compress_snappy:
-		success = snappy::RawUncompress(compressed_buffer.data(), compressed_size, uncompressed_buffer.data());
-		unserialize(uncompressed_buffer, i.count);
-		unserialize(uncompressed_buffer, i.values, i.values + i.count);
+		success = snappy::RawUncompress(compressed_buffer.data(), compressed_buffer.size(), uncompressed_buffer.data());
 		break;
 #endif
 	default:

@@ -77,7 +77,7 @@ public:
 
 protected:
 	std::vector<char> compress(const serilization_buffer & uncompressed_buffer) const;	
-	serilization_buffer uncompress(const std::vector<char> & compressed_buffer, int uncompressed_size) const;
+	serilization_buffer uncompress(const std::vector<char> & compressed_buffer, size_t uncompressed_size) const;
 	void finalize_build_inner();
 	
 	size_t m_height;

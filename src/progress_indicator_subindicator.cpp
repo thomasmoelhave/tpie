@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include "progress_indicator_subindicator.h"
+#include <tpie/progress_indicator_subindicator.h>
 #include <tpie/backtrace.h>
 #include <sstream>
 
