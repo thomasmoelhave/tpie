@@ -17,6 +17,25 @@ TPIE is written in C++ and depends on the Boost C++ libraries. TPIE may be
 compiled with GCC, Clang and MSVC, and due to its portable nature, it should be
 easy to port TPIE to other systems if this is required.
 
+Pipelining
+----------
+
+The TPIE Pipelining framework makes it easier to implement large
+I/O-efficient applications. When combining multiple I/O-efficient algorithms
+in an application, a traditional application (without pipelining)
+would require intermediate results from one component to be written to disk
+before being passed to the next component.
+The pipelining framework enables automatic pipelining of such algorithms
+by passing output from one component to the next in-memory,
+avoiding these unnecessary additional I/Os.
+
+The pipelining extension is part of TPIE 1.1 and is being actively developed
+along with the rest of TPIE.
+
+For more information, see the [pipelining paper](https://arxiv.org/abs/1710.10091)
+([local copy](tpie-pipelining-20180108.pdf)),
+which appeared in a short version at IEEE BigData 2017.
+
 Downloads
 ---------
 
