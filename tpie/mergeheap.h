@@ -58,7 +58,7 @@ namespace tpie {
 		template<class REC, class comp_t=std::less<REC> >
 		class merge_heap_ptr_op {
 		private:
-			struct comp: public std::binary_function<heap_ptr<REC>, heap_ptr<REC>, bool> {
+			struct comp {
 				comp_t c;
 				comp(comp_t & _): c(_) {}
 				inline bool operator()(const heap_ptr<REC> & a, const heap_ptr<REC> & b) const {
@@ -165,7 +165,7 @@ namespace tpie {
 		template<class REC, class comp_t=std::less<REC> >
 		class merge_heap_op {
 		private:
-			struct comp: public std::binary_function<heap_element<REC>, heap_element<REC>, bool> {
+			struct comp {
 				comp_t c;
 				comp(comp_t & _): c(_) {}
 				inline bool operator()(const heap_element<REC> & a, const heap_element<REC> & b) {
