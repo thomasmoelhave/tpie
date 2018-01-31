@@ -67,7 +67,7 @@ struct linear_memory_usage {
 
 	constexpr memory_size_type operator()(memory_size_type size) const noexcept {
 		return static_cast<memory_size_type>(
-			floor(static_cast<double>(size) * coefficient + overhead));
+			static_cast<double>(size) * coefficient + overhead);
 	}
 
 	constexpr friend linear_memory_usage operator * (const linear_memory_usage & o, double scale) noexcept {
