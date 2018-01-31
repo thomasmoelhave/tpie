@@ -21,7 +21,7 @@ add_tpie_test(test_ami_stack)
 add_tpie_test(test_sort)
 add_tpie_test(test_big_scan)
 
-add_executable(speed_test test_streams.cpp)
+add_executable(speed_test test_streams.cpp ../compressed_stream_test/speed_test_common.h)
 target_link_libraries(speed_test tpie test_common )
 set_target_properties(speed_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
