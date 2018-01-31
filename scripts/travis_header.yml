@@ -9,7 +9,6 @@ notifications:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      export MACRO_FLAGS="-DLZ4_DISABLE_DEPRECATE_WARNINGS";
       brew update;
       brew install snappy lz4 zstd;
     else
