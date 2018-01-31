@@ -70,6 +70,11 @@
 #cmakedefine TPIE_HAS_LZ4
 #cmakedefine TPIE_HAS_ZSTD
 
+// See https://github.com/lz4/lz4/pull/459
+#if __cplusplus >= 201402
+	#define LZ4_DISABLE_DEPRECATE_WARNINGS
+#endif
+
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX  //ensures that the windows min/max macros are not defined 
