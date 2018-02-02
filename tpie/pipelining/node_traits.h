@@ -148,19 +148,32 @@ struct pull_type_help<T, default_type, true, false> {
 /// typedef item_type to T::item_type if that exists
 /// otherwise typedef it to the type of whatever paramater push takes
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename default_type = void>
+template <typename T, typename default_type = void, bool allowVoid = false>
 struct push_type {
 	typedef typename std::decay<T>::type node_type;
 	typedef typename bits::push_type_help<node_type, default_type, bits::has_push_method<node_type>::value, bits::has_itemtype<node_type>::value>::type type;
-	static_assert(!std::is_void<type>::value, "Could not deduce push type.");
+	static_assert(allowVoid || !std::is_void<type>::value, "Could not deduce push type.");
 };
 
-template <typename T, typename default_type = void>
+template <typename T, typename default_type = void, bool allowVoid = false>
 struct pull_type {
 	typedef typename std::decay<T>::type node_type;
 	typedef typename bits::pull_type_help<node_type, default_type, bits::has_pull_method<node_type>::value, bits::has_itemtype<node_type>::value>::type type;
-	static_assert(!std::is_void<type>::value, "Could not deduce pull type.");
+	static_assert(allowVoid || !std::is_void<type>::value, "Could not deduce pull type.");
 };
+
+
+template <typename T, bool allowVoid = false>
+using push_type_t = typename push_type<T, void, allowVoid>::type;
+
+template <typename dest_t, bool no_push_type=std::is_void_v<push_type_t<dest_t, true>> >
+struct push_item_type_base {
+	typedef push_type_t<dest_t, true> item_type;
+};
+
+
+template <typename dest_t>
+struct push_item_type_base<dest_t, true> {};
 
 
 

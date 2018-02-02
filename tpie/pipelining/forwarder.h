@@ -30,9 +30,8 @@ namespace pipelining {
 namespace bits {
 
 template <typename dest_t>
-class Forwarder: public node {
+class Forwarder: public node, public push_item_type_base<dest_t> {
 public:
-	typedef typename push_type<dest_t>::type item_type;
 	typedef std::vector<std::pair<std::string, any_noncopyable> > values_t;
 	
 	Forwarder(dest_t dest, values_t values)
