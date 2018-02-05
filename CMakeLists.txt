@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(tpie)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/compressed_stream_test/default_flags.cmake)
+
 include_directories(.)
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
