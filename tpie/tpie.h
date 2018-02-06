@@ -19,9 +19,7 @@
 #ifndef __TPIE_TPIE_H__
 #define __TPIE_TPIE_H__
 
-#ifndef FILE_STREAM_BLOCK_SIZE
-#define FILE_STREAM_BLOCK_SIZE (2*1024*1024)
-#endif
+#include <compressed_stream_test/defaults.h>
 
 #include <tpie/config.h>
 #include <tpie/types.h>
