@@ -152,6 +152,7 @@ set (HEADERS
 		sysinfo.h
 		tpie_assert.h
 		tpie_log.h
+		tuple_utils.h
 		stats.h
 		types.h
 		tempname.h

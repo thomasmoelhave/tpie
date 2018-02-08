@@ -77,6 +77,9 @@ bool testSer2() {
 	serialize(wc, v);
 	serialize(wc, std::string("Abekat"));
 	serialize(wc, serializable_dummy());
+	serialize(wc, std::make_pair(std::string("hello"), 3.3f));
+	serialize(wc, std::make_tuple(865, 7.8, serializable_dummy()));
+
 
 	int a;
 	float b;
@@ -84,6 +87,8 @@ bool testSer2() {
 	std::vector<int> d;
 	std::string e;
 	serializable_dummy f;
+	std::pair<std::string, float> g;
+	std::tuple<int, double, serializable_dummy> h;
 
 	read_container rc(ss);
 	unserialize(rc, a);
@@ -92,7 +97,11 @@ bool testSer2() {
 	unserialize(rc, d);
 	unserialize(rc, e);
 	unserialize(rc, f);
-	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e <<  std::endl;
+	unserialize(rc, g);
+	unserialize(rc, h);
+	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e << " "
+		      << "(" << g.first << ", " << g.second << ") (" << std::get<0>(h) << ", " << std::get<1>(h) << ", ...)"
+			  << std::endl;
 	if (a != 454) return false;
 	if (b != 4.5) return false;
 	if (c != true) return false;
@@ -100,6 +109,8 @@ bool testSer2() {
 	if (d != v) return false;
 	std::cout << "Here" << std::endl;
 	if (e != "Abekat") return false;
+	if (g != std::make_pair(std::string("hello"), 3.3f)) return false;
+	if (std::get<0>(h) != 865 || std::get<1>(h) != 7.8) return false;
 	return true;
 }
 

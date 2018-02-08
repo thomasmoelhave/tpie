@@ -34,6 +34,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <tpie/is_simple_iterator.h>
+#include <tpie/tuple_utils.h>
 #include <array>
 
 namespace tpie {
@@ -306,6 +307,28 @@ void unserialize(S & src, std::pair<T,U> & v) {
 	using tpie::unserialize;
 	unserialize(src, v.first);
 	unserialize(src, v.second);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for std::tuples of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename... Ts>
+void serialize(D & dst, const std::tuple<Ts...> & t) {
+	tuple_for_each([&](const auto & el) {
+		using tpie::serialize;
+		serialize(dst, el);
+	}, t);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for std::tuples of unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename... Ts>
+void unserialize(S & src, std::tuple<Ts...> & t) {
+	tuple_for_each([&](auto & el) {
+		using tpie::unserialize;
+		unserialize(src, el);
+	}, t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
