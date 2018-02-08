@@ -22,6 +22,10 @@
 
 namespace tpie {
 
+template <typename F, typename Tuple, size_t I = 0>
+std::enable_if_t<I == std::tuple_size<typename std::remove_reference<Tuple>::type>::value>
+tuple_for_each(F, Tuple &&) {}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Calls a functor on element of a std::tuple in order
 /// \param f The functor that should be called
@@ -33,9 +37,5 @@ tuple_for_each(F f, Tuple && t) {
 	f(std::get<I>(t));
 	tuple_for_each<F, Tuple, I + 1>(f, t);
 }
-
-template <typename F, typename Tuple, size_t I = 0>
-std::enable_if_t<I == std::tuple_size<typename std::remove_reference<Tuple>::type>::value>
-tuple_for_each(F, Tuple &&) {}
 
 } //namespace tpie
