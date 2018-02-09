@@ -1439,6 +1439,19 @@ public:
 
 typedef pipe_end<termfactory<Summer, test_t &> > summer;
 
+template <typename dest_t>
+class Dummy: public node {
+public:
+	typedef test_t item_type;
+	Dummy(dest_t dest): dest(std::move(dest)) {}
+
+	void push(test_t item) {dest.push(item);}
+
+	dest_t dest;
+};
+
+typedef pipe_middle<factory<Dummy> > dummy;
+
 bool parallel_multiple_test() {
 	test_t sumInput = 1000;
 	test_t sumOutput = 0;
@@ -2205,7 +2218,7 @@ struct exception_test_exception {
 
 struct exception_thrower_end : public node {
 	int where;
-
+	int cnt = 0;
 	exception_thrower_end(int where) : where(where) {}
 
 #define TPIE_TEST_THROW(func, i) \
@@ -2220,7 +2233,10 @@ struct exception_thrower_end : public node {
 	TPIE_TEST_THROW(end, 4);
 #undef TPIE_TEST_THROW
 
-	void push(int) {};
+	void push(int) {
+		++cnt;
+		if (cnt == 19 && where == 5) throw exception_test_exception();
+	};
 };
 
 template <typename dest_t>
@@ -2232,8 +2248,9 @@ struct exception_thrower : public exception_thrower_end {
 bool parallel_exception_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 5; i++) {
-		{
+	
+	for (int i = 0; i < 6; i++) {
+		if (i != 5) {
 			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i)
 				| parallel(splitter())
@@ -2257,7 +2274,7 @@ bool parallel_exception_test() {
 			pipeline p = input_vector(inputvector)
 				| parallel(splitter())
 				| make_pipe_middle<exception_thrower>(i)
-				| parallel(splitter())
+				| parallel(dummy())
 				| null_sink<int>();
 
 			try {
@@ -2307,12 +2324,11 @@ bool parallel_exception_2_test() {
 	return !fail;
 }
 
-
 bool exception_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 5; i++) {
-		{
+	for (int i = 0; i < 6; i++) {
+		if (i != 5) {
 			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i) | splitter() | null_sink<int>();
 			try {
