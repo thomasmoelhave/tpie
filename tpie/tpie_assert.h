@@ -33,19 +33,14 @@
 #include <cassert>
 
 namespace tpie {
-    
-#if !defined(TPIE_NDEBUG) || defined(DOXYGEN)
-
-#ifdef _WIN32
-#pragma warning ( disable : 4127 )
-#endif 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \def tp_assert
+/// \def tp_assert_release
+/// Assertions also enabled for Release builds
 /// \param condition The condition to assert
 /// \param message Message describing the erroneous condition
 ///////////////////////////////////////////////////////////////////////////////
-#define tp_assert(condition,message) {									      \
+#define tp_assert_release(condition,message) {									      \
 	if (!((condition) && 1)) {												  \
 	    TP_LOG_FATAL_ID("Assertion failed:");								  \
 		TP_LOG_FATAL_ID(message);										      \
@@ -56,6 +51,18 @@ namespace tpie {
 	}																		  \
 }
 
+#if !defined(TPIE_NDEBUG) || defined(DOXYGEN)
+
+#ifdef _WIN32
+#pragma warning ( disable : 4127 )
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+/// \def tp_assert
+/// \param condition The condition to assert
+/// \param message Message describing the erroneous condition
+///////////////////////////////////////////////////////////////////////////////
+#define tp_assert(condition,message) tp_assert_release(condition,message)
 #else // TPIE_NDEBUG
 #define tp_assert(condition,message)
 #endif // TPIE_NDEBUG
