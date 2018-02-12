@@ -597,8 +597,7 @@ protected:
 		state_base::lock_t lock(st.mutex);
 
 		auto s = st.get_state(parId);
-		if (s != INITIALIZING && s != DONE)
-			throw tpie::exception("State should be INITIALIZING or DONE in before::~before");
+		tp_assert_release(s == INITIALIZING || s == DONE, "State should be INITIALIZING or DONE in before::~before");
 
 		if (m_worker.joinable())
 			m_worker.join();
