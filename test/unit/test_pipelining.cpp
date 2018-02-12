@@ -32,6 +32,7 @@
 #include <tpie/pipelining/helpers.h>
 #include <tpie/pipelining/split.h>
 #include <tpie/resource_manager.h>
+#include <numeric>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -2213,6 +2214,12 @@ bool pipeline_dealloc_test() {
 	return check_test_vectors();
 }
 
+constexpr int exception_test_locations = 7;
+
+// Need enough elements to throw an exception
+// with a worker in PARTIAL_OUTPUT state
+constexpr int exception_test_elements = 100;
+
 struct exception_test_exception {
 };
 
@@ -2235,7 +2242,10 @@ struct exception_thrower_end : public node {
 
 	void push(int) {
 		++cnt;
-		if (cnt == 19 && where == 5) throw exception_test_exception();
+		if (where == 5 && cnt == 1)
+			throw exception_test_exception();
+		if (where == 6 && cnt == exception_test_elements)
+			throw exception_test_exception();
 	};
 };
 
@@ -2248,9 +2258,11 @@ struct exception_thrower : public exception_thrower_end {
 bool parallel_exception_test() {
 	bool fail = false;
 
-	
-	for (int i = 0; i < 6; i++) {
-		if (i != 5) {
+	std::vector<int> inputvector(exception_test_elements);
+	std::iota(inputvector.begin(), inputvector.end(), 0);
+
+	for (int i = 0; i < exception_test_locations; i++) {
+		if (i < 5) {
 			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i)
 				| parallel(splitter())
@@ -2306,11 +2318,16 @@ bool parallel_exception_test() {
 bool parallel_exception_2_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 5; i++) {
+	std::vector<int> inputvector(exception_test_elements);
+	std::iota(inputvector.begin(), inputvector.end(), 0);
+
+	for (int i = 0; i < exception_test_locations; i++) {
 		if (i == 3) continue; //Skip go, as it is not called on a pipe middle
 		progress_indicator_arrow pi("Test", 0);
 		pipeline p = input_vector(inputvector)
+			| parallel(splitter())
 			| parallel(make_pipe_middle<exception_thrower>(i))
+			| parallel(dummy())
 			| null_sink<int>();
 		
 		try {
@@ -2327,8 +2344,8 @@ bool parallel_exception_2_test() {
 bool exception_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 6; i++) {
-		if (i != 5) {
+	for (int i = 0; i < exception_test_locations; i++) {
+		if (i < 5) {
 			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i) | splitter() | null_sink<int>();
 			try {
