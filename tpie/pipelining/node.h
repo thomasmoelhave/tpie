@@ -153,7 +153,7 @@ public:
 	void set_maximum_resource_usage(resource_type type, memory_size_type usage);
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \Brief Set the resource priority of this node. Resources are
+	/// \brief Set the resource priority of this node. Resources are
 	/// distributed proportionally to the priorities of the nodes in the given
 	/// phase.
 	///////////////////////////////////////////////////////////////////////////
@@ -219,7 +219,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \Brief Set the memory priority of this node. Memory is distributed
+	/// \brief Set the memory priority of this node. Memory is distributed
 	/// proportionally to the priorities of the nodes in the given phase.
 	///////////////////////////////////////////////////////////////////////////
 	void set_memory_fraction(double f) {

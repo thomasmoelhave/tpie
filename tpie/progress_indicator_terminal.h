@@ -48,7 +48,7 @@ public:
 	///
 	///  \param  title        The title of the progress indicator.
 	///                       indicator.
-	///  \param  minRange     The lower bound of the range.
+	///  \param  range     The lower bound of the range.
 	////////////////////////////////////////////////////////////////////
 
 	progress_indicator_terminal(const char * title, stream_size_type range, std::ostream & os = std::cout) : 
@@ -88,11 +88,7 @@ public:
     
 	////////////////////////////////////////////////////////////////////
 	///
-	///  Advance the indicator to the end and print an (optional)
-	///  message that is followed by a newline.
-	///
-	///  \param  text  The message to be printed at the end of the
-	///                indicator.
+	///  Advance the indicator to the end.
 	///
 	////////////////////////////////////////////////////////////////////
 

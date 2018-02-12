@@ -99,8 +99,6 @@ public:
 	/// value.
 	///
 	/// Iterators are invalidated by this call.
-	///
-	/// \param val The element to add.
 	///////////////////////////////////////////////////////////////////////////
 	inline T & push_back(){++m_size; return back();}
 

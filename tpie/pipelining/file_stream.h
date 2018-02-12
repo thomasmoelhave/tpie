@@ -414,12 +414,12 @@ inline pullpipe_begin<termfactory<bits::pull_reverse_input_t<T>, file_stream<T> 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief A pipelining pull-node that reads items from the given file_stream
-/// \param fs The file stream from which it reads items.
+/// \brief A pipelining pull-node that reads items from the given file path
+/// \param path The path of the file from which it reads items.
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T>
-inline pullpipe_begin<termfactory<bits::named_pull_input_t<T>, std::string> > named_pull_input(std::string name) {
-	return {std::move(name)};
+inline pullpipe_begin<termfactory<bits::named_pull_input_t<T>, std::string> > named_pull_input(std::string path) {
+	return {std::move(path)};
 }
 
 

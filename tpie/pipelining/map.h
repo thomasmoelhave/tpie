@@ -137,7 +137,7 @@ struct has_argument_type {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining nodes that applies to given functor to items in
 /// the stream.
-/// \param f The functor that should be applied to items
+/// \param functor The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F, typename = typename std::enable_if<bits::has_argument_type<F>::value>::type>
 pipe_middle<tempfactory<bits::map_t<F>, F> > map(const F & functor) {

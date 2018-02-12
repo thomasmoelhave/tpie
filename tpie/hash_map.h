@@ -265,8 +265,8 @@ public:
 	/// \copybrief chaining_hash_table::resize(size_t)
 	/// \copydetails chaining_hash_table::resize(size_t)
 	///////////////////////////////////////////////////////////////////////////
-	void resize(size_t element_count) {
-		size_t x=(99+static_cast<size_t>(static_cast<float>(element_count)*sc))|1;
+	void resize(size_t z) {
+		size_t x=(99+static_cast<size_t>(static_cast<float>(z)*sc))|1;
 		while (!is_prime(x)) x -= 2;
 		elements.resize(x, unused);
 	}
@@ -706,7 +706,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Erase entry from hash set by iterator.
-	/// \param key Key of entry to remove.
+	/// \param iter Iterator to entry to remove.
 	///////////////////////////////////////////////////////////////////////////
 	inline void erase(const iterator & iter) {erase(iter.key());}
 

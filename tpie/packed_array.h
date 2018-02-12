@@ -299,13 +299,13 @@ public:
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array
-	/// \param other The array to copy
+	/// \param a The array to copy
 	/////////////////////////////////////////////////////////
 	packed_array(const packed_array & a): m_elements(nullptr), m_size(0) {*this=a;}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Move another aray into me
-	/// \param other The array to copy
+	/// \param a The array to copy
 	/////////////////////////////////////////////////////////
 	packed_array(packed_array && a): m_elements(a.m_elements), m_size(a.m_size) {
 		a.m_elements = nullptr;
@@ -321,7 +321,7 @@ public:
 	/// \brief Copy elements from another array into this.
 	///
 	/// Note this array is resized to the size of other
-	/// \param other The array to copy from
+	/// \param a The array to copy from
 	/// \return a reference to this array
 	/////////////////////////////////////////////////////////
 	packed_array & operator=(const packed_array & a) {
@@ -360,7 +360,7 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Fill the entier array with the given value
 	///
-	/// \param elm the initialization element
+	/// \param value the initialization element
 	/////////////////////////////////////////////////////////
 	void fill(T value) {
 		storage_type x=0;
@@ -404,9 +404,9 @@ public:
 	/// \param i the index of the entry to return
 	/// \return the array entry
 	/////////////////////////////////////////////////////////
-	T operator[](size_t t)const {
-		assert(t < m_size);
-		return static_cast<T>((m_elements[high(t)] >> low(t))&mask());
+	T operator[](size_t i)const {
+		assert(i < m_size);
+		return static_cast<T>((m_elements[high(i)] >> low(i))&mask());
 	}	
 	
 	/////////////////////////////////////////////////////////
@@ -415,9 +415,9 @@ public:
 	/// \param i the index of the entry to return
 	/// \return The object behaving like a reference
 	/////////////////////////////////////////////////////////
-	return_type operator[](size_t t) {
-		assert(t < m_size);
-		return return_type(m_elements+high(t), low(t));
+	return_type operator[](size_t i) {
+		assert(i < m_size);
+		return return_type(m_elements+high(i), low(i));
 	}
 
 	/////////////////////////////////////////////////////////
