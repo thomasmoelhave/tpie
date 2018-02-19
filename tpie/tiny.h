@@ -326,8 +326,9 @@ public:
 	 */
 	size_t erase(const Key & key) {
 		auto x=equal_range(key);
+		auto res = x.second - x.first;
 		erase(x.first, x.second);
-		return x.second - x.first;
+		return res;
 	}
 
 	/**
