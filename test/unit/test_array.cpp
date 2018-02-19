@@ -185,6 +185,9 @@ bool iterator_test() {
 
 	std::sort(hat.begin(), hat.end());
 
+	TEST_ENSURE(std::distance(hat.begin(), hat.end()) == 52, "Should be 52");
+	TEST_ENSURE(std::distance(hat.rbegin(), hat.rend()) == 52, "Should be 52");
+
 	{
 		// verify order
 		// find two elements in the reverse order where one is less than the other

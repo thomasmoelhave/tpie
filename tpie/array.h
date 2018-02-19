@@ -54,7 +54,7 @@ private:
 	void increment() {elm += forward?1:-1;}
 	void decrement() {elm += forward?-1:1;}
 	void advance(size_t n) {if (forward) elm += n; else elm -= n;}
-	ptrdiff_t distance_to(array_iter_base const & o) const {return o.elm - elm;}
+	ptrdiff_t distance_to(array_iter_base const & o) const {return (forward?1:-1) * (o.elm - elm);}
 	TT * elm;
 public:
 	///////////////////////////////////////////////////////////////////////////
