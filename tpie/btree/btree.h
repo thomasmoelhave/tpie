@@ -192,7 +192,6 @@ private:
 			path.pop_back();
 			augment(c, path.back());
 		}
-		path.pop_back();
 	}
 	
 	template <typename CT, typename PT>
