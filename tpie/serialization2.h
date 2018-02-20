@@ -139,9 +139,9 @@ struct array_encode_magic<D, T, true, true> {
 			// Do not dereference two iterators pointing to null
 			return;
 		}
-		const char * from = reinterpret_cast<const char *>(&*start);
-		const char * to = reinterpret_cast<const char *>(&*end);
-		d.write(from, to-from);
+		// We can't derefence end
+		auto element_size = sizeof(typename std::iterator_traits<T>::value_type);
+		d.write(reinterpret_cast<const char *>(&*start), (end - start) * element_size);
 	}
 };
 
@@ -166,9 +166,9 @@ struct array_decode_magic<D, T, true, true> {
 			// Do not dereference two iterators pointing to null
 			return;
 		}
-		char * from = reinterpret_cast<char *>(&*start);
-		char * to = reinterpret_cast<char *>(&*end);
-		d.read(from, to-from);
+		// We can't derefence end
+		auto element_size = sizeof(typename std::iterator_traits<T>::value_type);
+		d.read(reinterpret_cast<char *>(&*start), (end - start) * element_size);
 	}
 };
 
