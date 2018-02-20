@@ -17,7 +17,7 @@ linux_packages = [
 # xcode 8.1 image doesn't include cmake for some reason
 osx_xcode_versions = ['6.4', '7.3', '8', '8.2', '8.3', '9']
 
-build_types = ['Release', 'Debug']
+build_types = ['Release', 'Debug', 'ExtraDebug']
 
 
 linux_compilers = []

@@ -7,6 +7,11 @@ if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
+set(CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES};ExtraDebug")
+if (CMAKE_BUILD_TYPE STREQUAL "ExtraDebug")
+	add_definitions("-D_GLIBCXX_DEBUG")
+endif()
+
 include_directories(.)
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
