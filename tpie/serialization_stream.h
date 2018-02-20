@@ -179,13 +179,13 @@ public:
 			std::vector<char> & data = wr.m_serializationBuffer;
 			memory_size_type offs = data.size();
 			data.resize(data.size() + n);
-			std::copy(s, s + n, &data[offs]);
+			std::copy(s, s + n, data.data() + offs);
 		}
 
 		~serializer() {
 			std::vector<char> & data = wr.m_serializationBuffer;
 			const memory_size_type n = data.size();
-			const char * const s = &data[0];
+			const char * const s = data.data();
 			if (wr.m_index + n <= wr.block_size()) {
 				std::copy(s, s + n, &wr.m_block[block_size() - wr.m_index - n]);
 				wr.m_index += n;
