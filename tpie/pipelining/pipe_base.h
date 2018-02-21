@@ -221,7 +221,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pipe_end(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	inline pipe_end(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	fact_t factory;
 };
@@ -266,7 +266,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	pipe_middle(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	pipe_middle(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// The pipe operator combines this generator/filter with another filter.
@@ -354,7 +354,7 @@ public:
 	// explicit inline pipe_begin(T1 && t1, T_ARGS && ... t) : factory(std::forward(t1), std::forward<T_ARGS>(t)...) {}
 
 	template <typename ... T_ARGS>
-	pipe_begin(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	pipe_begin(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 
 	template <typename fact2_t>
@@ -393,7 +393,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pullpipe_end(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	inline pullpipe_end(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	fact_t factory;
 };
@@ -415,7 +415,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pullpipe_middle(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	inline pullpipe_middle(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	template <typename fact2_t>
 	pullpipe_middle<bits::pair_factory<fact2_t, fact_t> >
@@ -453,7 +453,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pullpipe_begin(T_ARGS && ... t) : factory(std::forward<T_ARGS>(t)...) {}
+	inline pullpipe_begin(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	template <typename fact2_t>
 	pullpipe_begin<bits::termpair_factory<fact2_t, fact_t> >

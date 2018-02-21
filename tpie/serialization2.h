@@ -34,6 +34,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <tpie/is_simple_iterator.h>
+#include <tpie/tuple_utils.h>
 #include <array>
 
 namespace tpie {
@@ -138,9 +139,9 @@ struct array_encode_magic<D, T, true, true> {
 			// Do not dereference two iterators pointing to null
 			return;
 		}
-		const char * from = reinterpret_cast<const char *>(&*start);
-		const char * to = reinterpret_cast<const char *>(&*end);
-		d.write(from, to-from);
+		// We can't derefence end
+		auto element_size = sizeof(typename std::iterator_traits<T>::value_type);
+		d.write(reinterpret_cast<const char *>(&*start), (end - start) * element_size);
 	}
 };
 
@@ -165,9 +166,9 @@ struct array_decode_magic<D, T, true, true> {
 			// Do not dereference two iterators pointing to null
 			return;
 		}
-		char * from = reinterpret_cast<char *>(&*start);
-		char * to = reinterpret_cast<char *>(&*end);
-		d.read(from, to-from);
+		// We can't derefence end
+		auto element_size = sizeof(typename std::iterator_traits<T>::value_type);
+		d.read(reinterpret_cast<char *>(&*start), (end - start) * element_size);
 	}
 };
 
@@ -286,6 +287,48 @@ void unserialize(S & src, std::basic_string<T> & v) {
 	unserialize(src, s);
 	v.resize(s);
 	unserialize(src, v.c_str(), v.c_str() + v.size());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for std::pairs of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T, typename U>
+void serialize(D & dst, const std::pair<T,U> & v) {
+	using tpie::serialize;
+	serialize(dst, v.first);
+	serialize(dst, v.second);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for std::pairs of unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T, typename U>
+void unserialize(S & src, std::pair<T,U> & v) {
+	using tpie::unserialize;
+	unserialize(src, v.first);
+	unserialize(src, v.second);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for std::tuples of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename... Ts>
+void serialize(D & dst, const std::tuple<Ts...> & t) {
+	tuple_for_each([&](const auto & el) {
+		using tpie::serialize;
+		serialize(dst, el);
+	}, t);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for std::tuples of unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename... Ts>
+void unserialize(S & src, std::tuple<Ts...> & t) {
+	tuple_for_each([&](auto & el) {
+		using tpie::unserialize;
+		unserialize(src, el);
+	}, t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -95,10 +95,10 @@ public:
 	///////////////////////////////////////////////////////////////////////////////
 
 	template <typename ... T_ARGS>
-	void construct(T_ARGS && ... t) {
+	void construct(T_ARGS && ... args) {
 		assert_not_constructed();
 
-		new(&object) T(std::forward<T_ARGS>(t)...);
+		new(&object) T(std::forward<T_ARGS>(args)...);
 		m_constructed = true;
 	}
 

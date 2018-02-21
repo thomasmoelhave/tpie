@@ -70,7 +70,7 @@ struct hash<std::pair<T1,T2> > {
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate std::pair hash.
-	/// \param s Pair to hash.
+	/// \param e Pair to hash.
 	///////////////////////////////////////////////////////////////////////////
 	inline size_t operator()(const std::pair<T1,T2> & e) const {
 		return h1(e.first) + h2(e.second) * 99181;

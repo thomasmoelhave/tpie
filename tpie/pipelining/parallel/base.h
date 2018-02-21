@@ -191,7 +191,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Called by before::worker after a batch of items has
 	/// been pushed.
-	/// \param  complete  Whether the entire input has been processed.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void flush_buffer() = 0;
 
@@ -594,18 +593,13 @@ protected:
 	}
 
 	~before() {
-		// If we were destructed because of an exception,
-		// we should stop the worker thread
-		{
-			state_base::lock_t lock(st.mutex);
-			if (st.get_state(parId) == IDLE) {
-				st.transition_state(parId, IDLE, DONE);
-			}
-		}
-		st.workerCond[parId].notify_one();
-		if (m_worker.joinable()) {
+		state_base::lock_t lock(st.mutex);
+
+		auto s = st.get_state(parId);
+		tp_assert_release(s == INITIALIZING || s == DONE, "State should be INITIALIZING or DONE in before::~before");
+
+		if (m_worker.joinable())
 			m_worker.join();
-		}
 	}
 
 public:
@@ -811,6 +805,7 @@ private:
 			switch (st->get_state(i)) {
 				case INITIALIZING:
 				case PROCESSING:
+				case DONE:
 					break;
 				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
@@ -823,8 +818,6 @@ private:
 				case IDLE:
 					readyIdx = i;
 					return true;
-				case DONE:
-					throw tpie::exception("State DONE not expected in has_ready_pipe().");
 			}
 		}
 		return false;
@@ -848,6 +841,7 @@ private:
 				case INITIALIZING:
 				case IDLE:
 				case PROCESSING:
+				case DONE:
 					break;
 				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
@@ -855,8 +849,6 @@ private:
 						break;
 					readyIdx = i;
 					return true;
-				case DONE:
-					throw tpie::exception("State DONE not expected in has_outputting_pipe().");
 			}
 		}
 		return false;
@@ -879,11 +871,10 @@ private:
 				case IDLE:
 				case PARTIAL_OUTPUT:
 				case OUTPUTTING:
+				case DONE:
 					break;
 				case PROCESSING:
 					return true;
-				case DONE:
-					throw tpie::exception("State DONE not expected in has_processing_pipe().");
 			}
 		}
 		return false;
@@ -919,6 +910,25 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	void handle_exceptions(state_base::lock_t & lock) {
 		if (!st->eptr) return;
+		stop_workers(lock);
+		std::rethrow_exception(st->eptr);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Gracefully stop all worker threads.
+	///
+	/// This function will transition all running workers to the done state,
+	/// which should only be useful when an exception has been thrown
+	/// from either a worker thread or the main thread.
+	///
+	/// If an exception has been thrown from a worker thread
+	/// handle_exception() will call this.
+	///
+	/// Otherwise this will be called from processor::~processor()
+	/// even if no exception has been thrown from the main thread.
+	///////////////////////////////////////////////////////////////////////////
+	void stop_workers(state_base::lock_t & lock) {
+		if (st->runningWorkers == 0) return;
 
 		bool done = false;
 		while (!done) {
@@ -945,17 +955,37 @@ private:
 			}
 			st->transition_state(readyIdx, OUTPUTTING, IDLE);
 		}
+
 		// Notify all workers that all processing is done
 		for (size_t i = 0; i < st->opts.numJobs; ++i) {
-			st->transition_state(i, IDLE, DONE);
-			st->workerCond[i].notify_one();
+			auto s = st->get_state(i);
+			switch (s) {
+				// Some workers could already be done
+				case DONE:
+					break;
+
+				// If we get an exception before begin() has been called
+				case INITIALIZING:
+
+				// If the worker is idle
+				case IDLE:
+					st->transition_state(i, s, DONE);
+					st->workerCond[i].notify_one();
+					break;
+
+				// These cases should have been handled earlier in this function
+				case PROCESSING:
+					throw tpie::exception("State PROCESSING not expected in stop_workers()");
+				case PARTIAL_OUTPUT:
+					throw tpie::exception("State PARTIAL_OUTPUT not expected in stop_workers()");
+				case OUTPUTTING:
+					throw tpie::exception("State OUTPUTTING not expected in stop_workers()");
+			}
 		}
+
 		// Wait for workers to stop
 		while (st->runningWorkers > 0)
 			st->producerCond.wait(lock);
-
-		// Rethrow the exception at last
-		std::rethrow_exception(st->eptr);
 	}
 
 public:
@@ -980,6 +1010,19 @@ public:
 
 		if (st->opts.maintainOrder) {
 			m_outputOrder.resize(st->opts.numJobs);
+		}
+	}
+
+	producer(const producer &) = delete;
+	const producer & operator=(const producer &) = delete;
+
+	producer(producer &&) = default;
+	producer & operator=(producer &&) = default;
+
+	virtual ~producer() {
+		if (st) {
+			state_base::lock_t lock(st->mutex);
+			stop_workers(lock);
 		}
 	}
 

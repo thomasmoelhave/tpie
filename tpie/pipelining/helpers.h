@@ -158,9 +158,9 @@ public:
 		add_pull_source(this->source);
 		add_push_destination(dest);
 	}
-	
+
 	bool can_pull() {return source.can_pull();}
-	
+
 	item_type pull() {
 		item_type i=source.pull();
 		dest.push(i);
@@ -351,7 +351,7 @@ struct zip_t {
 	class type: public node {
 	public:
 		typedef typename push_type<dest_t>::type::first_type item_type;
-		
+
 		type(dest_t dest, src_fact_t src_fact)
 			: src(src_fact.construct()), dest(std::move(dest)) {
 			add_push_destination(this->dest);
@@ -371,19 +371,19 @@ struct zip_t {
 template <typename fact2_t>
 struct unzip_t {
 	typedef typename fact2_t::constructed_type dest2_t;
-	
-	template <typename dest1_t> 
+
+	template <typename dest1_t>
 	class type: public node {
 	public:
 		typedef typename push_type<dest1_t>::type first_type;
 		typedef typename push_type<dest2_t>::type second_type;
 		typedef std::pair<first_type, second_type> item_type;
-		
+
 		type(dest1_t dest1, fact2_t fact2) : dest1(std::move(dest1)), dest2(fact2.construct()) {
 			add_push_destination(this->dest1);
 			add_push_destination(dest2);
 		}
-		
+
 		void push(const item_type & item) {
 			dest2.push(item.second);
 			dest1.push(item.first);
@@ -475,7 +475,7 @@ public:
 
 	pull_unique_t(src_t src, equal_t equal)
 		: equal(equal), src(std::move(src)) {}
-	
+
 	void begin() override {
 		has_item = src.can_pull();
 		if (!has_item) return;
@@ -529,7 +529,7 @@ typedef pullpipe_middle<factory<bits::pull_peek_t> > pull_peek;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create a fork pipe node.
-/// 
+///
 /// Whenever an element e is push into the fork node, e is pushed
 /// to the destination and then to "to"
 ///////////////////////////////////////////////////////////////////////////////
@@ -541,7 +541,7 @@ fork(pipe_end<fact_t> to) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create a pulling fork pipe node.
-/// 
+///
 /// Whenever an element e is pulled from fork node, e is first pushed
 /// into the destination
 ///////////////////////////////////////////////////////////////////////////////
@@ -553,7 +553,7 @@ pull_fork(dest_fact_t dest_fact) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create unzip pipe node.
-/// 
+///
 /// Whenever a std::pair<A,B>(a,b) is pushed to the unzip node,
 /// a is pushed to its destination, and then b is pushed to "to"
 ///////////////////////////////////////////////////////////////////////////////
@@ -567,7 +567,7 @@ unzip(pipe_end<fact_t> to) {
 /// \brief Create a zip pipe node.
 ///
 /// Whenever an element a is pushed to the zip node,
-/// an element b is pulled from the "from" node, 
+/// an element b is pulled from the "from" node,
 /// and std::make_pair(a,b) is pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
@@ -680,7 +680,7 @@ pipe_middle<tempfactory<bits::preparer_t<F>, F> > preparer(const F & functor) {
 /// \brief Create propagate callback identity pipe node
 ///
 /// When propagate is called on the node the functor is called
-/// Whenever an element is pushed, it is immidiately pushed to the destination
+/// Whenever an element is pushed, it is immediately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
 pipe_middle<tempfactory<bits::propagater_t<F>, F> > propagater(const F & functor) {
@@ -701,7 +701,7 @@ pipe_middle<tempfactory<bits::item_type_t<T> > > item_type() {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A node that pulls items from source and push them into dest
 ///
-/// \param The pull source, and the source forwards the number of items, "items"
+/// \param from The pull source, and the source forwards the number of items, "items"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
 pipe_begin<tempfactory<bits::pull_source_t<fact_t>, fact_t> >
@@ -712,7 +712,7 @@ pull_source(pullpipe_begin<fact_t> from) {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Filter consecutive duplicates out
 ///
-/// When items are pushed in 
+/// When items are pushed in
 /// Whenever a pushed item is same as the previous, it is dropped
 ///////////////////////////////////////////////////////////////////////////////
 template <typename equal_t>

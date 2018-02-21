@@ -67,6 +67,7 @@ struct enum_storage_type {
  * void bar() {
  *   foo(a | c);
  * }
+ * \endcode
  */
 template <typename T>
 class flags {

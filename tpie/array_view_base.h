@@ -75,7 +75,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return an iterator to the i'th element of the array.
 	///
-	/// \param i The index of the element we want an iterator to.
+	/// \param idx The index of the element we want an iterator to.
 	/// \return An iterator to the i'th element.
 	///////////////////////////////////////////////////////////////////////////
 	iterator find(size_t idx) const throw () {

@@ -32,6 +32,7 @@
 #include <tpie/pipelining/helpers.h>
 #include <tpie/pipelining/split.h>
 #include <tpie/resource_manager.h>
+#include <numeric>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -1439,6 +1440,19 @@ public:
 
 typedef pipe_end<termfactory<Summer, test_t &> > summer;
 
+template <typename dest_t>
+class Dummy: public node {
+public:
+	typedef test_t item_type;
+	Dummy(dest_t dest): dest(std::move(dest)) {}
+
+	void push(test_t item) {dest.push(item);}
+
+	dest_t dest;
+};
+
+typedef pipe_middle<factory<Dummy> > dummy;
+
 bool parallel_multiple_test() {
 	test_t sumInput = 1000;
 	test_t sumOutput = 0;
@@ -2200,12 +2214,18 @@ bool pipeline_dealloc_test() {
 	return check_test_vectors();
 }
 
+constexpr int exception_test_locations = 7;
+
+// Need enough elements to throw an exception
+// with a worker in PARTIAL_OUTPUT state
+constexpr int exception_test_elements = 100;
+
 struct exception_test_exception {
 };
 
 struct exception_thrower_end : public node {
 	int where;
-
+	int cnt = 0;
 	exception_thrower_end(int where) : where(where) {}
 
 #define TPIE_TEST_THROW(func, i) \
@@ -2220,7 +2240,13 @@ struct exception_thrower_end : public node {
 	TPIE_TEST_THROW(end, 4);
 #undef TPIE_TEST_THROW
 
-	void push(int) {};
+	void push(int) {
+		++cnt;
+		if (where == 5 && cnt == 1)
+			throw exception_test_exception();
+		if (where == 6 && cnt == exception_test_elements)
+			throw exception_test_exception();
+	};
 };
 
 template <typename dest_t>
@@ -2232,8 +2258,11 @@ struct exception_thrower : public exception_thrower_end {
 bool parallel_exception_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 5; i++) {
-		{
+	std::vector<int> inputvector(exception_test_elements);
+	std::iota(inputvector.begin(), inputvector.end(), 0);
+
+	for (int i = 0; i < exception_test_locations; i++) {
+		if (i < 5) {
 			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i)
 				| parallel(splitter())
@@ -2257,7 +2286,7 @@ bool parallel_exception_test() {
 			pipeline p = input_vector(inputvector)
 				| parallel(splitter())
 				| make_pipe_middle<exception_thrower>(i)
-				| parallel(splitter())
+				| parallel(dummy())
 				| null_sink<int>();
 
 			try {
@@ -2289,11 +2318,16 @@ bool parallel_exception_test() {
 bool parallel_exception_2_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 5; i++) {
+	std::vector<int> inputvector(exception_test_elements);
+	std::iota(inputvector.begin(), inputvector.end(), 0);
+
+	for (int i = 0; i < exception_test_locations; i++) {
 		if (i == 3) continue; //Skip go, as it is not called on a pipe middle
 		progress_indicator_arrow pi("Test", 0);
 		pipeline p = input_vector(inputvector)
+			| parallel(splitter())
 			| parallel(make_pipe_middle<exception_thrower>(i))
+			| parallel(dummy())
 			| null_sink<int>();
 		
 		try {
@@ -2307,12 +2341,11 @@ bool parallel_exception_2_test() {
 	return !fail;
 }
 
-
 bool exception_test() {
 	bool fail = false;
 
-	for (int i = 0; i < 5; i++) {
-		{
+	for (int i = 0; i < exception_test_locations; i++) {
+		if (i < 5) {
 			progress_indicator_arrow pi("Test", 0);
 			pipeline p = make_pipe_begin<exception_thrower>(i) | splitter() | null_sink<int>();
 			try {

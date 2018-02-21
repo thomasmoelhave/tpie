@@ -70,6 +70,9 @@ bool testSer2() {
 	v.push_back(88);
 	v.push_back(74);
 
+	std::vector<int> empty;
+	int arr[1];
+
 	write_container wc(ss);
 	serialize(wc, (int)454);
 	serialize(wc, (float)4.5);
@@ -77,6 +80,13 @@ bool testSer2() {
 	serialize(wc, v);
 	serialize(wc, std::string("Abekat"));
 	serialize(wc, serializable_dummy());
+	serialize(wc, std::make_pair(std::string("hello"), 3.3f));
+	serialize(wc, std::make_tuple(865, 7.8, serializable_dummy()));
+
+	serialize(wc, empty);
+	serialize(wc, empty.begin(), empty.end());
+	serialize(wc, arr, arr);
+
 
 	int a;
 	float b;
@@ -84,6 +94,11 @@ bool testSer2() {
 	std::vector<int> d;
 	std::string e;
 	serializable_dummy f;
+	std::pair<std::string, float> g;
+	std::tuple<int, double, serializable_dummy> h;
+
+	std::vector<int> empty_out1, empty_out2;
+	int empty_out3[1] = {1337};
 
 	read_container rc(ss);
 	unserialize(rc, a);
@@ -92,7 +107,14 @@ bool testSer2() {
 	unserialize(rc, d);
 	unserialize(rc, e);
 	unserialize(rc, f);
-	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e <<  std::endl;
+	unserialize(rc, g);
+	unserialize(rc, h);
+	unserialize(rc, empty_out1);
+	unserialize(rc, empty_out2);
+	unserialize(rc, empty_out3);
+	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e << " "
+		      << "(" << g.first << ", " << g.second << ") (" << std::get<0>(h) << ", " << std::get<1>(h) << ", ...)"
+			  << std::endl;
 	if (a != 454) return false;
 	if (b != 4.5) return false;
 	if (c != true) return false;
@@ -100,18 +122,23 @@ bool testSer2() {
 	if (d != v) return false;
 	std::cout << "Here" << std::endl;
 	if (e != "Abekat") return false;
+	if (g != std::make_pair(std::string("hello"), 3.3f)) return false;
+	if (std::get<0>(h) != 865 || std::get<1>(h) != 7.8) return false;
+	if (empty_out1.size() != 0) return false;
+	if (empty_out2.size() != 0) return false;
+	if (empty_out3[0] != 1337) return false;
 	return true;
 }
 
 
 bool testSer(bool safe) {
 	std::stringstream ss;
-	std::vector<int> v;
+	std::vector<int> v, empty;
 	v.push_back(88);
 	v.push_back(74);
 	{
 		tpie::serializer ser(ss, safe);
-		ser << (size_t)454 << (uint8_t)42 << "Hello world" << std::string("monster") << make_pair(std::string("hello"), (float)3.3) << v;
+		ser << (size_t)454 << (uint8_t)42 << "Hello world" << std::string("monster") << make_pair(std::string("hello"), (float)3.3) << v << empty;
 	}
 
 	{	
@@ -123,9 +150,9 @@ bool testSer(bool safe) {
 		std::string c;
 		std::string d;
 		std::pair<std::string, float> e;
-		std::vector<int> f;
+		std::vector<int> f, empty_out;
 		try {
-			ser >> a >> b >> c >> d >> e >> f;
+			ser >> a >> b >> c >> d >> e >> f >> empty_out;
 		} catch(serialization_error e) {
 			tpie::log_info() << e.what() << std::endl;
 			return false;
@@ -136,7 +163,8 @@ bool testSer(bool safe) {
 			d != "monster" ||
 			e.first != "hello" ||
 			(e.second - 3.3) > 1e-9 ||
-			f != v) {
+			f != v ||
+			empty_out.size() != 0) {
 			tpie::log_info() << "Unserzation failed" << std::endl;
 				return false;		
 		}

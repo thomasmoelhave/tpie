@@ -226,7 +226,7 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 
 	auto e1 = tree.end();
 	auto i1 = tree.begin();
-	map<uncomparable<int>, int>::iterator i2 = tree2.begin();
+	auto i2 = tree2.begin();
 	while (i1 != e1) {
 		if (i1->key.value != i2->first.value ||
 			i1->value != i2->second) return false;
