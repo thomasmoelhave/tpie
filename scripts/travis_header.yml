@@ -3,6 +3,7 @@ language: cpp
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=1
+    - LD_PRELOAD=/usr/lib/libSegFault.so
 
 notifications:
   email: false

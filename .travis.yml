@@ -18,6 +18,7 @@ addons:
 env:
   global:
   - CTEST_OUTPUT_ON_FAILURE=1
+  - LD_PRELOAD=/usr/lib/libSegFault.so
 install:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install snappy lz4 zstd;
   else export MACRO_FLAGS="-DLZ4_compress_default\(a,b,c,d\)=LZ4_compress\(a,b,c\)";
