@@ -1,19 +1,25 @@
 #!/bin/bash
 set -euo pipefail
 
+if [[ "$TRAVIS_BRANCH" != "travis" || "$TRAVIS_EVENT_TYPE" == "pull_request" ]]; then
+	echo "Skipping updating test status, branch: $TRAVIS_BRANCH, event type: $TRAVIS_EVENT_TYPE"
+	exit 0
+fi
+
 if [[ -z "${GH_TOKEN:-}" ]]; then
 	echo "GH_TOKEN not set!"
 	exit 1
 fi
 
-master_commit=$TRAVIS_COMMIT
+current_build_number=$TRAVIS_BUILD_NUMBER
 
 result_file=(build/Testing/*/Test.xml)
 
-passed=$(grep -c 'Status="passed"' "$result_file")
-failed=$(grep -c 'Status="failed"' "$result_file")
+passed=$(grep -c 'Status="passed"' "$result_file" || echo 0)
+failed=$(grep -c 'Status="failed"' "$result_file" || echo 0)
 
-git checkout travis_results
+git fetch origin travis_results:origin/travis_results
+git checkout -b travis_results origin/travis_results
 git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
 
 try_push() {
@@ -28,37 +34,33 @@ try_push() {
 }
 
 update() {
-	git fetch origin travis_results
+	git fetch origin travis_results:origin/travis_results
 	git reset --hard origin/travis_results
 
-	result_commit=$(cat commit)
+	result_build_number=$(cat build_number || echo -1)
 
-	if [[ "$master_commit" != "$result_commit" ]]; then
-		echo "Commit differs from the one in travis_results"
-
-		if [[ "$(git cat-file -t "$result_commit" 2>/dev/null || true)" == "commit" ]]; then
-			# This commit exists so we are the newer one
-			echo "Newer commit, changing commmit in travis_results"
-
-			echo -n "$master_commit" > commit
-			echo -n 0 > passed
-			echo -n 0 > failed
-
-			git add commit passed failed
-			git commit -m 'Update count'
-			try_push
-		else
-			# This commit doesn't exist, so this is probably an old build, exit
-			echo "Commit doesn't exist, this is probably an old build, exiting"
-			exit 0
-		fi
+	if [[ "$current_build_number" -lt "$result_build_number" ]]; then
+		echo "Found newer build number: $current_build_number < $result_build_number"
+		exit 0
 	fi
 
-	# Same commit, update
+	if [[ "$current_build_number" -gt "$result_build_number" ]]; then
+		echo "Newer build, changing build number in travis_results"
+
+		echo -n "$current_build_number" > build_number
+		echo -n 0 > passed
+		echo -n 0 > failed
+
+		git add commit passed failed
+		git commit -m 'Update count'
+		try_push
+	fi
+
+	# Same build number, update
 	echo "Updating counts"
 
-	let passed+=$(cat passed)
-	let failed+=$(cat failed)
+	let passed+=$(cat passed || echo 0)
+	let failed+=$(cat failed || echo 0)
 
 	echo -n "$passed" > passed
 	echo -n "$failed" > failed
