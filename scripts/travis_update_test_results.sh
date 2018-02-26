@@ -8,7 +8,7 @@ fi
 
 master_commit=$TRAVIS_COMMIT
 
-result_file=build/Testing/*/Test.xml
+result_file=(build/Testing/*/Test.xml)
 
 passed=$(grep -c 'Status="passed"' "$result_file")
 failed=$(grep -c 'Status="failed"' "$result_file")
@@ -26,7 +26,7 @@ try_push() {
 
 update() {
 	git fetch origin travis_results
-	git --reset hard origin/travis_results
+	git reset --hard origin/travis_results
 
 	result_commit=$(cat commit)
 
@@ -36,9 +36,9 @@ update() {
 			echo -n "$master_commit" > commit
 			echo -n 0 > passed
 			echo -n 0 > failed
-			git add .
-			git commit -m 'Update count'
 
+			git add commit passed failed
+			git commit -m 'Update count'
 			try_push
 		else
 			# This commit doesn't exist, so this is probably an old build, exit
@@ -62,6 +62,10 @@ update() {
 	fi
 
 	curl "https://img.shields.io/badge/tests-$text-$color.svg" -o badge.svg
+
+	git add passed failed badge.svg
+	git commit -m 'Update count'
+	try_push
 }
 
 update
