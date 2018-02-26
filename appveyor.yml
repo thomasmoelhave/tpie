@@ -43,22 +43,18 @@ before_build:
   - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
   - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 14 2015 Win64
   - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..
-  - cmd: set test="cd C:/projects/tpie/build; ctest -T Test --timeout 30 -j 2 --output-on-failure --no-compress-output -C \"%CONFIG%\" ctest || ver>nul"
-  - cmd: echo "%test%"
 
 build:
   parallel: true                           # enable MSBuild parallel builds
   project: C:/projects/tpie/build/tpie.sln # path to Visual Studio solution or project
 
 test_script:
+  - cmd: cd C:/projects/tpie
+  - cmd: cd build
+  - cmd: ctest -T Test --timeout 30 -j 2 --output-on-failure --no-compress-output -C "%CONFIG%" ctest || ver>nul
+
   # From https://android.googlesource.com/platform/external/google-benchmark/+/android-7.1.1_r12/appveyor.yml
-  ps: |
-    iex "& $env:test"
-
-    if ($LastExitCode -ne 0) {
-        throw "Exec: $ErrorMessage"
-    }
-
+  - ps: |
     function Add-CTest-Result($testResult)
     {
         $tests = ([xml](get-content $testResult)).Site.Testing
