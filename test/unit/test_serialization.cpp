@@ -110,8 +110,8 @@ bool testSer2() {
 	unserialize(rc, g);
 	unserialize(rc, h);
 	unserialize(rc, empty_out1);
-	unserialize(rc, empty_out2);
-	unserialize(rc, empty_out3);
+	unserialize(rc, empty_out2.begin(), empty_out2.end());
+	unserialize(rc, empty_out3, empty_out3);
 	std::cout << a << " " << b << " " << c << " " << d[0] << " " << d[1] << " " << e << " "
 		      << "(" << g.first << ", " << g.second << ") (" << std::get<0>(h) << ", " << std::get<1>(h) << ", ...)"
 			  << std::endl;
