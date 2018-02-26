@@ -43,5 +43,5 @@ script:
     echo '{"result": "foobar"}' > results.json
   - git add results.json
   - git commit -m 'Latest travis results'
-  - gitgit remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
+  - git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
   - git push pushable travis_results
