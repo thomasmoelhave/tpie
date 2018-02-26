@@ -53,52 +53,10 @@ test_script:
   - cmd: cd build
   - cmd: ctest -T Test --timeout 30 -j 2 --output-on-failure --no-compress-output -C "%CONFIG%" ctest || ver>nul
 
-  # From https://android.googlesource.com/platform/external/google-benchmark/+/android-7.1.1_r12/appveyor.yml
+  # From https://gist.github.com/IlyaFinkelshteyn/237ef33c8c94057f0c4af1155e9bb043
   - ps: |
-
-      function Add-CTest-Result($testResult)
-      {
-          $tests = ([xml](get-content $testResult)).Site.Testing
-          $testsCount = 0
-          $anyFailures = $FALSE
-
-          foreach ($test in $tests.test) {
-              $testsCount++
-              $testName = $test.Name
-              $testpath = $test.Path
-              $timeNode = $test.SelectSingleNode('Results/NamedMeasurement[@name="Execution Time"]/Value')
-              if ($test.status -eq "failure") {
-                  $time = ([double]$timeNode.InnerText * 1000)
-                  Add-AppveyorTest $testName -Outcome Failed -FileName $testpath -Duration $time -ErrorMessage $($test.results.measurement.value)
-                  Add-AppveyorMessage `"$testName failed`" -Category Error
-                  $anyFailures = $TRUE
-              }
-              elseif ($test.status -eq "skipped") {
-                  Add-AppveyorTest $testName -Outcome Ignored -Filename $testpath
-              }
-              else {
-                  $time = ([double]$timeNode.InnerText * 1000)
-                  Add-AppveyorTest $testName -Outcome Passed -FileName $testpath -Duration $time -StdOut $($test.results.measurement.value)
-              }
-          }
-          return $testsCount, $anyFailures
-      }
-
-      $testsCount = 0
-      $anyFailures = $FALSE
-
-      # Run tests and upload results to AppVeyor one by one
-      Get-ChildItem ".\Testing\*.xml" -Recurse | foreach {
-          $testfile = $_.fullname
-          $count, $testsResult = Add-CTest-Result $testfile
-          Write-Host "Found $testfile with $count tests"
-          $testsCount = $testsCount + $count
-          $anyFailures = $anyFailures -or $testsResult
-      }
-
-      Write-Host "There are $testsCount tests found"
-
-      if ($anyFailures -eq $TRUE){
-          Write-Host "Failing build as there are broken tests"
-          $host.SetShouldExit(1)
-      }
+      $XSLInputElement = New-Object System.Xml.Xsl.XslCompiledTransform
+      $XSLInputElement.Load("https://raw.githubusercontent.com/rpavlik/jenkins-ctest-plugin/master/ctest-to-junit.xsl")
+      $XSLInputElement.Transform((Resolve-Path .\Testing\*\Test.xml), (Join-Path (Resolve-Path .) "ctest-to-junit-results.xml"))
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\ctest-to-junit-results.xml))
