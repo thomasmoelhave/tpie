@@ -51,5 +51,5 @@ build:
 test_script:
   - cmd: cd C:/projects/tpie
   - cmd: cd build
-  - cmd: ctest --timeout 30 -j 2 --output-on-failure -T Test --no-compress-output -C "%CONFIG%" ctest || /bin/true
+  - cmd: ctest --timeout 30 -j 2 --output-on-failure -T Test --no-compress-output -C "%CONFIG%" ctest || ver>nul
   - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\Testing\*\Test.xml))
