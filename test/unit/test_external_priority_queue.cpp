@@ -281,11 +281,13 @@ bool parameter_test(double kb, double blockSizeKB) {
 
 template <typename T>
 bool remove_group_buffer_test(memory_size_type mmAvail, memory_size_type blockSize, stream_size_type items, stream_size_type iterations) {
-	const float blockFact = (float) blockSize / (1<<21);
+	using PQ = ami::priority_queue<uint64_t, bit_pertume_compare< std::greater<uint64_t> > >;
+	const float blockFact = float(blockSize) / (1<<21);
 	log_debug() << "blockSize = " << blockSize
 		<< "\nblockFact = " << blockFact
 		<< "\nmmAvail = " << mmAvail << endl;
-	ami::priority_queue<uint64_t, bit_pertume_compare< std::greater<uint64_t> > > pq(mmAvail, blockFact);
+	TEST_ENSURE(PQ::memory_usage(items, blockFact) > mmAvail, "Too much mmAvail, would use internal pq");
+	PQ pq(mmAvail, blockFact, items);
 	return cyclic_pq_test(pq, items, iterations);
 }
 
@@ -296,11 +298,11 @@ int main(int argc, char **argv) {
 		.test(large_instance<false>, "large")
 		.test(large_cycle, "large_cycle")
 		.test(memory_test, "memory")
-		.test(very_large_test<4294967311, uint64_t>, "very_large")
+		.test(very_large_test<(1ull<<32) + 15, uint64_t>, "very_large")
 		.test(overflow_test, "overflow")
 		.test(parameter_test<uint64_t>, "parameters", "kb", 50000.0, "bs_kb", 128.0)
 		.test(remove_group_buffer_test<uint64_t>, "remove_group_buffer",
-			  "mmavail", static_cast<memory_size_type>((1<<14) + (1<<13) + (1<<10) + (1<<7)),
+			  "mmavail", static_cast<memory_size_type>((1<<14) + (1<<13) + (1<<12) + (1<<10) + (1<<7)),
 			  "blocksize", static_cast<memory_size_type>(1<<9),
 			  "items", static_cast<stream_size_type>(5000),
 			  "iterations", static_cast<stream_size_type>(100000))
