@@ -1,8 +1,9 @@
 TPIE - The Templated Portable I/O Environment
 =============================================
 
-NIX: [![Build Status](https://travis-ci.org/thomasmoelhave/tpie.svg?branch=master)](https://travis-ci.org/thomasmoelhave/tpie/branches)
-Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/s3tam9s8t8h7xgfu/branch/master?svg=true)](https://ci.appveyor.com/project/Tyilo/tpie-u4guh/branch/master)
+NIX: [![Travis branch](https://img.shields.io/travis/thomasmoelhave/tpie/master.svg?label=tests)](https://travis-ci.org/thomasmoelhave/tpie/branches)
+
+Windows: [![AppVeyor branch](https://img.shields.io/appveyor/ci/Tyilo/tpie-u4guh/master.svg)](https://ci.appveyor.com/project/Tyilo/tpie-u4guh/branch/master) [![AppVeyor tests branch](https://img.shields.io/appveyor/tests/Tyilo/tpie-u4guh/master.svg)](https://ci.appveyor.com/project/Tyilo/tpie-u4guh/branch/master)
 
 The TPIE (Templated Portable I/O Environment) library is a tool box providing
 efficient and convenient tools to ease the implementation of algorithms and data
