@@ -55,49 +55,50 @@ test_script:
 
   # From https://android.googlesource.com/platform/external/google-benchmark/+/android-7.1.1_r12/appveyor.yml
   - ps: |
-    function Add-CTest-Result($testResult)
-    {
-        $tests = ([xml](get-content $testResult)).Site.Testing
-        $testsCount = 0
-        $anyFailures = $FALSE
 
-        foreach ($test in $tests.test) {
-            $testsCount++
-            $testName = $test.Name
-            $testpath = $test.Path
-            $timeNode = $test.SelectSingleNode('Results/NamedMeasurement[@name="Execution Time"]/Value')
-            if ($test.status -eq "failure") {
-                $time = ([double]$timeNode.InnerText * 1000)
-                Add-AppveyorTest $testName -Outcome Failed -FileName $testpath -Duration $time -ErrorMessage $($test.results.measurement.value)
-                Add-AppveyorMessage `"$testName failed`" -Category Error
-                $anyFailures = $TRUE
-            }
-            elseif ($test.status -eq "skipped") {
-                Add-AppveyorTest $testName -Outcome Ignored -Filename $testpath
-            }
-            else {
-                $time = ([double]$timeNode.InnerText * 1000)
-                Add-AppveyorTest $testName -Outcome Passed -FileName $testpath -Duration $time -StdOut $($test.results.measurement.value)
-            }
-        }
-        return $testsCount, $anyFailures
-    }
+      function Add-CTest-Result($testResult)
+      {
+          $tests = ([xml](get-content $testResult)).Site.Testing
+          $testsCount = 0
+          $anyFailures = $FALSE
 
-    $testsCount = 0
-    $anyFailures = $FALSE
+          foreach ($test in $tests.test) {
+              $testsCount++
+              $testName = $test.Name
+              $testpath = $test.Path
+              $timeNode = $test.SelectSingleNode('Results/NamedMeasurement[@name="Execution Time"]/Value')
+              if ($test.status -eq "failure") {
+                  $time = ([double]$timeNode.InnerText * 1000)
+                  Add-AppveyorTest $testName -Outcome Failed -FileName $testpath -Duration $time -ErrorMessage $($test.results.measurement.value)
+                  Add-AppveyorMessage `"$testName failed`" -Category Error
+                  $anyFailures = $TRUE
+              }
+              elseif ($test.status -eq "skipped") {
+                  Add-AppveyorTest $testName -Outcome Ignored -Filename $testpath
+              }
+              else {
+                  $time = ([double]$timeNode.InnerText * 1000)
+                  Add-AppveyorTest $testName -Outcome Passed -FileName $testpath -Duration $time -StdOut $($test.results.measurement.value)
+              }
+          }
+          return $testsCount, $anyFailures
+      }
 
-    # Run tests and upload results to AppVeyor one by one
-    Get-ChildItem ".\Testing\*.xml" -Recurse | foreach {
-        $testfile = $_.fullname
-        $count, $testsResult = Add-CTest-Result $testfile
-        Write-Host "Found $testfile with $count tests"
-        $testsCount = $testsCount + $count
-        $anyFailures = $anyFailures -or $testsResult
-    }
+      $testsCount = 0
+      $anyFailures = $FALSE
 
-    Write-Host "There are $testsCount tests found"
+      # Run tests and upload results to AppVeyor one by one
+      Get-ChildItem ".\Testing\*.xml" -Recurse | foreach {
+          $testfile = $_.fullname
+          $count, $testsResult = Add-CTest-Result $testfile
+          Write-Host "Found $testfile with $count tests"
+          $testsCount = $testsCount + $count
+          $anyFailures = $anyFailures -or $testsResult
+      }
 
-    if ($anyFailures -eq $TRUE){
-        Write-Host "Failing build as there are broken tests"
-        $host.SetShouldExit(1)
-    }
+      Write-Host "There are $testsCount tests found"
+
+      if ($anyFailures -eq $TRUE){
+          Write-Host "Failing build as there are broken tests"
+          $host.SetShouldExit(1)
+      }

@@ -5,10 +5,6 @@ env:
     - CTEST_OUTPUT_ON_FAILURE=1
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
 
-    # Contains GH_TOKEN
-    # See https://gist.github.com/willprice/e07efd73fb7f13f917ea
-    - secure: "vTTJkPmZXwPQqgYGmrZxHoedPxlUqExLst0QV+oh7Fl7vvbNX2IYmP9p80WqpKYt6DGEyEZ+A4DryRmN3SmilZIRIHqT+LIkEFhJJXWbrfty+ygFv5GjfVFKU2FCiisvqBIKgusqP5Set7MogcEn50Eb7x/x1xeOXlEruoglSQk="
-
 notifications:
   email: false
 
