@@ -51,7 +51,7 @@ update() {
 		echo -n 0 > passed
 		echo -n 0 > failed
 
-		git add commit passed failed
+		git add build_number passed failed
 		git commit -m 'Update count'
 		try_push
 	fi
