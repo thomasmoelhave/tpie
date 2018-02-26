@@ -19,6 +19,9 @@ git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
 try_push() {
 	if ! git push pushable travis_results; then
 		# Retry
+		echo "Failed to push, retrying in a bit..."
+		sleep $(($RANDOM % 15 + 10))
+
 		update
 		exit 0
 	fi
@@ -31,8 +34,12 @@ update() {
 	result_commit=$(cat commit)
 
 	if [[ "$master_commit" != "$result_commit" ]]; then
+		echo "Commit differs from the one in travis_results"
+
 		if [[ "$(git cat-file -t "$result_commit" 2>/dev/null || true)" == "commit" ]]; then
 			# This commit exists so we are the newer one
+			echo "Newer commit, changing commmit in travis_results"
+
 			echo -n "$master_commit" > commit
 			echo -n 0 > passed
 			echo -n 0 > failed
@@ -42,11 +49,14 @@ update() {
 			try_push
 		else
 			# This commit doesn't exist, so this is probably an old build, exit
+			echo "Commit doesn't exist, this is probably an old build, exiting"
 			exit 0
 		fi
 	fi
 
 	# Same commit, update
+	echo "Updating counts"
+
 	let passed+=$(cat passed)
 	let failed+=$(cat failed)
 
