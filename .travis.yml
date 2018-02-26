@@ -34,4 +34,4 @@ script:
 - git add results.json
 - git commit -m 'Latest travis results'
 - git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
-- git push pushable travis_results
+- git push --force pushable travis_results
