@@ -3,19 +3,66 @@
 
 addons:
   apt:
-    packages: []
+    packages:
+    - libboost-date-time1.55-dev
+    - libboost-filesystem1.55-dev
+    - libboost-system1.55-dev
+    - libsnappy-dev
+    - liblz4-dev
     sources:
     - boost-latest
     - ubuntu-toolchain-r-test
+    - llvm-toolchain-trusty-3.9
     - llvm-toolchain-trusty-4.0
+    - llvm-toolchain-trusty-5.0
 env:
   global:
   - CTEST_OUTPUT_ON_FAILURE=1
   - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
   - secure: njhrB7mRB2Gn1OjU44Awjg/qGwMKUFvGHhsoBlHDSVf9qgsQ1kpTz5Bkq0E9EdOnr1SG1QgvBom9Dawur9mr0Vp/VkA0X2N3vhXKkiUR5SujiGdOxbww+XgbKvqFcNbSXJs8++0aar0bz6slofCMGY27LAr/uZay2aD1rt05OIc=
+install:
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install snappy lz4 zstd;
+  else export MACRO_FLAGS="-DLZ4_compress_default\(a,b,c,d\)=LZ4_compress\(a,b,c\)";
+  sudo apt-get update; if [[ "$_CC" == "gcc-"* ]]; then sudo apt-get install "$_CC"
+  "$_CXX"; else if [[ "$_CC" == "clang-"* ]]; then sudo apt-get install "$_CC"; fi;
+  sudo apt-get install libstdc++-5-dev; fi; if [[ -n "$_CC" ]]; then export CC=$_CC;
+  fi; if [[ -n "$_CXX" ]]; then export CXX=$_CXX; fi; git clone https://github.com/facebook/zstd;
+  cd zstd; git checkout tags/v1.3.1; sudo make install; cd ..; fi
 language: cpp
 matrix:
   include:
+  - compiler: gcc-5
+    dist: trusty
+    env:
+    - CMAKE_BUILD_TYPE=Debug
+    - _CC=gcc-5
+    - _CXX=g++-5
+    os: linux
+    sudo: required
+  - compiler: gcc-6
+    dist: trusty
+    env:
+    - CMAKE_BUILD_TYPE=Debug
+    - _CC=gcc-6
+    - _CXX=g++-6
+    os: linux
+    sudo: required
+  - compiler: gcc-7
+    dist: trusty
+    env:
+    - CMAKE_BUILD_TYPE=Debug
+    - _CC=gcc-7
+    - _CXX=g++-7
+    os: linux
+    sudo: required
+  - compiler: clang-3.9
+    dist: trusty
+    env:
+    - CMAKE_BUILD_TYPE=Debug
+    - _CC=clang-3.9
+    - _CXX=clang++-3.9
+    os: linux
+    sudo: required
   - compiler: clang-4.0
     dist: trusty
     env:
@@ -24,15 +71,24 @@ matrix:
     - _CXX=clang++-4.0
     os: linux
     sudo: required
+  - compiler: clang-5.0
+    dist: trusty
+    env:
+    - CMAKE_BUILD_TYPE=Debug
+    - _CC=clang-5.0
+    - _CXX=clang++-5.0
+    os: linux
+    sudo: required
 notifications:
   email: false
 script:
-- git checkout --orphan travis_results
-- git reset --hard
-- 'echo ''{"result": "quxqax"}'' > results.json
-
-  '
-- git add results.json
-- git commit -m 'Latest travis results'
-- git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
-- git push --force pushable travis_results
+- $CC --version
+- $CXX --version
+- mkdir build
+- cd build
+- cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" -DCMAKE_C_FLAGS="$MACRO_FLAGS" -DCMAKE_CXX_FLAGS="$MACRO_FLAGS"
+  ..
+- make -j2
+- ctest -j2 -T Test
+- cd ..
+- scripts/travis_update_test_results.sh
