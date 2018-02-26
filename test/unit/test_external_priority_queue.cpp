@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
 		.test(large_instance<false>, "large")
 		.test(large_cycle, "large_cycle")
 		.test(memory_test, "memory")
-		.test(very_large_test<4294967311, uint64_t>, "very_large")
+		.test(very_large_test<(1ull<<32) + 15, uint64_t>, "very_large")
 		.test(overflow_test, "overflow")
 		.test(parameter_test<uint64_t>, "parameters", "kb", 50000.0, "bs_kb", 128.0)
 		.test(remove_group_buffer_test<uint64_t>, "remove_group_buffer",
