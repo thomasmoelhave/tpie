@@ -51,4 +51,12 @@ build:
 test_script:
   - cmd: cd C:/projects/tpie
   - cmd: cd build
-  - cmd: ctest --timeout 30 -j 2 --output-on-failure -C "%CONFIG%" ctest 
+  - cmd: ctest -T Test --timeout 30 -j 2 --output-on-failure --no-compress-output -C "%CONFIG%" ctest || ver>nul
+
+  # From https://gist.github.com/IlyaFinkelshteyn/237ef33c8c94057f0c4af1155e9bb043
+  - ps: |
+      $XSLInputElement = New-Object System.Xml.Xsl.XslCompiledTransform
+      $XSLInputElement.Load("https://raw.githubusercontent.com/rpavlik/jenkins-ctest-plugin/master/ctest-to-junit.xsl")
+      $XSLInputElement.Transform((Resolve-Path .\Testing\*\Test.xml), (Join-Path (Resolve-Path .) "ctest-to-junit-results.xml"))
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\ctest-to-junit-results.xml))
