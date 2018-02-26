@@ -91,4 +91,4 @@ script:
 - make -j2
 - ctest -j2 -T Test
 - cd ..
-- scripts/travis_update_test_results.sh
+- bash -x scripts/travis_update_test_results.sh
