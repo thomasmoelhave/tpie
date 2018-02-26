@@ -6,6 +6,7 @@ env:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
 
     # Contains GH_TOKEN
+    # See https://gist.github.com/willprice/e07efd73fb7f13f917ea
     - secure: "vTTJkPmZXwPQqgYGmrZxHoedPxlUqExLst0QV+oh7Fl7vvbNX2IYmP9p80WqpKYt6DGEyEZ+A4DryRmN3SmilZIRIHqT+LIkEFhJJXWbrfty+ygFv5GjfVFKU2FCiisvqBIKgusqP5Set7MogcEn50Eb7x/x1xeOXlEruoglSQk="
 
 notifications:
@@ -43,7 +44,7 @@ script:
   - git checkout --orphan travis_results
   - git reset --hard
   - >
-    echo '{"result": "foobar"}' > results.json
+    echo '{"result": "quxqax"}' > results.json
   - git add results.json
   - git commit -m 'Latest travis results'
   - git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"

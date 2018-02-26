@@ -28,7 +28,7 @@ notifications:
 script:
 - git checkout --orphan travis_results
 - git reset --hard
-- 'echo ''{"result": "foobar"}'' > results.json
+- 'echo ''{"result": "quxqax"}'' > results.json
 
   '
 - git add results.json
