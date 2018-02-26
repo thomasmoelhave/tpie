@@ -37,10 +37,10 @@ install:
     fi
 
 script:
-  - $CC --version
-  - $CXX --version
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" -DCMAKE_C_FLAGS="$MACRO_FLAGS" -DCMAKE_CXX_FLAGS="$MACRO_FLAGS" ..
-  - make -j2
-  - make test
+  - git checkout --orphan travis_results
+  - git reset --hard
+  - >
+    echo '{"result": "foobar"}' > results.json
+  - git add results.json
+  - git commit -m 'Latest travis results'
+  - git push origin travis_results
