@@ -291,4 +291,4 @@ script:
 - cmake -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" -DCMAKE_C_FLAGS="$MACRO_FLAGS" -DCMAKE_CXX_FLAGS="$MACRO_FLAGS"
   ..
 - make -j2
-- make test
+- ctest --timeout 30
