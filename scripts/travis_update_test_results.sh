@@ -16,8 +16,8 @@ echo "Current build number: $current_build_number"
 
 result_file=(build/Testing/*/Test.xml)
 
-passed=$(grep -c 'Status="passed"' "$result_file" || echo 0)
-failed=$(grep -c 'Status="failed"' "$result_file" || echo 0)
+passed=$(grep -c 'Status="passed"' "$result_file" || true)
+failed=$(grep -c 'Status="failed"' "$result_file" || true)
 
 cd /tmp
 git clone "https://${GH_TOKEN}@github.com/Tyilo/tpie-travis-results.git"
