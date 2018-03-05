@@ -115,7 +115,7 @@ bool win32::try_open_rw(const std::string & path) {
 }
 
 void win32::open_rw_new(const std::string & path) {
-	_open(path, GENERIC_READ | GENERIC_WRITE, CREATE_NEW);
+	_open(path, GENERIC_READ | GENERIC_WRITE, OPEN_ALWAYS);
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 
