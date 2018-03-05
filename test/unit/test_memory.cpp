@@ -114,21 +114,30 @@ bool basic_test() {
 		if (a1 != a2) return false;
 	}
 
-	{ 
+	{
 		//Allocator
 		size_t a1;
+		size_t a2;
 		{
 			a1 = tpie::get_memory_manager().used();
+			{
+				// Compiling with MSVC in Debug mode allocated more than just the capacity of the vector
+				// This ensures we include that overhead
+				std::vector<size_t, tpie::allocator<size_t>> vec;
+				a2 = tpie::get_memory_manager().used() - vec.capacity() * sizeof(size_t);
+			}
 			std::vector<size_t, tpie::allocator<size_t> > myvect;
 			myvect.resize(16);
 			for(size_t i=0; i < 12345; ++i) {
-				if (a1 + myvect.capacity() * sizeof(size_t) != tpie::get_memory_manager().used()) return false;
+				if (a2 + myvect.capacity() * sizeof(size_t) != tpie::get_memory_manager().used()) return false;
 				myvect.push_back(12);
 			}
 			for(size_t i=0; i < 12345; ++i) {
-				if (a1 + myvect.capacity() * sizeof(size_t) != tpie::get_memory_manager().used()) return false;
+				if (a2 + myvect.capacity() * sizeof(size_t) != tpie::get_memory_manager().used()) return false;
 				myvect.pop_back();
 			}
+			myvect.shrink_to_fit();
+			if (a2 + myvect.capacity() * sizeof(size_t) != tpie::get_memory_manager().used()) return false;
 		}
 		if (tpie::get_memory_manager().used() != a1) return false;
 	}
