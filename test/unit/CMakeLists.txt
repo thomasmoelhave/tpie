@@ -221,6 +221,8 @@ add_unittest(snappy basic)
 
 add_unittest(tiny sort set map multiset multimap)
 
+add_unittest(raw_file_accessor open_rw_new try_open_rw)
+
 add_fulltest(ami_stream stress)
 add_fulltest(disjoint_set large large_cycle very_large medium ovelflow stress)
 add_fulltest(external_priority_queue medium large large_cycle memory overflow very_large)
