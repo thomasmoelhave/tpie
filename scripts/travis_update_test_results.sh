@@ -12,18 +12,19 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
 fi
 
 current_build_number=$TRAVIS_BUILD_NUMBER
+echo "Current build number: $current_build_number"
 
 result_file=(build/Testing/*/Test.xml)
 
 passed=$(grep -c 'Status="passed"' "$result_file" || echo 0)
 failed=$(grep -c 'Status="failed"' "$result_file" || echo 0)
 
-git fetch origin travis_results:origin/travis_results
-git checkout -b travis_results origin/travis_results
-git remote add pushable "https://${GH_TOKEN}@github.com/thomasmoelhave/tpie.git"
+cd /tmp
+git clone "https://${GH_TOKEN}@github.com/Tyilo/tpie-travis-results.git"
+cd tpie-travis-results
 
 try_push() {
-	if ! git push pushable travis_results; then
+	if ! git push; then
 		# Retry
 		echo "Failed to push, retrying in a bit..."
 		sleep $(($RANDOM % 15 + 10))
@@ -34,8 +35,8 @@ try_push() {
 }
 
 update() {
-	git fetch origin travis_results:origin/travis_results
-	git reset --hard origin/travis_results
+	git fetch origin master:origin/master
+	git reset --hard origin/master
 
 	result_build_number=$(cat build_number || echo -1)
 
@@ -52,15 +53,15 @@ update() {
 		echo -n 0 > failed
 
 		git add build_number passed failed
-		git commit -m 'Update count'
+		git commit -m "Build $current_build_number"
 		try_push
 	fi
 
 	# Same build number, update
 	echo "Updating counts"
 
-	let passed+=$(cat passed || echo 0)
-	let failed+=$(cat failed || echo 0)
+	let passed+=$(cat passed || echo 0) || true
+	let failed+=$(cat failed || echo 0) || true
 
 	echo -n "$passed" > passed
 	echo -n "$failed" > failed
