@@ -42,7 +42,11 @@
 using namespace tpie;
 
 bool basic_test() {
+#ifndef _GLIBCXX_DEBUG
 	size_t z = 104729;
+#else
+	size_t z = 10472;
+#endif
 	internal_priority_queue<uint64_t, bit_pertume_compare<std::greater<uint64_t> > > pq(z);
 	return basic_pq_test(pq, z);
 }

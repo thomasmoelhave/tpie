@@ -195,7 +195,11 @@ static tests & add_all(tests & t) {
 		.test(internal_report_after_resize_test, "internal_report_after_resize")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
+#ifndef _GLIBCXX_DEBUG
 		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.0)
+#else
+		.test(small_final_fanout_test, "small_final_fanout", "mb", 0.8)
+#endif
 		.test(evacuate_before_merge_test, "evacuate_before_merge")
 		.test(evacuate_before_report_test, "evacuate_before_report")
 		;

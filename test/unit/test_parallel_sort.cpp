@@ -297,7 +297,11 @@ int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(sort_tester<2>(), "basic1", "n", 1024*1024)
 		.test(sort_tester<8>(), "basic2", "n", 8*8)
+#ifndef _GLIBCXX_DEBUG
 		.test(sort_tester<1024*1024>(), "general", "n", 24*1024*1024)
+#else
+		.test(sort_tester<8*1024>(), "general", "n", 24*8*1024)
+#endif
 		.test(adversarial<make_equal_elements_data>(), "equal_elements", "n", 1234567, "seconds", 1.0)
 		.test(bad_case, "bad_case", "n", 1024*1024, "seconds", 1.0)
 		.test(adversarial<make_random_data>(), "general2", "n", 1024*1024, "seconds", 1.0)
