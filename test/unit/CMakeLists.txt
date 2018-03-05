@@ -75,6 +75,7 @@ add_unittest(btree
 	internal_bound
 	internal_iterator
 	internal_key_and_compare
+
 	external_augment
 	external_basic
 	external_bound
@@ -82,8 +83,17 @@ add_unittest(btree
 	external_iterator
 	external_key_and_compare
 	external_reopen
+	external_static_reopen
+
 	serialized_build
 	serialized_reopen
+    serialized_lz4_build
+    serialized_lz4_reopen
+    serialized_read_old_format
+    serialized_snappy_build
+    serialized_snappy_reopen
+    serialized_zstd_build
+    serialized_zstd_reopen
 	)
 	
 add_unittest(disjoint_set basic memory)
