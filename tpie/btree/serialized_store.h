@@ -227,7 +227,7 @@ private:
 			serilization_buffer uncompressed_buffer(uncompressed_size);
 
 			int r = LZ4_decompress_fast(compressed_buffer.data(), uncompressed_buffer.data(), uncompressed_size);
-			if (r != uncompressed_size)
+			if (r != compressed_size)
 				throw io_exception("B-tree decompression failed");
 			
 			unserialize(uncompressed_buffer, i.count);
