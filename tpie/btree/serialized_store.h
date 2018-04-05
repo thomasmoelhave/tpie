@@ -234,7 +234,7 @@ private:
 #ifdef TPIE_HAS_ZSTD
 		case compress_zstd: {
 			size_t r = ZSTD_decompress(uncompressed_buffer.data(), (size_t)uncompressed_size, compressed_buffer.data(), (size_t)compressed_size);
-			if ((int)r != uncompressed_size)
+			if (ZSTD_isError(r) || (int32_t)r != uncompressed_size)
 				throw io_exception("B-tree decompression failed");
 			break;
 		}
