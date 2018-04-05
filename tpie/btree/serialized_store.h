@@ -189,11 +189,13 @@ private:
 			int max_compressed_size = snappy::MaxCompressedLength(uncompressed_size);
 			std::vector<char> compressed_buffer(max_compressed_size);
 
-			size_t compressed_size = max_compressed_size;
+			size_t _compressed_size = max_compressed_size;
 			snappy::RawCompress(uncompressed_buffer.data(), uncompressed_size,
-								compressed_buffer.data(), &compressed_size);
-			if (compressed_size == 0)
+								compressed_buffer.data(), &_compressed_size);
+			if (_compressed_size == 0)
 				throw io_exception("B-tree compression failed");
+
+			int compressed_size = _compressed_size;
 			
 			s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
 			s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
