@@ -132,158 +132,127 @@ private:
 	void serialize(S & s, const N & i) const {
 		using tpie::serialize;
 
-		switch (m_flags & btree_flags::compression_mask) {
-#ifdef TPIE_HAS_LZ4
-		case compress_lz4: {
-			serilization_buffer uncompressed_buffer(sizeof(i.count) + sizeof(*i.values) * i.count);
-			serialize(uncompressed_buffer, i.count);
-			serialize(uncompressed_buffer, i.values, i.values + i.count);
+		auto compression_type = m_flags & btree_flags::compression_mask;
 
-			int uncompressed_size = uncompressed_buffer.size();
-
-			int max_compressed_size = LZ4_compressBound(uncompressed_size);
-			std::vector<char> compressed_buffer(max_compressed_size);
-
-			int compressed_size = LZ4_compress_default(uncompressed_buffer.data(), compressed_buffer.data(), uncompressed_size, max_compressed_size);
-			if (compressed_size == 0)
-				throw io_exception("B-tree compression failed");
-
-			s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
-			s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
-			s.write(compressed_buffer.data(), compressed_size);
-			break;
-		}
-#endif
-#ifdef TPIE_HAS_ZSTD
-		case compress_zstd: {
-			serilization_buffer uncompressed_buffer(sizeof(i.count) + sizeof(*i.values) * i.count);
-			serialize(uncompressed_buffer, i.count);
-			serialize(uncompressed_buffer, i.values, i.values + i.count);
-
-			int uncompressed_size = uncompressed_buffer.size();
-
-			int max_compressed_size = ZSTD_compressBound(uncompressed_size);
-			std::vector<char> compressed_buffer(max_compressed_size);
-
-			int level = (uint64_t)(m_flags & btree_flags::compression_level_mask) >> 8;
-			if (level == 0) level = 5;
-				
-			int compressed_size = ZSTD_compress(compressed_buffer.data(), max_compressed_size, uncompressed_buffer.data(), uncompressed_size, level);
-			if (compressed_size == 0)
-				throw io_exception("B-tree compression failed");
-			
-			s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
-			s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
-			s.write(compressed_buffer.data(), compressed_size);
-			break;
-		}
-#endif
-#ifdef TPIE_HAS_SNAPPY
-		case compress_snappy: {
-			serilization_buffer uncompressed_buffer(sizeof(i.count) + sizeof(*i.values) * i.count);
-			serialize(uncompressed_buffer, i.count);
-			serialize(uncompressed_buffer, i.values, i.values + i.count);
-
-			int uncompressed_size = uncompressed_buffer.size();
-
-			int max_compressed_size = snappy::MaxCompressedLength(uncompressed_size);
-			std::vector<char> compressed_buffer(max_compressed_size);
-
-			size_t _compressed_size = max_compressed_size;
-			snappy::RawCompress(uncompressed_buffer.data(), uncompressed_size,
-								compressed_buffer.data(), &_compressed_size);
-			if (_compressed_size == 0)
-				throw io_exception("B-tree compression failed");
-
-			int compressed_size = _compressed_size;
-			
-			s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
-			s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
-			s.write(compressed_buffer.data(), compressed_size);
-			break;
-		}
-#endif
-		case btree_flags::compress_none:
+		if (compression_type == btree_flags::compress_none) {
 			serialize(s, i.count);
 			serialize(s, i.values, i.values + i.count);
-			break;
-		default:
-			throw exception("Unknown compressios, this code shouldn't be reachable");
+			return;
 		}
+
+		serilization_buffer uncompressed_buffer(sizeof(i.count) + sizeof(*i.values) * i.count);
+		serialize(uncompressed_buffer, i.count);
+		serialize(uncompressed_buffer, i.values, i.values + i.count);
+
+		int32_t uncompressed_size = (int32_t)uncompressed_buffer.size();
+
+		std::vector<char> compressed_buffer;
+		int32_t compressed_size;
+
+		switch (compression_type) {
+#ifdef TPIE_HAS_LZ4
+			case btree_flags::compress_lz4: {
+				auto max_compressed_size = LZ4_compressBound(uncompressed_size);
+				compressed_buffer.resize((size_t)max_compressed_size);
+
+				compressed_size = LZ4_compress_default(uncompressed_buffer.data(), compressed_buffer.data(),
+				                                       uncompressed_size, max_compressed_size);
+				if (compressed_size == 0)
+					throw io_exception("B-tree compression failed");
+
+				break;
+			}
+#endif
+#ifdef TPIE_HAS_ZSTD
+				case compress_zstd: {
+					auto max_compressed_size = ZSTD_compressBound((size_t)uncompressed_size);
+					compressed_buffer.resize(max_compressed_size);
+
+					int level = (int)((uint64_t)(m_flags & btree_flags::compression_level_mask) >> 8);
+					if (level == 0) level = 5;
+
+					size_t r = ZSTD_compress(compressed_buffer.data(), max_compressed_size, uncompressed_buffer.data(), uncompressed_size, level);
+					if (ZSTD_isError(r))
+						throw io_exception("B-tree compression failed");
+
+					compressed_size = (int32_t)r;
+					break;
+				}
+#endif
+#ifdef TPIE_HAS_SNAPPY
+			case compress_snappy: {
+				auto max_compressed_size = snappy::MaxCompressedLength((size_t) uncompressed_size);
+				compressed_buffer.resize(max_compressed_size);
+
+				size_t _compressed_size;
+				snappy::RawCompress(uncompressed_buffer.data(), uncompressed_size,
+				                    compressed_buffer.data(), &_compressed_size);
+
+				compressed_size = (int32_t) _compressed_size;
+				break;
+			}
+#endif
+			default:
+				throw exception("Unknown compression, this code shouldn't be reachable");
+		}
+
+		s.write(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
+		s.write(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
+		s.write(compressed_buffer.data(), compressed_size);
 	}
 
 	template <typename D, typename N>
 	void unserialize(D & d, N & i) const {
 		using tpie::unserialize;
 
+		auto compression_type = m_flags & btree_flags::compression_mask;
+
+		if (compression_type == btree_flags::compress_none) {
+			unserialize(d, i.count);
+			unserialize(d, i.values, i.values + i.count);
+			return;
+		}
+
+		int32_t uncompressed_size, compressed_size;
+		d.read(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
+		d.read(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
+
+		std::vector<char> compressed_buffer((size_t)compressed_size);
+		d.read(compressed_buffer.data(), compressed_size);
+
+		serilization_buffer uncompressed_buffer((size_t)uncompressed_size);
+
 		switch (m_flags & btree_flags::compression_mask) {
 #ifdef TPIE_HAS_LZ4
 		case compress_lz4: {
-			int uncompressed_size, compressed_size;
-			d.read(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
-			d.read(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
-
-			std::vector<char> compressed_buffer(compressed_size);
-			d.read(compressed_buffer.data(), compressed_size);
-
-			serilization_buffer uncompressed_buffer(uncompressed_size);
-
 			int r = LZ4_decompress_fast(compressed_buffer.data(), uncompressed_buffer.data(), uncompressed_size);
 			if (r != compressed_size)
 				throw io_exception("B-tree decompression failed");
-			
-			unserialize(uncompressed_buffer, i.count);
-			unserialize(uncompressed_buffer, i.values, i.values + i.count);
 			break;
 		}
 #endif
 #ifdef TPIE_HAS_ZSTD
 		case compress_zstd: {
-			int uncompressed_size, compressed_size;
-			d.read(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
-			d.read(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
-
-			std::vector<char> compressed_buffer(compressed_size);
-			d.read(compressed_buffer.data(), compressed_size);
-
-			serilization_buffer uncompressed_buffer(uncompressed_size);
-
-			size_t r = ZSTD_decompress(uncompressed_buffer.data(), uncompressed_size, compressed_buffer.data(), compressed_size);
+			size_t r = ZSTD_decompress(uncompressed_buffer.data(), (size_t)uncompressed_size, compressed_buffer.data(), (size_t)compressed_size);
 			if ((int)r != uncompressed_size)
 				throw io_exception("B-tree decompression failed");
-			
-			unserialize(uncompressed_buffer, i.count);
-			unserialize(uncompressed_buffer, i.values, i.values + i.count);
 			break;
 		}
 #endif
 #ifdef TPIE_HAS_SNAPPY
 		case compress_snappy: {
-			int uncompressed_size, compressed_size;
-			d.read(reinterpret_cast<char *>(&uncompressed_size), sizeof(uncompressed_size));
-			d.read(reinterpret_cast<char *>(&compressed_size), sizeof(compressed_size));
-
-			std::vector<char> compressed_buffer(compressed_size);
-			d.read(compressed_buffer.data(), compressed_size);
-
-			serilization_buffer uncompressed_buffer(uncompressed_size);
-
-			bool ok = snappy::RawUncompress(compressed_buffer.data(), compressed_size, uncompressed_buffer.data());
+			bool ok = snappy::RawUncompress(compressed_buffer.data(), (size_t)compressed_size, uncompressed_buffer.data());
 			if (!ok)
 				throw io_exception("B-tree decompression failed");
-			
-			unserialize(uncompressed_buffer, i.count);
-			unserialize(uncompressed_buffer, i.values, i.values + i.count);
 			break;
 		}
 #endif
-		case btree_flags::compress_none:
-			unserialize(d, i.count);
-			unserialize(d, i.values, i.values + i.count);
-			break;
 		default:
             throw exception("Unknown compression, this code shouldn't be reachable");
 		}
+
+		unserialize(uncompressed_buffer, i.count);
+		unserialize(uncompressed_buffer, i.values, i.values + i.count);
 	}
 
 	struct internal {
