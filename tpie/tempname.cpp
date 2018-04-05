@@ -41,6 +41,11 @@
 #undef NO_ERROR
 #endif
 
+#ifdef __linux__
+#include <sys/vfs.h>
+#include <linux/magic.h>
+#endif
+
 using namespace tpie;
 
 namespace {
@@ -52,13 +57,60 @@ std::stack<std::string> subdirs;
 
 }
 
-std::string tempname::get_system_path() {
+std::string _get_system_path() {
+#ifdef __linux__
+	// If the temporary directory is not specified in an env var,
+	// we want to default to /tmp like boost does.
+	// However on some linux systems /tmp is a tmpfs filesystem
+	// meaning it is stored in RAM.
+	// If this is the case we want to use /var/tmp as the default instead.
+
+	static const char * _tmp_envs[] = {
+			"TMPDIR", "TMP", "TEMP", "TEMPDIR"
+	};
+	static const char * _tmp_dirs[] = {
+			"/tmp", "/var/tmp"
+	};
+
+	// First check environment variables like boost
+	for (auto e : _tmp_envs) {
+		if (auto p = getenv(e)) {
+			return p;
+		}
+	}
+
+	for (auto d : _tmp_dirs) {
+		struct statfs s;
+		if (statfs(d, &s) != 0) {
+			log_debug() << "Couldn't use statfs on " << d << ": " << strerror(errno) << "\n";
+			continue;
+		}
+
+		if (s.f_type == TMPFS_MAGIC) {
+			log_debug() << d << " is a tmpfs filesystem\n";
+			continue;
+		}
+		return d;
+	}
+	// If all fails just default to boost
+#endif
+
 	auto p = boost::filesystem::temp_directory_path();
 #if BOOST_FILESYSTEM_VERSION == 3
 	return p.string();
 #else
 	return p.file_string();
 #endif
+}
+
+std::string tempname::get_system_path() {
+	static std::string cache;
+	if (cache.empty()) {
+		cache = _get_system_path();
+		log_debug() << "Using " << cache << " as the system temporary directory\n";
+	}
+
+	return cache;
 }
 
 namespace {
