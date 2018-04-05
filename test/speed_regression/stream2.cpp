@@ -118,12 +118,12 @@ void test(size_t mb, size_t times, series_base * series) {
 		test_realtime_t start;
 		test_realtime_t end;
 
-		boost::filesystem::remove("tmp");
+		temp_file tmp;
 
 		getTestRealtime(start);
 		{
 			file_stream<test_t> s;
-			s.open("tmp");
+			s.open(tmp.path());
 			series->write(s, count);
 		}
 		getTestRealtime(end);
@@ -133,7 +133,7 @@ void test(size_t mb, size_t times, series_base * series) {
 		getTestRealtime(start);
 		{
 			file_stream<test_t> s;
-			s.open("tmp");
+			s.open(tmp.path());
 			for(count_t i=0; i < count; ++i) {
 				hash = hash * 13 + s.read();
 			}
@@ -142,7 +142,6 @@ void test(size_t mb, size_t times, series_base * series) {
 		hash %= 100000000000000ull;
 		s(testRealtimeDiff(start,end));
 		s(hash);
-		boost::filesystem::remove("tmp");
 	}
 }
 
@@ -174,9 +173,7 @@ int main(int argc, char **argv) {
 	std::stringstream(argv[2]) >> mb;
 	series_base * series = choose_series(argv[3]);
 	if (!series) return EXIT_FAILURE;
-	boost::filesystem::remove("tmp");
 	::test(mb, times, series);
-	boost::filesystem::remove("tmp");
 	delete series;
 	return EXIT_SUCCESS;
 }

@@ -40,20 +40,20 @@ void usage() {
 	std::cout << "Parameters: [times] [mb] [backwards]" << std::endl;
 }
 
-test_t read_forwards(count_t count) {
+test_t read_forwards(count_t count, const std::string & path) {
 	test_t hash = 0;
 	file_stream<test_t> s;
-	s.open("tmp");
+	s.open(path);
 	for(count_t i=0; i < count; ++i) {
 		hash = hash * 13 + s.read();
 	}
 	return hash;
 }
 
-test_t read_backwards(count_t count) {
+test_t read_backwards(count_t count, const std::string & path) {
 	test_t hash = 0;
 	file_stream<test_t> s;
-	s.open("tmp");
+	s.open(path);
 	s.seek(count);
 	for(count_t i=0; i < count; ++i) {
 		hash = hash * 13 + s.read_back();
@@ -75,25 +75,24 @@ void test(size_t mb, size_t times, bool backwards) {
 		test_realtime_t start;
 		test_realtime_t end;
 
-		boost::filesystem::remove("tmp");
+		temp_file tmp;
 
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
 			file_stream<test_t> s;
-			s.open("tmp");
+			s.open(tmp.path());
 			for(count_t i=0; i < count; ++i) s.write(42);
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
 
 		getTestRealtime(start);
-		test_t hash = backwards ? read_backwards(count) : read_forwards(count);
+		test_t hash = backwards ? read_backwards(count, tmp.path()) : read_forwards(count, tmp.path());
 		getTestRealtime(end);
 		hash %= 100000000000000ull;
 		s(testRealtimeDiff(start,end));
 		s(hash);
-		boost::filesystem::remove("tmp");
 	}
 }
 

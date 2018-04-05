@@ -29,7 +29,6 @@
 #include <tpie/pipelining.h>
 #include <limits>
 
-#include <boost/filesystem.hpp> // boost::filesystem::remove
 #include <tpie/prime.h> // next_prime
 
 // Progress indicators

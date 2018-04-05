@@ -30,17 +30,16 @@
 using namespace tpie;
 
 bool ami_named_stack_test() {
-	boost::filesystem::remove("temp_stack");
-
+	temp_file tmp;
 	{
-		ami::stack<size_t> s("temp_stack");
+		ami::stack<size_t> s(tmp.path());
 		const size_t size= 1234;
 		for(size_t i=1; i < size; ++i) 
 			s.push(i);
 	}
 
 	{
-		ami::stack<size_t> s("temp_stack");
+		ami::stack<size_t> s(tmp.path());
 		const size_t size= 1234;
 		for(size_t i=size-1; i >= 1; --i) {
 			const size_t * x = 0;
@@ -48,29 +47,26 @@ bool ami_named_stack_test() {
 			if (*x != i) return false;
 		}
 	}
-	boost::filesystem::remove("temp_stack");
 	return true;
 }
 
 bool named_stack_test() {
-	boost::filesystem::remove("temp_stack");
-
+	temp_file tmp;
 	{
-		stack<size_t> s("temp_stack");
+		stack<size_t> s(tmp.path());
 		const size_t size= 1234;
 		for(size_t i=1; i < size; ++i) 
 			s.push(i);
 	}
 
 	{
-		stack<size_t> s("temp_stack");
+		stack<size_t> s(tmp.path());
 		const size_t size= 1234;
 		for(size_t i=size-1; i >= 1; --i) {
 			const size_t x = s.pop();
 			if (x != i) return false;
 		}
 	}
-	boost::filesystem::remove("temp_stack");
 	return true;
 }
 

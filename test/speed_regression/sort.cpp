@@ -54,13 +54,13 @@ void test(size_t mb, size_t times) {
 		
 		test_realtime_t start;
 		test_realtime_t end;
-		
-		boost::filesystem::remove("tmp");
-		
+
+		temp_file tmp;
+
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
-			stream<elm_t> s("tmp", WRITE_STREAM);
+			stream<elm_t> s(tmp.path(), WRITE_STREAM);
 			for(count_t i=0; i < count; ++i) {
 				elm_t x= (i+ 91493)*104729;
 				s.write_item(x);
@@ -71,7 +71,7 @@ void test(size_t mb, size_t times) {
 		
 		getTestRealtime(start);
 		{
-			stream<elm_t> s("tmp");
+			stream<elm_t> s(tmp.path());
 			tpie::ami::sort(&s);
 		}
 		getTestRealtime(end);
@@ -81,7 +81,7 @@ void test(size_t mb, size_t times) {
 		elm_t prev = 0;
 		bool sorted = true;
 		{
-			stream<elm_t> s("tmp", READ_STREAM);
+			stream<elm_t> s(tmp.path(), READ_STREAM);
 			for(count_t i=0; i < count; ++i) {
 				elm_t *x = 0;
 				s.read_item(&x);
@@ -92,7 +92,6 @@ void test(size_t mb, size_t times) {
 				hash = hash * 13 + *x;
 			}
 		}
-		boost::filesystem::remove("tmp");
 		hash %= 100000000000000ull;
 		s(hash);
 		if (!sorted) std::cout << "\nNot sorted!" << std::endl;

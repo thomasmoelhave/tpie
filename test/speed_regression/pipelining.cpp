@@ -76,17 +76,17 @@ private:
 	test_t & output;
 };
 
-inline static void do_write(size_t count) {
+inline static void do_write(size_t count, const std::string & path) {
 	file_stream<test_t> s;
-	s.open("tmp");
+	s.open(path);
 	pipeline p = pipe_begin<factory<number_generator_t, size_t> >(count) | output(s);
 	p();
 }
 
-inline static test_t do_read() {
+inline static test_t do_read(const std::string & path) {
 	test_t res = 0;
 	file_stream<test_t> s;
-	s.open("tmp");
+	s.open(path);
 	pipeline p = input(s) | pipe_end<termfactory<number_sink_t, test_t &> >(res);
 	p();
 	return res;
@@ -96,19 +96,17 @@ static void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
 
-	boost::filesystem::remove("tmp");
+	temp_file tmp;
 
 	getTestRealtime(start);
-	do_write(count);
+	do_write(count, tmp.path());
 	getTestRealtime(end);
 	std::cout << testRealtimeDiff(start,end) << std::flush;
 
 	getTestRealtime(start);
-	test_t res = do_read();
+	test_t res = do_read(tmp.path());
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << ' ' << res << std::endl;
-
-	boost::filesystem::remove("tmp");
 }
 
 int main(int argc, char **argv) {

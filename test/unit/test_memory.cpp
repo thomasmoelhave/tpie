@@ -108,7 +108,8 @@ bool basic_test() {
 		//Test auto ptr
 		size_t a1 = tpie::get_memory_manager().used();
 		{
-			tpie::tpie_delete(tpie::tpie_new<std::ifstream>("tmp",std::ios::binary | std::ios::out));
+			tpie::temp_file tmp;
+			tpie::tpie_delete(tpie::tpie_new<std::ifstream>(tmp.path(), std::ios::binary | std::ios::out));
 		}
 		size_t a2 = tpie::get_memory_manager().used();
 		if (a1 != a2) return false;

@@ -26,12 +26,11 @@
 using namespace tpie;
 
 typedef int test_t;
-static const std::string TEMP_FILE = "tmp";
 
 static bool test() {
-	boost::filesystem::remove(TEMP_FILE);
+	temp_file tmp;
 	file_stream<test_t> fs;
-	fs.open(TEMP_FILE);
+	fs.open(tmp.path());
 	fs.write(1);
 	fs.write(2);
 	fs.write(3);
@@ -48,7 +47,6 @@ static bool test() {
 	if (!got_exception)
 		log_error() << "Did not get a tpie::end_of_stream_exception" << std::endl;
 	fs.close();
-	boost::filesystem::remove(TEMP_FILE);
 	return got_exception && !got_other;
 }
 int main(int argc, char **argv) {

@@ -44,10 +44,11 @@ void usage() {
 void test(size_t mb, size_t times) {
 	testinfo t("Stream speed test", 0, mb, times);
     {
-	stream<test_t> s("tmp", WRITE_STREAM);
-	TPIE_OS_SIZE_T sz = 0;
-	s.main_memory_usage(&sz, STREAM_USAGE_MAXIMUM);
-	std::cout << "Stream memory usage: " << sz << std::endl;
+	    temp_file tmp;
+		stream<test_t> s(tmp.path(), WRITE_STREAM);
+		TPIE_OS_SIZE_T sz = 0;
+		s.main_memory_usage(&sz, STREAM_USAGE_MAXIMUM);
+		std::cout << "Stream memory usage: " << sz << std::endl;
     }
 	std::vector<const char *> names;
 	names.resize(3);
@@ -60,13 +61,13 @@ void test(size_t mb, size_t times) {
 	for(size_t i = 0; i < times; ++i) {
 		test_realtime_t start;
 		test_realtime_t end;
-		
-		boost::filesystem::remove("tmp");
-		
+
+		temp_file tmp;
+
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
-			stream<test_t> s("tmp", WRITE_STREAM);
+			stream<test_t> s(tmp.path(), WRITE_STREAM);
 			test_t x=42;
 			for(count_t i=0; i < count; ++i) s.write_item(x);
 		}
@@ -76,7 +77,7 @@ void test(size_t mb, size_t times) {
 		test_t hash = 0;
 		getTestRealtime(start);
 		{
-			stream<test_t> s("tmp", READ_STREAM);
+			stream<test_t> s(tmp.path(), READ_STREAM);
 			test_t * x = 0;
 			for(count_t i=0; i < count; ++i) {
 				s.read_item(&x);
@@ -87,7 +88,6 @@ void test(size_t mb, size_t times) {
 		hash %= 100000000000000ull;
 		s(testRealtimeDiff(start,end));
 		s(hash);
-		boost::filesystem::remove("tmp");
 	}
 }
 
@@ -131,30 +131,31 @@ struct test_file_accessor {
 	const static bool fn_read = false;
 
 	inline void go_once() {
+		temp_file tmp;
 		hash = 0;
-		s(time_to<fn_write>());
-		s(time_to<fn_read>());
+		s(time_to<fn_write>(tmp.path()));
+		s(time_to<fn_read>(tmp.path()));
 		s(hash % 100000000000000ull);
 	}
 
 	template <bool fn>
-	inline uint_fast64_t time_to() {
+	inline uint_fast64_t time_to(const std::string & path) {
 		test_realtime_t start;
 		test_realtime_t end;
 		getTestRealtime(start);
 		block = tpie_new_array<test_t>(itemsPerBlock);
 		if (fn == fn_write)
-			write();
+			write(path);
 		else
-			read();
+			read(path);
 		tpie_delete_array(block, itemsPerBlock);
 		getTestRealtime(end);
 		return testRealtimeDiff(start, end);
 	}
 
-	inline void write() {
+	inline void write(const std::string & path) {
 		tpie::default_file_accessor fa;
-		fa.open("tmp", false, true, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential, false);
+		fa.open(path, false, true, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential, false);
 		for (count_t j = 0; j < block_count; ++j) {
 			for (count_t k = 0; k < itemsPerBlock; ++k) {
 				block[k] = 42;
@@ -163,9 +164,9 @@ struct test_file_accessor {
 		}
 	}
 
-	inline void read() {
+	inline void read(const std::string & path) {
 		tpie::default_file_accessor fa;
-		fa.open("tmp", true, false, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential, false);
+		fa.open(path, true, false, sizeof(test_t), sysinfo::blocksize_bytes(), 0, access_sequential, false);
 		for (count_t j = 0; j < block_count; ++j) {
 			fa.read_block(block, j, itemsPerBlock);
 			for (count_t k = 0; k < itemsPerBlock; ++k) {
@@ -197,13 +198,11 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 	}
-	boost::filesystem::remove("tmp");
 	if (1 || (argc > 3 && std::string(argv[3]) == "file_accessor")) {
 		test_file_accessor tester(mb, times);
 		tester.go();
 	} else {
 		::test(mb, times);
 	}
-	boost::filesystem::remove("tmp");
 	return EXIT_SUCCESS;
 }
