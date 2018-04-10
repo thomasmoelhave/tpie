@@ -360,13 +360,11 @@ private:
             set_flags(h.flags);
 
 			if (m_height == 1) {
-				root_leaf = std::make_shared<leaf>();
-				root_leaf->my_offset = h.root;
+				root_leaf = create_shared(h.root, leaf_cache);
 				f->seekg(h.root);
 				unserialize(*f, *root_leaf);
 			} else if (m_height > 1) {
-				root_internal = std::make_shared<internal>();
-				root_internal->my_offset = h.root;
+				root_internal = create_shared(h.root, internal_cache);
 				f->seekg(h.root);
 				unserialize(*f, *root_internal);
 			}
@@ -419,17 +417,27 @@ private:
 		node->count = i;
 	}
 
+	template <typename TN>
+	std::shared_ptr<TN> create_shared(off_t offset, std::unordered_map<off_t, std::weak_ptr<TN>> & cache) const {
+		auto n = std::make_shared<TN>();
+		n->my_offset = offset;
+
+		auto r = cache.insert({offset, n});
+		tp_assert(r.second, "Should not be in cache");
+		unused(r);
+
+		return n;
+	}
+
 	leaf_type create_leaf() {
 		assert(!current_internal && !current_leaf);
-		current_leaf = std::make_shared<leaf>();
-		current_leaf->my_offset = (stream_size_type)f->tellp();
+		current_leaf = create_shared((off_t)f->tellp(), leaf_cache);
 		return current_leaf;
 	}
 	leaf_type create(leaf_type) {return create_leaf();}
 	internal_type create_internal() {
 		assert(!current_internal && !current_leaf);
-		current_internal = std::make_shared<internal>();
-		current_internal->my_offset = (stream_size_type)f->tellp();
+		current_internal = create_shared((off_t)f->tellp(), internal_cache);
 		return current_internal;
 	}
 	internal_type create(internal_type) {return create_internal();}
@@ -445,22 +453,31 @@ private:
 		return root_leaf;
 	}
 
-	internal_type get_child_internal(internal_type node, size_t i) const {
-		internal_type child = std::make_shared<internal>();
+	template <typename TN>
+	std::shared_ptr<TN> get_child(internal_type node, size_t i, std::unordered_map<off_t, std::weak_ptr<TN>> & cache) const {
 		assert(i < node->count);
-		child->my_offset = node->values[i].offset;
-		f->seekg(child->my_offset);
+
+		auto offset = node->values[i].offset;
+		auto it = cache.find(offset);
+		if (it != cache.end()) {
+			if (auto child = it->second.lock()) {
+				return child;
+			}
+			cache.erase(it);
+		}
+
+		auto child = create_shared(offset, cache);
+		f->seekg(offset);
 		unserialize(*f, *child);
 		return child;
 	}
 
+	internal_type get_child_internal(internal_type node, size_t i) const {
+		return get_child(node, i, internal_cache);
+	}
+
 	leaf_type get_child_leaf(internal_type node, size_t i) const {
-		leaf_type child = std::make_shared<leaf>();
-		assert(i < node->count);
-		child->my_offset = node->values[i].offset;
-		f->seekg(child->my_offset);
-		unserialize(*f, *child);
-		return child;
+		return get_child(node, i, leaf_cache);
 	}
 
 	size_t index(off_t my_offset, internal_type node) const {
@@ -577,6 +594,9 @@ private:
 	std::unique_ptr<std::fstream> f;
 	internal_type current_internal, root_internal;
 	leaf_type current_leaf, root_leaf;
+
+	mutable std::unordered_map<off_t, std::weak_ptr<internal>> internal_cache;
+	mutable std::unordered_map<off_t, std::weak_ptr<leaf>> leaf_cache;
 
 	template <typename>
 	friend class ::tpie::btree_node;
