@@ -113,29 +113,19 @@ bool basic_test(TA<TT...>, A && ... a) {
 	return true;
 }
 
-template<typename ... TT, typename ... A>
-bool iterator_test(TA<TT...>, A && ... a) {
-	btree<int, TT...> tree(std::forward<A>(a)...);
-	set<int> tree2;
-
-	std::vector<int> x;
-    for (int i=0; i < 1234; ++i) {
-        x.push_back(i);
-	}
-	std::random_shuffle(x.begin(), x.end());
-
-	for (size_t i=0; i < x.size(); ++i) {
-		tree.insert(x[i]);
-		tree2.insert(x[i]);
-		if (tree.size() != tree2.size()) return false;
-	}
+template <typename ... TT>
+bool iterator_test(TA<TT...>, const btree<int, TT...> & tree, set<int> & tree2) {
+	if (tree.size() != tree2.size()) return false;
 
 	auto b1 = tree.begin();
-	set<int>::iterator b2 = tree2.begin();
+	auto b2 = tree2.begin();
 	auto e1 = tree.end();
-	set<int>::iterator e2 = tree2.end();
+	auto e2 = tree2.end();
 	auto i1 = b1;
-	set<int>::iterator i2 = b2;
+	auto i2 = b2;
+
+	if (b1 != tree.begin()) return false;
+	if (e1 != tree.end()) return false;
 
 	while (true) {
 		if ((i1 == e1) != (i2 == e2)) return false;
@@ -154,6 +144,26 @@ bool iterator_test(TA<TT...>, A && ... a) {
 	}
 
 	return true;
+}
+
+template<typename ... TT, typename ... A>
+bool dynamic_iterator_test(TA<TT...> ta, A && ... a) {
+	btree<int, TT...> tree(std::forward<A>(a)...);
+	set<int> tree2;
+
+	std::vector<int> x;
+    for (int i=0; i < 1234; ++i) {
+        x.push_back(i);
+	}
+	std::random_shuffle(x.begin(), x.end());
+
+	for (size_t i=0; i < x.size(); ++i) {
+		tree.insert(x[i]);
+		tree2.insert(x[i]);
+		if (tree.size() != tree2.size()) return false;
+	}
+
+	return iterator_test(ta, tree, tree2);
 }
 
 template <typename T>
@@ -316,24 +326,24 @@ void print(btree_node<S> & n) {
 	std::cout << ")";
 }
 
-template<typename ... TT>
-btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags =btree_flags::defaults) {
-	return btree<int, btree_augment<ss_augmenter>, TT...>(path, c, au);
+template<typename AU, typename ... TT>
+btree<int, btree_augment<AU>, TT...> get_btree(TA<TT...>, default_comp c, AU au, const std::string & path, btree_flags =btree_flags::defaults) {
+	return btree<int, btree_augment<AU>, TT...>(path, c, au);
 };
 
-template<typename ... TT>
-btree<int, btree_augment<ss_augmenter>, TT...> get_btree(TA<TT...>, default_comp c, ss_augmenter au) {
-	return btree<int, btree_augment<ss_augmenter>, TT...>(c, au);
+template<typename AU, typename ... TT>
+btree<int, btree_augment<AU>, TT...> get_btree(TA<TT...>, default_comp c, AU au) {
+	return btree<int, btree_augment<AU>, TT...>(c, au);
 };
 
-template<typename ... TT>
-btree_builder<int, btree_augment<ss_augmenter>, TT...> get_builder(TA<TT...>, default_comp c, ss_augmenter au, const std::string & path, btree_flags flags=btree_flags::defaults) {
-	return btree_builder<int, btree_augment<ss_augmenter>, TT...>(path, c, au, flags);
+template<typename AU, typename ... TT>
+btree_builder<int, btree_augment<AU>, TT...> get_builder(TA<TT...>, default_comp c, AU au, const std::string & path, btree_flags flags=btree_flags::defaults) {
+	return btree_builder<int, btree_augment<AU>, TT...>(path, c, au, flags);
 };
 
-template<typename ... TT>
-btree_builder<int, btree_augment<ss_augmenter>, TT...> get_builder(TA<TT...>, default_comp c, ss_augmenter au) {
-	return btree_builder<int, btree_augment<ss_augmenter>, TT...>(c, au);
+template<typename AU, typename ... TT>
+btree_builder<int, btree_augment<AU>, TT...> get_builder(TA<TT...>, default_comp c, AU au) {
+	return btree_builder<int, btree_augment<AU>, TT...>(c, au);
 };
 
 template<typename ... TT, typename ... A>
@@ -484,13 +494,29 @@ bool reopen_test(TA<TT...> ta, A && ... a) {
 	return true;
 }
 
+template<typename ... TT, typename ... A>
+bool static_iterator_test(TA<TT...> ta, A && ... a) {
+	if (!build_test(ta, std::forward<A>(a)...)) {
+		return false;
+	}
+	default_comp c;
+	ss_augmenter au;
+	auto tree = get_btree(ta, c, au, std::forward<A>(a)...);
+	set<int> tree2;
+
+	for (size_t i=0; i < 50000; ++i) {
+		tree2.insert(i);
+	}
+
+	return iterator_test(TA<btree_augment<ss_augmenter>, TT...>{}, tree, tree2);
+}
 
 bool internal_basic_test() {
 	return basic_test(TA<btree_internal>());
 }
 
 bool internal_iterator_test() {
-	return iterator_test(TA<btree_internal>());
+	return dynamic_iterator_test(TA<btree_internal>());
 }
 
 bool internal_key_and_comparator_test() {
@@ -524,7 +550,7 @@ bool external_basic_test() {
 
 bool external_iterator_test() {
 	temp_file tmp;
-	return iterator_test(TA<btree_external>(), tmp.path());
+	return dynamic_iterator_test(TA<btree_external>(), tmp.path());
 }
 
 bool external_key_and_comparator_test() {
@@ -557,6 +583,11 @@ bool external_static_reopen_test() {
 	return reopen_test(TA<btree_external, btree_static>(), tmp.path());
 }
 
+bool external_static_iterator_test() {
+	temp_file tmp;
+	return static_iterator_test(TA<btree_external, btree_static>(), tmp.path());
+}
+
 bool serialized_build_test() {
     temp_file tmp;
     return build_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path());
@@ -565,6 +596,11 @@ bool serialized_build_test() {
 bool serialized_reopen_test() {
 	temp_file tmp;
 	return reopen_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path());
+}
+
+bool serialized_iterator_test() {
+	temp_file tmp;
+	return static_iterator_test(TA<btree_external, btree_serialized, btree_static>(), tmp.path());
 }
 
 bool serialized_lz4_build_test() {
@@ -640,8 +676,10 @@ int main(int argc, char **argv) {
 		.test(external_bound_test, "external_bound")
 		.test(external_reopen_test, "external_reopen")
 		.test(external_static_reopen_test, "external_static_reopen")
+		.test(external_static_iterator_test, "external_static_iterator")
 		.test(serialized_build_test, "serialized_build")
 		.test(serialized_reopen_test, "serialized_reopen")
+		.test(serialized_iterator_test, "serialized_iterator")
         .test(serialized_lz4_build_test, "serialized_lz4_build")
 		.test(serialized_lz4_reopen_test, "serialized_lz4_reopen")
         .test(serialized_snappy_build_test, "serialized_snappy_build")

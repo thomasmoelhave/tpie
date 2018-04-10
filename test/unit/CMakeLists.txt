@@ -84,9 +84,11 @@ add_unittest(btree
 	external_key_and_compare
 	external_reopen
 	external_static_reopen
+    external_static_iterator
 
 	serialized_build
 	serialized_reopen
+    serialized_iterator
     serialized_lz4_build
     serialized_lz4_reopen
     serialized_read_old_format
