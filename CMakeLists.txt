@@ -24,7 +24,7 @@ if(NOT WIN32)
 endif(NOT WIN32)
 
 if(WIN32)
-	add_definitions("-DWIN32_LEAN_AND_MEAN /bigobj")
+	add_definitions("-DWIN32_LEAN_AND_MEAN -DNOGDI /bigobj")
 endif(WIN32)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
