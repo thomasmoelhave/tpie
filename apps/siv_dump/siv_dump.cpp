@@ -567,6 +567,7 @@ void visitItem(const Entry & e, config & c) {
 	if (c.printItems) {
 		std::cout << std::setw(5) << c.cnt;
 		switch (i.type) {
+		case NoGeometryType: std::cout << " NoGeometryType\n"; break;
 		case Point: std::cout << " Point\n"; break;
 		case Polyline: std::cout << " Polyline\n"; break;
 		case Polygon: std::cout << " Polygon\n"; break;
@@ -588,6 +589,7 @@ void visitItem(const Entry & e, config & c) {
 	
 	if (c.printGeometry) {
 		switch (i.type) {
+		case NoGeometryType: break;
 		case Point: dump(1, reinterpret_cast<const point_vector_item *>(&i)->point); break;
 		case Polyline: dump(1, reinterpret_cast<const polyline_vector_item *>(&i)->polyline); break;
 		case Polygon: dump(1, reinterpret_cast<const polygon_vector_item *>(&i)->polygon); break;
