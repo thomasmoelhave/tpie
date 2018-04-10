@@ -297,7 +297,7 @@ int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(sort_tester<2>(), "basic1", "n", 1024*1024)
 		.test(sort_tester<8>(), "basic2", "n", 8*8)
-#ifndef _GLIBCXX_DEBUG
+#ifndef NDEBUG
 		.test(sort_tester<1024*1024>(), "general", "n", 24*1024*1024)
 #else
 		.test(sort_tester<8*1024>(), "general", "n", 24*8*1024)
