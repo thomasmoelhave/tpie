@@ -267,6 +267,48 @@ private:
 		T values[max_leaf_size()];
 	};
 
+	class leaf_type {
+		std::shared_ptr<leaf> ptr;
+
+	public:
+		leaf_type() = default;
+		leaf_type(const leaf_type &) = default;
+		leaf_type(leaf_type &&) = default;
+
+		leaf_type & operator=(const leaf_type &) = default;
+		leaf_type & operator=(leaf_type &&) = default;
+
+		leaf_type(off_t offset) {
+			ptr = std::make_shared<leaf>();
+			ptr->my_offset = offset;
+		}
+
+		leaf & operator*() const noexcept {
+			return *ptr;
+		}
+
+		leaf * operator->() const noexcept {
+			return ptr.operator->();
+		}
+
+		void reset() noexcept {
+			ptr.reset();
+		}
+
+		operator bool() const noexcept {
+			return bool(ptr);
+		}
+
+		bool operator==(const leaf_type & o) const noexcept {
+			return ptr->my_offset == o->my_offset;
+		}
+
+		bool operator!=(const leaf_type & o) const noexcept {
+			return !(this == o);
+		}
+	};
+
+
 	struct header_v0 {
 		/*
 		 * Version 0: initial
@@ -287,7 +329,6 @@ private:
 	};
 	
 	typedef std::shared_ptr<internal> internal_type;
-	typedef std::shared_ptr<leaf> leaf_type;
 
 	void set_flags(btree_flags flags) {
 		m_flags = flags;
@@ -360,11 +401,12 @@ private:
             set_flags(h.flags);
 
 			if (m_height == 1) {
-				root_leaf = create_shared(h.root, leaf_cache);
+				root_leaf = leaf_type(h.root);
 				f->seekg(h.root);
 				unserialize(*f, *root_leaf);
 			} else if (m_height > 1) {
-				root_internal = create_shared(h.root, internal_cache);
+				root_internal = std::make_shared<internal>();
+				root_internal->my_offset = h.root;
 				f->seekg(h.root);
 				unserialize(*f, *root_internal);
 			}
@@ -417,27 +459,16 @@ private:
 		node->count = i;
 	}
 
-	template <typename TN>
-	std::shared_ptr<TN> create_shared(off_t offset, std::unordered_map<off_t, std::weak_ptr<TN>> & cache) const {
-		auto n = std::make_shared<TN>();
-		n->my_offset = offset;
-
-		auto r = cache.insert({offset, n});
-		tp_assert(r.second, "Should not be in cache");
-		unused(r);
-
-		return n;
-	}
-
 	leaf_type create_leaf() {
 		assert(!current_internal && !current_leaf);
-		current_leaf = create_shared((off_t)f->tellp(), leaf_cache);
+		current_leaf = leaf_type((off_t)f->tellp());
 		return current_leaf;
 	}
 	leaf_type create(leaf_type) {return create_leaf();}
 	internal_type create_internal() {
 		assert(!current_internal && !current_leaf);
-		current_internal = create_shared((off_t)f->tellp(), internal_cache);
+		current_internal = std::make_shared<internal>();
+		current_internal->my_offset = (stream_size_type)f->tellp();
 		return current_internal;
 	}
 	internal_type create(internal_type) {return create_internal();}
@@ -453,31 +484,21 @@ private:
 		return root_leaf;
 	}
 
-	template <typename TN>
-	std::shared_ptr<TN> get_child(internal_type node, size_t i, std::unordered_map<off_t, std::weak_ptr<TN>> & cache) const {
+	internal_type get_child_internal(internal_type node, size_t i) const {
+		internal_type child = std::make_shared<internal>();
 		assert(i < node->count);
-
-		auto offset = node->values[i].offset;
-		auto it = cache.find(offset);
-		if (it != cache.end()) {
-			if (auto child = it->second.lock()) {
-				return child;
-			}
-			cache.erase(it);
-		}
-
-		auto child = create_shared(offset, cache);
-		f->seekg(offset);
+		child->my_offset = node->values[i].offset;
+		f->seekg(child->my_offset);
 		unserialize(*f, *child);
 		return child;
 	}
 
-	internal_type get_child_internal(internal_type node, size_t i) const {
-		return get_child(node, i, internal_cache);
-	}
-
 	leaf_type get_child_leaf(internal_type node, size_t i) const {
-		return get_child(node, i, leaf_cache);
+		leaf_type child = leaf_type(node->values[i].offset);
+		assert(i < node->count);
+		f->seekg(child->my_offset);
+		unserialize(*f, *child);
+		return child;
 	}
 
 	size_t index(off_t my_offset, internal_type node) const {
@@ -594,9 +615,6 @@ private:
 	std::unique_ptr<std::fstream> f;
 	internal_type current_internal, root_internal;
 	leaf_type current_leaf, root_leaf;
-
-	mutable std::unordered_map<off_t, std::weak_ptr<internal>> internal_cache;
-	mutable std::unordered_map<off_t, std::weak_ptr<leaf>> leaf_cache;
 
 	template <typename>
 	friend class ::tpie::btree_node;
