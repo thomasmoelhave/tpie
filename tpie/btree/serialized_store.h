@@ -295,7 +295,7 @@ private:
 			ptr.reset();
 		}
 
-		operator bool() const noexcept {
+		explicit operator bool() const noexcept {
 			return bool(ptr);
 		}
 
