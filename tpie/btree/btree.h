@@ -147,39 +147,36 @@ private:
 		return m_state.store().min_leaf_size();
 	}
 
-	template <typename N>
-	N split(N left) {
+	template <typename NT, typename VT>
+	void insert_part(NT n, VT v, size_t index) {
+		size_t z = m_state.store().count(n);
+		size_t i = z;
+		while (i > index) {
+			m_state.store().move(n, i-1, n, i);
+			--i;
+		}
+		m_state.store().set(n, i, v);
+		m_state.store().set_count(n, z+1);
+		augment(v, n);
+	}
+
+	template <typename CT, typename NT>
+	NT split_and_insert(CT c, NT left, size_t index) {
 		tp_assert(m_state.store().count(left) == max_size(left), "Node not full");
+		
 		size_t left_size = max_size(left)/2;
 		size_t right_size = max_size(left)-left_size;
-		N right = m_state.store().create(left);
+		NT right = m_state.store().create(left);
 		for (size_t i=0; i < right_size; ++i)
 			m_state.store().move(left, left_size+i, right, i);
 		m_state.store().set_count(left, left_size);
 		m_state.store().set_count(right, right_size);
-		return right;
-	};
 
- 	template <typename NT, typename VT>
- 	void insert_part(NT n, VT v) {
-		size_t z = m_state.store().count(n);
- 		size_t i = z;
- 		for (;i > 0 && m_comp(m_state.min_key(v), m_state.min_key(n, i-1)); --i)
- 			m_state.store().move(n, i-1, n, i);
-		m_state.store().set(n, i, v);
-		m_state.store().set_count(n, z+1);
-		augment(v, n);
- 	}
-
-	template <typename CT, typename NT>
-	NT split_and_insert(CT c, NT p) {
-		tp_assert(m_state.store().count(p) == max_size(p), "Node not full");
-		NT p2=split(p);
-		if (m_comp(m_state.min_key(c), m_state.min_key(p2)))
-			insert_part(p, c);
+		if (index <= left_size)
+			insert_part(left, c, index);
 		else
-			insert_part(p2, c);
-		return p2;
+			insert_part(right, c, index - left_size);
+		return right;
 	}
 
 	void augment_path(leaf_type) {
@@ -193,6 +190,14 @@ private:
 			augment(c, path.back());
 		}
 	}
+
+	void augment_path(const internal_type * path, size_t level) {
+		while (level >= 1) {
+			augment(path[level], path[level-1]);
+			--level;
+		}
+	}
+
 	
 	template <typename CT, typename PT>
 	bool remove_fixup_round(CT c, PT p) {
@@ -277,11 +282,24 @@ public:
 		return i;
 	}
 
+
+	template <typename NT>
+	void createNewRoot(NT left, NT right) {
+			internal_type i = m_state.store().create_internal();
+			m_state.store().set_count(i, 2);
+			m_state.store().set(i, 0, left);
+			m_state.store().set(i, 1, right);
+			m_state.store().set_root(i);
+			m_state.store().set_height(m_state.store().height()+1);
+			augment(left, i);
+			augment(right, i);
+	}
+
 	/**
-	 * \brief Insert given value into the btree
+	 * \brief Insert given value into the btree before iterator
 	 */
 	template <typename X=enab>
-	void insert(value_type v, enable<X, !is_static> =enab()) {
+	void insert_before(value_type v, const iterator & itr, enable<X, !is_static> =enab()) {
 		m_state.store().set_size(m_state.store().size() + 1);
 
 		// Handle the special case of the empty tree
@@ -291,79 +309,67 @@ public:
 			m_state.store().set(n, 0, v);
 			m_state.store().set_height(1);
 			m_state.store().set_root(n);
-			augment_path(n);
 			return;
 		}
 
-		std::vector<internal_type> path;
-
-		// Find the leaf contaning the value
-		leaf_type l = find_leaf(path, m_state.min_key(v));
-		//If there is room in the leaf
-		if (m_state.store().count(l) != m_state.store().max_leaf_size()) {
-			insert_part(l, v);
-			if (!path.empty()) augment(l, path.back());
-			augment_path(path);
-			return;
-		}
-
-		// We split the leaf
-		leaf_type l2 = split_and_insert(v, l);
+		const auto path = itr.m_path.data();
+		auto index = itr.index();
+		auto level = itr.m_path.size();
 		
-		// If the leaf was a root leef we create a new root
-		if (path.empty()) {
-			internal_type i=m_state.store().create_internal();
-			m_state.store().set_count(i, 2);
-			m_state.store().set(i, 0, l);
-			m_state.store().set(i, 1, l2);
-			m_state.store().set_root(i);
-			m_state.store().set_height(m_state.store().height()+1);
-			augment(l, i);
-			augment(l2, i);
-			path.push_back(i);
-			augment_path(path);
+		//If there is room in the leaf
+		if (m_state.store().count(itr.m_leaf) != m_state.store().max_leaf_size()) {
+			insert_part(itr.m_leaf, v, index);
+			if (level != 0) {
+				augment(itr.m_leaf, path[level-1]);
+				augment_path(path, level-1);
+			}
 			return;
 		}
+		
+		// We split the leaf
+		leaf_type l2 = split_and_insert(v, itr.m_leaf, index);
+		
+		// If the leaf was a root leaf we create a new root
+		if (level == 0) {
+			createNewRoot(itr.m_leaf, l2);
+			return;
+		}
+		--level;
+		index = m_state.store().index(itr.m_leaf, path[level]) + 1;
 
-		internal_type p = path.back();
-		augment(l, p);
+		augment(itr.m_leaf, path[level]);
 		
 		//If there is room in the parent to insert the extra leave
-		if (m_state.store().count(p) != m_state.store().max_internal_size()) {
-			insert_part(p, l2);
-			augment_path(path);
+		if (m_state.store().count(path[level]) != m_state.store().max_internal_size()) {
+			insert_part(path[level], l2, index);
+			augment_path(path, level);
 			return;
 		}
 
-		path.pop_back();
-		internal_type n2 = split_and_insert(l2, p);
-		internal_type n1 = p;
-		
-		while (!path.empty()) {
-			internal_type p = path.back();
-			augment(n1, p);
-			if (m_state.store().count(p) != m_state.store().max_internal_size()) {
-				insert_part(p, n2);
-				augment_path(path);
+		internal_type n2 = split_and_insert(l2, path[level], index);
+		while (level != 0) {
+			--level;
+			index = m_state.store().index(path[level+1], path[level]) + 1;
+			augment(path[level+1], path[level]);
+			if (m_state.store().count(path[level]) != m_state.store().max_internal_size()) {
+				insert_part(path[level], n2, index);
+				augment_path(path, level);
 				return;
 			}
-			path.pop_back();
-			n2 = split_and_insert(n2, p);
-			n1 = p;
-
+			n2 = split_and_insert(n2, path[level], index);
 		}
 		
 		//We need a new root
-		internal_type i=m_state.store().create_internal();
-		m_state.store().set_count(i, 2);
-		m_state.store().set(i, 0, n1);
-		m_state.store().set(i, 1, n2);
-		m_state.store().set_root(i);
-		m_state.store().set_height(m_state.store().height()+1);
-		augment(n1, i);
-		augment(n2, i);
-		path.push_back(i);
-		augment_path(path);
+		createNewRoot(path[0], n2);
+	}
+
+	
+	/**
+	 * \brief Insert given value into the btree
+	 */
+	template <typename X=enab>
+	void insert(value_type v, enable<X, !is_static> =enab()) {
+		insert_before(v, upper_bound(m_state.m_augmenter.m_key_extract(v)));
 	}
 
 	/**
