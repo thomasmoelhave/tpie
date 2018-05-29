@@ -72,9 +72,7 @@ struct destination_kind {
 ///////////////////////////////////////////////////////////////////////////////
 class factory_base {
 public:
-	factory_base() : m_amount(0), m_set(false), m_destinationKind(destination_kind::none) {
-	}
-
+	factory_base() = default;
 	factory_base(const factory_base & other) = delete;
 	factory_base(factory_base &&) = default;
 	factory_base & operator=(const factory_base & other) = delete;
@@ -315,13 +313,14 @@ private:
 			nodeMap->forward_from_pipe_base(r.get_id(), p.first, std::move(p.second));
 		}
 	}
-	
-	double m_amount;
-	bool m_set;
-	destination_kind::type m_destinationKind;
+
+
+	double m_amount = 0;
+	bool m_set = false;
+	destination_kind::type m_destinationKind = destination_kind::none;
 	std::string m_name, m_phaseName;
 	std::string m_breadcrumbs;
-	priority_type m_namePriority, m_phaseNamePriority;
+	priority_type m_namePriority = PRIORITY_NO_NAME, m_phaseNamePriority = PRIORITY_NO_NAME;
 	std::vector<factory_init_hook *> m_hooks;
 	std::vector<node_set> m_add_to_set;
 	std::vector<std::pair<node_set, bits::node_relation> > m_add_relations;
