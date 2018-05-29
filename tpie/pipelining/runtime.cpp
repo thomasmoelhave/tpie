@@ -81,19 +81,24 @@ public:
 		return std::find(edgeList.begin(), edgeList.end(), v) != edgeList.end();
 	}
 
-	void validate_acyclical() {
+	[[nodiscard]] bool check_acyclical() {
 		depth_first_search dfs(m_edgeLists);
 		for (T v : m_nodes) {
-			dfs.visit(v);
+			if (!dfs.visit(v)) return false;
 		}
+		return true;
+	}
+
+	void validate_acyclical() {
+		if (!check_acyclical())
+			throw tpie::exception("get_phases: can't satisfy all green edges");
 	}
 
 	void topological_order(std::vector<T> & result) const {
 		const size_t N = m_nodes.size();
 		depth_first_search dfs(m_edgeLists);
 		std::vector<std::pair<size_t, T> > nodes(N);
-		for (typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.begin();
-			 i != m_edgeLists.end(); ++i)
+		for (auto i = m_edgeLists.begin(); i != m_edgeLists.end(); ++i)
 			nodes.push_back(std::make_pair(dfs.visit(i->first), i->first));
 		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
 		result.resize(N);
@@ -107,7 +112,7 @@ public:
 		const size_t N = m_nodes.size();
 		depth_first_search dfs(m_edgeLists);
 		std::vector<std::pair<size_t, T> > nodes(N);
-		for (typename std::vector<T>::const_iterator i = topologicalOrder.begin(); i != topologicalOrder.end(); ++i)
+		for (auto i = topologicalOrder.begin(); i != topologicalOrder.end(); ++i)
 			nodes.push_back(std::make_pair(dfs.visit(*i), *i));
 		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
 		result.resize(N);
@@ -194,7 +199,7 @@ private:
 		}
 
 		const std::vector<T> & get_edge_list(T u) {
-			typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.find(u);
+			auto i = m_edgeLists.find(u);
 			if (i == m_edgeLists.end())
 				throw tpie::exception("get_edge_list: no such node");
 			return i->second;
@@ -214,29 +219,32 @@ private:
 
 	class depth_first_search {
 	public:
+		static constexpr size_t BAD = std::numeric_limits<size_t>::max();
+		
 		depth_first_search(const std::map<T, std::vector<T> > & edgeLists)
 			: m_time(0)
 			, m_edgeLists(edgeLists)
 		{
 		}
 
-		size_t visit(T u) {
+		[[nodiscard]] size_t visit(T u) {
 			if (m_finishTime.count(u)) {
-				if (m_finishTime[u] == 0) {
-					throw not_a_dag_exception("Cycle detected in graph");
-				}
+				if (m_finishTime[u] == 0)
+					return BAD;
 				return m_finishTime[u];
 			}
 			m_finishTime[u] = 0;
 			++m_time;
 			const std::vector<T> & edgeList = get_edge_list(u);
-			for (size_t i = 0; i < edgeList.size(); ++i) visit(edgeList[i]);
+			for (size_t i = 0; i < edgeList.size(); ++i)
+				if (visit(edgeList[i]) == BAD)
+					return BAD;
 			return m_finishTime[u] = m_time++;
 		}
 
 	private:
 		const std::vector<T> & get_edge_list(T u) {
-			typename std::map<T, std::vector<T> >::const_iterator i = m_edgeLists.find(u);
+			auto i = m_edgeLists.find(u);
 			if (i == m_edgeLists.end())
 				throw tpie::exception("get_edge_list: no such node");
 			return i->second;
@@ -552,12 +560,7 @@ private:
 				}
 			}
 
-			try {
-				contractedGraph.validate_acyclical();
-			} catch (const not_a_dag_exception &) {
-				// Not a valid solution
-				continue;
-			}
+			if (!contractedGraph.check_acyclical()) continue;
 
 			if (noBest || satisfied > bestSatisfied) {
 				noBest = false;
@@ -1551,11 +1554,7 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 	}
 
 	std::vector<size_t> topologicalOrder;
-	try {
-		contractedGraph.topological_order(topologicalOrder);
-	} catch(not_a_dag_exception & e) {
-		throw tpie::exception("get_phases: can't satisfy all green edges");
-	}
+	contractedGraph.topological_order(topologicalOrder);
 
 	// Expand contracted edges in topologicalOrder
 	for (const auto & p : greenPaths) {
