@@ -92,6 +92,8 @@ if(TPIE_USE_ZSTD)
 endif(TPIE_USE_ZSTD)
 
 
+option(TPIE_SHARED "Build tpie as a shared library" OFF)
+
 #### Installation paths
 #Default paths
 set(BIN_INSTALL_DIR bin)

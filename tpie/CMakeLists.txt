@@ -226,7 +226,11 @@ else(WIN32)
 set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
-add_library(tpie ${HEADERS} ${SOURCES})
+if (TPIE_SHARED)
+  add_library(tpie SHARED ${HEADERS} ${SOURCES})
+else()
+  add_library(tpie STATIC ${HEADERS} ${SOURCES})
+endif()
 target_link_libraries(tpie ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
