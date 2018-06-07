@@ -84,7 +84,7 @@ public:
 	[[nodiscard]] bool check_acyclical() {
 		depth_first_search dfs(m_edgeLists);
 		for (T v : m_nodes) {
-			if (!dfs.visit(v)) return false;
+			if (dfs.visit(v) == depth_first_search::BAD) return false;
 		}
 		return true;
 	}
