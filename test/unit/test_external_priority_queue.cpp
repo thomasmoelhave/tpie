@@ -261,7 +261,7 @@ bool very_large_test() {
 		pi.done();
 		if (!pq.empty()) {std::cerr << "Was not empty" << std::endl; return false;}
 		return true;
-	} catch(std::exception e) {
+	} catch(const std::exception & e) {
 		std::cerr << "Exception: " << e.what() << std::endl;
 		return false;
 	}

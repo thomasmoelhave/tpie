@@ -68,7 +68,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 		register_pointer(res, high*granularity, typeid(uint8_t) );
 #endif	      
 		return std::make_pair(res, high*granularity);
-	} catch (std::bad_alloc) {
+	} catch (std::bad_alloc &) {
 		lf.buf << "Failed to get " << (high*granularity)/(1024*1024) << " megabytes of memory. "
 		 	   << "Performing binary search to find largest amount "
 			   << "of memory available. This might take a few moments.\n";
@@ -90,7 +90,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 			low = mid+1;
 			best=mid*granularity;
 			delete[] mem;
-		} catch (std::bad_alloc) {
+		} catch (std::bad_alloc &) {
 			high = mid-1;
 			lf.buf << "   failed.\n";
 		}

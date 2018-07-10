@@ -181,7 +181,7 @@ static bool truncate_test() {
 	bool res = true;
 	try {
 		fs.stream().seek(0);
-	} catch (tpie::io_exception) {
+	} catch (tpie::io_exception &) {
 		tpie::log_error() << "We should be able to seek!" << std::endl;
 		res = false;
 	}
@@ -214,7 +214,7 @@ static bool truncate_test() {
 		fs.stream().read();
 		tpie::log_error() << "We should not be able to read after truncate!" << std::endl;
 		return false;
-	} catch (tpie::stream_exception) {
+	} catch (tpie::stream_exception &) {
 	}
 	return res;
 }

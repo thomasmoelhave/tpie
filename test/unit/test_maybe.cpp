@@ -46,7 +46,7 @@ bool basic_test() {
 	try {
 		maybe<std::string> bar(foo); 
 		maybe<std::string> baz = foo; 
-	} catch(maybe_exception e) {
+	} catch(const maybe_exception & e) {
 		TEST_FAIL("Should not throw an exception");
 	}
 
@@ -59,7 +59,7 @@ bool basic_test() {
 		maybe<std::string> baz = foo; 
 
 		TEST_FAIL("Should have thrown an exception");
-	} catch(maybe_exception e) {
+	} catch(const maybe_exception & e) {
 		// should throw an exception
 	}
 
@@ -81,7 +81,7 @@ bool unique_ptr_test() {
 	try {
 		maybe<unique_ptr<int> > bar(foo); 
 		maybe<unique_ptr<int> > baz = foo; 
-	} catch(maybe_exception e) {
+	} catch(const maybe_exception & e) {
 		std::cout << "Should not throw an exception" << " " << e.what();
 		return false;
 	}
@@ -97,7 +97,7 @@ bool unique_ptr_test() {
 
 		std::cout << "Should have thrown an exception";
 		return false; 
-	} catch(maybe_exception e) {
+	} catch(const maybe_exception & e) {
 		// should throw an exception
 	}
 

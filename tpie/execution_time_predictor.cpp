@@ -164,7 +164,7 @@ public:
 		f.close();
 		try {
 			atomic_rename(tmp, dir_name+file_name);
-		} catch(std::runtime_error e) {
+		} catch(const std::runtime_error & e) {
 			log_error() << "Failed to store time estimation database: " << e.what() << std::endl;
 		}
 	}

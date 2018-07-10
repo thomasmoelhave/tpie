@@ -141,7 +141,7 @@ bool truncate_test() {
 		stream.seek(325595);
 		int * it;
 		stream.read_item(&it);
-	} catch(std::runtime_error e) {
+	} catch(const std::runtime_error & e) {
 		std::cout << "EXCEPTION " << e.what() << " " << typeid(e).name()<< std::endl;
 		return false;
 	}
@@ -291,7 +291,7 @@ int stress(size_t actions=1024*1024*10, size_t max_size=1024*1024*128) {
 			pi.step();
 		}
 		pi.done();
-	} catch(std::runtime_error e) {
+	} catch(const std::runtime_error & e) {
 		std::cerr << "EXCEPTION " << e.what() << " " << typeid(e).name()<< std::endl;
 		return false;
 	}

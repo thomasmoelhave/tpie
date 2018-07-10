@@ -153,7 +153,7 @@ bool testSer(bool safe) {
 		std::vector<int> f, empty_out;
 		try {
 			ser >> a >> b >> c >> d >> e >> f >> empty_out;
-		} catch(serialization_error e) {
+		} catch(const serialization_error & e) {
 			tpie::log_info() << e.what() << std::endl;
 			return false;
 		}

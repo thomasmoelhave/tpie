@@ -248,8 +248,8 @@ bool tempname::try_directory(const std::string& path) {
 		boost::filesystem::remove(file_path);
 		return true;
 	}
-	catch(tpie::exception) {}
-	catch (boost::filesystem::filesystem_error) {}
+	catch (tpie::exception &) {}
+	catch (boost::filesystem::filesystem_error &) {}
 
 	return false;
 }
@@ -278,7 +278,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 		default_path = p.directory_string();
 #endif
 		subdirs.push(""); // signals that the current global subdirectory has not been created yet
-	} catch (boost::filesystem::filesystem_error) { 
+	} catch (boost::filesystem::filesystem_error &) {
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
 	}	

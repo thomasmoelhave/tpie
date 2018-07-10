@@ -146,7 +146,7 @@ bool map_test() {
 	try {
 		s2.at(10);
 		return false;
-	} catch(std::out_of_range) {}
+	} catch(std::out_of_range &) {}
 
 	TEST_ENSURE_EQUALITY(s2.count(14), 1, "count");
 	s2.erase(14);

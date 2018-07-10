@@ -405,7 +405,7 @@ struct get_arg_help {
 		try {
 			std::map<std::string, std::string>::const_iterator i=args.find(name);
 			if (i != args.end()) arg=magic_cast<T>(i->second);
-		} catch (std::bad_cast) {
+		} catch (std::bad_cast &) {
 			std::cerr << "The argument " << name << " has the wrong type" << std::endl;
 		}
 		return arg;

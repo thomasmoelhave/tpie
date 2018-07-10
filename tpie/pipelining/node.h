@@ -611,11 +611,11 @@ public:
 		any_noncopyable &item = fetch_any(key);
 		try {
 			return any_cast<T>(item);
-		} catch (bad_any_noncopyable_cast m) {
+		} catch (const bad_any_noncopyable_cast & e) {
 			std::stringstream ss;
 			ss << "Trying to fetch key '" << key << "' of type "
 			   << typeid(T).name() << " but forwarded data was of type "
-			   << item.type().name() << ". Message was: " << m.what();
+			   << item.type().name() << ". Message was: " << e.what();
 			throw invalid_argument_exception(ss.str());
 		}
 	}
