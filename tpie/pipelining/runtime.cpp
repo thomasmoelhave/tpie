@@ -32,7 +32,7 @@ namespace pipelining {
 namespace bits {
 
 struct not_a_dag_exception : public exception {
-	not_a_dag_exception(const std::string &s) : exception(s) {}
+	not_a_dag_exception() : exception("") {}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -91,15 +91,20 @@ public:
 
 	void validate_acyclical() {
 		if (!check_acyclical())
-			throw tpie::exception("get_phases: can't satisfy all green edges");
+			throw not_a_dag_exception();
 	}
 
 	void topological_order(std::vector<T> & result) const {
 		const size_t N = m_nodes.size();
 		depth_first_search dfs(m_edgeLists);
 		std::vector<std::pair<size_t, T> > nodes(N);
-		for (auto i = m_edgeLists.begin(); i != m_edgeLists.end(); ++i)
-			nodes.push_back(std::make_pair(dfs.visit(i->first), i->first));
+		for (auto i = m_edgeLists.begin(); i != m_edgeLists.end(); ++i) {
+			auto r = dfs.visit(i->first);
+			if (r == depth_first_search::BAD)
+				throw not_a_dag_exception();
+
+			nodes.push_back(std::make_pair(r, i->first));
+		}
 		std::sort(nodes.begin(), nodes.end(), std::greater<std::pair<size_t, T> >());
 		result.resize(N);
 		for (size_t i = 0; i < N; ++i) result[i] = nodes[i].second;
@@ -1554,7 +1559,11 @@ void runtime::get_phases(const std::map<node *, size_t> & phaseMap,
 	}
 
 	std::vector<size_t> topologicalOrder;
-	contractedGraph.topological_order(topologicalOrder);
+	try {
+		contractedGraph.topological_order(topologicalOrder);
+	} catch (const not_a_dag_exception &) {
+		throw tpie::exception("get_phases: can't satisfy all green edges");
+	}
 
 	// Expand contracted edges in topologicalOrder
 	for (const auto & p : greenPaths) {
