@@ -59,8 +59,10 @@ enum subsystem {
 	/** \brief Needed for working with files and implicitly by all
 	 * TPIE algorithm and data structure implementations. */
 	FILE_MANAGER=512,
+	/** \brief Enable support for new streams. */
+	NEW_STREAMS=1024,
 	/** \brief Alias for all default subsystems. */
-    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | STREAMS | HASH | TEMPFILE | FILE_MANAGER
+    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | STREAMS | HASH | TEMPFILE | FILE_MANAGER | NEW_STREAMS
 };
 
 TPIE_DECLARE_OPERATORS_FOR_FLAGS(subsystem)

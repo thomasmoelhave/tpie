@@ -28,6 +28,7 @@
 #include <tpie/compressed/buffer.h>
 #include <tpie/hash.h>
 #include <tpie/tempname.h>
+#include <tpie/file_stream/init.h>
 
 namespace {
 static tpie::memory_size_type the_block_size=0;
@@ -64,11 +65,19 @@ void tpie_init(flags<subsystem> subsystems) {
 		init_compressor();
 	}
 
+	if (subsystems & NEW_STREAMS) {
+		tpie::new_streams::file_stream_init();
+	}
+
 	if (subsystems & HASH)
 		init_hash();
 }
 
 void tpie_finish(flags<subsystem> subsystems) {
+	if (subsystems & NEW_STREAMS) {
+		tpie::new_streams::file_stream_term();
+	}
+
 	if (subsystems & STREAMS) {
 		finish_compressor();
 		finish_stream_buffer_pool();
