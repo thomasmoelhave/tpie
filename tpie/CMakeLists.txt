@@ -46,9 +46,12 @@ set (HEADERS
 		file_accessor/stream_accessor.h
 		file_accessor/stream_accessor_base.h
 		file_accessor/stream_accessor_base.inl
+		file_stream/available_blocks.h
 		file_stream/file_stream.h
 		file_stream/file_stream_impl.h
 		file_stream/file_utils.h
+		file_stream/init.h
+		file_stream/job.h
 		flags.h
 		execution_time_predictor.h
 		internal_sort.h
@@ -196,8 +199,8 @@ set (SOURCES
 	file_stream/available_blocks.cpp
 	file_stream/file.cpp
 	file_stream/file_utils.cpp
+	file_stream/init.cpp
 	file_stream/job.cpp
-	file_stream/misc.cpp
 	file_stream/stream.cpp
 	file_stream_base.cpp
 	execution_time_predictor.cpp
