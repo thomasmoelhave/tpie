@@ -42,6 +42,14 @@ win32::win32()
 {
 }
 
+inline void win32::pread_i(void * data, memory_size_type size, stream_size_type offset) {
+	throw exception("win32::pread_i not implemented");
+}
+
+inline void win32::pwrite_i(void const * data, memory_size_type size, stream_size_type offset) {
+	throw exception("win32::pwrite_i not implemented");
+}
+
 inline void win32::read_i(void * data, memory_size_type size) {
 	DWORD bytesRead = 0;
 	if (!ReadFile(m_fd, data, (DWORD)size, &bytesRead, 0)) throw_getlasterror();

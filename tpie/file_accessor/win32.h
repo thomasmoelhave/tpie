@@ -54,6 +54,9 @@ public:
 	inline bool try_open_rw(const std::string & path);
 	inline void open_rw_new(const std::string & path);
 
+	inline void pread_i(void * data, memory_size_type size, stream_size_type offset);
+	inline void pwrite_i(const void * data, memory_size_type size, stream_size_type offset);
+
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);

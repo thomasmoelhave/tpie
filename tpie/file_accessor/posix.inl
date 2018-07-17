@@ -70,28 +70,45 @@ inline void posix::give_advice() {
 #endif // __MACH__
 }
 
+inline void posix::pread_i(void * data, memory_size_type size, stream_size_type offset) {
+	io_impl(data, size, increment_bytes_read, [&](void * data, memory_size_type remaining, size_t dataOffset) {
+		return ::pread(m_fd, data, remaining, offset + dataOffset);
+	});
+}
+
 inline void posix::read_i(void * data, memory_size_type size) {
-	memory_offset_type bytesRead = ::read(m_fd, data, size);
-	if (bytesRead == -1)
-		throw_errno();
-	if (bytesRead != static_cast<memory_offset_type>(size)) {
-		std::stringstream ss;
-		ss << "Wrong number of bytes read: Expected " << size << " but got " << bytesRead;
-		throw io_exception(ss.str());
-	}
-	increment_bytes_read(size);
+	io_impl(data, size, increment_bytes_read, [&](void * data, memory_size_type remaining, size_t) {
+		return ::read(m_fd, data, remaining);
+	});
+}
+
+inline void posix::pwrite_i(const void * data, memory_size_type size, stream_size_type offset) {
+	io_impl(data, size, increment_bytes_written, [&](const void * data, memory_size_type remaining, size_t dataOffset) {
+		return ::pwrite(m_fd, data, remaining, offset + dataOffset);
+	});
 }
 
 inline void posix::write_i(const void * data, memory_size_type size) {
+	io_impl(data, size, increment_bytes_written, [&](const void * data, memory_size_type remaining, size_t) {
+		return ::write(m_fd, data, remaining);
+	});
+}
+
+
+template <typename DataT, typename ImplF, typename IncF>
+inline void posix::io_impl(DataT * data, memory_size_type size, IncF inc_f, ImplF impl_f) {
+	static_assert(std::is_same<std::remove_const_t<DataT>, void>::value, "DataT must be either void or const void");
+	using CharT = std::conditional_t<std::is_const<DataT>::value, const char, char>;
+
+	size_t offset = 0;
 	do {
-		ssize_t res = ::write(m_fd, data, size);
-		if(res == -1) {
+		ssize_t res = impl_f(static_cast<CharT *>(data) + offset, size - offset, offset);
+		if (res == -1)
 			throw_errno();
-		}
-		data = static_cast<const char*>(data) + res;
-		size -= res;
-		increment_bytes_written(res);
-	} while(size != 0);
+
+		offset += res;
+		inc_f(res);
+	} while (offset != size);
 }
 
 inline void posix::seek_i(stream_size_type size) {
