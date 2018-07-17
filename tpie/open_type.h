@@ -20,6 +20,8 @@
 #ifndef TPIE_OPEN_TYPE_H
 #define TPIE_OPEN_TYPE_H
 
+#include <string>
+
 namespace tpie {
 
 struct open {
@@ -42,9 +44,17 @@ struct open {
 		 * which can be set using
 		 * tpie::the_compressor_thread().set_preferred_compression(). */
 		compression_all = 00000040,
+		/** Truncate the file if it already exists. */
+		truncate_file = 00000100,
+		/** Enable readahead for file. */
+		readahead_enabled = 00000200,
+
 
 		defaults = 0
 	};
+
+	static void validate_flags(open::type flags);
+	static bool has_compression(open::type flags);
 
 	friend inline open::type operator|(open::type a, open::type b)
 	{ return (open::type) ((int) a | (int) b); }

@@ -209,6 +209,7 @@ set (SOURCES
 	job.cpp
 	logstream.cpp
 	memory.cpp
+	open_type.cpp
 	pipelining/merge_sorter.cpp
 	pipelining/node.cpp
 	pipelining/node_name.cpp

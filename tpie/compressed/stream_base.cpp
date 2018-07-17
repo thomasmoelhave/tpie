@@ -46,29 +46,25 @@ open::type translate(access_type accessType, cache_hint cacheHint, compression_f
 cache_hint translate_cache(open::type openFlags) {
 	const open::type cacheFlags =
 		openFlags & (open::access_normal | open::access_random);
-	
-	if (cacheFlags == open::access_normal)
-		return tpie::access_normal;
-	else if (cacheFlags == open::access_random)
-		return tpie::access_random;
-	else if (!cacheFlags)
-		return tpie::access_sequential;
-	else
-		throw tpie::stream_exception("Invalid cache flags supplied");
+
+	switch (cacheFlags) {
+		case open::access_normal: return tpie::access_normal;
+		case open::access_random: return tpie::access_random;
+		case 0:                   return tpie::access_sequential;
+		default: throw exception("This should never happen!");
+	}
 }
 
 compression_flags translate_compression(open::type openFlags) {
 	const open::type compressionFlags =
 		openFlags & (open::compression_normal | open::compression_all);
-	
-	if (compressionFlags == open::compression_normal)
-		return tpie::compression_normal;
-	else if (compressionFlags == open::compression_all)
-		return tpie::compression_all;
-	else if (!compressionFlags)
-		return tpie::compression_none;
-	else
-		throw tpie::stream_exception("Invalid compression flags supplied");
+
+	switch (compressionFlags) {
+		case open::compression_normal: return tpie::compression_normal;
+		case open::compression_all:    return tpie::compression_all;
+		case 0:                        return tpie::compression_none;
+		default: throw exception("This should never happen!");
+	}
 }
 
 typedef std::shared_ptr<compressor_buffer> buffer_t;
@@ -202,10 +198,10 @@ public:
 					open::type openFlags,
 					memory_size_type userDataSize) {
 		// Parse openFlags
+		open::validate_flags(openFlags);
+
 		const bool readOnly = openFlags & open::read_only;
 		const bool writeOnly = openFlags & open::write_only;
-		if (readOnly && writeOnly)
-			throw tpie::stream_exception("Invalid read/write only flags");
 		m_canRead = !writeOnly;
 		m_canWrite = !readOnly;
 		
