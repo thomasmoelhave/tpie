@@ -66,6 +66,7 @@ set (HEADERS
 		mergeheap.h
 		merge_sorted_runs.h
 		memory.h
+		open_type.h
 		persist.h
 		pipelining.h
 		pipelining/ami_glue.h

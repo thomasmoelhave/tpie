@@ -31,43 +31,9 @@
 #include <tpie/file_stream_base.h>
 #include <tpie/compressed/stream_position.h>
 #include <tpie/stream_writable.h>
+#include <tpie/open_type.h>
 
 namespace tpie {
-
-struct open {
-	enum type {
-		/** Open a file for reading only. */
-		read_only =  00000001,
-		/** Open a file for writing only.
-		 * Content is truncated. */
-		write_only = 00000002,
-		/** Neither sequential access nor random access is intended.
-		 * Corresponds to POSIX_FADV_NORMAL. */
-		access_normal = 00000004,
-		/** Random access is intended.
-		 * Corresponds to POSIX_FADV_RANDOM and FILE_FLAG_RANDOM_ACCESS (Win32). */
-		access_random = 00000010,
-		/** Compress some blocks
-		 * according to available resources (time, memory). */
-		compression_normal = 00000020,
-		/** Compress all blocks according to the preferred compression scheme
-		 * which can be set using
-		 * tpie::the_compressor_thread().set_preferred_compression(). */
-		compression_all = 00000040,
-
-		defaults = 0
-	};
-
-	friend inline open::type operator|(open::type a, open::type b)
-	{ return (open::type) ((int) a | (int) b); }
-	friend inline open::type operator&(open::type a, open::type b)
-	{ return (open::type) ((int) a & (int) b); }
-	friend inline open::type operator^(open::type a, open::type b)
-	{ return (open::type) ((int) a ^ (int) b); }
-	friend inline open::type operator~(open::type a)
-	{ return (open::type) ~(int) a; }
-};
-
 
 class compressed_stream_base_p;
 
