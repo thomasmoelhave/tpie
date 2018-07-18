@@ -155,6 +155,25 @@ void stream_accessor_base<file_accessor_t>::open(const std::string & path,
 }
 
 template <typename file_accessor_t>
+void stream_accessor_base<file_accessor_t>::open(const std::string & path,
+	                 open::type openFlags,
+	                 memory_size_type itemSize,
+	                 memory_size_type blockSize,
+	                 memory_size_type maxUserDataSize) {
+	open::validate_flags(openFlags);
+
+	const bool canRead = !(openFlags & open::write_only);
+	const bool canWrite = !(openFlags & open::read_only);
+
+	const cache_hint cacheHint = open::translate_cache(openFlags);
+	const compression_flags compressionFlags = open::translate_compression(openFlags);
+
+	open(path, canRead, canWrite, itemSize,
+	     blockSize, maxUserDataSize, cacheHint,
+	     compressionFlags);
+}
+
+template <typename file_accessor_t>
 void stream_accessor_base<file_accessor_t>::close() {
 	if (!m_open)
 		return;

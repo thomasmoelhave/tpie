@@ -21,6 +21,9 @@
 #define TPIE_OPEN_TYPE_H
 
 #include <string>
+#include <tpie/compressed/scheme.h>
+#include <tpie/cache_hint.h>
+#include <tpie/access_type.h>
 
 namespace tpie {
 
@@ -53,6 +56,10 @@ struct open {
 
 	static void validate_flags(open::type flags);
 	static bool has_compression(open::type flags);
+
+	static cache_hint translate_cache(open::type flags);
+	static compression_flags translate_compression(open::type flags);
+	static open::type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags);
 
 	friend inline open::type operator|(open::type a, open::type b)
 	{ return (open::type) ((int) a | (int) b); }

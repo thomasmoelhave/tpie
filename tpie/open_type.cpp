@@ -41,4 +41,44 @@ bool open::has_compression(open::type flags) {
 	return bool(flags & (open::compression_normal | open::compression_all));
 }
 
+cache_hint open::translate_cache(open::type openFlags) {
+	const open::type cacheFlags =
+			openFlags & (open::access_normal | open::access_random);
+
+	switch (cacheFlags) {
+		case open::access_normal: return tpie::access_normal;
+		case open::access_random: return tpie::access_random;
+		case 0:                   return tpie::access_sequential;
+		default: throw exception("Invalid cache flags");
+	}
+}
+
+compression_flags open::translate_compression(open::type openFlags) {
+	const open::type compressionFlags =
+			openFlags & (open::compression_normal | open::compression_all);
+
+	switch (compressionFlags) {
+		case open::compression_normal: return tpie::compression_normal;
+		case open::compression_all:    return tpie::compression_all;
+		case 0:                        return tpie::compression_none;
+		default: throw exception("Invalid compression flags");
+	}
+}
+
+
+open::type open::translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
+	return ((
+				(accessType == access_read) ? open::read_only :
+				(accessType == access_write) ? open::write_only :
+				open::defaults) | (
+
+				(cacheHint == tpie::access_normal) ? open::access_normal :
+				(cacheHint == tpie::access_random) ? open::access_random :
+				open::defaults) | (
+
+				(compressionFlags == tpie::compression_normal) ? open::compression_normal :
+				(compressionFlags == tpie::compression_all) ? open::compression_all :
+				open::defaults));
+}
+
 } // namespace tpie

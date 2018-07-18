@@ -26,6 +26,7 @@
 
 #include <tpie/stream_header.h>
 #include <tpie/cache_hint.h>
+#include <tpie/open_type.h>
 
 namespace tpie {
 namespace file_accessor {
@@ -128,6 +129,15 @@ public:
 					 memory_size_type maxUserDataSize,
 					 cache_hint cacheHint,
 					 int compressionFlags);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Open file for reading and/or writing.
+	///////////////////////////////////////////////////////////////////////////
+	inline void open(const std::string & path,
+	                 open::type openFlags,
+	                 memory_size_type itemSize,
+	                 memory_size_type blockSize,
+	                 memory_size_type maxUserDataSize);
 
 	inline void close();
 

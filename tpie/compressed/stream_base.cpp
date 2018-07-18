@@ -27,46 +27,6 @@
 
 namespace tpie {
 
-
-open::type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags) {
-	return (open::type) ((
-							 (accessType == access_read) ? open::read_only :
-							 (accessType == access_write) ? open::write_only :
-							 open::defaults) | (
-								 
-								 (cacheHint == tpie::access_normal) ? open::access_normal :
-								 (cacheHint == tpie::access_random) ? open::access_random :
-								 open::defaults) | (
-									 
-									 (compressionFlags == tpie::compression_normal) ? open::compression_normal :
-									 (compressionFlags == tpie::compression_all) ? open::compression_all :
-									 open::defaults));
-}
-
-cache_hint translate_cache(open::type openFlags) {
-	const open::type cacheFlags =
-		openFlags & (open::access_normal | open::access_random);
-
-	switch (cacheFlags) {
-		case open::access_normal: return tpie::access_normal;
-		case open::access_random: return tpie::access_random;
-		case 0:                   return tpie::access_sequential;
-		default: throw exception("This should never happen!");
-	}
-}
-
-compression_flags translate_compression(open::type openFlags) {
-	const open::type compressionFlags =
-		openFlags & (open::compression_normal | open::compression_all);
-
-	switch (compressionFlags) {
-		case open::compression_normal: return tpie::compression_normal;
-		case open::compression_all:    return tpie::compression_all;
-		case 0:                        return tpie::compression_none;
-		default: throw exception("This should never happen!");
-	}
-}
-
 typedef std::shared_ptr<compressor_buffer> buffer_t;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -198,19 +158,13 @@ public:
 					open::type openFlags,
 					memory_size_type userDataSize) {
 		// Parse openFlags
-		open::validate_flags(openFlags);
-
 		const bool readOnly = openFlags & open::read_only;
 		const bool writeOnly = openFlags & open::write_only;
 		m_canRead = !writeOnly;
 		m_canWrite = !readOnly;
-		
-		const cache_hint cacheHint = translate_cache(openFlags);
-		const compression_flags compressionFlags = translate_compression(openFlags);
-		
-		m_byteStreamAccessor.open(path, m_canRead, m_canWrite, m_itemSize,
-								  m_blockSize, userDataSize, cacheHint,
-								  compressionFlags);
+
+		m_byteStreamAccessor.open(path, openFlags, m_itemSize, m_blockSize, userDataSize);
+
 		m_o->m_size = m_byteStreamAccessor.size();
 		m_open = true;
 		m_streamBlocks = (m_o->m_size + m_blockItems - 1) / m_blockItems;
@@ -1229,13 +1183,13 @@ void compressed_stream_base::open(const std::string & path,
 								  memory_size_type userDataSize,
 								  cache_hint cacheHint,
 								  compression_flags compressionFlags) {
-	open(path, translate(accessType, cacheHint, compressionFlags), userDataSize);
+	open(path, open::translate(accessType, cacheHint, compressionFlags), userDataSize);
 }
 
 void compressed_stream_base::open(memory_size_type userDataSize,
 								  cache_hint cacheHint,
 								  compression_flags compressionFlags) {
-	open(translate(access_read_write, cacheHint, compressionFlags), userDataSize);
+	open(open::translate(access_read_write, cacheHint, compressionFlags), userDataSize);
 }
 
 void compressed_stream_base::open(temp_file & file,
@@ -1243,22 +1197,22 @@ void compressed_stream_base::open(temp_file & file,
 								  memory_size_type userDataSize,
 								  cache_hint cacheHint,
 								  compression_flags compressionFlags) {
-	open(file, translate(accessType, cacheHint, compressionFlags), userDataSize);
+	open(file, open::translate(accessType, cacheHint, compressionFlags), userDataSize);
 }
 
 void compressed_stream_base::open(const std::string & path, compression_flags compressionFlags) {
 	const memory_size_type userDataSize = 0;
-	open(path, translate(access_read_write, access_sequential, compressionFlags), userDataSize);
+	open(path, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 }
 
 void compressed_stream_base::open(compression_flags compressionFlags) {
 	const memory_size_type userDataSize = 0;
-	open(translate(access_read_write, access_sequential, compressionFlags), userDataSize);
+	open(open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 }
 
 void compressed_stream_base::open(temp_file & file, compression_flags compressionFlags) {
 	const memory_size_type userDataSize = 0;
-	open(file, translate(access_read_write, access_sequential, compressionFlags), userDataSize);
+	open(file, open::translate(access_read_write, access_sequential, compressionFlags), userDataSize);
 }
 
 bool compressed_stream_base::is_open() const noexcept { return m_p->m_open; }
