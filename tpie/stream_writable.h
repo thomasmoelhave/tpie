@@ -27,15 +27,18 @@
 namespace tpie {
 
 /*
- * We require that the item type T of a file_stream to be trivially copyable, 
- * but we relax this condition for std::pair, std::tuple
+ * We require that the item type T of a file_stream to be trivially copyable.
  *
- * std::pair<T1, T2> is not required by the standard to be trivially copyable
- * if T1 and T2 are trivially copyable.
- * This means that no compiler implements std::pair so it is trivially copyable in that case.
+ * However std::pair<T1, T2> is not required by the standard to be trivially copyable
+ * when T1 and T2 are trivially copyable.
+ * Only the copy constructors are required to be trivial,
+ * but not the assignment operators.
+ * This means that no compiler implements std::pair with trivial assignment operators.
  *
- * To avoid having to write our own implementation of std::pair and require everybody who uses a file_stream to use it.
- * The standard requires that the copy constructor on the std::pair be default, so memcopying it is not undefined behaviour.
+ * For more info see: https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable
+ *
+ * So instead of writing our own implementation of std::pair and forcing everyone who uses a file_stream to use it,
+ * we relax this condition for std::pair and std::tuple, even though this is undefined behaviour.
  */
 template <typename T>
 class is_stream_writable_override {
