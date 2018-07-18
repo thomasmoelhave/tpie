@@ -47,6 +47,7 @@ set (HEADERS
 		file_accessor/stream_accessor_base.h
 		file_accessor/stream_accessor_base.inl
 		file_stream/available_blocks.h
+		file_stream/check_file.h
 		file_stream/file_stream.h
 		file_stream/file_stream_impl.h
 		file_stream/file_utils.h
@@ -198,6 +199,7 @@ set (SOURCES
 	file_base.cpp
 	file_manager.cpp
 	file_stream/available_blocks.cpp
+	file_stream/check_file.cpp
 	file_stream/file.cpp
 	file_stream/file_utils.cpp
 	file_stream/init.cpp
