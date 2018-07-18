@@ -65,8 +65,7 @@ public:
 
 	void write(const stream_size_type byteOffset, const void * data, const memory_size_type size) {
 		stream_size_type position = byteOffset + this->header_size();
-		this->m_fileAccessor.seek_i(position);
-		this->m_fileAccessor.write_i(data, size);
+		this->m_fileAccessor.pwrite_i(data, size, position);
 	}
 
 	void append(const void * data, memory_size_type size) {
@@ -75,8 +74,7 @@ public:
 		if (position < this->header_size())
 			position = this->header_size();
 
-		this->m_fileAccessor.seek_i(position);
-		this->m_fileAccessor.write_i(data, size);
+		this->m_fileAccessor.pwrite_i(data, size, position);
 	}
 
 	memory_size_type read(const stream_size_type byteOffset, void * data, memory_size_type size) {
@@ -90,8 +88,7 @@ public:
 
 		stream_size_type position = this->header_size() + byteOffset;
 
-		this->m_fileAccessor.seek_i(position);
-		this->m_fileAccessor.read_i(data, size);
+		this->m_fileAccessor.pread_i(data, size, position);
 		return size;
 	}
 

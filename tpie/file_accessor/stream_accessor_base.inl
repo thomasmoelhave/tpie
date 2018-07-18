@@ -35,8 +35,7 @@ namespace file_accessor {
 template <typename file_accessor_t>
 void stream_accessor_base<file_accessor_t>::read_header() {
 	stream_header_t header;
-	m_fileAccessor.seek_i(0);
-	m_fileAccessor.read_i(&header, sizeof(header));
+	m_fileAccessor.pread_i(&header, sizeof(header), 0);
 	validate_header(header);
 	m_size = header.size;
 	m_userDataSize = (size_t)header.userDataSize;
@@ -50,16 +49,14 @@ void stream_accessor_base<file_accessor_t>::write_header(bool clean) {
 	stream_header_t header;
 	memset(&header, 0, sizeof(header));
 	fill_header(header, clean);
-	m_fileAccessor.seek_i(0);
-	m_fileAccessor.write_i(&header, sizeof(header));
+	m_fileAccessor.pwrite_i(&header, sizeof(header), 0);
 }
 
 template <typename file_accessor_t>
 memory_size_type stream_accessor_base<file_accessor_t>::read_user_data(void * data, memory_size_type count) {
 	if (count > m_userDataSize) count = m_userDataSize;
 	if (count) {
-		m_fileAccessor.seek_i(sizeof(stream_header_t));
-		m_fileAccessor.read_i(data, count);
+		m_fileAccessor.pread_i(data, count, sizeof(stream_header_t));
 	}
 	return count;
 }
@@ -69,8 +66,7 @@ void stream_accessor_base<file_accessor_t>::write_user_data(const void * data, m
 	if (count > m_maxUserDataSize)
 		throw stream_exception("Tried to write more user data than stream allows");
 	if (count) {
-		m_fileAccessor.seek_i(sizeof(stream_header_t));
-		m_fileAccessor.write_i(data, count);
+		m_fileAccessor.pwrite_i(data, count, sizeof(stream_header_t));
 	}
 	m_userDataSize = count;
 }

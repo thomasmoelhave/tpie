@@ -33,11 +33,10 @@ public:
 										memory_size_type itemCount) override
 	{
 		stream_size_type loc = this->header_size() + blockNumber*this->block_size();
-		this->m_fileAccessor.seek_i(loc);
 		stream_size_type offset = blockNumber*this->block_items();
 		if (offset + itemCount > this->size()) itemCount = static_cast<memory_size_type>(this->size() - offset);
 		memory_size_type z=itemCount*this->item_size();
-		this->m_fileAccessor.read_i(data, z);
+		this->m_fileAccessor.pread_i(data, z, loc);
 		return itemCount;
 	}
 
@@ -46,13 +45,12 @@ public:
 							 memory_size_type itemCount) override
 	{
 		stream_size_type loc = this->header_size() + blockNumber*this->block_size();
-		// Here, we may seek beyond the file size.
-		// However, lseek(2) specifies that the file will be padded with zeroes in this case,
-		// and on Windows, the file is padded with arbitrary garbage (which is ok).
-		this->m_fileAccessor.seek_i(loc);
 		stream_size_type offset = blockNumber*this->block_items();
 		memory_size_type z=itemCount*this->item_size();
-		this->m_fileAccessor.write_i(data, z);
+		// Here, we may seek beyond the file size
+		// However, lseek(2) specifies that the file will be padded with zeroes in this case,
+		// and on Windows, the file is padded with arbitrary garbage (which is ok).
+		this->m_fileAccessor.pwrite_i(data, z, loc);
 		if (offset+itemCount > this->size()) this->set_size(offset+itemCount);
 	}
 };
