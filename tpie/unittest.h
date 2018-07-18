@@ -92,8 +92,10 @@ testmanip<bool> failure();
 		}																\
 	}																	
 	
-#define TEST_ENSURE_EQUALITY(v1, v2, message) {							\
-		if ( !((v1) == (v2)) ) {										\
+#define TEST_ENSURE_EQUALITY(_v1, _v2, message) {						\
+        auto v1 = (_v1);                                                \
+		auto v2 = (_v2);                                                \
+		if ( !(v1 == v2) ) {										\
 			tpie::log_error() << message								\
 							  << " (" << v1 << " != " << v2				\
 							  << " line " << __LINE__ << ")" << std::endl; \
