@@ -61,13 +61,13 @@ struct open {
 	static compression_flags translate_compression(open::type flags);
 	static open::type translate(access_type accessType, cache_hint cacheHint, compression_flags compressionFlags);
 
-	friend inline open::type operator|(open::type a, open::type b)
+	friend constexpr open::type operator|(open::type a, open::type b)
 	{ return (open::type) ((int) a | (int) b); }
-	friend inline open::type operator&(open::type a, open::type b)
+	friend constexpr open::type operator&(open::type a, open::type b)
 	{ return (open::type) ((int) a & (int) b); }
-	friend inline open::type operator^(open::type a, open::type b)
+	friend constexpr open::type operator^(open::type a, open::type b)
 	{ return (open::type) ((int) a ^ (int) b); }
-	friend inline open::type operator~(open::type a)
+	friend constexpr open::type operator~(open::type a)
 	{ return (open::type) ~(int) a; }
 };
 
