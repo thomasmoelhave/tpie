@@ -44,10 +44,8 @@ struct open {
 		 * which can be set using
 		 * tpie::the_compressor_thread().set_preferred_compression(). */
 		compression_all = 00000040,
-		/** Truncate the file if it already exists. */
-		truncate_file = 00000100,
-		/** Enable readahead for file. */
-		readahead_enabled = 00000200,
+		/** Enable readahead for file (only for tpie::new_streams). */
+		readahead_enabled = 00000100,
 
 
 		defaults = 0

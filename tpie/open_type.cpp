@@ -31,7 +31,6 @@ void not_both(open::type flags, open::type flag1, open::type flag2, const std::s
 
 void open::validate_flags(tpie::open::type flags) {
 	not_both(flags, read_only, write_only, "Can't have both read and write only flags");
-	not_both(flags, read_only, truncate_file, "Can't have both read only and truncate flags");
 
 	not_both(flags, access_normal, access_random, "Can't have both 'normal' and 'random' access flags");
 
