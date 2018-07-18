@@ -167,6 +167,9 @@ add_unittest(stream
 	user_data_compressed
 	)
 add_unittest(stream_exception basic)
+add_unittest(new_streams
+	flush
+	)
 add_unittest(pipelining
 	vector
 	filestream
