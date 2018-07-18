@@ -1,1 +1,1 @@
-../../../compressed_stream_test/test.cpp
+../../../compressed_stream_test/test_new_streams.cpp
