@@ -115,6 +115,31 @@ public:
 	}
 };
 
+template <typename F>
+class pull_map_t {
+public:
+	template <typename src_t>
+	class type: public node {
+	private:
+		F functor;
+		src_t src;
+	public:
+		type(src_t src, const F & functor):
+			functor(functor), src(std::move(src)) {
+			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+		}
+		
+		auto pull() {
+			return functor(src.pull());
+		}
+
+		bool can_pull() {
+			return src.can_pull();
+		}
+	};
+};
+
+
 template <typename T>
 struct has_argument_type {
 	typedef char yes[1];
@@ -152,6 +177,11 @@ pipe_middle<tempfactory<bits::map_temp_t<F>, F> > map(const F & functor) {
 template <typename F>
 pipe_end<termfactory<bits::map_sink_t<F>, F> > map_sink(const F & functor) {
 	return termfactory<bits::map_sink_t<F>, F >(functor);
+}
+
+template <typename F>
+pullpipe_middle<tempfactory<bits::pull_map_t<F>, F>> pull_map(const F & functor) {
+	return tempfactory<bits::pull_map_t<F>, F >(functor);
 }
 
 } //namespace pipelining
