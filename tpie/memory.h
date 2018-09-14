@@ -38,6 +38,23 @@
 
 namespace tpie {
 
+struct memory_digest_item {
+	std::string name;
+	size_t count;
+	size_t bytes;
+	std::type_info * ti;
+};
+
+struct type_allocations {
+	std::atomic_size_t bytes;
+	std::atomic_size_t count;
+	type_allocations() noexcept: bytes(0), count(0) {}
+	type_allocations(const type_allocations & o) noexcept {bytes = (size_t)o.bytes; count = (size_t)o.count;}
+	type_allocations(type_allocations && o) noexcept {bytes = (size_t)o.bytes; count = (size_t)o.count;}
+	type_allocations & operator=(const type_allocations & o) noexcept {bytes = (size_t)o.bytes; count = (size_t)o.count; return *this;}
+	type_allocations & operator=(type_allocations && o) noexcept {bytes = (size_t)o.bytes; count = (size_t)o.count; return *this;}
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Memory management object used to track memory usage.
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,42 +72,38 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
 
-	void register_allocation(size_t bytes) {
+	void register_typed_allocation(size_t bytes, const std::type_info & t);
+	void register_typed_deallocation(size_t bytes, const std::type_info & t);
+	
+	void register_allocation(size_t bytes, const std::type_info & t) {
 		register_increased_usage(bytes);
+#ifndef TPIE_NDEBUG
+		register_typed_allocation(bytes, t);
+#else
+		unused(t);
+#endif
 	}
 
-	void register_deallocation(size_t bytes) {
+	void register_deallocation(size_t bytes, const std::type_info & t) {
 		register_decreased_usage(bytes);
+#ifndef TPIE_NDEBUG
+		register_typed_deallocation(bytes, t);
+#else
+		unused(t);
+#endif
 	}
 
 	std::string amount_with_unit(size_t amount) const override {
 		return bits::pretty_print::size_type(amount);
 	}
 
-#ifndef TPIE_NDEBUG
-	// The following methods take the mutex before calling the private doubly
-	// underscored equivalent.
-	void register_pointer(void * p, size_t size, const std::type_info & t);
-	void unregister_pointer(void * p, size_t size, const std::type_info & t);
-	void assert_tpie_ptr(void * p);
 	void complain_about_unfreed_memory();
-#endif
-
+	std::unordered_map<const std::type_info * , memory_digest_item> memory_digest();
 protected:
 	void throw_out_of_resource_error(const std::string & s) override;
 
-private:
-#ifndef TPIE_NDEBUG
-	std::mutex m_mutex;
-
-	// Before calling these methods, you must have the mutex.
-	void __register_pointer(void * p, size_t size, const std::type_info & t);
-	void __unregister_pointer(void * p, size_t size, const std::type_info & t);
-	void __assert_tpie_ptr(void * p);
-	void __complain_about_unfreed_memory();
-
-	std::unordered_map<void *, std::pair<size_t, const std::type_info *> > m_pointers;
-#endif
+	std::atomic_size_t m_mutex;
+	std::unordered_map<const std::type_info *, type_allocations> m_allocations;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,47 +122,6 @@ void finish_memory_manager();
 /// See \ref tpie_init().
 ///////////////////////////////////////////////////////////////////////////////
 memory_manager & get_memory_manager();
-
-///////////////////////////////////////////////////////////////////////////////
-/// \internal
-/// Register a pointer, for debugging memory leaks and such.
-///////////////////////////////////////////////////////////////////////////////
-inline void __register_pointer(void * p, size_t size, const std::type_info & t) {
-#ifndef TPIE_NDEBUG
-	get_memory_manager().register_pointer(p, size, t);
-#else
-	unused(p);
-	unused(size);
-	unused(t);
-#endif
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \internal
-/// Unregister a registered pointer.
-///////////////////////////////////////////////////////////////////////////////
-inline void __unregister_pointer(void * p, size_t size, const std::type_info & t) {
-#ifndef TPIE_NDEBUG
-	get_memory_manager().unregister_pointer(p, size, t);
-#else
-	unused(p);
-	unused(size);
-	unused(t);
-#endif
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// In a debug build, assert that a given pointer has been allocated with
-/// tpie_new.
-///////////////////////////////////////////////////////////////////////////////
-inline void assert_tpie_ptr(void * p) {
-#ifndef TPIE_NDEBUG
-	if (p)
-		get_memory_manager().assert_tpie_ptr(p);
-#else
-	unused(p);
-#endif
-}
 
 #ifndef DOXYGEN
 ///////////////////////////////////////////////////////////////////////////////
@@ -207,13 +179,12 @@ struct array_allocation_scope_magic {
 	size_t size;
 	T * data;
 	array_allocation_scope_magic(size_t s): size(0), data(0) {
-		get_memory_manager().register_allocation(s * sizeof(T) );
+		get_memory_manager().register_allocation(s * sizeof(T), typeid(T) );
 		size=s;
 	}
 
 	T * allocate() {
 		data = new T[size];
-		__register_pointer(data, size*sizeof(T), typeid(T));
 		return data;
 	}
 
@@ -225,7 +196,7 @@ struct array_allocation_scope_magic {
 	}
 
 	~array_allocation_scope_magic() {
-		if(size) get_memory_manager().register_deallocation(size*sizeof(T));
+		if(size) get_memory_manager().register_deallocation(size*sizeof(T), typeid(T) );
 	}
 };
 
@@ -240,10 +211,9 @@ struct allocation_scope_magic {
 	allocation_scope_magic(): deregister(0), data(0) {}
 	
 	T * allocate() {
-		get_memory_manager().register_allocation(sizeof(T));
+		get_memory_manager().register_allocation(sizeof(T), typeid(T));
 		deregister = sizeof(T);
 		data = __allocate<T>();
-		__register_pointer(data, sizeof(T), typeid(T));
 		return data;
 	}
 
@@ -255,9 +225,8 @@ struct allocation_scope_magic {
 	}
 	
 	~allocation_scope_magic() {
-		if (data) __unregister_pointer(data, sizeof(T), typeid(T));
 		delete[] reinterpret_cast<uint8_t*>(data);
-		if (deregister) get_memory_manager().register_deallocation(deregister);
+		if (deregister) get_memory_manager().register_deallocation(deregister, typeid(T));
 	}
 };
 
@@ -300,9 +269,8 @@ inline T * tpie_new(Args &&... args) {
 template <typename T>
 inline void tpie_delete(T * p) throw() {
 	if (p == 0) return;
-	get_memory_manager().register_deallocation(tpie_size(p));
+	get_memory_manager().register_deallocation(tpie_size(p), typeid(*p));
 	uint8_t * pp = ptr_cast<uint8_t *>(p);
-	__unregister_pointer(pp, tpie_size(p), typeid(*p));
 	p->~T();
 	if(!std::is_polymorphic<T>::value) 
 		delete[] pp;
@@ -318,8 +286,7 @@ inline void tpie_delete(T * p) throw() {
 template <typename T>
 inline void tpie_delete_array(T * a, size_t size) throw() {
 	if (a == 0) return;
-	get_memory_manager().register_deallocation(sizeof(T) * size);
-	__unregister_pointer(a, sizeof(T) * size, typeid(T) );
+	get_memory_manager().register_deallocation(sizeof(T) * size, typeid(T));
 	delete[] a;
 }
 
@@ -415,18 +382,16 @@ public:
     template <class U> struct rebind {typedef allocator<U> other;};
 
     T * allocate(size_t size, const void * hint=0) {
-		get_memory_manager().register_allocation(size * sizeof(T));
+		get_memory_manager().register_allocation(size * sizeof(T), typeid(T));
 		if (bucket) bucket->count += size * sizeof(T);
 		T * res = a.allocate(size, hint);
-		__register_pointer(res, size, typeid(T));
 		return res;
     }
 
     void deallocate(T * p, size_t n) {
 		if (p == 0) return;
 		if (bucket) bucket->count -= n * sizeof(T);
-		__unregister_pointer(p, n, typeid(T));
-		get_memory_manager().register_deallocation(n * sizeof(T));
+		get_memory_manager().register_deallocation(n * sizeof(T), typeid(T));
 		return a.deallocate(p, n);
     }
     size_t max_size() const noexcept {return a.max_size();}

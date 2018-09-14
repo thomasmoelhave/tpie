@@ -25,12 +25,16 @@
 #include <cstring>
 #include <cstdlib>
 #include "pretty_print.h"
+#ifndef WIN32
+#include <cxxabi.h>
+#endif
+#include <tpie/spin_lock.h>
 
 namespace tpie {
 
 memory_manager * mm = 0;
 
-memory_manager::memory_manager(): resource_manager(MEMORY) {}
+memory_manager::memory_manager(): resource_manager(MEMORY), m_mutex(0) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Buffers messages to the debug log.
@@ -63,10 +67,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	//directly.
 	try {
 		res = new uint8_t[high*granularity];
-		m_used.fetch_add(high*granularity);
-#ifndef TPIE_NDEBUG
-		register_pointer(res, high*granularity, typeid(uint8_t) );
-#endif	      
+		register_allocation(high*granularity, typeid(uint8_t));
 		return std::make_pair(res, high*granularity);
 	} catch (std::bad_alloc &) {
 		lf.buf << "Failed to get " << (high*granularity)/(1024*1024) << " megabytes of memory. "
@@ -98,10 +99,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	lf.buf << "- - - - - - - END MEMORY SEARCH - - - - - -\n";	
 
 	res = new uint8_t[best];
-	m_used.fetch_add(best);
-#ifndef TPIE_NDEBUG
-	register_pointer(res, best, typeid(uint8_t) );
-#endif	      
+	register_allocation(best, typeid(uint8_t));
 	return std::make_pair(res, best);
 }
 
@@ -109,80 +107,74 @@ void memory_manager::throw_out_of_resource_error(const std::string & s) {
 	throw out_of_memory_error(s);
 }
 
-#ifndef TPIE_NDEBUG
-void memory_manager::register_pointer(void * p, size_t size, const std::type_info & t) {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	__register_pointer(p, size, t);
-}
-
-void memory_manager::__register_pointer(void * p, size_t size, const std::type_info & t) {
-	if (m_pointers.count(p) != 0) {
-		log_error() << "Trying to register pointer " << p << " of size " 
-					<< size << " which is already registered" << std::endl;
-		std::abort();
-	}
-	m_pointers[p] = std::make_pair(size, &t);;
-}
-
-void memory_manager::unregister_pointer(void * p, size_t size, const std::type_info & t) {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	__unregister_pointer(p, size, t);
-}
-
-void memory_manager::__unregister_pointer(void * p, size_t size, const std::type_info & t) {
-	auto  i=m_pointers.find(p);
-	if (i == m_pointers.end()) {
-		log_error() << "Trying to deregister pointer " << p << " of size "
-					<< size << " which was never registered" << std::endl;
-		std::abort();
-	} else {
-		if (i->second.first != size) {
-			log_error() << "Trying to deregister pointer " << p << " of size "
-						<< size << " which was registered with size " << i->second.first << std::endl;
-			std::abort();
-		}
-		if (*i->second.second != t) {
-			log_error() << "Trying to deregister pointer " << p << " of type "
-						<< t.name() << " which was registered with size " << i->second.second->name() << std::endl;
-			std::abort();
-		}
-		m_pointers.erase(i);
-	}
-}
-
-void memory_manager::assert_tpie_ptr(void * p) {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	__assert_tpie_ptr(p);
-}
-
-void memory_manager::__assert_tpie_ptr(void * p) {
-	if (!p || m_pointers.count(p)) return;
-	log_error() << p << " has not been allocated with tpie_new" << std::endl;
-	std::abort();
-}
-
 void memory_manager::complain_about_unfreed_memory() {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	__complain_about_unfreed_memory();
+	shared_spin_lock lock(m_mutex);
+
+	bool first = true;
+	
+	for(const auto & p: m_allocations) {
+		if (p.second.count == 0) continue;
+		if (first) {
+			log_error() << "The following types were either leaked or deleted with delete instead of tpie_delete" << std::endl << std::endl;
+			first = false;
+		}
+		log_error() << p.first->name() << ": " << p.second.count << " of " << p.second.bytes << " bytes" << std::endl;
+	}
 }
 
-void memory_manager::__complain_about_unfreed_memory() {
-	if(m_pointers.size() == 0) return;
-	log_error() << "The following pointers were either leaked or deleted with delete instead of tpie_delete" << std::endl << std::endl;
-	
-	for(const auto & p: m_pointers)
-		log_error() << "  " <<  p.first << ": " << p.second.second->name() << " of " << p.second.first << " bytes" << std::endl;
+void memory_manager::register_typed_allocation(size_t bytes, const std::type_info & t) {
+	shared_spin_lock l(m_mutex);
+	auto it = m_allocations.find(&t);
+	if (it == m_allocations.end()) {
+		l.release();
+		{
+			unique_spin_lock l2(m_mutex);
+			it = m_allocations.find(&t);
+			if (it == m_allocations.end())
+				it = m_allocations.emplace(&t, type_allocations()).first;
+		}
+		l.acquire();
+	}
+	it->second.count++;
+	it->second.bytes += bytes;
 }
+
+void memory_manager::register_typed_deallocation(size_t bytes, const std::type_info & t) {
+	shared_spin_lock l(m_mutex);
+	auto it = m_allocations.find(&t);
+	it->second.count--;
+	it->second.bytes -= bytes;
+}
+
+
+std::unordered_map<const std::type_info *, memory_digest_item> memory_manager::memory_digest() {
+	std::unordered_map<const std::type_info *, memory_digest_item> res;
+	shared_spin_lock lock(m_mutex);
+	for(const auto & p: m_allocations) {
+		if (p.second.bytes < 1024*512) continue;
+		memory_digest_item mdi;
+		mdi.name = p.first->name();
+#ifndef WIN32
+		{
+			int x;
+			char * buff=abi::__cxa_demangle(mdi.name.c_str(), NULL, NULL, &x);
+			if (x == 0) mdi.name = buff;
+			std::free(buff);
+		}
 #endif
+		mdi.count = p.second.count;
+		mdi.bytes = p.second.bytes;
+		res.emplace(p.first, std::move(mdi)).first;
+	}
+	return res;
+}
 
 void init_memory_manager() {
 	mm = new memory_manager();
 }
 
 void finish_memory_manager() {
-#ifndef TPIE_NDEBUG
 	mm->complain_about_unfreed_memory();
-#endif
 	delete mm;
 	mm = 0;
 }
