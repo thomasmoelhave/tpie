@@ -476,6 +476,7 @@ public:
 
 	virtual void end() override {
 		flush_buffer_impl(true);
+		m_buffer.reset();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -611,6 +612,9 @@ public:
 		m_worker.swap(t);
 	}
 
+	void end() override {
+		m_buffer.reset();
+	}
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Check if we are ready to process a batch of input.
@@ -1176,6 +1180,8 @@ public:
 
 		handle_exceptions(lock);
 		flush_steps();
+
+		free_structure_memory(m_outputOrder);
 	}
 };
 

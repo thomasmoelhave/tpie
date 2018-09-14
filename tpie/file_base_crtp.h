@@ -33,6 +33,7 @@
 #include <tpie/stream_header.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/tempname.h>
+#include <cassert>
 
 namespace tpie {
 
