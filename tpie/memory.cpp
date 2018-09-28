@@ -24,7 +24,6 @@
 #include "tpie_log.h"
 #include <cstring>
 #include <cstdlib>
-#include "pretty_print.h"
 #ifndef WIN32
 #include <cxxabi.h>
 #endif

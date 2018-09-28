@@ -66,4 +66,18 @@ void throw_getlasterror() {
 }
 #endif
 
+
+std::string pretty_print_size(stream_size_type size) {
+	static std::string units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
+	stream_size_type i = 0;
+	while(size > 1024 && i < 8) {
+		size /= 1024;
+		++i;
+	}
+	
+	std::stringstream ss;
+	ss << size << units[i];
+	return ss.str();
+}
+
 } // namespace tpie

@@ -27,7 +27,6 @@
 #include <tpie/memory.h>
 #include <tpie/types.h>
 #include <iostream>
-#include <tpie/pretty_print.h>
 
 using namespace tpie;
 
@@ -412,7 +411,7 @@ void progress_bar(float pct, stream_size_type nbytes){
     }
     std::cout <<"] "<<intpct<<"%";
  
-    std::cout << " - " << bits::pretty_print::size_type(nbytes) << "      ";
+    std::cout << " - " << pretty_print_size(nbytes) << "      ";
     std::cout.flush();
 }
 
@@ -541,7 +540,7 @@ int main(int argc, char **argv){
     std::cout << "Path:  " << info.path 
 	      << "\nNum Items: " << info.num_items 
 	      << "\nItem Size: " << info.item_size
-	      << "\nFile Size: " << bits::pretty_print::size_type(filesize) << std::endl;
+	      << "\nFile Size: " << pretty_print_size(filesize) << std::endl;
  
 	tempname::set_default_base_name(APP_FILE_BASE);
 	tempname::set_default_path(info.path);

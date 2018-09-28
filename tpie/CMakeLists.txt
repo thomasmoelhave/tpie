@@ -114,7 +114,6 @@ set (HEADERS
 		pipelining/virtual.h
 		pipelining/visit.h
 		portability.h
-		pretty_print.h
 		internal_priority_queue.h
 		priority_queue.inl
 		priority_queue.h
