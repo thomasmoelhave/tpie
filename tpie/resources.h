@@ -26,7 +26,7 @@
 #ifndef __TPIE_RESOURCES_H__
 #define __TPIE_RESOURCES_H__
 
-#include <iostream>
+#include <iosfwd>
 
 namespace tpie {
 

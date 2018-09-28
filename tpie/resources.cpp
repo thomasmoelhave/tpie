@@ -19,6 +19,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/resources.h>
+#include <iostream>
 
 namespace tpie {
 
