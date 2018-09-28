@@ -2,6 +2,39 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" @ONLY)
 
+add_library(tpie_base STATIC
+  array.h
+  array_view.h
+  array_view_base.h
+  bit_array.h
+  config_base.h.cmake
+  exception.h
+  internal_stack.h
+  internal_stack_vector_base.h
+  internal_vector.h
+  loglevel.h
+  logstream.h
+  memory.h
+  packed_array.h
+  resource_manager.h
+  resources.h
+  spin_lock.h
+  stats.h
+  tempname.h
+  types.h
+  util.h
+  logstream.cpp
+
+  memory.cpp
+  resource_manager.cpp
+  resources.cpp
+  stats.cpp
+  tempname.cpp
+  util.cpp
+  )
+
+target_link_libraries(tpie_base ${Boost_LIBRARIES})
+
 set (HEADERS
 		access_type.h
 		backtrace.h
@@ -32,7 +65,6 @@ set (HEADERS
 		cpu_timer.h
 		deprecated.h
 		disjoint_sets.h
-		exception.h
 		err.h
 		file.h
 		file_base.h
@@ -50,16 +82,10 @@ set (HEADERS
 		execution_time_predictor.h
 		internal_sort.h
 		internal_queue.h
-		internal_stack.h
-		internal_vector.h
-		internal_stack_vector_base.h
 		is_simple_iterator.h
 		job.h
-		loglevel.h
-		logstream.h
 		mergeheap.h
 		merge_sorted_runs.h
-		memory.h
 		persist.h
 		pipelining.h
 		pipelining/ami_glue.h
@@ -131,8 +157,6 @@ set (HEADERS
 		progress_indicator_null.h
 		progress_indicator_terminal.h
 		queue.h
-		resource_manager.h
-		resources.h
 		serialization.h
 		serialization2.h
 		serialization_stream.h
@@ -152,17 +176,8 @@ set (HEADERS
 		tpie_assert.h
 		tpie_log.h
 		tuple_utils.h
-		stats.h
-		types.h
-		tempname.h
 		uncompressed_stream.h
 		unused.h
-		util.h
-		array.h
-		bit_array.h
-		packed_array.h
-		array_view_base.h
-		array_view.h
 		hash_map.h
 		hash.h
 		prime.h
@@ -193,8 +208,6 @@ set (SOURCES
 	execution_time_predictor.cpp
 	fractional_progress.cpp
 	job.cpp
-	logstream.cpp
-	memory.cpp
 	pipelining/merge_sorter.cpp
 	pipelining/node.cpp
 	pipelining/node_name.cpp
@@ -205,16 +218,11 @@ set (SOURCES
 	prime.cpp
 	progress_indicator_base.cpp
 	progress_indicator_subindicator.cpp
-	resource_manager.cpp
-	resources.cpp
 	serialization_stream.cpp
 	hash.cpp
 	jsonprint.cpp
-	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
-	stats.cpp
-	util.cpp
 	unittest.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
@@ -230,7 +238,7 @@ if (TPIE_SHARED)
 else()
   add_library(tpie STATIC ${HEADERS} ${SOURCES})
 endif()
-target_link_libraries(tpie ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(tpie tpie_base ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 if(TPIE_HAS_SNAPPY)

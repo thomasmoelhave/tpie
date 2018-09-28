@@ -24,7 +24,7 @@
 #ifndef __TPIE_UTIL_H__
 #define __TPIE_UTIL_H__
 
-#include <tpie/config.h>
+#include <tpie/config_base.h>
 #include <tpie/types.h>
 #include <cmath>
 #include <string>
@@ -207,6 +207,12 @@ void atomic_rename(const std::string & src, const std::string & dst);
 /// \brief pretty print a size
 /////////////////////////////////////////////////////////
 std::string pretty_print_size(stream_size_type size);
+
+///////////////////////////////////////////////////////////////////////////
+/// \brief Check the global errno variable and throw an exception that
+/// matches its value.
+///////////////////////////////////////////////////////////////////////////
+void throw_errno(std::string path = std::string());
 
 /////////////////////////////////////////////////////////
 /// Free the memory assosiated with a stl or tpie structure

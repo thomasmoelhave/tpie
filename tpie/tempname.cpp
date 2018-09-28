@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <tpie/config.h>
+#include <tpie/config_base.h>
 #include <cstdio>
 #include <cstdlib>
 #include <time.h>
@@ -32,8 +32,8 @@
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/exception.h>
-#include <tpie/file_accessor/file_accessor.h>
 #include <stack>
+#include <tpie/stats.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -213,20 +213,20 @@ bool tempname::try_directory(const std::string& path) {
 		return false;
 
 	std::string file_path = f.string();
-	try {
-		{
-			tpie::file_accessor::raw_file_accessor accessor;
-			accessor.open_rw_new(file_path);
-			int i = 0xbadf00d;
-			accessor.write_i(static_cast<const void*>(&i), sizeof(i));
-		}
-		boost::filesystem::remove(file_path);
-		return true;
-	}
-	catch (tpie::exception &) {}
-	catch (boost::filesystem::filesystem_error &) {}
+	
+	std::ofstream of(file_path.c_str(), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+	if (!of) return false;
+	
+	int i = 0xbadf00d;
+	of.write((const char *)&i, sizeof(i));
+	of.close();
 
-	return false;
+	try {
+		boost::filesystem::remove(file_path);
+	} catch (boost::filesystem::filesystem_error &) {
+		return false;
+	}
+	return (bool)of;
 }
 
 void tempname::set_default_path(const std::string&  path, const std::string& subdir) {
