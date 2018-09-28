@@ -24,7 +24,7 @@
 #ifndef __TPIE_UTIL_H__
 #define __TPIE_UTIL_H__
 
-#include <tpie/portability.h>
+#include <tpie/config.h>
 #include <tpie/types.h>
 #include <cmath>
 #include <string>
