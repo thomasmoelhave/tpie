@@ -28,11 +28,6 @@
 #include <tpie/config.h>
 #include <tpie/util.h>
 #include <tpie/resource_manager.h>
-#include <mutex>
-#include <unordered_map>
-#include <type_traits>
-#include <utility>
-#include <atomic>
 
 namespace tpie {
 
@@ -55,20 +50,10 @@ public:
 		register_decreased_usage(1);
 	}
 
-	std::string amount_with_unit(size_t amount) const override {
-		std::ostringstream os;
-		if (amount == 1) {
-			os << "a file";
-		} else {
-			os << amount << " files";
-		}
-		return os.str();
-	}
+	std::string amount_with_unit(size_t amount) const override;
 
 protected:
-	void throw_out_of_resource_error(const std::string & s) override {
-		throw out_of_files_error(s);
-	}
+	void throw_out_of_resource_error(const std::string & s) override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

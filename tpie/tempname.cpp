@@ -32,7 +32,6 @@
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/exception.h>
-#include <tpie/err.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <stack>
 

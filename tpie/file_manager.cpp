@@ -19,6 +19,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "file_manager.h"
+#include <tpie/exception.h>
 #include <iostream>
 #include <sstream>
 #include "tpie_log.h"
@@ -46,6 +47,20 @@ size_t get_maximum_open_files() {
 file_manager * fm = 0;
 
 file_manager::file_manager(): resource_manager(FILES) {}
+
+std::string file_manager::amount_with_unit(size_t amount) const  {
+	std::ostringstream os;
+	if (amount == 1) {
+		os << "a file";
+	} else {
+		os << amount << " files";
+	}
+	return os.str();
+}
+
+void file_manager::throw_out_of_resource_error(const std::string & s) {
+	throw out_of_files_error(s);
+}
 
 void init_file_manager() {
 	const size_t reserved_files = 42;

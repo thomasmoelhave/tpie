@@ -23,6 +23,7 @@
 #include <sstream>
 #include "tpie_log.h"
 #include <cstring>
+#include <tpie/exception.h>
 
 namespace tpie {
 
@@ -98,6 +99,13 @@ void resource_manager::set_limit(size_t new_limit) {
 
 void resource_manager::set_enforcement(enforce_t e) {
 	m_enforce = e;
+}
+
+
+std::string resource_manager::amount_with_unit(size_t amount) const {
+	std::ostringstream os;
+	os << amount << " amount of " << resource_managed;
+	return os.str();
 }
 
 } //namespace tpie

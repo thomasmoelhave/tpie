@@ -25,8 +25,7 @@
 #define _TPIE_TEMPNAM_H
 
 // Get definitions for working with Unix and Windows
-#include <tpie/portability.h>
-#include <tpie/stats.h>
+#include <tpie/types.h>
 #include <stdexcept>
 #include <boost/intrusive_ptr.hpp>
 #include <string>

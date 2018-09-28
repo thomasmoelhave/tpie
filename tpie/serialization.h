@@ -35,6 +35,7 @@
 #include <istream>
 #include <ostream>
 #include <cstring>
+#include <sstream>
 
 namespace tpie {
 

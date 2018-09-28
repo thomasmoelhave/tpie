@@ -26,18 +26,10 @@
 #define __TPIE_RESOURCE_MANAGER_H__
 
 #include <tpie/config.h>
-#include <tpie/util.h>
 #include <tpie/resources.h>
-#include <mutex>
-#include <unordered_map>
-#include <type_traits>
-#include <utility>
-#include <memory>
 #include <atomic>
-#include <cstdlib>
-#include <iostream>
-#include <sstream>
-#include <tpie/exception.h>
+#include <iosfwd>
+
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,11 +91,7 @@ public:
 
 	void register_decreased_usage(size_t amount);
 
-	virtual std::string amount_with_unit(size_t amount) const {
-		std::ostringstream os;
-		os << amount << " amount of " << resource_managed;
-		return os.str();
-	}
+	virtual std::string amount_with_unit(size_t amount) const;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal

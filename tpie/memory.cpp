@@ -28,6 +28,7 @@
 #include <cxxabi.h>
 #endif
 #include <tpie/spin_lock.h>
+#include <tpie/exception.h>
 
 namespace tpie {
 

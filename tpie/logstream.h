@@ -24,9 +24,6 @@
 /// logstream class used by definitions in \ref tpie_log.h.
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef __TPIE_LOGSTREAM_H__
-#define __TPIE_LOGSTREAM_H__
-
 #include <tpie/config.h>
 #include <tpie/loglevel.h>
 #include <streambuf>
@@ -130,4 +127,3 @@ public:
 
 #endif //__TPIE_LOGSTREAM_H__
 
-#endif // _LOGSTREAM_H
