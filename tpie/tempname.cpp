@@ -96,11 +96,7 @@ std::string _get_system_path() {
 #endif
 
 	auto p = boost::filesystem::temp_directory_path();
-#if BOOST_FILESYSTEM_VERSION == 3
 	return p.string();
-#else
-	return p.file_string();
-#endif
 }
 
 std::string tempname::get_system_path() {
@@ -135,11 +131,7 @@ std::string construct_name(std::string post_base, std::string timestamp, std::st
 
 	auto p = boost::filesystem::unique_path(ss.str());
 
-#if BOOST_FILESYSTEM_VERSION == 3
 	return p.string();
-#else
-	return p.file_string();
-#endif
 }
 
 void create_subdir() {
@@ -147,11 +139,7 @@ void create_subdir() {
 	boost::filesystem::path p;
 	p = base_dir / construct_name("", get_timestamp(), "");
 	if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p)) {
-#if BOOST_FILESYSTEM_VERSION == 3
 		std::string path = p.string();
-#else
-		std::string path = p.file_string();
-#endif
 		if (!subdirs.empty() && subdirs.top().empty())
 			subdirs.pop();
 		subdirs.push(path);
@@ -165,11 +153,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 		boost::filesystem::path p;
 		p = dir; p /= construct_name(post_base, get_timestamp(), suffix);
 		if ( !boost::filesystem::exists(p) ) {
-#if BOOST_FILESYSTEM_VERSION == 3
 			return p.string();
-#else
-			return p.file_string();
-#endif
 		}
 		throw tempfile_error("Unable to find free name for temporary file");
 	}
@@ -179,11 +163,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 		boost::filesystem::path p = subdirs.top();
 		p /= construct_name(post_base, "", suffix);
 
-#if BOOST_FILESYSTEM_VERSION == 3
 		return p.string();
-#else
-		return p.file_string();
-#endif
 	}
 }
 
@@ -233,11 +213,7 @@ bool tempname::try_directory(const std::string& path) {
 	if(boost::filesystem::exists(f))
 		return false;
 
-#if BOOST_FILESYSTEM_VERSION == 3
 	std::string file_path = f.string();
-#else
-	std::string file_path = f.directory_string();
-#endif
 	try {
 		{
 			tpie::file_accessor::raw_file_accessor accessor;
@@ -272,11 +248,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
 
-#if BOOST_FILESYSTEM_VERSION == 3
 		default_path = p.string();
-#else
-		default_path = p.directory_string();
-#endif
 		subdirs.push(""); // signals that the current global subdirectory has not been created yet
 	} catch (boost::filesystem::filesystem_error &) {
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);

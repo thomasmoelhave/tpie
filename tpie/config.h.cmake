@@ -1,8 +1,6 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include <boost/version.hpp>
-
 #cmakedefine TPIE_HAVE_UNISTD_H
 #cmakedefine TPIE_HAVE_SYS_UNISTD_H
 
@@ -56,14 +54,6 @@
 #define tpie_unreachable() __assume(0)
 #else
 #define tpie_unreachable() __builtin_unreachable()
-#endif
-
-//We use boost filesystem v3 from boost v1.47 and onwards
-//(boost v 1.50 dropped fs v2 altogether)
-#if BOOST_VERSION >= 104700
-	#define BOOST_FILESYSTEM_VERSION 3
-#else
-	#define BOOST_FILESYSTEM_VERSION 2
 #endif
 
 #cmakedefine TPIE_HAS_SNAPPY
