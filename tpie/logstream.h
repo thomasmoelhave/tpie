@@ -24,7 +24,7 @@
 /// logstream class used by definitions in \ref tpie_log.h.
 ///////////////////////////////////////////////////////////////////////////
 
-#include <tpie/config.h>
+#include <tpie/config_base.h>
 #include <tpie/loglevel.h>
 #include <streambuf>
 #include <ostream>

@@ -25,7 +25,7 @@
 #ifndef __TPIE_MEMORY_H__
 #define __TPIE_MEMORY_H__
 
-#include <tpie/config.h>
+#include <tpie/config_base.h>
 #include <tpie/util.h>
 #include <tpie/resource_manager.h>
 #include <mutex>

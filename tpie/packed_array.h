@@ -19,7 +19,7 @@
 #ifndef __TPIE_PACKED_ARRAY_H__
 #define __TPIE_PACKED_ARRAY_H__
 
-#include <tpie/config.h>
+#include <tpie/config_base.h>
 #include <tpie/util.h>
 #include <iterator>
 #include <cassert>
