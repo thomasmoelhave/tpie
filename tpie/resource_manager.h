@@ -25,7 +25,7 @@
 #ifndef __TPIE_RESOURCE_MANAGER_H__
 #define __TPIE_RESOURCE_MANAGER_H__
 
-#include <tpie/config.h>
+#include <tpie/config_base.h>
 #include <tpie/resources.h>
 #include <atomic>
 #include <iosfwd>

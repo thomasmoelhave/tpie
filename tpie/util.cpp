@@ -27,10 +27,12 @@
 #include <cstdio>
 #ifndef WIN32
 #include <tpie/tpie_log.h>
-#include <tpie/file_accessor/posix.h>
 #else
 #include <windows.h>
 #endif
+#include <errno.h>
+#include <string.h>
+#include <sstream>
 
 namespace tpie {
 
@@ -40,7 +42,7 @@ void atomic_rename(const std::string & src, const std::string & dst) {
 #ifndef _WIN32
 	if (rename(src.c_str(), dst.c_str()) != 0) {
 		log_debug() << "Atomic rename failed from ``" << src << "'' to ``" << dst << "''." << std::endl;
-		file_accessor::posix::throw_errno();
+		throw_errno();
 	}
 #else
 	//TODO use MoveFileTransacted on vista or newer
@@ -79,5 +81,14 @@ std::string pretty_print_size(stream_size_type size) {
 	ss << size << units[i];
 	return ss.str();
 }
+
+void throw_errno(std::string path /*=std::string()*/) {
+	std::string msg = strerror(errno);
+	if (!path.empty())
+		msg += " Path: ``" + path + "''.";
+	if (errno == ENOSPC) throw out_of_space_exception(msg);
+	else throw io_exception(msg);
+}
+
 
 } // namespace tpie

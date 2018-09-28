@@ -31,14 +31,6 @@
 namespace tpie {
 namespace file_accessor {
 
-void posix::throw_errno(std::string path /*=std::string()*/) {
-	std::string msg = strerror(errno);
-	if (!path.empty())
-		msg += " Path: ``" + path + "''.";
-	if (errno == ENOSPC) throw out_of_space_exception(msg);
-	else throw io_exception(msg);
-}
-
 posix::posix()
 	: m_fd(-1)
 	, m_cacheHint(access_normal)

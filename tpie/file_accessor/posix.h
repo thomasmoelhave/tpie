@@ -54,12 +54,6 @@ public:
 	inline void truncate_i(stream_size_type bytes);
 	inline bool is_open() const;
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Check the global errno variable and throw an exception that
-	/// matches its value.
-	///////////////////////////////////////////////////////////////////////////
-	static inline void throw_errno(std::string path = std::string());
-
 	inline void set_cache_hint(cache_hint cacheHint);
 
 private:

@@ -125,6 +125,9 @@ set(TPIE_B ${CMAKE_CURRENT_BINARY_DIR})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config_base.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config_base.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config_base.h DESTINATION ${HEADERS_INSTALL_DIR})
+
 add_subdirectory(tpie)
 
 add_subdirectory(doc)
