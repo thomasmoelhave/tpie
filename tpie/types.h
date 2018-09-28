@@ -26,11 +26,6 @@
 
 #include <cstdint>
 #include <cstddef>
-#ifdef _WIN32
-#include <basetsd.h>
-#else
-#include <sys/types.h>
-#endif
 
 namespace tpie {
 
@@ -46,35 +41,11 @@ using std::int64_t;
 typedef uint64_t stream_size_type;
 typedef int64_t stream_offset_type;
 typedef std::size_t memory_size_type;
-#ifdef _WIN32
-typedef SSIZE_T memory_offset_type;
-#else
-typedef ssize_t memory_offset_type;
-#endif
-
+typedef std::ptrdiff_t memory_offset_type;
 typedef stream_offset_type offset_type;
+typedef std::size_t size_type;
+typedef std::ptrdiff_t ssize_type;
 
-#ifdef _WIN32
-typedef __int64 offset_type;
-#else
-typedef off_t offset_type;
-#endif	
-
-#if defined (_WIN32) && !defined(__MINGW32__)
-typedef SSIZE_T ssize_type;
-#ifdef _TPIE_SMALL_MAIN_MEMORY
-#if (_MSC_VER < 1400)
-typedef unsigned __int32 size_type;
-#else
-typedef size_t size_type;
-#endif
-#else
-typedef size_t size_type;
-#endif
-#else
-typedef ssize_t ssize_type;
-typedef size_t size_type;
-#endif
 }
 
 #endif //_TPIE_TYPES_H
