@@ -141,6 +141,15 @@ struct pull_type_help<T, default_type, true, false> {
 	typedef typename std::decay<type_>::type type;
 };
 
+struct pull_type_base_tag;
+
+template <typename T,  template <typename> typename map>
+struct pull_type_base_help {using item_type = map<T>;};
+
+template <template <typename> typename map>
+struct pull_type_base_help<pull_type_base_tag, map> {};
+
+
 } // namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,6 +171,12 @@ struct pull_type {
 	static_assert(!std::is_void<type>::value, "Could not deduce pull type.");
 };
 
+
+template <typename T>
+using push_type_map_identity = T;
+
+template <typename T, template <typename> typename map = push_type_map_identity>
+using pull_type_base = bits::pull_type_base_help<typename push_type<T, bits::pull_type_base_tag>::type, map>;
 
 
 } // namespace pipelining
