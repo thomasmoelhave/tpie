@@ -87,15 +87,8 @@ void unserialize(S & src, foo & v);
 
 template <typename T>
 struct is_trivially_serializable {
-private:
-	template <typename TT>
-	static char magic(TT *, typename std::enable_if<TT::is_trivially_serializable>::type *_=0);
-
-	template <typename TT>
-	static long magic(...);
-public:
-	static bool const value=
-		(std::is_pod<T>::value || sizeof(magic<T>((T*)nullptr))==sizeof(char)) && !std::is_pointer<T>::value;
+	static bool const value
+		= std::is_trivially_copyable<T>::value && !std::is_pointer<T>::value;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

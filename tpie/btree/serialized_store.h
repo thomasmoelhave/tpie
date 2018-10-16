@@ -86,9 +86,8 @@ private:
 	struct internal_content {
 		off_t offset;
 		A augment;
-		
-		static const bool is_trivially_serializable=true;
 	};
+	static_assert(std::is_trivially_copyable<internal_content>::value, "must be trivially copyable.");
 
 	static constexpr size_t block_size() {return bs_?bs_:24*1024;}
 	static constexpr size_t min_internal_size() {return 1;}
