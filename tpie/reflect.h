@@ -53,15 +53,8 @@ bool reflect(R & r, T && v, TT && ... vs);
 // SFINAE magic to detect if a type is trivialy serializable
 template <typename T>
 struct is_trivially_serializable2 {
-private:
-    template <typename TT>
-    static char magic(TT *, typename std::enable_if<TT::is_trivially_serializable>::type *_=0);
-    
-    template <typename TT>
-    static long magic(...);
-public:
-    static bool constexpr value=
-		(std::is_pod<T>::value || sizeof(magic<T>((T*)nullptr))==sizeof(char)) && !std::is_pointer<T>::value;
+	static bool constexpr value
+		= std::is_trivially_copyable<T>::value && !std::is_pointer<T>::value;
 };
 
 // SFINAE magic to detect member functions and such
