@@ -251,12 +251,21 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 	return tree.empty();
 }
 
-template <typename T1, typename T2>
-std::pair<T1, T2> add(std::pair<T1, T2> a, std::pair<T1, T2> b) {
-	return std::pair<T1, T2>(a.first + b.first, a.second + b.second);
-}
+struct ss_augment {
+	size_t first;
+	size_t second;
 
-typedef std::pair<size_t, size_t> ss_augment;
+	ss_augment() = default;
+	ss_augment(size_t first, size_t second): first(first), second(second) {}
+
+	bool operator!=(const ss_augment &o) const {
+		return first != o.first || second != o.second;
+	}
+};
+
+ss_augment add(const ss_augment &a, const ss_augment &b) {
+	return ss_augment(a.first + b.first, a.second + b.second);
+}
 
 ostream & operator<<(ostream & o, const ss_augment & a) {
 	return o << "{" << a.first << ", " << a.second << "}";
