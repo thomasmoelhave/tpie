@@ -299,6 +299,8 @@ class access {
 	friend class vfork_node;
 	template <typename>
 	friend class vpush_node;
+	template <typename>
+	friend class subpipeline_virt_impl;
 
 	template <typename Input>
 	static virtsrc<Input> * get_source(const virtual_chunk_end<Input> &);

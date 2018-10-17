@@ -21,6 +21,7 @@
 
 #include <tpie/pipelining/pipeline.h>
 #include <tpie/pipelining/runtime.h>
+#include <tpie/pipelining/virtual.h>
 
 namespace tpie {
 namespace pipelining {
@@ -55,12 +56,11 @@ struct subpipeline_virt: public subpipeline_base {
 template <typename item_type, typename fact_t>
 struct subpipeline_impl: public subpipeline_virt<item_type> {
 	typename fact_t::constructed_type front;
-	
 	subpipeline_impl(fact_t fact): front(fact.construct()) {
 		this->m_nodeMap = front.get_node_map();
 		this->frontNode = &front;
 	}
-	
+
 	subpipeline_impl(const subpipeline_impl &) = delete;
 	subpipeline_impl & operator=(const subpipeline_impl &) = delete;
 	subpipeline_impl(subpipeline_impl &&) = delete;
@@ -71,6 +71,29 @@ struct subpipeline_impl: public subpipeline_virt<item_type> {
 	};
 	
 };
+
+template <typename item_type>
+struct subpipeline_virt_impl: public subpipeline_virt<item_type> {
+	virtsrc<item_type> * front;
+	virtual_chunk_end<item_type> chunk;
+
+	subpipeline_virt_impl(virtual_chunk_end<item_type> chunk)
+		: front(access::get_source(chunk))
+		, chunk(std::move(chunk)) {
+		this->m_nodeMap = front->get_node_map();
+		this->frontNode = front;
+	}
+
+	subpipeline_virt_impl(const subpipeline_virt_impl &) = delete;
+	subpipeline_virt_impl & operator=(const subpipeline_virt_impl &) = delete;
+	subpipeline_virt_impl(subpipeline_virt_impl &&) = delete;
+	subpipeline_virt_impl & operator=(subpipeline_virt_impl &&) = delete;
+	
+	void push(const item_type & item) override {
+		front->push(item);
+	};
+};
+
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,6 +118,11 @@ struct subpipeline {
 	template <typename T>
 	subpipeline & operator=(T from) {
 		p.reset(new bits::subpipeline_impl<item_type, T>(std::move(from)));
+		return *this;
+	}
+
+	subpipeline & operator=(virtual_chunk_end<item_type> from) {
+		p.reset(new bits::subpipeline_virt_impl<item_type>(std::move(from)));
 		return *this;
 	}
 
