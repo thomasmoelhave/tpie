@@ -639,10 +639,11 @@ public:
 	void topological_order(std::vector<node_t> & order, strategy_t strategy = AUTO) {
 		void (satisfiable_graph::* get_order)(std::vector<node_t> &);
 		switch (strategy) {
-			case BRUTEFORCE_ORDER: get_order = &satisfiable_graph::bruteforce_optimal_topological_order; break;
-			case BRUTEFORCE_SATISFIABLE: get_order = &satisfiable_graph::bruteforce_satisfiable_edges; break;
-			case GREEDY: get_order = &satisfiable_graph::greedy_topological_order; break;
-			case AUTO: get_order = &satisfiable_graph::auto_topological_order; break;
+		case BRUTEFORCE_ORDER: get_order = &satisfiable_graph::bruteforce_optimal_topological_order; break;
+		case BRUTEFORCE_SATISFIABLE: get_order = &satisfiable_graph::bruteforce_satisfiable_edges; break;
+		case GREEDY: get_order = &satisfiable_graph::greedy_topological_order; break;
+		case AUTO: get_order = &satisfiable_graph::auto_topological_order; break;
+		default: get_order = nullptr; throw tpie::exception("Unknown strategy");
 		}
 
 		preprocess();

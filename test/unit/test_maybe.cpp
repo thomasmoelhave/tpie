@@ -65,7 +65,7 @@ bool basic_test() {
 
 	TEST_ENSURE(foo.is_constructed(), "Should be constructed"); 
 	TEST_ENSURE_EQUALITY(*foo, "Horse, cow, cat, walrus", "Wrong value"); 
-	TEST_ENSURE_EQUALITY(foo->size(), 23, "Wrong value"); 
+	TEST_ENSURE_EQUALITY(foo->size(), 23u, "Wrong value");
 	
 
 	foo.destruct(); 
