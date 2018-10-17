@@ -97,10 +97,10 @@ bool set_test() {
 	s2.clear();
 	TEST_ENSURE(s2.empty(), "empty");
 	s2.insert({12, 11});
-	TEST_ENSURE_EQUALITY(s2.count(11), 1, "count");
-	TEST_ENSURE_EQUALITY(s2.count(10), 0, "count");
+	TEST_ENSURE_EQUALITY(s2.count(11), 1u, "count");
+	TEST_ENSURE_EQUALITY(s2.count(10), 0u, "count");
 	s2.emplace(14);
-	TEST_ENSURE_EQUALITY(s2.count(14), 1, "count");
+	TEST_ENSURE_EQUALITY(s2.count(14), 1u, "count");
 
 	auto a1=s2.insert(16);
 	TEST_ENSURE_EQUALITY(*a1.first, 16, "insert");
@@ -117,11 +117,11 @@ bool set_test() {
 	TEST_ENSURE_EQUALITY(*a2.second, 16, "equal_range");
 	TEST_ENSURE_EQUALITY(*s2.find(14), 14, "find");
 	TEST_ENSURE(s2.find(15) == s2.end(), "find");
-	TEST_ENSURE_EQUALITY(s2.erase(11), 1, "erase");
-	TEST_ENSURE_EQUALITY(s2.erase(10), 0, "erase");
-	TEST_ENSURE_EQUALITY(s2.count(11), 0, "count");
+	TEST_ENSURE_EQUALITY(s2.erase(11), 1u, "erase");
+	TEST_ENSURE_EQUALITY(s2.erase(10), 0u, "erase");
+	TEST_ENSURE_EQUALITY(s2.count(11), 0u, "count");
 	s2.erase(s2.find(14));
-	TEST_ENSURE_EQUALITY(s2.count(14), 0, "count");
+	TEST_ENSURE_EQUALITY(s2.count(14), 0u, "count");
 
 	tpie::tiny::set<int>::const_iterator i = s2.erase(s2.begin(), s2.end());
 	tpie::tiny::set<int>::const_iterator j = s2.end();
@@ -148,36 +148,36 @@ bool map_test() {
 		return false;
 	} catch(std::out_of_range &) {}
 
-	TEST_ENSURE_EQUALITY(s2.count(14), 1, "count");
+	TEST_ENSURE_EQUALITY(s2.count(14), 1u, "count");
 	s2.erase(14);
-	TEST_ENSURE_EQUALITY(s2.count(14), 0, "count");
+	TEST_ENSURE_EQUALITY(s2.count(14), 0u, "count");
 	return true;
 }
 
 bool multiset_test() {
 	tpie::tiny::multiset<int> s1({14, 17, 14, 10});
-	TEST_ENSURE_EQUALITY(s1.count(14), 2, "count");
-	TEST_ENSURE_EQUALITY(s1.count(17), 1, "count");
-	TEST_ENSURE_EQUALITY(s1.count(10), 1, "count");
-	TEST_ENSURE_EQUALITY(s1.count(9), 0, "count");
-	TEST_ENSURE_EQUALITY(s1.size(), 4, "size");
-	TEST_ENSURE_EQUALITY(s1.erase(14), 2, "erase");
-	TEST_ENSURE_EQUALITY(s1.count(14), 0, "count");
-	TEST_ENSURE_EQUALITY(s1.size(), 2, "size");
+	TEST_ENSURE_EQUALITY(s1.count(14), 2u, "count");
+	TEST_ENSURE_EQUALITY(s1.count(17), 1u, "count");
+	TEST_ENSURE_EQUALITY(s1.count(10), 1u, "count");
+	TEST_ENSURE_EQUALITY(s1.count(9), 0u, "count");
+	TEST_ENSURE_EQUALITY(s1.size(), 4u, "size");
+	TEST_ENSURE_EQUALITY(s1.erase(14), 2u, "erase");
+	TEST_ENSURE_EQUALITY(s1.count(14), 0u, "count");
+	TEST_ENSURE_EQUALITY(s1.size(), 2u, "size");
 	return true;
 }
 
 
 bool multimap_test() {
 	tpie::tiny::multimap<int, char> s1({{14, 'a'}, {17, 'b'} , {14, 'c'}, {10, 'd'}});
-	TEST_ENSURE_EQUALITY(s1.count(14), 2, "count");
-	TEST_ENSURE_EQUALITY(s1.count(17), 1, "count");
-	TEST_ENSURE_EQUALITY(s1.count(10), 1, "count");
-	TEST_ENSURE_EQUALITY(s1.count(9), 0, "count");
-	TEST_ENSURE_EQUALITY(s1.size(), 4, "size");
-	TEST_ENSURE_EQUALITY(s1.erase(14), 2, "erase");
-	TEST_ENSURE_EQUALITY(s1.count(14), 0, "count");
-	TEST_ENSURE_EQUALITY(s1.size(), 2, "size");
+	TEST_ENSURE_EQUALITY(s1.count(14), 2u, "count");
+	TEST_ENSURE_EQUALITY(s1.count(17), 1u, "count");
+	TEST_ENSURE_EQUALITY(s1.count(10), 1u, "count");
+	TEST_ENSURE_EQUALITY(s1.count(9), 0u, "count");
+	TEST_ENSURE_EQUALITY(s1.size(), 4u, "size");
+	TEST_ENSURE_EQUALITY(s1.erase(14), 2u, "erase");
+	TEST_ENSURE_EQUALITY(s1.count(14), 0u, "count");
+	TEST_ENSURE_EQUALITY(s1.size(), 2u, "size");
 	return true;
 }
 
