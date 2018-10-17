@@ -56,7 +56,7 @@ bool basic_test() {
 	hat.resize(52, 42);
 	TEST_ENSURE(hat.size() == 52, "Wrong size"); 
 	for (memory_size_type i=0; i < 52; ++i)
-		TEST_ENSURE_EQUALITY(hat[i], 42, "Wrong value");
+		TEST_ENSURE_EQUALITY(hat[i], 42u, "Wrong value");
 	
 	//Get and set
 	for (memory_size_type i=0; i < 52; ++i)
@@ -64,7 +64,7 @@ bool basic_test() {
   
 	const tpie::array<size_t> & hat2(hat);
 	for (memory_size_type i=0; i < 52; ++i)
-		TEST_ENSURE_EQUALITY(hat2[i], ((i * 104729) % 2251), "Wrong value");
+		TEST_ENSURE_EQUALITY(hat2[i], ((i * 104729u) % 2251u), "Wrong value");
 
 	TEST_ENSURE(!hat.empty(), "Empty");
 	hat.resize(0);
@@ -102,13 +102,13 @@ bool unique_ptr_test() {
 	for(size_t i=0; i < s; ++i) 
 		a[i].reset(tpie_new<unique_ptr_test_class, size_t &, size_t &>(cc, dc));
 	TEST_ENSURE_EQUALITY(cc, s, "Wrong value");
-	TEST_ENSURE_EQUALITY(dc, 0, "Wrong value");
+	TEST_ENSURE_EQUALITY(dc, 0u, "Wrong value");
 	size_t x=0;
 	for(size_t i=0; i < s; ++i) 
 		x += a[i]->hat();
 	TEST_ENSURE_EQUALITY(x, 42*s, "Wrong value");
 	TEST_ENSURE_EQUALITY(cc, s, "Wrong value");
-	TEST_ENSURE_EQUALITY(dc, 0, "Wrong value");
+	TEST_ENSURE_EQUALITY(dc, 0u, "Wrong value");
 	for(size_t i=0; i < s; ++i) 
 		a[i].reset(tpie_new<unique_ptr_test_class>(cc, dc));
 
@@ -359,14 +359,14 @@ bool allocator_test() {
 	typedef test_allocator<test_t> alloc;
 	typedef tpie::array<test_t, alloc> arr_t;
 	alloc::reset();
-	TEST_ENSURE_EQUALITY(alloc::allocated, 0, "Wrong value");
-	TEST_ENSURE_EQUALITY(alloc::deallocated, 0, "Wrong value");
+	TEST_ENSURE_EQUALITY(alloc::allocated, 0u, "Wrong value");
+	TEST_ENSURE_EQUALITY(alloc::deallocated, 0u, "Wrong value");
 	size_t sz1 = 42;
 	size_t sz2 = 420;
 	size_t sz3 = 4200;
 	arr_t arr(sz1);
 	TEST_ENSURE_EQUALITY(alloc::allocated, sz1, "Wrong value after ctor(sz)");
-	TEST_ENSURE_EQUALITY(alloc::deallocated, 0, "Wrong value after ctor(sz)");
+	TEST_ENSURE_EQUALITY(alloc::deallocated, 0u, "Wrong value after ctor(sz)");
 	arr.resize(sz2);
 	TEST_ENSURE_EQUALITY(alloc::allocated, sz2 + alloc::deallocated, "Wrong value after resize(sz)");
 	arr.resize(sz1, 123);
