@@ -18,11 +18,9 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
-#include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
 #include <tpie/progress_indicator_arrow.h>
-using namespace tpie::ami;
 using namespace tpie::test;
 
 

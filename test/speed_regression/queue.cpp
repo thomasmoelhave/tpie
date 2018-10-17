@@ -21,7 +21,6 @@
 #include "blocksize_2MB.h"
 
 #include <tpie/tpie.h>
-#include <tpie/stream.h>
 #include <tpie/queue.h>
 #include <iostream>
 #include "testtime.h"

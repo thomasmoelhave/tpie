@@ -24,7 +24,6 @@ macro(add_fulltest NAME)
 endmacro(add_fulltest)
 
 add_unittest(allocator deque list)
-add_unittest(ami_stream basic truncate)
 add_unittest(array
 	basic
 	iterators

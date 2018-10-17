@@ -122,9 +122,6 @@ private:
 
 #include "pq_overflow_heap.inl"
 
-    namespace ami {
-		using tpie::pq_overflow_heap;
-    }  //  ami namespace
 
 }  //  tpie namespace
 

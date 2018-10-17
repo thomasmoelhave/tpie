@@ -23,10 +23,10 @@
 #include <ctype.h>
 #include <iostream>
 #include <algorithm>
+#include <tpie/tpie_log.h>
 
 // The new getopts() argument-parsing function.
 #include "getopts.h"
-#include <tpie/stream.h>
 #include <tpie/memory.h>
 #include "test_portability.h"
 
@@ -84,8 +84,8 @@ void parse_args(int argc, char **argv, struct options *application_opts,
       mm_sz = std::max(size_t(128*1024), parse_number<TPIE_OS_SIZE_T>(opt_arg));
       break;
     case 2:
-      verbose = true; 
-      TP_LOG_APP_DEBUG_ID("Setting verbose flag.");
+      verbose = true;
+	  tpie::log_debug() << "Setting verbose flag." << std::endl;
       break;
     case 3: 
       test_size = parse_number<TPIE_OS_OFFSET>(opt_arg); 

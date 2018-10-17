@@ -38,12 +38,7 @@
 /// and output stream. 
 ///////////////////////////////////////////////////////////////////////////
 
-// Get definitions for working with Unix and Windows
-#include <tpie/portability.h>
-
 // The typename that actually does the sorting
-#include <tpie/sort_manager.h>
-#include <tpie/mergeheap.h>
 #include <tpie/internal_sort.h>
 
 #include <tpie/progress_indicator_base.h>
@@ -218,6 +213,5 @@ void sort(uncompressed_stream<T> & instream) {
 
 }  //  tpie namespace
 
-#include <tpie/sort_deprecated.h>
 
 #endif // _AMI_SORT_H 

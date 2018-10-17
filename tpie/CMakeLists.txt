@@ -86,11 +86,8 @@ set (HEADERS
 		internal_queue.h
 		is_simple_iterator.h
 		job.h
-		mergeheap.h
-		merge_sorted_runs.h
 		persist.h
 		pipelining.h
-		pipelining/ami_glue.h
 		pipelining/buffer.h
 		pipelining/chunker.h
 		pipelining/container.h
@@ -164,14 +161,10 @@ set (HEADERS
 		serialization_stream.h
 		serialization_sorter.h
 		sort.h
-		sort_deprecated.h
-		sort_manager.h
 		stack.h
-		stream.h
 		stream_crtp.h
 		stream_crtp.inl
 		stream_header.h
-		stream_old.h
 		stream_usage.h
 		stream_writable.h
 		sysinfo.h

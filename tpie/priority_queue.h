@@ -26,7 +26,6 @@
 #define _TPIE_PRIORITY_QUEUE_H_
 
 #include <tpie/config.h>
-#include "portability.h"
 #include "tpie_log.h"
 #include <cassert>
 #include "pq_overflow_heap.h"
@@ -39,9 +38,9 @@
 #include <sstream>
 #include "pq_merge_heap.h"
 #include <tpie/err.h>
-#include <tpie/stream.h>
 #include <tpie/array.h>
 #include <boost/filesystem.hpp>
+#include <tpie/file_stream.h>
 
 namespace tpie {
 
@@ -244,10 +243,6 @@ private:
 };
 
 #include "priority_queue.inl"
-
-    namespace ami {
-		using tpie::priority_queue;
-    }  //  ami namespace
 
 }  //  tpie namespace
 

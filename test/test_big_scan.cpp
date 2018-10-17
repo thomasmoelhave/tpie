@@ -20,7 +20,6 @@
 #include "app_config.h"
 #include <tpie/portability.h>
 #include "test_portability.h"
-#include <tpie/stream.h>
 #include "getopts.h"
 
 #include <cstring>

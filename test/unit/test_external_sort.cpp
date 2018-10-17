@@ -21,7 +21,6 @@
 #include <tpie/tpie.h>
 #include <tpie/util.h>
 #include <tpie/sort.h>
-#include <tpie/stream.h>
 #include <tpie/prime.h>
 #include "common.h"
 #include <iterator>
@@ -94,28 +93,6 @@ template <> struct iterator_traits<primeit> {
 
 using namespace tpie;
 
-bool ami_sort_test(size_t size) {
-	ami::stream<size_t> mystream;
-	primeit begin = primeit::begin(size);
-	primeit end = primeit::end(size);
-	size_t s = static_cast<size_t>(end-begin);
-
-	while (begin != end) {
-		size_t x= *begin;
-		++begin;
-		mystream.write_item(x);
-	}
-	ami::sort(&mystream);
-
-	mystream.seek(0);
-
-	size_t * x = 0;
-	for(size_t i=0; i < s; ++i) {
-		mystream.read_item( &x );
-		if (*x != i) return false;
-	}
-	return true;
-}
 
 void tiny_test(teststream & ts, size_t max) {
 	for (size_t size = 0; size <= max; ++size) {
@@ -255,7 +232,5 @@ int main(int argc, char **argv) {
 		.test(small_test, "small", "n", 8*1024*1024)
 		.test(tall_test, "tall", "n", 22*1024*1024)
 		.test(large_test, "large", "n", 128*1024*1024)
-		.test(ami_sort_test, "amismall", "n", 8*1024*1024)
-		.test(ami_sort_test, "amilarge", "n", 128*1024*1024)
 		.test(test2, "very_large", "n", 1024ull*1024*1024*3);
 }

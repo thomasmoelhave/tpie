@@ -21,34 +21,12 @@
 #include <tpie/tpie.h>
 #include <tpie/util.h>
 #include <tpie/stack.h>
-#include <tpie/stream.h>
 #include <tpie/prime.h>
 #include <tpie/tempname.h>
 #include "common.h"
 #include <boost/filesystem.hpp>
 
 using namespace tpie;
-
-bool ami_named_stack_test() {
-	temp_file tmp;
-	{
-		ami::stack<size_t> s(tmp.path());
-		const size_t size= 1234;
-		for(size_t i=1; i < size; ++i) 
-			s.push(i);
-	}
-
-	{
-		ami::stack<size_t> s(tmp.path());
-		const size_t size= 1234;
-		for(size_t i=size-1; i >= 1; --i) {
-			const size_t * x = 0;
-			s.pop(&x);
-			if (*x != i) return false;
-		}
-	}
-	return true;
-}
 
 bool named_stack_test() {
 	temp_file tmp;
@@ -68,48 +46,6 @@ bool named_stack_test() {
 		}
 	}
 	return true;
-}
-
-bool ami_stack_test(size_t size) {
-  ami::stack<size_t> s;
-  size_t i=1234;
-  for(size_t _=0; _ < size; ++_) {
-    s.push(i) ;
-    ++i;
-    if ((size_t)s.size() != _ +1) {
-		tpie::log_error() << "size failed" << std::endl;
-		return false;
-    }
-  }
-  size_t o=i-1;
-  for(size_t _=0; _ < size; ++_) {
-    s.push(i) ;
-    const size_t * x = 0;
-    s.pop(&x);
-    if (*x != i) {
-		tpie::log_error() << "Wrong element" << std::endl;
-		return false;
-    }
-    ++i;
-    
-    if ((size_t)s.size() != size) {
-		tpie::log_error() << "size failed 2" << std::endl;
-		return false;
-    }
-  }
-
-  for(size_t _=0; _ < size; ++_) {
-    const size_t * x = 0;
-    s.pop(&x);
-    if (*x != o) {
-		tpie::log_error() << "Wrong element 2" << std::endl;
-		return false;
-    }
-    --o;
-  }
-  
-  if (s.size() != 0) return false;
-  return true;
 }
 
 #define ASSERT(cond, msg) if (!(cond)) { tpie::log_error() << msg << std::endl; return false; }
@@ -176,8 +112,6 @@ bool io_test() {
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(ami_stack_test, "ami", "size", 1024*1024*3)
-		.test(ami_named_stack_test, "named-ami")
 		.test(stack_test, "new", "size", 1024*1024*3)
 		.test(named_stack_test, "named-new")
 		.test(io_test, "io");

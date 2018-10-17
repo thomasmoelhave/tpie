@@ -31,7 +31,6 @@
 #include <tpie/types.h>
 
 using namespace tpie;
-using namespace tpie::ami;
 using namespace tpie::test;
 
 const size_t mb_default=1;
@@ -76,7 +75,7 @@ void test(Generator g, size_t mb, size_t times, float blockFactor = 0.125f) {
 		test_realtime_t end;
 		getTestRealtime(start);
 		{
-			tpie::ami::priority_queue<test_t> pq(0.95f, blockFactor);
+			tpie::priority_queue<test_t> pq(0.95f, blockFactor);
 		
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
 				test_t x = g();
