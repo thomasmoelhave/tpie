@@ -197,7 +197,7 @@ namespace ami {
 			err dequeue(const T **t) {
 				try {
 					*t = &this->pop();
-				} catch (end_of_stream_exception e) {
+				} catch (const end_of_stream_exception &) {
 					return ami::END_OF_STREAM;
 				}
 				return NO_ERROR;
