@@ -908,7 +908,7 @@ public:
 	progress_indicators & operator =(progress_indicators && o) = default;
 
 	~progress_indicators() {
-		if (!std::uncaught_exception() && fp) fp->done();
+		if (!std::uncaught_exceptions() && fp) fp->done();
 	}
 
 	void init(stream_size_type n,
@@ -982,7 +982,7 @@ public:
 	}
 
 	~phase_progress_indicator() {
-		if (!std::uncaught_exception() && m_pi) m_pi->done();
+		if (!std::uncaught_exceptions() && m_pi) m_pi->done();
 	}
 
 	progress_indicator_base & get() {
