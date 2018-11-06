@@ -258,19 +258,19 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 		if(buffer_size > 0) {
 
 			// fetch insertion buffer
-			memcpy(&mergebuffer[0], &arr[0], sizeof(T)*opq->sorted_size());
+			std::copy(&arr[0], &arr[0] + opq->sorted_size(), &mergebuffer[0]);
 
 			// fetch deletion buffer
-			memcpy(&mergebuffer[opq->sorted_size()], &buffer[buffer_start], sizeof(T)*buffer_size);
+			std::copy(&buffer[buffer_start], &buffer[buffer_start] + buffer_size, &mergebuffer[opq->sorted_size()]);
 
 			// sort buffer elements
 			std::sort(mergebuffer.get(), mergebuffer.get()+(buffer_size+opq->sorted_size()), comp_);
 
 			// smaller elements go in deletion buffer
-			memcpy(buffer.get()+buffer_start, mergebuffer.get(), sizeof(T)*buffer_size);
+			std::copy(mergebuffer.get(), mergebuffer.get() + buffer_size, buffer.get() + buffer_start);
 
 			// larger elements go in insertion buffer
-			memcpy(&arr[0], mergebuffer.get()+buffer_size, sizeof(T)*opq->sorted_size());
+			std::copy(mergebuffer.get()+buffer_size, mergebuffer.get()+buffer_size + opq->sorted_size(), &arr[0]);
 		}
 
 		// Bubble lesser elements down into group buffer 0
