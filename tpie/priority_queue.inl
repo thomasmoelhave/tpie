@@ -287,17 +287,17 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 			}
 
 			// fetch insertion buffer
-			memcpy(&mergebuffer[j], &arr[0], sizeof(T)*opq->sorted_size());
+			std::copy(&arr[0], &arr[0] + opq->sorted_size(), &mergebuffer[j]);
 
 			// sort
 			std::sort(mergebuffer.get(), mergebuffer.get()+(group_size(0)+opq->sorted_size()), comp_);
 
 			// smaller elements go in gbuffer0
-			memcpy(gbuffer0.get(), mergebuffer.get(), static_cast<size_t>(sizeof(T)*group_size(0)));
+			std::copy(mergebuffer.get(), mergebuffer.get() + static_cast<size_t>(group_size(0)), gbuffer0.get());
 			group_start_set(0,0);
 
 			// larger elements go in insertion buffer (actually a free group 0 slot)
-			memcpy(&arr[0], &mergebuffer[group_size(0)], sizeof(T)*opq->sorted_size());
+			std::copy(&mergebuffer[group_size(0)], &mergebuffer[group_size(0)] + opq->sorted_size(), &arr[0]);
 		}
 
 		// move insertion buffer (which has elements larger than all of
@@ -949,11 +949,11 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 			mergebuffer[j] = gbuffer0[i%setting_m];
 			++j;
 		}
-		memcpy(&mergebuffer[j], &arr[0], static_cast<size_t>(sizeof(T)*group_size(group)));
+		std::copy(&arr[0], &arr[0] + static_cast<size_t>(group_size(group)), &mergebuffer[j]);
 		std::sort(&mergebuffer[0], &mergebuffer[0]+(group_size(0)+group_size(group)), comp_);
-		memcpy(&gbuffer0[0], &mergebuffer[0], static_cast<size_t>(sizeof(T)*group_size(0)));
+		std::copy(&mergebuffer[0], &mergebuffer[0] + static_cast<size_t>(group_size(0)), &gbuffer0[0]);
 		group_start_set(0,0);
-		memcpy(&arr[0], &mergebuffer[group_size(0)], static_cast<size_t>(sizeof(T)*group_size(group)));
+		std::copy(&mergebuffer[group_size(0)], &mergebuffer[group_size(0)] + static_cast<size_t>(group_size(group)), &arr[0]);
 	}
 
 	write_slot(slot, arr.get(), group_size(group));
