@@ -1,7 +1,10 @@
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tpie_test_paths.h.in" "${CMAKE_CURRENT_BINARY_DIR}/tpie_test_paths.h" @ONLY)
+
 macro(add_unittest NAME)
   add_executable(ut-${NAME} test_${NAME}.cpp common.h merge_sort.h priority_queue.h test_timer.h)
   set_target_properties(ut-${NAME} PROPERTIES FOLDER tpie/unittest)
   target_link_libraries(ut-${NAME} tpie ${Boost_LIBRARIES})
+  target_include_directories(ut-${NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
   if(TPIE_HAS_SNAPPY)
     target_link_libraries(ut-${NAME} ${Snappy_LIBRARY})
   endif(TPIE_HAS_SNAPPY)

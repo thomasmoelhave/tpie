@@ -26,6 +26,7 @@
 #include <map>
 #include <numeric>
 #include <boost/filesystem/path.hpp>
+#include "tpie_test_paths.h"
 
 #ifdef TPIE_HAS_LZ4
 #define SKIP_IF_NO_LZ4 {}
@@ -649,8 +650,7 @@ bool serialized_zstd_reopen_test() {
 }
 
 bool serialized_read_old_format() {
-	std::string old_path = (boost::filesystem::path(__FILE__).parent_path() / "test_btree_old_serialized.tpie").string();
-
+	std::string old_path = TPIE_TEST_PATH "/test_btree_old_serialized.tpie";
 	default_comp c;
 	ss_augmenter au;
 	auto tree = get_btree(TA<btree_external, btree_serialized, btree_static>(), c, au, old_path, btree_flags::defaults_v0);
