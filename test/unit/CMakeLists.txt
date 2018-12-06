@@ -220,6 +220,7 @@ add_unittest(pipelining
 	exception
 	subpipeline_exception
 	subpipeline_exception2
+	pull
 	)
 add_unittest(pipelining_runtime evacuate get_phase_graph optimal_satisfiable_ordering evacuate_phase_graph)
 add_unittest(pipelining_serialization basic reverse sort)

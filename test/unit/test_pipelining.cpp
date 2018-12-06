@@ -998,6 +998,49 @@ bool virtual_test() {
 	return check_test_vectors();
 }
 
+
+template <typename src_t>
+struct pull_end_test_t: public node {
+	pull_end_test_t(src_t src, size_t * ans): ans(ans), src(std::move(src)) {}
+
+	void go() final {
+		*ans = 0;
+		while (src.can_pull())
+			*ans += src.pull();
+	}
+
+	size_t * ans;
+	src_t src;
+};
+typedef pullpipe_end<factory<pull_end_test_t, size_t *>> pull_end_test;
+
+template <typename src_t>
+struct pull_mid_test_t: public node {
+	pull_mid_test_t(src_t src): src(std::move(src)) {}
+
+	bool can_pull() {return src.can_pull();}
+
+	size_t pull() {return 2*src.pull();}
+	src_t src;
+};
+typedef pullpipe_middle<factory<pull_mid_test_t>> pull_mid_test;
+
+
+struct pull_begin_test_t: public node {
+	pull_begin_test_t(): idx(0) {}
+	bool can_pull() {return idx < 8;}
+	size_t pull() {return ++idx;}
+	size_t idx;
+};
+typedef pullpipe_begin<termfactory<pull_begin_test_t>> pull_begin_test;
+
+bool pull_test() {
+	size_t ans = 0;
+	pipeline p = pull_begin_test() | pull_mid_test() | pull_end_test(&ans);
+	p.plot(log_info());
+	p();
+	return ans == 72;
+}
 bool virtual_fork_test() {
 	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
 		| vfork(virtual_chunk_end<test_t>(output_vector(outputvector)))
@@ -2516,6 +2559,7 @@ int main(int argc, char ** argv) {
 	.test(file_stream_test, "filestream", "n", static_cast<stream_size_type>(3))
 	.test(file_stream_pull_test, "fspull")
 		//.test(file_stream_alt_push_test, "fsaltpush")
+	.test(pull_test, "pull")
 	.test(merge_test, "merge")
 	.test(reverse_test, "reverse")
 	.test(internal_reverse_test, "internal_reverse")
