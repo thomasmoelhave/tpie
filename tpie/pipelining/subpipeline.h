@@ -78,7 +78,7 @@ struct subpipeline_virt_impl: public subpipeline_virt<item_type> {
 	virtual_chunk_end<item_type> chunk;
 
 	subpipeline_virt_impl(virtual_chunk_end<item_type> chunk)
-		: front(access::get_source(chunk))
+		: front(access::get_input(chunk))
 		, chunk(std::move(chunk)) {
 		this->m_nodeMap = front->get_node_map();
 		this->frontNode = front;

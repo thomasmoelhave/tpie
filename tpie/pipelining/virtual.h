@@ -44,6 +44,19 @@ public:
 	virtual ~virtual_container() {}
 };
 
+
+// Predeclare
+template <typename Input>
+class virtual_chunk_end;
+
+// Predeclare
+template <typename Input, typename Output>
+class virtual_chunk;
+
+// Predeclare
+template <typename Output>
+class virtual_chunk_begin;
+	
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -110,11 +123,11 @@ public:
 		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
 	}
 
-	const node_token & get_token() {
+	const node_token & get_token() final {
 		return node::get_token();
 	}
 
-	void push(input_type v) {
+	void push(input_type v) final {
 		dest.push(v);
 	}
 };
@@ -134,7 +147,7 @@ public:
 
 	virtrecv(virtrecv *& self)
 		: m_self(self)
-		, m_virtdest(0)
+		, m_virtdest(nullptr)
 	{
 		m_self = this;
 		this->set_name("Virtual destination", PRIORITY_INSIGNIFICANT);
@@ -148,9 +161,8 @@ public:
 		m_self = this;
 	}
 
-	void begin() {
-		node::begin();
-		if (m_virtdest == 0) {
+	void begin() final {
+		if (m_virtdest == nullptr) {
 			throw tpie::exception("No virtual destination");
 		}
 	}
@@ -160,7 +172,7 @@ public:
 	}
 
 	void set_destination(virtsrc<Output> * dest) {
-		if (m_virtdest != 0) {
+		if (m_virtdest != nullptr) {
 			throw tpie::exception("Virtual destination set twice");
 		}
 
@@ -244,49 +256,6 @@ struct assert_types_equal_and_return<T, T, Result> {
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Base class of virtual chunks. Owns a virt_node.
-///////////////////////////////////////////////////////////////////////////////
-class virtual_chunk_base : public pipeline_base {
-	// pipeline_base has virtual dtor and shared_ptr to m_nodeMap
-protected:
-	virt_node::ptr m_node;
-public:
-	virtual_chunk_base() {}
-
-	virt_node::ptr get_node() const { return m_node; }
-	virtual_chunk_base(node_map::ptr nodeMap, virt_node::ptr ptr)
-		: m_node(ptr)
-	{
-		this->m_nodeMap = nodeMap;
-	}
-
-	virtual_chunk_base(node_map::ptr nodeMap) {
-		this->m_nodeMap = nodeMap;
-	}
-
-	void set_container(virtual_container * ctr) {
-		m_node->set_container(ctr);
-	}
-
-	bool empty() const { return m_node.get() == 0; }
-};
-
-} // namespace bits
-
-// Predeclare
-template <typename Input>
-class virtual_chunk_end;
-
-// Predeclare
-template <typename Input, typename Output>
-class virtual_chunk;
-
-// Predeclare
-template <typename Output>
-class virtual_chunk_begin;
-
-namespace bits {
 
 class access {
 	template <typename>
@@ -303,16 +272,51 @@ class access {
 	friend class subpipeline_virt_impl;
 
 	template <typename Input>
-	static virtsrc<Input> * get_source(const virtual_chunk_end<Input> &);
+	static virtsrc<Input> * get_input(const virtual_chunk_end<Input> &);
 	template <typename Input, typename Output>
-	static virtsrc<Input> * get_source(const virtual_chunk<Input, Output> &);
+	static virtsrc<Input> * get_input(const virtual_chunk<Input, Output> &);
 	template <typename Input, typename Output>
-	static virtrecv<Output> * get_destination(const virtual_chunk<Input, Output> &);
+	static virtrecv<Output> * get_output(const virtual_chunk<Input, Output> &);
 	template <typename Output>
-	static virtrecv<Output> * get_destination(const virtual_chunk_begin<Output> &);
+	static virtrecv<Output> * get_output(const virtual_chunk_begin<Output> &);
+
+	template <typename T, typename ...TT>
+	static T construct(TT && ... vv) {return T(std::forward<TT>(vv)...);}
 };
 
-} // namespace bits
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Base class of virtual chunks. Owns a virt_node.
+///////////////////////////////////////////////////////////////////////////////
+class virtual_chunk_base : public pipeline_base {
+	// pipeline_base has virtual dtor and shared_ptr to m_nodeMap
+	friend class access;
+protected:
+	virt_node::ptr m_node;
+
+	virtual_chunk_base(node_map::ptr nodeMap, virt_node::ptr ptr)
+		: m_node(ptr)
+	{
+		this->m_nodeMap = nodeMap;
+	}
+
+	virtual_chunk_base(node_map::ptr nodeMap) {
+		this->m_nodeMap = nodeMap;
+	}
+public:
+	virtual_chunk_base() {}
+
+	virt_node::ptr get_node() const { return m_node; }
+
+	void set_container(virtual_container * ctr) {
+		m_node->set_container(ctr);
+	}
+
+	bool empty() const { return m_node.get() == nullptr; }
+};
+
+} //namespace bits
+	
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Virtual chunk that has no output (that is, virtual consumer).
@@ -321,28 +325,10 @@ template <typename Input>
 class virtual_chunk_end : public bits::virtual_chunk_base {
 	friend class bits::access;
 	typedef bits::access acc;
-	typedef bits::virtsrc<Input> src_type;
-	src_type * m_src;
+	typedef bits::virtsrc<Input> input_type;
+	input_type * m_input;
 
-	src_type * get_source() const { return m_src; }
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that leaves the virtual chunk unassigned.
-	///////////////////////////////////////////////////////////////////////////
-	virtual_chunk_end()
-		: m_src(0)
-	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that recursively constructs a node and takes
-	/// ownership of it.
-	///////////////////////////////////////////////////////////////////////////
-	template <typename fact_t>
-	virtual_chunk_end(pipe_end<fact_t> && pipe, virtual_container * ctr = 0) {
-		*this = std::forward<pipe_end<fact_t>>(pipe);
-		set_container(ctr);
-	}
+	input_type * get_input() const { return m_input; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor that combines two virtual chunks. Assumes that the
@@ -352,6 +338,25 @@ public:
 	template <typename Mid>
 	virtual_chunk_end(const virtual_chunk<Input, Mid> & left,
 					  const virtual_chunk_end<Mid> & right);
+	
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_end()
+		: m_input(nullptr)
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a node and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_end(pipe_end<fact_t> && pipe, virtual_container * ctr = nullptr) {
+		*this = std::forward<pipe_end<fact_t>>(pipe);
+		set_container(ctr);
+	}
+
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a node and assign it to this virtual chunk.
@@ -364,9 +369,9 @@ public:
 		}
 
 		typedef typename fact_t::constructed_type constructed_type;
-		m_src = new bits::virtsrc_impl<constructed_type, Input>(pipe.factory.construct());
-		this->m_node = bits::virt_node::take_own(m_src);
-		this->m_nodeMap = m_src->get_node_map();
+		m_input = new bits::virtsrc_impl<constructed_type, Input>(pipe.factory.construct());
+		this->m_node = bits::virt_node::take_own(m_input);
+		this->m_nodeMap = m_input->get_node_map();
 
 		return *this;
 	}
@@ -375,7 +380,7 @@ public:
 	/// \brief Test if it is not an empty chunk
 	///////////////////////////////////////////////////////////////////////////
 	explicit operator bool() const noexcept {
-		return m_src != nullptr;
+		return m_input != nullptr;
 	}
 };
 
@@ -386,31 +391,12 @@ template <typename Input, typename Output=Input>
 class virtual_chunk : public bits::virtual_chunk_base {
 	friend class bits::access;
 	typedef bits::access acc;
-	typedef bits::virtsrc<Input> src_type;
-	typedef bits::virtrecv<Output> recv_type;
-	src_type * m_src;
-	recv_type * m_recv;
-	src_type * get_source() const { return m_src; }
-	recv_type * get_destination() const { return m_recv; }
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that leaves the virtual chunk unassigned.
-	///////////////////////////////////////////////////////////////////////////
-	virtual_chunk()
-		: m_src(0)
-		, m_recv(0)
-	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that recursively constructs a node and takes
-	/// ownership of it.
-	///////////////////////////////////////////////////////////////////////////
-	template <typename fact_t>
-	virtual_chunk(pipe_middle<fact_t> && pipe, virtual_container * ctr = 0) {
-		*this = std::forward<pipe_middle<fact_t>>(pipe);
-		set_container(ctr);
-	}
+	typedef bits::virtsrc<Input> input_type;
+	typedef bits::virtrecv<Output> output_type;
+	input_type * m_input;
+	output_type * m_output;
+	input_type * get_input() const { return m_input; }
+	output_type * get_output() const { return m_output; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor that combines two virtual chunks. Assumes that the
@@ -422,16 +408,42 @@ public:
 				  const virtual_chunk<Mid, Output> & right)
 		: virtual_chunk_base(left.get_node_map(), bits::virt_node::combine(left.get_node(), right.get_node()))
 	{
-		m_src = acc::get_source(left);
-		m_recv = acc::get_destination(right);
+		m_input = acc::get_input(left);
+		m_output = acc::get_output(right);
+	}
+	
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk()
+		: m_input(nullptr)
+		, m_output(nullptr)
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a node and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk(pipe_middle<fact_t> && pipe, virtual_container * ctr = nullptr) {
+		*this = std::forward<pipe_middle<fact_t>>(pipe);
+		set_container(ctr);
 	}
 
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a virtual chunk from an end and a begin chunk
+	///
+	/// Items pushed into the virtual chunk are pushed into the left end chunk
+	/// Items push out of the right begin chenk are pushed out of the virtual chunk
+	///////////////////////////////////////////////////////////////////////////
 	virtual_chunk(const virtual_chunk_end<Input> & left,
 				  const virtual_chunk_begin<Output> & right)
 		: virtual_chunk_base(left.get_node_map(), bits::virt_node::combine(left.get_node(), right.get_node()))
 	{
-		m_src = acc::get_source(left);
-		m_recv = acc::get_destination(right);
+		m_input = acc::get_input(left);
+		m_output = acc::get_output(right);
 	}
 
 	
@@ -444,13 +456,13 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
-		recv_type temp(m_recv);
+		typedef typename fact_t::template constructed<output_type>::type constructed_type;
+		output_type temp(m_output);
 		this->m_nodeMap = temp.get_node_map();
 		fact_t f = std::move(pipe.factory);
 		f.set_destination_kind_push();
-		m_src = new bits::virtsrc_impl<constructed_type, Input>(f.construct(std::move(temp)));
-		this->m_node = bits::virt_node::take_own(m_src);
+		m_input = new bits::virtsrc_impl<constructed_type, Input>(f.construct(std::move(temp)));
+		this->m_node = bits::virt_node::take_own(m_input);
 
 		return *this;
 	}
@@ -464,13 +476,13 @@ public:
 			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk<Input, NextOutput> *>
 				::go(&dest);
 		}
-		bits::virtsrc<Output> * dst=acc::get_source(dest);
+		bits::virtsrc<Output> * dst=acc::get_input(dest);
 		if (dest.empty() || !dst) {
 			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk<Input, NextOutput> *>
 				::go(this);
 		}
-		m_recv->set_destination(dst);
-		return virtual_chunk<Input, NextOutput>(*this, dest);
+		m_output->set_destination(dst);
+		return acc::construct<virtual_chunk<Input, NextOutput>>(*this, dest);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -481,15 +493,15 @@ public:
 			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk_end<Input> *>
 				::go(&dest);
 		}
-		m_recv->set_destination(acc::get_source(dest));
-		return virtual_chunk_end<Input>(*this, dest);
+		m_output->set_destination(acc::get_input(dest));
+		return acc::construct<virtual_chunk_end<Input>>(*this, dest);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Test if it is not an empty chunk
 	///////////////////////////////////////////////////////////////////////////
 	explicit operator bool() const noexcept {
-		return m_src != nullptr;
+		return m_input != nullptr;
 	}
 };
 
@@ -500,7 +512,7 @@ virtual_chunk_end<Input>::virtual_chunk_end(const virtual_chunk<Input, Mid> & le
 	: virtual_chunk_base(left.get_node_map(),
 						 bits::virt_node::combine(left.get_node(), right.get_node()))
 {
-	m_src = acc::get_source(left);
+	m_input = acc::get_input(left);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -510,27 +522,9 @@ template <typename Output>
 class virtual_chunk_begin : public bits::virtual_chunk_base {
 	friend class bits::access;
 	typedef bits::access acc;
-	typedef bits::virtrecv<Output> recv_type;
-	recv_type * m_recv;
-	recv_type * get_destination() const { return m_recv; }
-
-public:
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that leaves the virtual chunk unassigned.
-	///////////////////////////////////////////////////////////////////////////
-	virtual_chunk_begin()
-		: m_recv(0)
-	{}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor that recursively constructs a node and takes
-	/// ownership of it.
-	///////////////////////////////////////////////////////////////////////////
-	template <typename fact_t>
-	virtual_chunk_begin(pipe_begin<fact_t> && pipe, virtual_container * ctr = 0) {
-		*this = std::forward<pipe_begin<fact_t>>(pipe);
-		set_container(ctr);
-	}
+	typedef bits::virtrecv<Output> output_type;
+	output_type * m_output;
+	output_type * get_output() const { return m_output; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor that combines two virtual chunks. Assumes that the
@@ -543,7 +537,24 @@ public:
 		: virtual_chunk_base(left.get_node_map(),
 							 bits::virt_node::combine(left.get_node(), right.get_node()))
 	{
-		m_recv = acc::get_destination(right);
+		m_output = acc::get_output(right);
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_begin()
+		: m_output(nullptr)
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a node and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_begin(pipe_begin<fact_t> && pipe, virtual_container * ctr = nullptr) {
+		*this = std::forward<pipe_begin<fact_t>>(pipe);
+		set_container(ctr);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -555,9 +566,9 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template constructed<recv_type>::type constructed_type;
-		recv_type temp(m_recv);
-		this->m_nodeMap = m_recv->get_node_map();
+		typedef typename fact_t::template constructed<output_type>::type constructed_type;
+		output_type temp(m_output);
+		this->m_nodeMap = m_output->get_node_map();
 		fact_t f = std::move(pipe.factory);
 		f.set_destination_kind_push();
 		this->m_node = bits::virt_node::take_own(new constructed_type(f.construct(std::move(temp))));
@@ -574,8 +585,8 @@ public:
 			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk_begin<NextOutput> *>
 				::go(this);
 		}
-		m_recv->set_destination(acc::get_source(dest));
-		return virtual_chunk_begin<NextOutput>(*this, dest);
+		m_output->set_destination(acc::get_input(dest));
+		return acc::construct<virtual_chunk_begin<NextOutput>>(*this, dest);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -584,39 +595,40 @@ public:
 	virtual_chunk_base operator|(virtual_chunk_end<Output> dest) {
 		if (empty()) throw virtual_chunk_missing_begin();
 		if (dest.empty()) throw virtual_chunk_missing_end();
-		m_recv->set_destination(acc::get_source(dest));
-		return virtual_chunk_base(this->m_nodeMap,
-								  bits::virt_node::combine(get_node(), dest.get_node()));
+		m_output->set_destination(acc::get_input(dest));
+		return acc::construct<virtual_chunk_base>(
+			this->m_nodeMap,
+			bits::virt_node::combine(get_node(), dest.get_node()));
 	}
-
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Test if it is not an empty chunk
 	///////////////////////////////////////////////////////////////////////////
 	explicit operator bool() const noexcept {
-		return m_recv != nullptr;
+		return m_output != nullptr;
 	}
 };
-
+	
 namespace bits {
 
 template <typename Input>
-virtsrc<Input> * access::get_source(const virtual_chunk_end<Input> & chunk) {
-	return chunk.get_source();
+virtsrc<Input> * access::get_input(const virtual_chunk_end<Input> & chunk) {
+	return chunk.get_input();
 }
 
 template <typename Input, typename Output>
-virtsrc<Input> * access::get_source(const virtual_chunk<Input, Output> & chunk) {
-	return chunk.get_source();
+virtsrc<Input> * access::get_input(const virtual_chunk<Input, Output> & chunk) {
+	return chunk.get_input();
 }
 
 template <typename Input, typename Output>
-virtrecv<Output> * access::get_destination(const virtual_chunk<Input, Output> & chunk) {
-	return chunk.get_destination();
+virtrecv<Output> * access::get_output(const virtual_chunk<Input, Output> & chunk) {
+	return chunk.get_output();
 }
 
 template <typename Output>
-virtrecv<Output> * access::get_destination(const virtual_chunk_begin<Output> & chunk) {
-	return chunk.get_destination();
+virtrecv<Output> * access::get_output(const virtual_chunk_begin<Output> & chunk) {
+	return chunk.get_output();
 }
 
 template <typename T>
@@ -629,7 +641,7 @@ public:
 
 		type(dest_t && dest, virtual_chunk_end<T> out)
 			: vnode(out.get_node())
-			, dest2(bits::access::get_source(out))
+			, dest2(bits::access::get_input(out))
 			, dest(std::move(dest))
 		{
 			add_push_destination(this->dest);
@@ -659,7 +671,7 @@ public:
 
 	vpush_node(virtual_chunk_end<T> out)
 		: vnode(out.get_node())
-		, dest(bits::access::get_source(out))
+		, dest(bits::access::get_input(out))
 	{
 		if (dest) add_push_destination(*dest);
 	}
