@@ -56,6 +56,18 @@ class virtual_chunk;
 // Predeclare
 template <typename Output>
 class virtual_chunk_begin;
+
+// Predeclare
+template <typename Input>
+class virtual_chunk_pull_end;
+
+// Predeclare
+template <typename Input, typename Output>
+class virtual_chunk_pull;
+
+// Predeclare
+template <typename Output>
+class virtual_chunk_pull_begin;
 	
 namespace bits {
 
@@ -182,6 +194,89 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual base node that is injected into the beginning of a
+/// virtual chunk.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class virtpullsrc : public node {
+	using item_type = T;
+public:
+	virtual const node_token & get_token() = 0;
+	virtual T pull() = 0;
+	virtual bool can_pull() = 0;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Concrete implementation of virtsrc.
+///////////////////////////////////////////////////////////////////////////////
+template <typename src_t, typename T>
+class virtpullsrc_impl : public virtpullsrc<T> {
+private:
+	src_t src;
+public:
+	virtpullsrc_impl(src_t src) : src(std::move(src)) {
+		node::add_pull_source(this->src);
+		this->set_name("Virtual pull source", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
+	}
+
+	const node_token & get_token() {
+		return node::get_token();
+	}
+
+	T pull() final {return src.pull();}
+	bool can_pull() final {return src.can_pull();}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual node that is injected into the end of a virtual
+/// chunk. May be dynamically connected to a virtsrc using the set_destination
+/// method.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class virtpullrecv : public node {
+	virtpullrecv *& m_self;
+	virtpullsrc<T> * m_virtsrc;
+public:
+	typedef T item_type;
+
+	virtpullrecv(virtpullrecv *& self)
+		: m_self(self)
+		, m_virtsrc(nullptr)
+	{
+		m_self = this;
+		this->set_name("Virtual pull destitation", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
+	}
+
+	virtpullrecv(virtpullrecv && o)
+		: node(std::move(o))
+		, m_self(o.m_self)
+		, m_virtsrc(std::move(o.m_virtsrc)) {
+		m_self = this;
+	}
+
+	void begin() final {
+		if (m_virtsrc == nullptr) {
+			throw tpie::exception("No virtual pull source");
+		}
+	}
+
+	T pull() {return m_virtsrc->pull();}
+	bool can_pull() {return m_virtsrc->can_pull();}
+
+	void set_source(virtpullsrc<T> * src) {
+		if (m_virtsrc != nullptr) {
+			throw tpie::exception("Virtual source pull set twice");
+		}
+
+		m_virtsrc = src;
+		add_pull_source(src->get_token());
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Ownership of nodes. This class can only be instantiated
 /// through static methods that return a virt_node::ptr, providing reference
 /// counting so that nodes are only instantiated once each and are
@@ -265,6 +360,12 @@ class access {
 	template <typename>
 	friend class pipelining::virtual_chunk_begin;
 	template <typename>
+	friend class pipelining::virtual_chunk_pull_end;
+	template <typename, typename>
+	friend class pipelining::virtual_chunk_pull;
+	template <typename>
+	friend class pipelining::virtual_chunk_pull_begin;
+	template <typename>
 	friend class vfork_node;
 	template <typename>
 	friend class vpush_node;
@@ -279,6 +380,15 @@ class access {
 	static virtrecv<Output> * get_output(const virtual_chunk<Input, Output> &);
 	template <typename Output>
 	static virtrecv<Output> * get_output(const virtual_chunk_begin<Output> &);
+
+	template <typename Input>
+	static virtpullrecv<Input> * get_input(const virtual_chunk_pull_end<Input> &);
+	template <typename Input, typename Output>
+	static virtpullrecv<Input> * get_input(const virtual_chunk_pull<Input, Output> &);
+	template <typename Input, typename Output>
+	static virtpullsrc<Output> * get_output(const virtual_chunk_pull<Input, Output> &);
+	template <typename Output>
+	static virtpullsrc<Output> * get_output(const virtual_chunk_pull_begin<Output> &);
 
 	template <typename T, typename ...TT>
 	static T construct(TT && ... vv) {return T(std::forward<TT>(vv)...);}
@@ -608,6 +718,295 @@ public:
 		return m_output != nullptr;
 	}
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual chunk that has no input (that is, virtual producer).
+///////////////////////////////////////////////////////////////////////////////
+template <typename Input>
+class virtual_chunk_pull_end : public bits::virtual_chunk_base {
+	friend class bits::access;
+	typedef bits::access acc;
+	typedef bits::virtpullrecv<Input> input_type;
+	input_type * m_input;
+	input_type * get_input() const { return m_input; }
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that combines two virtual chunks. Assumes that the
+	/// virtual nodes are already connected. You should not use this
+	/// constructor directly; instead, use the pipe operator.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename Mid>
+	virtual_chunk_pull_end(const virtual_chunk_pull<Input, Mid> & left,
+						   const virtual_chunk_pull_end<Mid> & right);
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_pull_end()
+		: m_input(nullptr)
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a node and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_pull_end(pullpipe_end<fact_t> && pipe, virtual_container * ctr = nullptr) {
+		*this = std::forward<pullpipe_end<fact_t>>(pipe);
+		set_container(ctr);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a node and assign it to this virtual chunk.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_pull_end & operator=(pullpipe_end<fact_t> && pipe) {
+		if (this->m_node) {
+			log_error() << "Virtual chunk assigned twice" << std::endl;
+			throw tpie::exception("Virtual chunk assigned twice");
+		}
+		typedef typename fact_t::template constructed<input_type>::type constructed_type;
+		input_type temp(m_input);
+		this->m_nodeMap = m_input->get_node_map();
+		fact_t f = std::move(pipe.factory);
+		f.set_destination_kind_pull();
+		this->m_node = bits::virt_node::take_own(new constructed_type(f.construct(std::move(temp))));
+		return *this;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Test if it is not an empty chunk
+	///////////////////////////////////////////////////////////////////////////
+	explicit operator bool() const noexcept {
+		return m_input != nullptr;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual chunk that has input and output.
+///////////////////////////////////////////////////////////////////////////////
+template <typename Input, typename Output=Input>
+class virtual_chunk_pull : public bits::virtual_chunk_base {
+	friend class bits::access;
+	typedef bits::access acc;
+	typedef bits::virtpullsrc<Output> output_type;
+	typedef bits::virtpullrecv<Input> input_type;
+	input_type * m_input;
+	output_type * m_output;
+	input_type * get_input() const { return m_input; }
+	output_type * get_output() const { return m_output; }
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that combines two virtual chunks. Assumes that the
+	/// virtual nodes are already connected. You should not use this
+	/// constructor directly; instead, use the pipe operator.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename Mid>
+	virtual_chunk_pull(const virtual_chunk_pull<Input, Mid> & left,
+					   const virtual_chunk_pull<Mid, Output> & right)
+		: virtual_chunk_base(left.get_node_map(), bits::virt_node::combine(left.get_node(), right.get_node()))
+	{
+		m_input = acc::get_input(left);
+		m_output = acc::get_output(right);
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_pull()
+		: m_input(nullptr)
+		, m_output(nullptr)
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a node and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_pull(pullpipe_middle<fact_t> && pipe, virtual_container * ctr = nullptr) {
+		*this = std::forward<pullpipe_middle<fact_t>>(pipe);
+		set_container(ctr);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a virtual chunk pull from an end and a begin chunk
+	///
+	/// Items pushed into the virtual chunk are pushed into the left end chunk
+	/// Items push out of the right begin chenk are pushed out of the virtual chunk
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_pull(const virtual_chunk_pull_end<Input> & left,
+					   const virtual_chunk_pull_begin<Output> & right)
+		: virtual_chunk_base(left.get_node_map(), bits::virt_node::combine(left.get_node(), right.get_node())) {
+		m_input = acc::get_input(left);
+		m_output = acc::get_output(right);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a node and assign it to this virtual chunk.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_pull & operator=(pullpipe_middle<fact_t> && pipe) {
+		if (this->m_node) {
+			log_error() << "Virtual chunk assigned twice" << std::endl;
+			throw tpie::exception("Virtual chunk assigned twice");
+		}
+		typedef typename fact_t::template constructed<input_type>::type constructed_type;
+		input_type temp(m_input);
+		this->m_nodeMap = temp.get_node_map();
+		fact_t f = std::move(pipe.factory);
+		f.set_destination_kind_push();
+		m_output = new bits::virtpullsrc_impl<constructed_type, Output>(f.construct(std::move(temp)));
+		this->m_node = bits::virt_node::take_own(m_output);
+		return *this;
+	}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename NextOutput>
+	virtual_chunk_pull<Input, NextOutput> operator|(virtual_chunk_pull<Output, NextOutput> dest) {
+		if (empty()) {
+			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk_pull<Input, NextOutput> *>
+				::go(&dest);
+		}
+		if (dest.empty()) {
+			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk_pull<Input, NextOutput> *>
+				::go(this);
+		}
+		acc::get_input(dest)->set_source(get_output());
+		return acc::construct<virtual_chunk_pull<Input, NextOutput>>(*this, dest);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_pull_end<Input> operator|(virtual_chunk_pull_end<Output> dest) {
+		if (empty()) {
+			return *bits::assert_types_equal_and_return<Input, Output, virtual_chunk_pull_end<Input> *>
+				::go(&dest);
+		}
+		acc::get_input(dest)->set_source(get_output());
+		return acc::construct<virtual_chunk_pull_end<Input>>(*this, dest);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Test if it is not an empty chunk
+	///////////////////////////////////////////////////////////////////////////
+	explicit operator bool() const noexcept {
+		return m_input != nullptr;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Virtual chunk that has no output (that is, virtual consumer).
+///////////////////////////////////////////////////////////////////////////////
+template <typename Output>
+class virtual_chunk_pull_begin : public bits::virtual_chunk_base {
+	friend class bits::access;
+	typedef bits::access acc;
+	typedef bits::virtpullsrc<Output> output_type;
+	output_type * m_output;
+
+	output_type * get_output() const { return m_output; }
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that combines two virtual chunks. Assumes that the
+	/// virtual nodes are already connected. You should not use this
+	/// constructor directly; instead, use the pipe operator.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename Mid>
+	virtual_chunk_pull_begin(const virtual_chunk_pull_begin<Mid> & left,
+							 const virtual_chunk_pull<Mid, Output> & right)
+		: virtual_chunk_base(left.get_node_map(),
+							 bits::virt_node::combine(left.get_node(), right.get_node())) {
+		m_output = acc::get_output(right);
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that leaves the virtual chunk unassigned.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_pull_begin()
+		: m_output(nullptr)
+	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor that recursively constructs a node and takes
+	/// ownership of it.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_pull_begin(pullpipe_begin<fact_t> && pipe, virtual_container * ctr = nullptr) {
+		*this = std::forward<pullpipe_begin<fact_t>>(pipe);
+		set_container(ctr);
+	}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a node and assign it to this virtual chunk.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename fact_t>
+	virtual_chunk_pull_begin & operator=(pullpipe_begin<fact_t> && pipe) {
+		if (this->m_node) {
+			log_error() << "Virtual chunk assigned twice" << std::endl;
+			throw tpie::exception("Virtual chunk assigned twice");
+		}
+
+		typedef typename fact_t::constructed_type constructed_type;
+		m_output = new bits::virtpullsrc_impl<constructed_type, Output>(pipe.factory.construct());
+		this->m_node = bits::virt_node::take_own(m_output);
+		this->m_nodeMap = m_output->get_node_map();
+
+		return *this;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
+	virtual_chunk_base operator|(virtual_chunk_pull_end<Output> dest) {
+		if (empty()) throw virtual_chunk_missing_begin();
+		if (dest.empty()) throw virtual_chunk_missing_end();
+		acc::get_input(dest)->set_source(get_output());
+		return acc::construct<virtual_chunk_base>(
+			this->m_nodeMap,
+			bits::virt_node::combine(get_node(), dest.get_node()));
+	}
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Connect this virtual chunk to another chunk.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename NextOutput>
+	virtual_chunk_pull_begin<NextOutput> operator|(virtual_chunk_pull<Output, NextOutput> dest) {
+		if (empty()) throw virtual_chunk_missing_begin();
+		if (dest.empty()) {
+			return *bits::assert_types_equal_and_return<Output, NextOutput, virtual_chunk_pull_begin<NextOutput> *>
+				::go(this);
+		}
+		acc::get_input(dest)->set_source(get_output());
+		return acc::construct<virtual_chunk_pull_begin<NextOutput>>(*this, dest);
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Test if it is not an empty chunk
+	///////////////////////////////////////////////////////////////////////////
+	explicit operator bool() const noexcept {
+		return m_output != nullptr;
+	}
+};
+
+
+template <typename Input>
+template <typename Mid>
+virtual_chunk_pull_end<Input>::virtual_chunk_pull_end(const virtual_chunk_pull<Input, Mid> & left,
+													  const virtual_chunk_pull_end<Mid> & right)
+	: virtual_chunk_base(left.get_node_map(), bits::virt_node::combine(left.get_node(), right.get_node())) {
+	m_input = acc::get_input(left);
+}
+
 	
 namespace bits {
 
@@ -628,6 +1027,27 @@ virtrecv<Output> * access::get_output(const virtual_chunk<Input, Output> & chunk
 
 template <typename Output>
 virtrecv<Output> * access::get_output(const virtual_chunk_begin<Output> & chunk) {
+	return chunk.get_output();
+}
+
+	
+template <typename Input>
+virtpullrecv<Input> * access::get_input(const virtual_chunk_pull_end<Input> & chunk) {
+	return chunk.get_input();
+}
+
+template <typename Input, typename Output>
+virtpullrecv<Input> * access::get_input(const virtual_chunk_pull<Input, Output> & chunk) {
+	return chunk.get_input();
+}
+
+template <typename Input, typename Output>
+virtpullsrc<Output> * access::get_output(const virtual_chunk_pull<Input, Output> & chunk) {
+	return chunk.get_output();
+}
+
+template <typename Output>
+virtpullsrc<Output> * access::get_output(const virtual_chunk_pull_begin<Output> & chunk) {
 	return chunk.get_output();
 }
 

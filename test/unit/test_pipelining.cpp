@@ -1041,6 +1041,18 @@ bool pull_test() {
 	p();
 	return ans == 72;
 }
+
+bool virtual_pull_test() {
+	size_t ans = 0;
+	pipeline p = (virtual_chunk_pull_begin<size_t>(pull_begin_test()) | virtual_chunk_pull<size_t, size_t>(pull_mid_test()))
+		| (virtual_chunk_pull<size_t, size_t>(pull_mid_test()) | virtual_chunk_pull<size_t, size_t>(pull_mid_test()))
+		| (virtual_chunk_pull<size_t, size_t>(pull_mid_test()) | virtual_chunk_pull_end<size_t>(pull_end_test(&ans)));
+	p.plot(log_info());
+	p();
+	return ans == 36*2*2*2*2;
+}
+
+
 bool virtual_fork_test() {
 	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
 		| vfork(virtual_chunk_end<test_t>(output_vector(outputvector)))
@@ -2579,6 +2591,7 @@ int main(int argc, char ** argv) {
 	.test(forward_multiple_pipelines_test, "forward_multiple_pipelines")
 	.test(pipe_base_forward_test, "pipe_base_forward")
 	.test(virtual_test, "virtual")
+	.test(virtual_pull_test, "virtual_pull")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
 	.test(prepare_test, "prepare")
