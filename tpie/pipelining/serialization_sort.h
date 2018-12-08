@@ -66,7 +66,7 @@ public:
 		add_memory_share_dependency(calc);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		set_steps(m_sorter->item_count());
 		forward("items", static_cast<stream_size_type>(m_sorter->item_count()));
 		memory_size_type memory_usage = m_sorter->actual_memory_phase_3();
@@ -90,7 +90,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
+	void set_available_memory(memory_size_type availableMemory) override {
 		if (!m_propagate_called)
 			m_sorter->set_phase_3_memory(availableMemory);
 	}
@@ -144,7 +144,7 @@ public:
 	// an initiator, but with a passive_sorter you can circumvent this
 	// mechanism. Thus we customize the error message printed (but throw the
 	// same type of exception.)
-	virtual void go() override {
+	void go() override {
 		log_warning() << "Passive sorter used without an initiator in the final merge and output phase.\n"
 			<< "Define an initiator and pair it up with the pipe from passive_sorter::output()." << std::endl;
 		throw not_initiator_node();
@@ -173,7 +173,7 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	virtual void go() override {
+	void go() override {
 		while (this->m_sorter->can_pull()) {
 			dest.push(this->m_sorter->pull());
 			this->step();
@@ -221,7 +221,7 @@ public:
 		m_propagate_called = false;
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		set_steps(1000);
 		m_propagate_called = true;
 	}
@@ -230,9 +230,9 @@ public:
 		m_sorter->set_owner(this);
 	}
 
-	virtual bool is_go_free() const override {return m_sorter->is_merge_runs_free();}
+	bool is_go_free() const override {return m_sorter->is_merge_runs_free();}
 
-	virtual void go() override {
+	void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
 		log_debug() << "TODO: Progress information during merging." << std::endl;
 		m_sorter->merge_runs();
@@ -246,11 +246,11 @@ public:
 		m_sorter.reset();
 	}
 
-	virtual bool can_evacuate() override {
+	bool can_evacuate() override {
 		return true;
 	}
 
-	virtual void evacuate() override {
+	void evacuate() override {
 		auto p = m_weak_sorter.lock();
 		if (p) p->evacuate();
 	}
@@ -264,7 +264,7 @@ public:
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
+	void set_available_memory(memory_size_type availableMemory) override {
 		if (!m_propagate_called)
 			m_sorter->set_phase_2_memory(availableMemory);
 	}
@@ -300,11 +300,11 @@ public:
 		m_propagate_called = false;
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_propagate_called = true;
 	}
 
-	virtual void begin() override {
+	void begin() override {
 		m_sorter->set_owner(this);
 		m_sorter->begin();
 	}
@@ -313,23 +313,23 @@ public:
 		m_sorter->push(item);
 	}
 
-	virtual void end() override {
+	void end() override {
 		m_sorter->end();
 		m_weak_sorter = m_sorter;
 		m_sorter.reset();
 	}
 
-	virtual bool can_evacuate() override {
+	bool can_evacuate() override {
 		return true;
 	}
 
-	virtual void evacuate() override {
+	void evacuate() override {
 		auto p = m_weak_sorter.lock();
 		if (p) p->evacuate();
 	}
 
 protected:
-	virtual void set_available_memory(memory_size_type availableMemory) override {
+	void set_available_memory(memory_size_type availableMemory) override {
 		if (!m_propagate_called)
 			m_sorter->set_phase_1_memory(availableMemory);
 	}

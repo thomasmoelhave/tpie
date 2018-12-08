@@ -59,7 +59,7 @@ public:
 		return m_sorter;
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		set_steps(m_sorter->item_count());
 		forward("items", static_cast<stream_size_type>(m_sorter->item_count()));
 		memory_size_type memory_usage = m_sorter->actual_memory_phase_3();
@@ -74,7 +74,7 @@ public:
 	}
 		
 protected:
-	virtual void resource_available_changed(resource_type type, memory_size_type available) override {
+	void resource_available_changed(resource_type type, memory_size_type available) override {
 		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
 		if (m_propagate_called)
 			return;
@@ -146,7 +146,7 @@ public:
 	// an initiator, but with a passive_sorter you can circumvent this
 	// mechanism. Thus we customize the error message printed (but throw the
 	// same type of exception.)
-	virtual void go() override {
+	void go() override {
 		log_warning() << "Passive sorter used without an initiator in the final merge and output phase.\n"
 			<< "Define an initiator and pair it up with the pipe from passive_sorter::output()." << std::endl;
 		throw not_initiator_node();
@@ -171,7 +171,7 @@ public:
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_output_t(dest_t dest, sorterptr sorter)
+	sort_output_t(dest_t dest, sorterptr sorter)
 		: p_t(sorter)
 		, dest(std::move(dest))
 	{
@@ -189,7 +189,7 @@ public:
 		this->m_sorter->set_owner(this);
 	}
 	
-	virtual void go() override {
+	void go() override {
 		while (this->m_sorter->can_pull()) {
 			item_type && y=this->m_sorter->pull();
 			dest.push(std::move(y));
@@ -264,18 +264,18 @@ public:
 		m_sorter.reset();
 	}
 
-	virtual bool is_go_free() const override {return m_sorter->is_calc_free();}
+	bool is_go_free() const override {return m_sorter->is_calc_free();}
 	
-	virtual void go() override {
+	void go() override {
 		progress_indicator_base * pi = proxy_progress_indicator();
 		m_sorter->calc(*pi);
 	}
 
-	virtual bool can_evacuate() override {
+	bool can_evacuate() override {
 		return true;
 	}
 
-	virtual void evacuate() override {
+	void evacuate() override {
 		sorterptr sorter = m_weakSorter.lock();
 		if (sorter) sorter->evacuate_before_reporting();
 	}
@@ -289,7 +289,7 @@ public:
 	}
 
 protected:
-	virtual void resource_available_changed(resource_type type, memory_size_type available) override {
+	void resource_available_changed(resource_type type, memory_size_type available) override {
 		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
 		if (m_propagate_called)
 			return;
@@ -324,7 +324,7 @@ public:
 	/** Smart pointer to sorter_t. */
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_input_t(sort_calc_t<T, pred_t, store_t> dest)
+	sort_input_t(sort_calc_t<T, pred_t, store_t> dest)
 		: m_sorter(dest.get_sorter())
 		, m_propagate_called(false)
 		, dest(std::move(dest))
@@ -338,7 +338,7 @@ public:
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		if (this->can_fetch("items"))
 			m_sorter->set_items(this->fetch<stream_size_type>("items"));
 		m_propagate_called = true;
@@ -358,24 +358,24 @@ public:
 	}
 
 	
-	virtual void end() override {
+	void end() override {
 		node::end();
 		m_sorter->end();
 		m_weakSorter = m_sorter;
 		m_sorter.reset();
 	}
 
-	virtual bool can_evacuate() override {
+	bool can_evacuate() override {
 		return true;
 	}
 
-	virtual void evacuate() override {
+	void evacuate() override {
 		sorterptr sorter = m_weakSorter.lock();
 		if (sorter) sorter->evacuate_before_merging();
 	}
 
 protected:
-	virtual void resource_available_changed(resource_type type, memory_size_type available) override {
+	void resource_available_changed(resource_type type, memory_size_type available) override {
 		// TODO: Handle changing parameters of sorter after data structures has been frozen, i.e. after propagate
 		if (m_propagate_called)
 			return;

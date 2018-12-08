@@ -82,7 +82,7 @@ public:
 	///
 	/// \sa bits::pipe_base::memory(double)
 	///////////////////////////////////////////////////////////////////////////
-	inline void memory(double amount) {
+	inline void memory(double amount) noexcept {
 		m_amount = amount;
 		m_set = true;
 	}
@@ -94,7 +94,7 @@ public:
 	/// \sa memory(double)
 	/// \sa bits::pipe_base::memory()
 	///////////////////////////////////////////////////////////////////////////
-	inline double memory() const {
+	inline double memory() const noexcept {
 		return m_amount;
 	}
 
@@ -187,7 +187,7 @@ public:
 	/// \brief  Used by pipe_base classes to indicate that the default
 	/// actor edge is a push edge.
 	///////////////////////////////////////////////////////////////////////////
-	void set_destination_kind_push() {
+	void set_destination_kind_push() noexcept {
 		m_destinationKind = destination_kind::push;
 	}
 
@@ -195,7 +195,7 @@ public:
 	/// \brief  Used by pipe_base classes to indicate that the default
 	/// actor edge is a pull edge.
 	///////////////////////////////////////////////////////////////////////////
-	void set_destination_kind_pull() {
+	void set_destination_kind_pull() noexcept {
 		m_destinationKind = destination_kind::pull;
 	}
 

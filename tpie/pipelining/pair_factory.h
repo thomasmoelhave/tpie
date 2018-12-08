@@ -55,7 +55,7 @@ public:
 		swap(m_maps, other.m_maps);
 	}
 
-	inline double memory() const {
+	inline double memory() const noexcept {
 		return self().fact1.memory() + self().fact2.memory();
 	}
 
