@@ -1053,6 +1053,16 @@ bool virtual_pull_test() {
 }
 
 
+bool devirtualize_pull_test() {
+	size_t ans = 0;
+	pipeline p = devirtualize(virtual_chunk_pull_begin<size_t>(pull_begin_test()))
+		| devirtualize(virtual_chunk_pull<size_t>(pull_mid_test()))
+		| devirtualize(virtual_chunk_pull_end<size_t>(pull_end_test(&ans)));
+	p.plot(log_info());
+	p();
+	return ans == 36*2;
+}
+
 bool virtual_fork_test() {
 	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
 		| vfork(virtual_chunk_end<test_t>(output_vector(outputvector)))
@@ -2672,5 +2682,6 @@ int main(int argc, char ** argv) {
 	.test(subpipeline_exception_test, "subpipeline_exception")
 	.test(subpipeline_exception_test2, "subpipeline_exception2")
 	.test(devirtualize_test, "devirtualize")
+	.test(devirtualize_pull_test, "devirtualize_pull")
 	;
 }

@@ -277,6 +277,10 @@ public:
 		m_virtsrc = src;
 		add_pull_source(src->get_token());
 	}
+
+	void change_source(virtpullsrc<T> * src) {
+		m_virtsrc = src;
+	}
 };
 
 
@@ -375,6 +379,10 @@ class access {
 	friend class devirtualize_end_node;
 	template <typename, typename>
 	friend class devirtualize_begin_node;
+	template <typename>
+	friend class devirtualize_pull_begin_node;
+	template <typename, typename>
+	friend class devirtualize_pull_end_node;
 	template <typename>
 	friend class subpipeline_virt_impl;
 
@@ -1195,21 +1203,155 @@ public:
 	virtual_chunk<Input, Output> chunk;
 };
 
+
+template <typename T>
+class devirtualize_pull_begin_node : public node {
+public:
+	typedef T item_type;
+
+	template <typename TT>
+	devirtualize_pull_begin_node(TT out, std::unique_ptr<node> tail=std::unique_ptr<node>())
+		: vnode(out.get_node())
+		, tail(std::move(tail))
+		, src(bits::access::get_output(out))
+	{
+		if (src) add_pull_source(*src);
+	}
+
+	bool can_pull() {return src->can_pull();}
+	item_type pull() {return src->pull();}
+private:
+	// This counted reference ensures dest is not deleted prematurely.
+	virt_node::ptr vnode;
+	std::unique_ptr<node> tail;
+	virtpullsrc<T> * src;
+};
+
+template <typename src_t, typename T>
+class devirtualize_pull_end_node: public virtpullsrc<T> {
+public:
+	template <typename TT>
+	devirtualize_pull_end_node(src_t src, TT output)
+		: vnode(output.get_node())
+		, src(std::move(src)) {
+		node::add_pull_source(this->src),
+		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
+		input = bits::access::get_input(output);
+		input->set_source(this);
+	}
+
+	devirtualize_pull_end_node(devirtualize_pull_end_node && o)
+		: virtpullsrc<T>(std::move(o))
+		, vnode(std::move(o.vnode))
+		, input(o.input)
+		, src(std::move(o.src)) {
+		o.input = nullptr;
+		if (input) {
+			input->change_source(this);
+		}
+	}
+
+	devirtualize_pull_end_node & operator=(devirtualize_pull_end_node && o) {
+		assert(input == nullptr);
+		virtpullsrc<T>::operator=(std::move(o));
+		vnode = std::move(o.vnode);
+		input = o.input;
+		o.input = nullptr;
+		if (input) {
+			input->change_source(this);
+		}
+	}
+	
+	const node_token & get_token() final {
+		return node::get_token();
+	}
+
+	T pull() final {return src.pull();}
+	bool can_pull() final {return src.can_pull();}
+	
+	virt_node::ptr vnode;
+	virtpullrecv<T> * input = nullptr;
+	src_t src;
+};
+
+template <typename Input, typename Output>
+class devirtualization_pull_factory: public factory_base {
+public:
+	template <typename src_t>
+	struct constructed {
+		using type = bits::devirtualize_pull_begin_node<Output>;
+	};
+
+	devirtualization_pull_factory(const devirtualization_pull_factory &) = delete;
+	devirtualization_pull_factory(devirtualization_pull_factory &&) = default;
+	devirtualization_pull_factory & operator=(const devirtualization_pull_factory &) = delete;
+	devirtualization_pull_factory & operator=(devirtualization_pull_factory &&) = default;
+
+	explicit devirtualization_pull_factory(virtual_chunk_pull<Input, Output> chunk) : chunk(chunk) {}
+
+	template <typename src_t>
+	bits::devirtualize_pull_begin_node<Input> construct(src_t && src) {
+		node_token tok = src.get_token();
+		auto srcnode = std::make_unique<bits::devirtualize_pull_end_node<src_t, Input>>(std::move(src), chunk);
+		this->init_sub_node(*srcnode);
+		bits::devirtualize_pull_begin_node<Output> r(chunk, std::move(srcnode));
+		this->init_sub_node(r);
+		return r;
+	}
+	
+	virtual_chunk_pull<Input, Output> chunk;
+};
+
+	
 	
 } // namespace bits
 
-template <typename T>
-pipe_end<termfactory<bits::devirtualize_end_node<T>, virtual_chunk_end<T>>> devirtualize(const virtual_chunk_end<T> & out) {
+/**
+ * \brief Convert a virtual_chunk_end for use at the end of a normal none virtual pipeline
+ */
+template <typename Input>
+pipe_end<termfactory<bits::devirtualize_end_node<Input>, virtual_chunk_end<Input>>> devirtualize(const virtual_chunk_end<Input> & out) {
 	return out;
 }
 
-template <typename T>
-pipe_begin<tfactory<bits::devirtualize_begin_node, Args<T>, virtual_chunk_begin<T>>> devirtualize(const virtual_chunk_begin<T> & in) {
+/**
+ * \brief Convert a virtual_chunk_begin for use at the beginning of a normal none virtual pipeline
+ */
+template <typename Output>
+pipe_begin<tfactory<bits::devirtualize_begin_node, Args<Output>, virtual_chunk_begin<Output>>> devirtualize(const virtual_chunk_begin<Output> & in) {
 	return in;
 }
-	
+
+/**
+ * \brief Convert a virtual_chunk for use in the middle of a normal none virtual pipeline
+ */
 template <typename Input, typename Output>
 pipe_middle<bits::devirtualization_factory<Input, Output>> devirtualize(const virtual_chunk<Input, Output> & mid) {
+	return {mid};
+}
+
+/**
+ * \brief Convert a virtual_chunk_pull_begin for use at the beginning of a normal none virtual pull pipeline
+ */
+template <typename Input>
+pullpipe_begin<termfactory<bits::devirtualize_pull_begin_node<Input>, virtual_chunk_pull_begin<Input>>> devirtualize(const virtual_chunk_pull_begin<Input> & out) {
+	return out;
+}
+
+/*
+ * \brief Convert a virtual_chunk_pull_end for use at the end of a normal none virtual pull pipeline
+ */
+template <typename Input>
+pullpipe_end<tfactory<bits::devirtualize_pull_end_node, Args<Input>, virtual_chunk_pull_end<Input>>> devirtualize(const virtual_chunk_pull_end<Input> & in) {
+	return in;
+}
+
+/*
+ * \brief Convert a virtual_chunk_pull for use in the middle of a normal none virtual pull pipeline
+ */
+template <typename Input, typename Output>
+pullpipe_middle<bits::devirtualization_pull_factory<Input, Output>> devirtualize(const virtual_chunk_pull<Input, Output> & mid) {
 	return {mid};
 }
 	
