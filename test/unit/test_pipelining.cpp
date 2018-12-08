@@ -981,7 +981,7 @@ public:
 		add_push_destination(dest);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		dest.push(*static_cast<ptr_type>(0));
 	}
 };
@@ -2564,6 +2564,57 @@ bool subpipeline_exception_test2() {
 	return false;
 }
 
+template <typename dest_t>
+class a_t: public node {
+public:
+	a_t(dest_t dest): dest(std::move(dest)) {}
+
+	void go() override {
+		dest.push(1);
+		dest.push(5);
+	}
+	
+	dest_t dest;
+};
+using a = pipe_begin<factory<a_t>>;
+
+template <typename dest_t>
+class b_t: public node {
+public:
+	b_t(dest_t dest): dest(std::move(dest)) {}
+
+	void push(int v) {
+		dest.push(v*2);
+		dest.push(v*2+1);
+	}
+	
+	dest_t dest;
+};
+using b = pipe_middle<factory<b_t>>;
+
+
+class c_t: public node {
+public:
+	int * acc;
+	c_t(int * acc): acc(acc) {}
+	
+	void push(int v) {
+		*acc += v;
+	}
+};
+
+using c = pipe_end<termfactory<c_t, int*>>;
+
+bool devirtualize_test() {
+	int acc = 0;
+	pipeline p = devirtualize(virtual_chunk_begin<int>(a()))
+		| devirtualize(virtual_chunk<int>(b()))
+		| devirtualize(virtual_chunk_end<int>(c(&acc)));
+	p();
+	p.plot(log_info());
+	return acc == 26;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2620,5 +2671,6 @@ int main(int argc, char ** argv) {
 	.test(exception_test, "exception")
 	.test(subpipeline_exception_test, "subpipeline_exception")
 	.test(subpipeline_exception_test2, "subpipeline_exception2")
+	.test(devirtualize_test, "devirtualize")
 	;
 }

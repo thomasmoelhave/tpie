@@ -110,7 +110,7 @@ class virtsrc : public node {
 	typedef typename maybe_add_const_ref<Input>::type input_type;
 
 public:
-	virtual const node_token & get_token() = 0;
+	virtual const node_token & get_token() = 0; //TODO this need not be virtual
 	virtual void push(input_type v) = 0;
 };
 
@@ -190,6 +190,10 @@ public:
 
 		m_virtdest = dest;
 		add_push_destination(dest->get_token());
+	}
+
+	void change_destination(virtsrc<Output> * dest) {
+		m_virtdest = dest;
 	}
 };
 
@@ -368,7 +372,9 @@ class access {
 	template <typename>
 	friend class vfork_node;
 	template <typename>
-	friend class vpush_node;
+	friend class devirtualize_end_node;
+	template <typename, typename>
+	friend class devirtualize_begin_node;
 	template <typename>
 	friend class subpipeline_virt_impl;
 
@@ -1085,12 +1091,14 @@ public:
 
 
 template <typename T>
-class vpush_node : public node {
+class devirtualize_end_node : public node {
 public:
 	typedef T item_type;
 
-	vpush_node(virtual_chunk_end<T> out)
+	template <typename TT>
+	devirtualize_end_node(TT out, std::unique_ptr<node> tail=std::unique_ptr<node>())
 		: vnode(out.get_node())
+		, tail(std::move(tail))
 		, dest(bits::access::get_input(out))
 	{
 		if (dest) add_push_destination(*dest);
@@ -1103,18 +1111,115 @@ public:
 private:
 	// This counted reference ensures dest is not deleted prematurely.
 	virt_node::ptr vnode;
+	std::unique_ptr<node> tail;
 	virtsrc<T> * dest;
 };
 
+
+template <typename dest_t, typename T>
+class devirtualize_begin_node: public virtsrc<T> {
+public:
+	using input_type = typename maybe_add_const_ref<T>::type;
+
+	template <typename TT>
+	devirtualize_begin_node(dest_t dest, TT input)
+		: vnode(input.get_node())
+		, dest(std::move(dest)) {
+		node::add_push_destination(this->dest);
+		this->set_name("Virtual source", PRIORITY_INSIGNIFICANT);
+		this->set_plot_options(node::PLOT_BUFFERED | node::PLOT_SIMPLIFIED_HIDE);
+		recv = bits::access::get_output(input);
+		recv->set_destination(this);
+	}
+
+	devirtualize_begin_node(devirtualize_begin_node && o)
+		: virtsrc<T>(std::move(o))
+		, vnode(std::move(o.vnode))
+		, recv(o.recv)
+		, dest(std::move(o.dest)) {
+		o.recv = nullptr;
+		if (recv) {
+			recv->change_destination(this);
+		}
+	}
+
+	devirtualize_begin_node & operator=(devirtualize_begin_node && o) {
+		assert(recv == nullptr);
+		virtsrc<T>::operator=(std::move(o));
+		vnode = std::move(o.vnode);
+		recv = o.recv;
+		o.recv = nullptr;
+		if (recv) {
+			recv->change_destination(this);
+		}
+	}
+	
+	const node_token & get_token() final {
+		return node::get_token();
+	}
+
+	void push(input_type v) final {
+		dest.push(v);
+	}
+	
+	virt_node::ptr vnode;
+	virtrecv<T> * recv = nullptr;
+	dest_t dest;
+};
+
+template <typename Input, typename Output>
+class devirtualization_factory: public factory_base {
+public:
+	template <typename dest_t>
+	struct constructed {
+		using type = bits::devirtualize_end_node<Input>;
+	};
+
+	devirtualization_factory(const devirtualization_factory &) = delete;
+	devirtualization_factory(devirtualization_factory &&) = default;
+	devirtualization_factory & operator=(const devirtualization_factory &) = delete;
+	devirtualization_factory & operator=(devirtualization_factory &&) = default;
+
+	explicit devirtualization_factory(virtual_chunk<Input, Output> chunk) : chunk(chunk) {}
+
+	template <typename dest_t>
+	bits::devirtualize_end_node<Input> construct(dest_t && dest) {
+		node_token tok = dest.get_token();
+		auto destnode = std::make_unique<bits::devirtualize_begin_node<dest_t, Output>>(std::move(dest), chunk);
+		this->init_sub_node(*destnode);
+		bits::devirtualize_end_node<Input> r(chunk, std::move(destnode));
+		this->init_sub_node(r);
+		return r;
+	}
+	
+	virtual_chunk<Input, Output> chunk;
+};
+
+	
 } // namespace bits
 
+template <typename T>
+pipe_end<termfactory<bits::devirtualize_end_node<T>, virtual_chunk_end<T>>> devirtualize(const virtual_chunk_end<T> & out) {
+	return out;
+}
+
+template <typename T>
+pipe_begin<tfactory<bits::devirtualize_begin_node, Args<T>, virtual_chunk_begin<T>>> devirtualize(const virtual_chunk_begin<T> & in) {
+	return in;
+}
+	
+template <typename Input, typename Output>
+pipe_middle<bits::devirtualization_factory<Input, Output>> devirtualize(const virtual_chunk<Input, Output> & mid) {
+	return {mid};
+}
+	
 template <typename T>
 pipe_middle<tempfactory<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
 	return out;
 }
 
 template <typename T>
-pipe_end<termfactory<bits::vpush_node<T>, virtual_chunk_end<T> > > push_to_virtual(const virtual_chunk_end<T> & out) {
+pipe_end<termfactory<bits::devirtualize_end_node<T>, virtual_chunk_end<T> > > push_to_virtual(const virtual_chunk_end<T> & out) {
 	return out;
 }
 	
