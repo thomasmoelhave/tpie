@@ -118,7 +118,7 @@ private:
 	typedef typename p_t::pi_t pi_t;
 
 	typedef after<Output> after_t;
-	typedef typename fact_t::template constructed<after_t>::type worker_t;
+	typedef typename fact_t::template constructed_type<after_t> worker_t;
 	typedef typename push_type<worker_t>::type T1;
 	typedef Output T2;
 	typedef before_impl<worker_t> before_t;
@@ -399,7 +399,7 @@ public:
 	std::unique_ptr<threads<T1, T2> > pipes;
 
 	template <typename fact_t>
-	state(const options opts, fact_t && fact)
+	state( options opts, fact_t && fact)
 		: state_base(opts)
 		, m_inputBuffers(opts.numJobs)
 		, m_outputBuffers(opts.numJobs)

@@ -393,126 +393,46 @@ private:
 	sort_calc_t<T, pred_t, store_t> dest;
 };
 
-template <typename child_t, typename store_t>
-class sort_factory_base : public factory_base {
-	const child_t & self() const { return *static_cast<const child_t *>(this); }
+template <typename pred_t, typename store_t>
+class sort_factory : public factory_base {
 public:
 	template <typename dest_t>
-	struct constructed {
-	private:
-		/** Type of items sorted. */
-		typedef typename push_type<dest_t>::type item_type;
-		typedef typename store_t::template element_type<item_type>::type element_type;
-	public:
-		typedef typename child_t::template predicate<element_type>::type pred_type;
-		typedef sort_input_t<item_type, pred_type, store_t> type;
-	};
+	using constructed_type = sort_input_t<typename push_type<dest_t>::type, pred_t, store_t>;
 	
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t dest) {
-		typedef typename push_type<dest_t>::type item_type;
-		typedef typename store_t::template element_type<item_type>::type element_type;
-		typedef typename constructed<dest_t>::pred_type pred_type;
-
-		sort_output_t<pred_type, dest_t, store_t> output(
+	constructed_type<dest_t> construct(dest_t dest) {
+		using item_type = typename push_type<dest_t>::type;
+		sort_output_t<pred_t, dest_t, store_t> output(
 			std::move(dest),
-			std::make_shared<merge_sorter<item_type, true, pred_type, store_t> > (
-				self().template get_pred<element_type>(), 
+			std::make_shared<merge_sorter<item_type, true, pred_t, store_t> > (
+				m_pred,
 				m_store));
 		this->init_sub_node(output);
-		sort_calc_t<item_type, pred_type, store_t> calc(std::move(output));
+		sort_calc_t<item_type, pred_t, store_t> calc(std::move(output));
 		this->init_sub_node(calc);
-		sort_input_t<item_type, pred_type, store_t> input(std::move(calc));
+		sort_input_t<item_type, pred_t, store_t> input(std::move(calc));
 		this->init_sub_node(input);
-
 		return std::move(input);
 	}
 
-	sort_factory_base(store_t store): m_store(store) {}
+	sort_factory(const pred_t & pred, store_t store): m_pred(pred), m_store(store) {}
 private:
+	pred_t m_pred;
 	store_t m_store;
 
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Sort factory using std::less<T> as comparator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename store_t>
-class default_pred_sort_factory : public sort_factory_base<default_pred_sort_factory<store_t>, store_t> {
-public:
-	template <typename item_type>
-	class predicate {
-	public:
-		typedef std::less<item_type> type;
-	};
-	
-	template <typename T>
-	std::less<T> get_pred() const {
-		return std::less<T>();
-	}
-
-	default_pred_sort_factory(const store_t & store)
-		: sort_factory_base<default_pred_sort_factory<store_t>, store_t>(store) 
-	{
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Sort factory using the given predicate as comparator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t, typename store_t>
-class sort_factory : public sort_factory_base<sort_factory<pred_t, store_t>, store_t> {
-public:
-	template <typename Dummy>
-	class predicate {
-	public:
-		typedef pred_t type;
-	};
-
-	sort_factory(const pred_t & p, const store_t & store)
-		: sort_factory_base<sort_factory<pred_t, store_t>, store_t>(store)
-		, pred(p)
-	{
-	}
-
-	template <typename T>
-	pred_t get_pred() const {
-		return pred;
-	}
-private:
-	pred_t pred;
-};
-
 } // namespace bits
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipelining sorter using std::less.
-///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<bits::default_pred_sort_factory<default_store> >
-sort() {
-	typedef bits::default_pred_sort_factory<default_store> fact;
-	return pipe_middle<fact>(fact(default_store())).name("Sort");
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining node that sorts large elements indirectly by using 
 /// a store and std::less.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename store_t>
-inline pipe_middle<bits::default_pred_sort_factory<store_t> >
+inline pipe_middle<bits::sort_factory<std::less<void>, store_t> >
 store_sort(store_t store=store_t()) {
-	typedef bits::default_pred_sort_factory<store_t> fact;
-	return pipe_middle<fact>(fact(store)).name("Sort");
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipelining sorter using the given predicate.
-///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t>
-inline pipe_middle<bits::sort_factory<pred_t, default_store> >
-sort(const pred_t & p) {
-	typedef bits::sort_factory<pred_t, default_store> fact;
-	return pipe_middle<fact>(fact(p, default_store())).name("Sort");
+	typedef bits::sort_factory<std::less<void>, store_t> fact;
+	return pipe_middle<fact>(fact(std::less<void>(), store)).name("Sort");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -528,11 +448,11 @@ store_sort(const pred_t & p, store_t store=store_t()) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A pipelining node that sorts large elements indirectly by using 
-/// a storeand a given predicate.
+/// a store and a given predicate.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t, typename store_t>
+template <typename pred_t=std::less<void>, typename store_t=default_store>
 inline pipe_middle<bits::sort_factory<pred_t, store_t> >
-sort(const pred_t & p, store_t store) {
+sort(const pred_t & p=std::less<void>(), store_t store=default_store()) {
 	typedef bits::sort_factory<pred_t, store_t> fact;
 	return pipe_middle<fact>(fact(p, store)).name("Sort");
 }

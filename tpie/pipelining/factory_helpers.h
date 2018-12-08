@@ -42,15 +42,13 @@ public:
 	template <typename... Args>
 	factory(Args && ... v) : cont(std::forward<Args>(v)...) {}
 
-	template<typename dest_t>
-	struct constructed {
-		typedef R<typename bits::remove<dest_t>::type> type;
-	};
+	template <typename dest_t>
+	using constructed_type = R<typename bits::remove<dest_t>::type>;
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t && dest) {
+	constructed_type<dest_t> construct(dest_t && dest) {
 		node_token tok = dest.get_token();
-		typename constructed<dest_t>::type r = container_construct<typename constructed<dest_t>::type>(cont, std::forward<dest_t>(dest));
+		constructed_type<dest_t> r = container_construct<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
 		this->add_node_set_edges(r);
@@ -58,9 +56,9 @@ public:
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct_copy(dest_t && dest) {
+	constructed_type<dest_t> construct_copy(dest_t && dest) {
 		node_token tok = dest.get_token();
-		typename constructed<dest_t>::type r = container_construct_copy<typename constructed<dest_t>::type>(cont, std::forward<dest_t>(dest));
+		constructed_type<dest_t> r = container_construct_copy<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
 		this->add_node_set_edges(r);
@@ -86,15 +84,13 @@ public:
 	template <typename... Args>
 	tempfactory(Args && ... v) : cont(std::forward<Args>(v)...) {}
 
-	template<typename dest_t>
-	struct constructed {
-		typedef typename Holder::template type<typename bits::remove<dest_t>::type> type;
-	};
+	template <typename dest_t>
+	using constructed_type = typename Holder::template type<typename bits::remove<dest_t>::type>;
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t && dest) {
+	constructed_type<dest_t> construct(dest_t && dest) {
 		node_token tok = dest.get_token();
-		typename constructed<dest_t>::type r = container_construct<typename constructed<dest_t>::type>(cont, std::forward<dest_t>(dest));
+		constructed_type<dest_t> r = container_construct<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
 		this->add_node_set_edges(r);
@@ -102,9 +98,9 @@ public:
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct_copy(dest_t && dest) {
+	constructed_type<dest_t> construct_copy(dest_t && dest) {
 		node_token tok = dest.get_token();
-		typename constructed<dest_t>::type r = container_construct_copy<typename constructed<dest_t>::type>(cont, std::forward<dest_t>(dest));
+		constructed_type<dest_t> r = container_construct_copy<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
 		this->add_node_set_edges(r);
@@ -172,14 +168,12 @@ public:
 	tfactory(Args && ... v) : cont(std::forward<Args>(v)...) {}
 
 	template<typename dest_t>
-	struct constructed {
-		typedef R<typename bits::remove<dest_t>::type, TT...> type;
-	};
+	using constructed_type = R<typename bits::remove<dest_t>::type, TT...>;
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t && dest) {
+	constructed_type<dest_t> construct(dest_t && dest) {
 		node_token tok = dest.get_token();
-		typename constructed<dest_t>::type r = container_construct<typename constructed<dest_t>::type>(cont, std::forward<dest_t>(dest));
+		constructed_type<dest_t> r = container_construct<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
 		this->add_node_set_edges(r);
@@ -187,9 +181,9 @@ public:
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct_copy(dest_t && dest) {
+	constructed_type<dest_t> construct_copy(dest_t && dest) {
 		node_token tok = dest.get_token();
-		typename constructed<dest_t>::type r = container_construct_copy<typename constructed<dest_t>::type>(cont, std::forward<dest_t>(dest));
+		constructed_type<dest_t> r = container_construct_copy<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
 		this->init_node(r);
 		this->add_default_edge(r, tok);
 		this->add_node_set_edges(r);
@@ -212,13 +206,10 @@ template <template <typename item_type> class I, typename OB, template<typename 
 class split_factory : public factory_base {
 public:
 	template <typename dest_t>
-	struct constructed {
-		typedef typename push_type<dest_t>::type item_type;
-		typedef I<item_type> type;
-	};
+	using constructed_type = I<typename push_type<dest_t>::type>;
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t && dest) const {
+	constructed_type<dest_t> construct(dest_t && dest) const {
 		node_token input_token;
 		typedef typename push_type<dest_t>::type item_type;
 		std::shared_ptr<OB> o = std::make_shared<O<dest_t> >(std::forward<dest_t>(dest), input_token);
@@ -226,7 +217,7 @@ public:
 	};
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct_copy(dest_t && dest) const {
+	constructed_type<dest_t> construct_copy(dest_t && dest) const {
 		return construct(std::forward<dest_t>(dest));
 	};
 };

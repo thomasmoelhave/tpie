@@ -194,12 +194,16 @@ public:
 	pipe_nonterm_base & operator=(pipe_nonterm_base &&) = default;
 
 	template <typename dest_t>
-	struct constructed {
-		typedef typename child_t::factory_type::template constructed<dest_t>::type type;
+	class constructed {
+	public:
+		using type = typename child_t::factory_type::template constructed_type<dest_t>;
 	};
+	
+	template <typename dest_t>
+	using constructed_type = typename constructed<dest_t>::type;
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(const dest_t & dest) {
+	constructed_type<dest_t> construct(const dest_t & dest) {
 		return this->self().factory.construct(dest);
 	}
 };

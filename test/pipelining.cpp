@@ -163,9 +163,7 @@ class count_factory : public P::factory_base {
 
 public:
 	template <typename dest_t>
-	struct constructed {
-		typedef count_t<dest_t, byid_gen_t, byparent_gen_t> type;
-	};
+	using constructed_type = count_t<dest_t, byid_gen_t, byparent_gen_t>;
 
 	count_factory(byid_t && byid, byparent_t && byparent)
 		: m_byid(std::move(byid.factory))

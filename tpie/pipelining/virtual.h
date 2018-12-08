@@ -580,7 +580,7 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template constructed<output_type>::type constructed_type;
+		typedef typename fact_t::template constructed_type<output_type> constructed_type;
 		output_type temp(m_output);
 		this->m_nodeMap = temp.get_node_map();
 		fact_t f = std::move(pipe.factory);
@@ -690,7 +690,7 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template constructed<output_type>::type constructed_type;
+		typedef typename fact_t::template constructed_type<output_type> constructed_type;
 		output_type temp(m_output);
 		this->m_nodeMap = m_output->get_node_map();
 		fact_t f = std::move(pipe.factory);
@@ -780,7 +780,7 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template constructed<input_type>::type constructed_type;
+		typedef typename fact_t::template constructed_type<input_type> constructed_type;
 		input_type temp(m_input);
 		this->m_nodeMap = m_input->get_node_map();
 		fact_t f = std::move(pipe.factory);
@@ -866,7 +866,7 @@ public:
 			log_error() << "Virtual chunk assigned twice" << std::endl;
 			throw tpie::exception("Virtual chunk assigned twice");
 		}
-		typedef typename fact_t::template constructed<input_type>::type constructed_type;
+		typedef typename fact_t::template constructed_type<input_type> constructed_type;
 		input_type temp(m_input);
 		this->m_nodeMap = temp.get_node_map();
 		fact_t f = std::move(pipe.factory);
@@ -1179,9 +1179,7 @@ template <typename Input, typename Output>
 class devirtualization_factory: public factory_base {
 public:
 	template <typename dest_t>
-	struct constructed {
-		using type = bits::devirtualize_end_node<Input>;
-	};
+	using constructed_type = bits::devirtualize_end_node<Input>;
 
 	devirtualization_factory(const devirtualization_factory &) = delete;
 	devirtualization_factory(devirtualization_factory &&) = default;
@@ -1278,10 +1276,8 @@ template <typename Input, typename Output>
 class devirtualization_pull_factory: public factory_base {
 public:
 	template <typename src_t>
-	struct constructed {
-		using type = bits::devirtualize_pull_begin_node<Output>;
-	};
-
+	using constructed_type = bits::devirtualize_pull_begin_node<Output>;
+	
 	devirtualization_pull_factory(const devirtualization_pull_factory &) = delete;
 	devirtualization_pull_factory(devirtualization_pull_factory &&) = default;
 	devirtualization_pull_factory & operator=(const devirtualization_pull_factory &) = delete;

@@ -41,12 +41,16 @@ public:
 		typedef typename push_type<dest_t>::type T2;
 
 		typedef after<T2> after_t;
-		typedef typename fact_t::template constructed<after_t>::type processor_t;
+		typedef typename fact_t::template constructed_type<after_t> processor_t;
 		typedef typename push_type<processor_t>::type T1;
 
 		typedef producer<T1, T2> type;
 	};
 
+
+	template <typename dest_t>
+	using constructed_type = typename constructed<dest_t>::type;
+	
 	factory(fact_t && fact, options && opts)
 		: fact(std::move(fact))
 		, opts(std::move(opts))
@@ -54,8 +58,7 @@ public:
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type
-	construct(dest_t && dest) {
+	constructed_type<dest_t> construct(dest_t && dest) {
 		typedef constructed<dest_t> gen_t;
 
 		typedef typename gen_t::T1 input_type;
@@ -76,8 +79,7 @@ public:
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type
-	construct_copy(dest_t && dest) {
+	constructed_type<dest_t> construct_copy(dest_t && dest) {
 		return construct(std::forward(dest));
 	}
 

@@ -339,27 +339,21 @@ private:
 	bool m_propagate_called;
 };
 
-template <typename child_t>
-class sort_factory_base : public factory_base {
-	const child_t & self() const { return *static_cast<const child_t *>(this); }
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort factory using the given predicate as comparator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename pred_t>
+class sort_factory : public factory_base {
 public:
 	template <typename dest_t>
-	struct constructed {
-	private:
-		/** Type of items sorted. */
-		typedef typename push_type<dest_t>::type item_type;
-	public:
-		typedef typename child_t::template predicate<item_type>::type pred_type;
-		typedef sorter_traits<item_type, pred_type> Traits;
-		typedef sort_input_t<Traits> type;
-	};
+	using constructed_type = sort_input_t<sorter_traits<typename push_type<dest_t>::type, pred_t>>;
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type construct(dest_t dest) {
-		typedef typename push_type<dest_t>::type item_type;
-		typedef typename constructed<dest_t>::Traits Traits;
+	constructed_type<dest_t> construct(dest_t dest) {
+		using item_type = typename push_type<dest_t>::type;
+		using Traits = sorter_traits<item_type, pred_t>;
 
-		sort_output_t<Traits, dest_t> output(std::move(dest), self().template get_pred<item_type>());
+		sort_output_t<Traits, dest_t> output(std::move(dest), m_pred);
 		this->init_sub_node(output);
 		sort_calc_t<Traits> calc(std::move(output));
 		this->init_sub_node(calc);
@@ -368,68 +362,22 @@ public:
 
 		return input;
 	}
+
+	sort_factory(const pred_t & p) : m_pred(p) {}
+
+	pred_t m_pred;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Sort factory using std::less<T> as comparator.
-///////////////////////////////////////////////////////////////////////////////
-class default_pred_sort_factory : public sort_factory_base<default_pred_sort_factory> {
-public:
-	template <typename item_type>
-	class predicate {
-	public:
-		typedef std::less<item_type> type;
-	};
-
-	template <typename T>
-	std::less<T> get_pred() const {
-		return std::less<T>();
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Sort factory using the given predicate as comparator.
-///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t>
-class sort_factory : public sort_factory_base<sort_factory<pred_t> > {
-public:
-	template <typename Dummy>
-	class predicate {
-	public:
-		typedef pred_t type;
-	};
-
-	sort_factory(const pred_t & p)
-		: pred(p)
-	{
-	}
-
-	template <typename T>
-	pred_t get_pred() const {
-		return pred;
-	}
-
-private:
-	pred_t pred;
-};
 
 } // namespace serialization_bits
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Pipelining sorter using std::less.
-///////////////////////////////////////////////////////////////////////////////
-inline pipe_middle<serialization_bits::default_pred_sort_factory>
-serialization_sort() {
-	typedef serialization_bits::default_pred_sort_factory fact;
-	return pipe_middle<fact>(fact()).name("Sort");
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Pipelining sorter using the given predicate.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename pred_t>
+template <typename pred_t=std::less<void>>
 pipe_middle<serialization_bits::sort_factory<pred_t> >
-serialization_sort(const pred_t & p) {
+serialization_sort(const pred_t & p=std::less<void>()) {
 	typedef serialization_bits::sort_factory<pred_t> fact;
 	return pipe_middle<fact>(fact(p)).name("Sort");
 }

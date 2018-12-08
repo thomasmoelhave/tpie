@@ -147,10 +147,8 @@ template <typename fact1_t, typename fact2_t>
 class pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
 public:
 	template <typename dest_t>
-	struct constructed {
-		typedef typename fact1_t::template constructed<typename fact2_t::template constructed<dest_t>::type>::type type;
-	};
-
+	using constructed_type = typename fact1_t::template constructed_type<typename fact2_t::template constructed_type<dest_t>>;
+	
 	pair_factory(const pair_factory &) = delete;
 	pair_factory(pair_factory &&) = default;
 	pair_factory & operator=(const pair_factory &) = delete;
@@ -161,14 +159,12 @@ public:
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type
-	construct(dest_t && dest) {
+	constructed_type<dest_t> construct(dest_t && dest) {
 		return this->record(0, fact1.construct(this->record(1, fact2.construct(std::forward<dest_t>(dest)))));
 	}
 
 	template <typename dest_t>
-	typename constructed<dest_t>::type
-	construct_copy(dest_t && dest) {
+	constructed_type<dest_t> construct_copy(dest_t && dest) {
 		return this->record(0, fact1.construct_copy(this->record(1, fact2.construct_copy(std::forward<dest_t>(dest)))));
 	}
 
@@ -189,9 +185,7 @@ public:
 template <typename fact1_t, typename termfact2_t>
 class termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
 public:
-	typedef typename fact1_t::template constructed<typename termfact2_t::constructed_type>::type constructed_type;
-
-
+	using constructed_type =  typename fact1_t::template constructed_type<typename termfact2_t::constructed_type>;
 
 	termpair_factory(const termpair_factory &) = delete;
 	termpair_factory(termpair_factory &&) = default;
