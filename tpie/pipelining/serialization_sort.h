@@ -26,9 +26,7 @@
 #include <tpie/serialization_sorter.h>
 #include <tpie/serialization.h>
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 namespace serialization_bits {
 
@@ -557,8 +555,6 @@ private:
 	node_token m_calc_token;
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // TPIE_PIPELINING_SERIALIZATION_SORT_H

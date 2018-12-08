@@ -26,11 +26,7 @@
 #include <tpie/pipelining/factory_base.h>
 #include <boost/scoped_array.hpp>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace bits {
+namespace tpie::pipelining::bits {
 
 template <typename child_t>
 class pair_factory_base {
@@ -261,10 +257,6 @@ struct maybe_check_connected {
 	}
 };
 
-} // namespace bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::bits
 
 #endif // __TPIE_PIPELINING_PAIR_FACTORY_H__

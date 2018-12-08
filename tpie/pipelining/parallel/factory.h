@@ -25,11 +25,7 @@
 #include <tpie/pipelining/parallel/base.h>
 #include <tpie/pipelining/node.h>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace parallel_bits {
+namespace tpie::pipelining::parallel_bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Factory instantiating a parallel multithreaded pipeline.
@@ -88,10 +84,6 @@ public:
 
 };
 
-} // namespace parallel_bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::parallel_bits
 
 #endif // __TPIE_PIPELINING_PARALLEL_FACTORY_H__
