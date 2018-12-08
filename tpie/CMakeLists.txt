@@ -201,6 +201,7 @@ set (SOURCES
 	pipelining/pipeline.cpp
 	pipelining/runtime.cpp
 	pipelining/tokens.cpp
+	pipelining/factory_base.cpp
 	portability.cpp
 	prime.cpp
 	progress_indicator_base.cpp

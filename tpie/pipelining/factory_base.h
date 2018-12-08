@@ -27,9 +27,7 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/tokens.h>
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 class factory_init_hook {
 public:
@@ -106,21 +104,15 @@ public:
 	/// When a node is instantiated in construct(), the given hook will get a
 	/// chance to do some additional initialization.
 	///////////////////////////////////////////////////////////////////////////
-	void hook_initialization(factory_init_hook * hook) {
-		m_hooks.push_back(hook);
-	}
+	void hook_initialization(factory_init_hook * hook);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Copy the hooks that have been added to this factory to another.
 	///////////////////////////////////////////////////////////////////////////
-	void copy_hooks_to(factory_base & other) const {
-		for (size_t i = 0; i < m_hooks.size(); ++i) {
-			other.m_hooks.push_back(m_hooks[i]);
-		}
-	}
+	void copy_hooks_to(factory_base & other) const;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Initialize node constructed in a subclass.
+	/// \Brief  Initialize node constructed in a subclass.
 	///
 	/// This lets the user define a name or memory fraction for this certain
 	/// node in the pipeline phase, and it lets initialization hooks do their
@@ -129,18 +121,7 @@ public:
 	/// If more than one node is constructed in the subclass in \c construct(),
 	/// the implementation should use \c init_sub_node instead.
 	///////////////////////////////////////////////////////////////////////////
-	inline void init_node(node & r) {
-		if (!m_name.empty()) {
-			r.set_name(m_name, m_namePriority);
-		}
-		if (!m_phaseName.empty()) {
-			r.set_phase_name(m_phaseName, m_phaseNamePriority);
-		}
-		if (!m_breadcrumbs.empty()) {
-			r.set_breadcrumb(m_breadcrumbs);
-		}
-		init_common(r);
-	}
+	void init_node(node & r);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Initialize node constructed in a subclass.
@@ -152,83 +133,21 @@ public:
 	/// If just one node is constructed in the subclass in \c construct(),
 	/// the implementation should use \c init_node instead.
 	///////////////////////////////////////////////////////////////////////////
-	void init_sub_node(node & r) {
-		if (m_breadcrumbs.empty()) {
-			if (m_name.empty()) {
-				// no op
-			} else {
-				r.set_breadcrumb(m_name);
-			}
-		} else {
-			if (m_name.empty()) {
-				r.set_breadcrumb(m_breadcrumbs);
-			} else {
-				r.set_breadcrumb(m_breadcrumbs + " | " + m_name);
-			}
-		}
-		init_common(r);
-	}
+	void init_sub_node(node & r);
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Used by pipe_base classes to set a default actor edge
+	/// for ordinary push/pull nodes.
+	///////////////////////////////////////////////////////////////////////////
+	void add_default_edge(node & r, const node & dest) const;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Used by pipe_base classes to set a default actor edge
 	/// for ordinary push/pull nodes.
 	///////////////////////////////////////////////////////////////////////////
-	void add_default_edge(node & r, const node & dest) const {
-		add_default_edge(r, dest.get_token());
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Used by pipe_base classes to set a default actor edge
-	/// for ordinary push/pull nodes.
-	///////////////////////////////////////////////////////////////////////////
-	void add_default_edge(node & r, const node_token & dest) const {
-		if (r.get_node_map()->find_authority()->out_degree(r.get_id()) > 0) return;
-		switch (m_destinationKind) {
-		case destination_kind::none:
-			break;
-		case destination_kind::push:
-			r.add_push_destination(dest);
-			break;
-		case destination_kind::pull:
-			r.add_pull_source(dest);
-			break;
-		}
-	}
-
-	void add_node_set_edges(node & r) const {
-		bits::node_map::ptr m=r.get_node_map();
-		for (size_t i=0; i < m_add_to_set.size(); ++i) {
-			bits::node_map::ptr m2=m_add_to_set[i]->m_map;
-			if (m2 && m2 != m)
-				m2->union_set(m);
-		}
-		for (size_t i=0; i < m_add_relations.size(); ++i) {
-			bits::node_map::ptr m2=m_add_relations[i].first->m_map;
-			if (m2 && m2 != m)
-				m2->union_set(m);
-		}
-		m = m->find_authority();
-		for (size_t i=0; i < m_add_to_set.size(); ++i)
-			m_add_to_set[i]->m_map = m;
-		for (size_t i=0; i < m_add_relations.size(); ++i)
-			m_add_relations[i].first->m_map = m;
-
-		for (size_t i=0; i < m_add_to_set.size(); ++i) {
-			node_set s=m_add_to_set[i];
-			for (size_t j=0; j < s->m_relations.size(); ++j)
-				m->add_relation(s->m_relations[j].first, r.get_id(), s->m_relations[j].second);
-			s->m_nodes.push_back(r.get_id());
-		}
-
-		for (size_t i=0; i < m_add_relations.size(); ++i) {
-			node_set s=m_add_relations[i].first;
-			bits::node_relation relation = m_add_relations[i].second;
-			for (size_t j=0; j < s->m_nodes.size(); ++j)
-				m->add_relation(r.get_id(), s->m_nodes[j], relation);
-			s->m_relations.push_back(std::make_pair(r.get_id(), relation));
-		}
-	}
-
+	void add_default_edge(node & r, const node_token & dest) const;
+	
+	void add_node_set_edges(node & r) const;
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// \copybrief bits::pipe_base::name
@@ -280,40 +199,16 @@ public:
 		m_destinationKind = destination_kind::pull;
 	}
 
-	void add_to_set(node_set s) {
-		if (s)
-			m_add_to_set.push_back(s);
-	}
+	void add_to_set(node_set s);
 
-	void add_dependencies(node_set s) {
-		if (s)
-			m_add_relations.push_back(std::make_pair(s,bits::no_forward_depends));
-	}
+	void add_dependencies(node_set s);
 
-	void add_forwarding_dependencies(node_set s) {
-		if (s)
-			m_add_relations.push_back(std::make_pair(s,bits::depends));
-	}
+	void add_forwarding_dependencies(node_set s);
 
-	void forward(const std::string & key, any_noncopyable value) {
-		m_forwards.push_back({key, std::move(value)});
-	}
+	void forward(const std::string & key, any_noncopyable value);
 
 private:
-	void init_common(node & r) {
-		if (m_set) r.set_memory_fraction(memory());
-
-		for (size_t i = 0; i < m_hooks.size(); ++i) {
-			m_hooks[i]->init_node(r);
-		}
-
-		auto nodeMap = r.get_node_map()->find_authority();
-
-		for (auto &p : m_forwards) {
-			nodeMap->forward_from_pipe_base(r.get_id(), p.first, std::move(p.second));
-		}
-	}
-
+	void init_common(node & r);
 
 	double m_amount = 0;
 	bool m_set = false;
@@ -327,8 +222,6 @@ private:
 	std::vector<std::pair<std::string, any_noncopyable> > m_forwards;
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_FACTORY_BASE_H__
