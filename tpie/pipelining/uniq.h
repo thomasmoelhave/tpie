@@ -25,10 +25,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/file_stream.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t>
@@ -105,8 +102,6 @@ pipeuniq() {
 		(factory<bits::count_consecutive_t>(), factory<bits::extract_first_t>());
 }
 
-}
+} //namespace tpie::pipelining
 
-}
-
-#endif
+#endif //__TPIE_PIPELINING_UNIQ_H__

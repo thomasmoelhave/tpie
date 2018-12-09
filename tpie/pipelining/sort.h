@@ -31,10 +31,7 @@
 #include <queue>
 #include <memory>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename T, typename pred_t, typename store_t>
@@ -577,8 +574,6 @@ private:
 	node_token m_calc_token;
 };
 
-} // namespace pipelining
+} // namespace tpie::pipelining
 
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_SORT_H__

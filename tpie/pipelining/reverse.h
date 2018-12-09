@@ -26,10 +26,7 @@
 #include <tpie/stack.h>
 #include <stack>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -375,8 +372,6 @@ typedef pipe_middle<split_factory<bits::reverser_input_t, node, bits::reverser_o
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<split_factory<bits::internal_reverser_input_t, node, bits::internal_reverser_output_t> > internal_reverser;
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_REVERSE_H__

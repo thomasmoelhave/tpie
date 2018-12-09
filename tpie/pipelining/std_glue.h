@@ -26,10 +26,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t, typename T, typename A>
@@ -204,9 +201,6 @@ inline pipe_middle<tempfactory<bits::exclude_lambda_t<F>, F> > exclude_lambda(co
 	return tempfactory<bits::exclude_lambda_t<F>, F>(f);
 }
 
+} // namespace tpie:: pipelining
 
-} // namespace pipelining
-
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_STD_GLUE_H__

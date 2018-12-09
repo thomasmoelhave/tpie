@@ -24,8 +24,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/pipe_base.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Split one push streams into multiple.
@@ -112,7 +111,6 @@ private:
 	node_token sink_token;
 };
 
-} // namespace pipelining
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // TPIE_PIPELINING_SPLIT_H

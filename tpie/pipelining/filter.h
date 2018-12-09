@@ -26,8 +26,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/node_name.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename F>
@@ -65,7 +64,6 @@ pipe_middle<tempfactory<bits::filter_t<F>, F> > filter(const F & functor) {
 	return tempfactory<bits::filter_t<F>, F >(functor);
 }
 
-} //namespace pipelining
-} //namespace terrastream
+} //namespace terrastream::pipelining
 
 #endif //__TPIE_PIPELINING_FILTER_H__

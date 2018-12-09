@@ -28,10 +28,7 @@
 #include <unordered_set>
 #include <mutex>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 
@@ -271,8 +268,6 @@ private:
 	std::shared_ptr<bits::pipeline_base> p;
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_PIPELINE_H__

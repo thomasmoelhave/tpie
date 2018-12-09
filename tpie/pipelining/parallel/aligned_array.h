@@ -22,11 +22,7 @@
 
 #include <tpie/types.h>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace parallel_bits {
+namespace tpie::pipelining::parallel_bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Aligned, uninitialized storage.
@@ -83,10 +79,6 @@ public:
 	size_t size() const { return m_size; }
 };
 
-} // namespace parallel_bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::parallel_bits
 
 #endif // __TPIE_PIPELINING_PARALLEL_ALIGNED_ARRAY_H__

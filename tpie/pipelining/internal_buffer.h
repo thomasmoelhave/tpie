@@ -29,10 +29,7 @@
 #include <tpie/internal_queue.h>
 #include <tpie/tpie_assert.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename T>
@@ -162,8 +159,6 @@ private:
 	internal_passive_buffer & operator=(const internal_passive_buffer &);
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_INTERNAL_BUFFER_H__

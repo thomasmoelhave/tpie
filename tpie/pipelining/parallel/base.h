@@ -30,11 +30,7 @@
 #include <tpie/pipelining/parallel/aligned_array.h>
 #include <thread>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace parallel_bits {
+namespace tpie::pipelining::parallel_bits {
 
 // predeclare
 template <typename T>
@@ -1185,10 +1181,6 @@ public:
 	}
 };
 
-} // namespace parallel_bits
+} // namespace tpie::pipelining::parallel_bits
 
-} // namespace pipelining
-
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_PARALLEL_BASE_H__

@@ -31,9 +31,7 @@
 #include <tpie/maybe.h>
 #include <memory>
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 namespace bits {
 
@@ -206,8 +204,6 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<split_factory<bits::buffer_input_t, node, bits::buffer_output_t> > buffer;
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_BUFFER_H__

@@ -22,10 +22,7 @@
 
 #include <type_traits>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename T>
@@ -178,9 +175,6 @@ using push_type_map_identity = T;
 template <typename T, template <typename> typename map = push_type_map_identity>
 using pull_type_base = bits::pull_type_base_help<typename push_type<T, bits::pull_type_base_tag>::type, map>;
 
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // TPIE_PIPELINING_NODE_TRAITS_H

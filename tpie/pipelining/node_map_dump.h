@@ -23,11 +23,7 @@
 #include <tpie/pipelining/tokens.h>
 #include <tpie/pipelining/node.h>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace bits {
+namespace tpie::pipelining::bits {
 
 inline void node_map::dump(std::ostream & os) const {
 	os << this << " node_map\n";
@@ -43,10 +39,6 @@ inline void node_map::dump(std::ostream & os) const {
 	}
 }
 
-} // namespace bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::bits
 
 #endif // __TPIE_PIPELINING_NODE_MAP_DUMP_H__

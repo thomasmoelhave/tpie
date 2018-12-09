@@ -24,9 +24,7 @@
 #ifndef __TPIE_PIPELINING_PREDECLARE_H__
 #define __TPIE_PIPELINING_PREDECLARE_H__
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 class node;
 class node_token;
@@ -40,8 +38,6 @@ namespace bits {
 	class pipeline_base;
 }
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_PREDECLARE_H__

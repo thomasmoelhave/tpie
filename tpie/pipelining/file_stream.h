@@ -28,8 +28,7 @@
 #include <tpie/maybe.h>
 #include <tpie/flags.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 
 enum stream_option {
 	STREAM_RESET=1,
@@ -471,7 +470,5 @@ inline pullpipe_middle<tfactory<bits::pull_tee_t, Args<typename T::item_type>, T
 	return {fs};
 }
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 #endif

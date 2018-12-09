@@ -24,10 +24,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/node.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,8 +71,6 @@ merge(pullpipe_begin<pull_t> with) {
 	return {std::move(with.factory)};
 }
 
-} // namespace pipelining
+} // namespace tpie::pipelining
 
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_MERGE_H__

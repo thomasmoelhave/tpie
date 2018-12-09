@@ -30,10 +30,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/serialization_stream.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace serialization_bits {
 
 template <typename dest_t>
@@ -498,8 +495,6 @@ typedef pipe_middle<split_factory<serialization_bits::reverser_input_t, node, se
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<split_factory<serialization_bits::buffer_input_t, node, serialization_bits::buffer_output_t> > serialization_buffer;
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // TPIE_PIPELINING_SERIALIZATION_H

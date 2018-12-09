@@ -22,11 +22,7 @@
 
 #include <tpie/types.h>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace parallel_bits {
+namespace tpie::pipelining::parallel_bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  User-supplied options to the parallelism framework.
@@ -37,10 +33,6 @@ struct options {
 	size_t bufSize;
 };
 
-} // namespace parallel_bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::parallel_bits
 
 #endif // __TPIE_PIPELINING_PARALLEL_OPTIONS_H__

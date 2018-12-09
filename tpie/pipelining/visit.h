@@ -62,7 +62,6 @@ pipe_middle<tempfactory<bits::visit_t<F>, F> > visit(const F & functor) {
 	return tempfactory<bits::visit_t<F>, F >(functor);
 }
 
-} //namespace pipelining
-} //namespace terrastream
+} //namespace terrastream::pipelining
 
 #endif //__TPIE_PIPELINING_VISIT_H__

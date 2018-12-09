@@ -37,10 +37,7 @@
 #pragma warning(disable: 4521)
 #endif
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename child_t>
@@ -478,9 +475,7 @@ public:
 	fact_t factory;
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #ifdef WIN32
 #pragma warning(pop)

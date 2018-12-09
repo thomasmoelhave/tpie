@@ -24,10 +24,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/node.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,8 +72,6 @@ inline pipe_middle<tfactory<bits::ordered_merge_t, Args<fact_t, comp_t>, fact_t,
 	return {std::move(fact), std::move(comp)};
 }
 
-} // namespace pipelining
+} // namespace tpie::pipelining
 
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_ORDERED_MERGE_H__

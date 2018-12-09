@@ -85,10 +85,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 enum node_relation {
@@ -370,8 +367,6 @@ private:
 	bool m_free;
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_TOKENS_H__

@@ -27,10 +27,7 @@
 #include <tpie/memory.h>
 #include <tpie/tpie_assert.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t>
@@ -731,9 +728,5 @@ pullpipe_middle<tfactory<bits::pull_unique_t, Args<equal_t>, equal_t> > pull_uni
 	return {equal};
 }
 
-
-}
-
-}
-
-#endif
+} //namespace tpie::pipelining
+#endif //__TPIE_PIPELINING_HELPERS_H__

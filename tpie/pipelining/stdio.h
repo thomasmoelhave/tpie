@@ -25,10 +25,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <cstdio>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t>
@@ -75,8 +72,6 @@ typedef pipe_begin<factory<bits::scanf_ints_t> > scanf_ints;
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_end<termfactory<bits::printf_ints_t> > printf_ints;
 
-} // namespace pipelining
+} // namespace tpie::pipelining
 
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_STDIO_H__

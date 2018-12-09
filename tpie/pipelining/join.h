@@ -24,8 +24,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/pipe_base.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Joins multiple push streams into one.
@@ -124,7 +123,6 @@ private:
 	node_token source_token;
 };
 
-} // namespace pipelining
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // TPIE_PIPELINING_JOIN_H

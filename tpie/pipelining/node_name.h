@@ -22,11 +22,7 @@
 
 #include <string>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace bits {
+namespace tpie::pipelining::bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Extract the class name from a mangled typeid name.
@@ -38,10 +34,6 @@ std::string extract_pipe_class_name(std::string mangled);
 ///////////////////////////////////////////////////////////////////////////////
 std::string extract_pipe_name(std::string mangled);
 
-} // namespace bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::bits
 
 #endif // TPIE_PIPELINING_NODE_NAME_H

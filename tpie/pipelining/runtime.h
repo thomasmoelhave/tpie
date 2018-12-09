@@ -26,11 +26,7 @@
 #include <set>
 #include <unordered_set>
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace bits {
+namespace tpie::pipelining::bits {
 
 template <typename T>
 class graph;
@@ -265,10 +261,6 @@ public:
 									bool datastructures_locked);
 };
 
-}
-
-}
-
-}
+} //namespace tpie::pipelining::bits
 
 #endif // TPIE_PIPELINING_RUNTIME_H

@@ -20,11 +20,7 @@
 #ifndef __TPIE_PIPELINING_PARALLEL_WORKER_STATE_H__
 #define __TPIE_PIPELINING_PARALLEL_WORKER_STATE_H__
 
-namespace tpie {
-
-namespace pipelining {
-
-namespace parallel_bits {
+namespace tpie::pipelining::parallel_bits {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  States of the parallel worker state machine.
@@ -50,10 +46,6 @@ enum worker_state {
 	DONE
 };
 
-} // namespace parallel_bits
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining::parallel_bits
 
 #endif // __TPIE_PIPELINING_PARALLEL_WORKER_STATE_H__

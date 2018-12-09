@@ -20,9 +20,7 @@
 #ifndef __TPIE_PIPELINING_PRIORITY_TYPE_H__
 #define __TPIE_PIPELINING_PRIORITY_TYPE_H__
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 // Name priorities
 typedef int priority_type;
@@ -31,8 +29,6 @@ const priority_type PRIORITY_INSIGNIFICANT = 5;
 const priority_type PRIORITY_SIGNIFICANT = 10;
 const priority_type PRIORITY_USER = 20;
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_PRIORITY_TYPE_H__

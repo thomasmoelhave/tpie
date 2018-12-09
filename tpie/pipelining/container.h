@@ -24,8 +24,7 @@
 #include <memory>
 #include <typeinfo>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 
 template <typename T>
 T & move_if_movable(typename std::remove_reference<T>::type & t,
@@ -260,6 +259,5 @@ T & any_cast(any_noncopyable & a) {
 
 inline void swap(any_noncopyable & l, any_noncopyable & r) {std::swap(l.cont, r.cont);}
 
-} //namespace pipelining
-} //namespace tpie
+} //namespace tpie::pipelining
 #endif //__TPIE_PIPELINING_PIPE_CONTAINER_H__

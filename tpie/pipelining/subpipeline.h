@@ -23,8 +23,7 @@
 #include <tpie/pipelining/runtime.h>
 #include <tpie/pipelining/virtual.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 namespace bits {
 
 class subpipeline_base: public pipeline_base_base {
@@ -192,7 +191,6 @@ private:
 	std::shared_ptr<bits::subpipeline_virt<item_type>> p;
 };
 
-} //namespace pipelining
-} //namespace tpie
+} //namespace tpie::pipelining
 
 #endif //__TPIE_PIPELINING_SUBPIPELINE_H__

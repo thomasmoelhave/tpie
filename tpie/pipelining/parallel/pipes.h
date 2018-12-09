@@ -25,9 +25,7 @@
 #include <tpie/pipelining/parallel/factory.h>
 #include <tpie/pipelining/maintain_order_type.h>
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Runs a pipeline in multiple threads.
@@ -86,8 +84,6 @@ parallel(pipe_middle<fact_t> && fact, bool maintainOrder) {
 	return parallel(std::move(fact), maintainOrder ? maintain_order : arbitrary_order);
 }
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_PARALLEL_PIPES_H__

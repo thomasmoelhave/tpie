@@ -23,9 +23,7 @@
 /// \file maintain_order_type.h  Whether to maintain order in parallel or not.
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 /** Type describing whether to maintain the order of items in parallel. */
 enum maintain_order_type {
@@ -37,8 +35,6 @@ enum maintain_order_type {
 	maintain_order = true
 };
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_MAINTAIN_ORDER_TYPE_H__

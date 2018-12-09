@@ -30,9 +30,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/helpers.h>
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  Virtual base class for extra data to go with virtual chunks.
@@ -1381,8 +1379,6 @@ virtual_chunk_end<T> chunk_end_if(bool b, virtual_chunk_end<T> t) {
 		return virtual_chunk_end<T>(null_sink<T>());
 }
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_VIRTUAL_H__

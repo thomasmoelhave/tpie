@@ -25,8 +25,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/node_name.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t>
@@ -71,8 +70,7 @@ pipe_middle<factory<bits::Forwarder, std::vector<std::pair<std::string, any_nonc
 	return forwarder(std::move(v));
 }
 
-} //namespace pipelining
-} //namespace terrastream
+} //namespace terrastream::pipelining
 
 #endif //__TPIE_PIPELINING_FORWARDER_H__
 

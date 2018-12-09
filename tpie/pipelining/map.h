@@ -26,8 +26,7 @@
 #include <tpie/pipelining/node_name.h>
 #include <type_traits>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename T>
@@ -184,7 +183,6 @@ pullpipe_middle<tempfactory<bits::pull_map_t<F>, F>> pull_map(const F & functor)
 	return tempfactory<bits::pull_map_t<F>, F >(functor);
 }
 
-} //namespace pipelining
-} //namespace terrastream
+} //namespace terrastream::pipelining
 
 #endif //__TPIE_PIPELINING_MAP_H__

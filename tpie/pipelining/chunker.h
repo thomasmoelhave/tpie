@@ -25,8 +25,7 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/node_name.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t>
@@ -75,7 +74,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 typedef pipe_middle<factory<bits::chunker_t, size_t> > chunker;
 
-} //namespace pipelining
-} //namespace terrastream
+} //namespace terrastream::pipelining
 
 #endif //__TPIE_PIPELINING_CHUNKER_H__

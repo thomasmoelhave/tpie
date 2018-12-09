@@ -20,9 +20,7 @@
 #ifndef __TPIE_PIPELINING_AMI_GLUE_H__
 #define __TPIE_PIPELINING_AMI_GLUE_H__
 
-namespace tpie {
-
-namespace pipelining {
+namespace tpie::pipelining {
 
 namespace bits {
 
@@ -173,8 +171,6 @@ inline pipe_end<termfactory<bits::ami_output_t<T>, tpie::ami::stream<T> &> > ami
 	return termfactory<bits::ami_output_t<T>, tpie::ami::stream<T> &>(fs);
 }
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif

@@ -25,10 +25,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t>
@@ -93,9 +90,6 @@ range(T from, T to, T increment = 1) {
 	return factory<bits::range_t, T, T, T>(from, to, increment);
 }
 
+} // namespace tpie::pipelining
 
-} // namespace pipelining
-
-} // namespace tpie
-
-#endif
+#endif //__TPIE_PIPELINING_NUMERIC_H__

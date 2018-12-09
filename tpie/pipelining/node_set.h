@@ -23,8 +23,7 @@
 #include <boost/intrusive_ptr.hpp>
 #include <tpie/pipelining/tokens.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 
 class node;
   
@@ -54,8 +53,6 @@ inline node_set make_node_set() {
 	return new bits::node_set_content();
 }
 
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_NODE_SET_H__

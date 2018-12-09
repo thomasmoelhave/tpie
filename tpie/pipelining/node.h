@@ -32,10 +32,7 @@
 #include <limits>
 #include <tpie/resources.h>
 
-namespace tpie {
-
-namespace pipelining {
-
+namespace tpie::pipelining {
 namespace bits {
 
 class proxy_progress_indicator : public tpie::progress_indicator_base {
@@ -819,9 +816,6 @@ private:
 
 TPIE_DECLARE_OPERATORS_FOR_FLAGS(node::PLOT);
 
-
-} // namespace pipelining
-
-} // namespace tpie
+} // namespace tpie::pipelining
 
 #endif // __TPIE_PIPELINING_NODE_H__
