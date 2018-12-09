@@ -109,38 +109,33 @@ public:
 
 	typedef T item_type;
 	std::shared_ptr<T> buffer;
-	inline void push(const T & el) {
+	void push(const T & el) {
 		*buffer = el;
 	}
-	inline T pull() {
+	T pull() {
 		return *buffer;
 	}
 };
 
-template <typename fact2_t>
-class fork_t {
+template <typename dest_t, typename fact2_t>
+class fork_t: public node {
 public:
 	typedef typename fact2_t::constructed_type dest2_t;
+	typedef typename push_type<dest_t>::type item_type;
 
-	template <typename dest_t>
-	class type : public node {
-	public:
-		typedef typename push_type<dest_t>::type item_type;
-
-		type(dest_t dest, fact2_t fact2) : dest(std::move(dest)), dest2(fact2.construct()) {
-			add_push_destination(this->dest);
-			add_push_destination(dest2);
-		}
-
-		inline void push(const item_type & item) {
-			dest.push(item);
-			dest2.push(item);
-		}
-
-	private:
-		dest_t dest;
-		dest2_t dest2;
-	};
+	fork_t(dest_t dest, fact2_t fact2) : dest(std::move(dest)), dest2(fact2.construct()) {
+		add_push_destination(this->dest);
+		add_push_destination(dest2);
+	}
+	
+	void push(const item_type & item) {
+		dest.push(item);
+		dest2.push(item);
+	}
+	
+private:
+	dest_t dest;
+	dest2_t dest2;
 };
 
 
@@ -211,30 +206,25 @@ public:
 	}
 };
 
-template <typename IT>
-class push_input_iterator_t {
+template <typename dest_t, typename IT>
+class push_input_iterator_t: public node {
+	IT i;
+	IT till;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type : public node {
-		IT i;
-		IT till;
-		dest_t dest;
-	public:
-		type(dest_t dest, IT from, IT to)
-			: i(from)
-			, till(to)
-			, dest(std::move(dest))
-		{
-			add_push_destination(dest);
+	push_input_iterator_t(dest_t dest, IT from, IT to)
+		: i(from)
+		, till(to)
+		, dest(std::move(dest)) {
+		add_push_destination(dest);
+	}
+	
+	void go() override {
+		while (i != till) {
+			dest.push(*i);
+			++i;
 		}
-
-		virtual void go() override {
-			while (i != till) {
-				dest.push(*i);
-				++i;
-			}
-		}
-	};
+	}
 };
 
 template <typename Iterator, typename Item = void>
@@ -272,170 +262,140 @@ public:
 	}
 };
 
-template <typename IT>
-class pull_output_iterator_t {
+template <typename dest_t, typename IT>
+class pull_output_iterator_t: public node {
+	IT i;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type : public node {
-		IT i;
-		dest_t dest;
-	public:
-		type(dest_t dest, IT to)
-			: i(to)
-			, dest(std::move(dest))
-		{
-			add_pull_source(dest);
+	pull_output_iterator_t(dest_t dest, IT to)
+		: i(to)
+		, dest(std::move(dest)) {
+		add_pull_source(dest);
+	}
+	
+	void go() override {
+		while (dest.can_pull()) {
+			*i = dest.pull();
+			++i;
 		}
-
-		virtual void go() override {
-			while (dest.can_pull()) {
-				*i = dest.pull();
-				++i;
-			}
-		}
-	};
+	}
 };
 
-template <typename F>
-class preparer_t {
+template <typename dest_t, typename F>
+class preparer_t: public node {
+private:
+	F functor;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		F functor;
-		dest_t dest;
-	public:
-		typedef typename push_type<dest_t>::type item_type;
-		type(dest_t dest, const F & functor): functor(functor), dest(std::move(dest)) {
-			add_push_destination(this->dest);
-		}
-
-		void prepare() override {
-			functor(*static_cast<node*>(this));
-		};
-
-		void push(const item_type & item) {dest.push(item);}
-	};
+	typedef typename push_type<dest_t>::type item_type;
+	preparer_t(dest_t dest, const F & functor): functor(functor), dest(std::move(dest)) {
+		add_push_destination(this->dest);
+	}
+	
+	void prepare() override {
+		functor(*static_cast<node*>(this));
+	}
+	
+	void push(const item_type & item) {dest.push(item);}
 };
 
-
-template <typename F>
-class propagater_t {
+template <typename dest_t, typename F>
+class propagater_t: public node {
+private:
+	F functor;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		F functor;
-		dest_t dest;
-	public:
-		typedef typename push_type<dest_t>::type item_type;
-		type(dest_t dest, const F & functor): functor(functor), dest(std::move(dest)) {
-			add_push_destination(this->dest);
-		}
-
-		void propagate() override {
-			functor(*static_cast<node*>(this));
-		};
-
-		void push(const item_type & item) {dest.push(item);}
-	};
+	typedef typename push_type<dest_t>::type item_type;
+	propagater_t(dest_t dest, const F & functor): functor(functor), dest(std::move(dest)) {
+		add_push_destination(this->dest);
+	}
+	
+	void propagate() override {
+		functor(*static_cast<node*>(this));
+	}
+	
+	void push(const item_type & item) {dest.push(item);}
 };
 
-template <typename src_fact_t>
-struct zip_t {
+template <typename dest_t, typename src_fact_t>
+struct zip_t: public node {
 	typedef typename src_fact_t::constructed_type src_t;
-	template <typename dest_t>
-	class type: public node {
-	public:
-		typedef typename push_type<dest_t>::type::first_type item_type;
+	typedef typename push_type<dest_t>::type::first_type item_type;
+	
+	zip_t(dest_t dest, src_fact_t src_fact)
+		: src(src_fact.construct()), dest(std::move(dest)) {
+		add_push_destination(this->dest);
+		add_pull_source(src);
+	}
 
-		type(dest_t dest, src_fact_t src_fact)
-			: src(src_fact.construct()), dest(std::move(dest)) {
-			add_push_destination(this->dest);
-			add_pull_source(src);
-		}
-
-		void push(const item_type & item) {
-			tp_assert(src.can_pull(), "We should be able to pull");
-			dest.push(std::make_pair(item, src.pull()));
-		}
-	private:
-		src_t src;
-		dest_t dest;
-	};
+	void push(const item_type & item) {
+		tp_assert(src.can_pull(), "We should be able to pull");
+		dest.push(std::make_pair(item, src.pull()));
+	}
+private:
+	src_t src;
+	dest_t dest;
 };
 
-template <typename fact2_t>
-struct unzip_t {
+template <typename dest1_t, typename fact2_t>
+struct unzip_t: public node {
 	typedef typename fact2_t::constructed_type dest2_t;
-
-	template <typename dest1_t>
-	class type: public node {
-	public:
-		typedef typename push_type<dest1_t>::type first_type;
-		typedef typename push_type<dest2_t>::type second_type;
-		typedef std::pair<first_type, second_type> item_type;
-
-		type(dest1_t dest1, fact2_t fact2) : dest1(std::move(dest1)), dest2(fact2.construct()) {
-			add_push_destination(this->dest1);
-			add_push_destination(dest2);
-		}
-
-		void push(const item_type & item) {
-			dest2.push(item.second);
+	typedef typename push_type<dest1_t>::type first_type;
+	typedef typename push_type<dest2_t>::type second_type;
+	typedef std::pair<first_type, second_type> item_type;
+	
+	unzip_t(dest1_t dest1, fact2_t fact2) : dest1(std::move(dest1)), dest2(fact2.construct()) {
+		add_push_destination(this->dest1);
+		add_push_destination(dest2);
+	}
+	
+	void push(const item_type & item) {
+		dest2.push(item.second);
 			dest1.push(item.first);
-		}
-	private:
-		dest1_t dest1;
-		dest2_t dest2;
-	};
+	}
+private:
+	dest1_t dest1;
+	dest2_t dest2;
 };
 
-template <typename T>
-class item_type_t {
+template <typename dest_t, typename T>
+class item_type_t: public node {
+private:
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		dest_t dest;
-	public:
-		typedef T item_type;
-		type(dest_t dest): dest(std::move(dest)) {}
-		void push(const item_type & item) {dest.push(item);}
-	};
+	typedef T item_type;
+	item_type_t(dest_t dest): dest(std::move(dest)) {}
+	void push(const item_type & item) {dest.push(item);}
 };
 
-template <typename fact_t>
-class pull_source_t {
+
+template <typename dest_t, typename fact_t>
+class pull_source_t: public node {
 public:
-	template <typename dest_t>
-	class type: public node {
-	public:
-		typedef typename fact_t::constructed_type source_t;
-		typedef typename push_type<dest_t>::type item_type;
+	typedef typename fact_t::constructed_type source_t;
+	typedef typename push_type<dest_t>::type item_type;
+	
+	pull_source_t(dest_t dest, fact_t fact)
+		: dest(std::move(dest)), src(fact.construct()) {
+		add_push_destination(dest);
+		add_pull_source(src);
+	}
 
-		type(dest_t dest, fact_t fact)
-			: dest(std::move(dest)), src(fact.construct()) {
-			add_push_destination(dest);
-			add_pull_source(src);
+	void propagate() override {
+		size_t size = fetch<stream_size_type>("items");
+		set_steps(size);
+	}
+	
+	void go() override {
+		while (src.can_pull()) {
+			dest.push(src.pull());
+			step();
 		}
-
-		void propagate() override {
-			size_t size = fetch<stream_size_type>("items");
-			set_steps(size);
-		}
-
-		void go() override {
-			while (src.can_pull()) {
-				dest.push(src.pull());
-				step();
-			}
-		}
-
-	private:
-		dest_t dest;
-		source_t src;
-	};
+	}
+	
+private:
+	dest_t dest;
+	source_t src;
 };
 
 template <typename dest_t, typename equal_t>
@@ -531,7 +491,7 @@ typedef pullpipe_middle<factory<bits::pull_peek_t> > pull_peek;
 /// to the destination and then to "to"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-pipe_middle<tempfactory<bits::fork_t<fact_t>, fact_t> >
+pipe_middle<tfactory<bits::fork_t, Args<fact_t>, fact_t> >
 fork(pipe_end<fact_t> to) {
 	return {std::move(to.factory)};
 }
@@ -555,7 +515,7 @@ pull_fork(dest_fact_t dest_fact) {
 /// a is pushed to its destination, and then b is pushed to "to"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-pipe_middle<tempfactory<bits::unzip_t<fact_t>, fact_t> >
+pipe_middle<tfactory<bits::unzip_t, Args<fact_t>, fact_t> >
 unzip(pipe_end<fact_t> to) {
 	return {std::move(to.factory)};
 }
@@ -568,7 +528,7 @@ unzip(pipe_end<fact_t> to) {
 /// and std::make_pair(a,b) is pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-pipe_middle<tempfactory<bits::zip_t<fact_t>, fact_t> >
+pipe_middle<tfactory<bits::zip_t, Args<fact_t>, fact_t> >
 zip(pullpipe_begin<fact_t> from) {
 	return {std::move(from.factory)};
 }
@@ -579,8 +539,8 @@ zip(pullpipe_begin<fact_t> from) {
 /// Whenever an element of type T is pushed to the null_sink it is disregarded
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pipe_end<termfactory<bits::null_sink_t<T> > >
-null_sink() {return termfactory<bits::null_sink_t<T> >();}
+inline pipe_end<termfactory<bits::null_sink_t<T>>>
+null_sink() {return {};}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Create a dummy pull begin pipe node
@@ -588,8 +548,8 @@ null_sink() {return termfactory<bits::null_sink_t<T> >();}
 /// Whenever an element of type T is pushed to the null_sink it is disregarded
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline pullpipe_begin<termfactory<bits::zero_source_t<T> > >
-zero_source() {return termfactory<bits::zero_source_t<T> >();}
+inline pullpipe_begin<termfactory<bits::zero_source_t<T>>>
+zero_source() {return {}; }
 
 
 template <template <typename dest_t> class Fact, typename... T>
@@ -614,7 +574,7 @@ pipe_end<termfactory<Fact, T...> > make_pipe_end(T ... t) {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
 pullpipe_begin<termfactory<bits::pull_input_iterator_t<IT>, IT, IT> > pull_input_iterator(IT begin, IT end) {
-	return termfactory<bits::pull_input_iterator_t<IT>, IT, IT>(begin, end);
+	return {begin, end};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -624,8 +584,8 @@ pullpipe_begin<termfactory<bits::pull_input_iterator_t<IT>, IT, IT> > pull_input
 /// \param end The iterator pointing to the end of the range
 ///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
-pipe_begin<tempfactory<bits::push_input_iterator_t<IT>, IT, IT> > push_input_iterator(IT begin, IT end) {
-	return tempfactory<bits::push_input_iterator_t<IT>, IT, IT>(begin, end);
+pipe_begin<tfactory<bits::push_input_iterator_t, Args<IT>, IT, IT> > push_input_iterator(IT begin, IT end) {
+	return {begin, end};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -636,7 +596,7 @@ pipe_begin<tempfactory<bits::push_input_iterator_t<IT>, IT, IT> > push_input_ite
 ///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
 pipe_end<termfactory<bits::push_output_iterator_t<IT>, IT> > push_output_iterator(IT to) {
-	return termfactory<bits::push_output_iterator_t<IT>, IT>(to);
+	return {to};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -648,7 +608,7 @@ pipe_end<termfactory<bits::push_output_iterator_t<IT>, IT> > push_output_iterato
 ///////////////////////////////////////////////////////////////////////////////
 template <typename Item, typename IT>
 pipe_end<termfactory<bits::push_output_iterator_t<IT, Item>, IT> > typed_push_output_iterator(IT to) {
-	return termfactory<bits::push_output_iterator_t<IT, Item>, IT>(to);
+	return {to};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -658,8 +618,8 @@ pipe_end<termfactory<bits::push_output_iterator_t<IT, Item>, IT> > typed_push_ou
 /// written to
 ///////////////////////////////////////////////////////////////////////////////
 template <typename IT>
-pullpipe_end<tempfactory<bits::pull_output_iterator_t<IT>, IT> > pull_output_iterator(IT to) {
-	return tempfactory<bits::pull_output_iterator_t<IT>, IT>(to);
+pullpipe_end<tfactory<bits::pull_output_iterator_t, Args<IT>, IT> > pull_output_iterator(IT to) {
+	return {to};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -669,8 +629,8 @@ pullpipe_end<tempfactory<bits::pull_output_iterator_t<IT>, IT> > pull_output_ite
 /// Whenever an element is pushed, it is immidiately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-pipe_middle<tempfactory<bits::preparer_t<F>, F> > preparer(const F & functor) {
-	return tempfactory<bits::preparer_t<F>, F>(functor);
+pipe_middle<tfactory<bits::preparer_t, Args<F>, F> > preparer(const F & functor) {
+	return {functor};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -680,8 +640,8 @@ pipe_middle<tempfactory<bits::preparer_t<F>, F> > preparer(const F & functor) {
 /// Whenever an element is pushed, it is immediately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-pipe_middle<tempfactory<bits::propagater_t<F>, F> > propagater(const F & functor) {
-	return tempfactory<bits::propagater_t<F>, F>(functor);
+pipe_middle<tfactory<bits::propagater_t, Args<F>, F> > propagater(const F & functor) {
+	return {functor};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -691,8 +651,8 @@ pipe_middle<tempfactory<bits::propagater_t<F>, F> > propagater(const F & functor
 /// Whenever an element is push, it is immidiately pushed to the destination
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-pipe_middle<tempfactory<bits::item_type_t<T> > > item_type() {
-	return tempfactory<bits::item_type_t<T> >();
+pipe_middle<tfactory<bits::item_type_t, Args<T> > > item_type() {
+	return {};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -701,7 +661,7 @@ pipe_middle<tempfactory<bits::item_type_t<T> > > item_type() {
 /// \param from The pull source, and the source forwards the number of items, "items"
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-pipe_begin<tempfactory<bits::pull_source_t<fact_t>, fact_t> >
+pipe_begin<tfactory<bits::pull_source_t, Args<fact_t>, fact_t> >
 pull_source(pullpipe_begin<fact_t> from) {
 	return {std::move(from.factory)};
 }

@@ -25,30 +25,25 @@
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/node_name.h>
 
-namespace tpie {
-namespace pipelining {
+namespace tpie::pipelining {
 namespace bits {
 
-template <typename F>
-class visit_t {
+template <typename dest_t, typename F>
+class visit_t: public node {
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		F functor;
-		dest_t dest;
-	public:
-		typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
-		type(dest_t dest, const F & functor):
-			functor(functor), dest(std::move(dest)) {
-			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
-		}
-		
-		void push(const item_type & item) {
-			functor(item);
-			dest.push(item);
-		}
-	};
+	F functor;
+	dest_t dest;
+public:
+	typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
+	visit_t(dest_t dest, const F & functor):
+		functor(functor), dest(std::move(dest)) {
+		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+	}
+	
+	void push(const item_type & item) {
+		functor(item);
+		dest.push(item);
+	}
 };
 
 } //namespace bits
@@ -58,8 +53,8 @@ public:
 /// \param functor The visitor to use
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-pipe_middle<tempfactory<bits::visit_t<F>, F> > visit(const F & functor) {
-	return tempfactory<bits::visit_t<F>, F >(functor);
+pipe_middle<tfactory<bits::visit_t, Args<F>, F> > visit(const F & functor) {
+	return {functor};
 }
 
 } //namespace terrastream::pipelining

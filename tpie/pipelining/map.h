@@ -53,49 +53,40 @@ struct unary_traits_imp<R(*)(A)> {
 template <typename T>
 struct unary_traits: public unary_traits_imp<decltype(&T::operator()) > {};
 
-template <typename F>
-class map_t {
+template <typename dest_t, typename F>
+class map_t: public node {
+private:
+	F functor;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		F functor;
-		dest_t dest;
-	public:
-		typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
-
-		type(dest_t dest, const F & functor):
-			functor(functor), dest(std::move(dest)) {
-			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
-		}
-		
-		void push(const item_type & item) {
-			dest.push(functor(item));
-		}
-	};
+	typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
+	
+	map_t(dest_t dest, const F & functor):
+		functor(functor), dest(std::move(dest)) {
+		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+	}
+	
+	void push(const item_type & item) {
+		dest.push(functor(item));
+	}
 };
 
-template <typename F>
-class map_temp_t {
+template <typename dest_t, typename F>
+class map_temp_t: public node {
+private:
+	F functor;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		F functor;
-		dest_t dest;
-	public:
-		type(dest_t dest, const F & functor):
-			functor(functor), dest(std::move(dest)) {
-			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
-		}
-
-		template <typename T>
-		void push(const T & item) {
-			dest.push(functor(item));
-		}
-	};
+	map_temp_t(dest_t dest, const F & functor):
+		functor(functor), dest(std::move(dest)) {
+		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+	}
+	
+	template <typename T>
+	void push(const T & item) {
+		dest.push(functor(item));
+	}
 };
-
 
 template <typename F>
 class map_sink_t: public node {
@@ -114,28 +105,24 @@ public:
 	}
 };
 
-template <typename F>
-class pull_map_t {
+template <typename src_t, typename F>
+class pull_map_t: public node {
+private:
+	F functor;
+	src_t src;
 public:
-	template <typename src_t>
-	class type: public node {
-	private:
-		F functor;
-		src_t src;
-	public:
-		type(src_t src, const F & functor):
-			functor(functor), src(std::move(src)) {
-			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
-		}
-		
-		auto pull() {
-			return functor(src.pull());
-		}
-
-		bool can_pull() {
-			return src.can_pull();
-		}
-	};
+	pull_map_t(src_t src, const F & functor):
+		functor(functor), src(std::move(src)) {
+		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+	}
+	
+	auto pull() {
+		return functor(src.pull());
+	}
+	
+	bool can_pull() {
+		return src.can_pull();
+	}
 };
 
 
@@ -164,23 +151,23 @@ struct has_argument_type {
 /// \param functor The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F, typename = typename std::enable_if<bits::has_argument_type<F>::value>::type>
-pipe_middle<tempfactory<bits::map_t<F>, F> > map(const F & functor) {
-	return tempfactory<bits::map_t<F>, F >(functor);
+pipe_middle<tfactory<bits::map_t, Args<F>, F> > map(const F & functor) {
+	return {functor};
 }
 
 template <typename F, typename = typename std::enable_if<!bits::has_argument_type<F>::value>::type>
-pipe_middle<tempfactory<bits::map_temp_t<F>, F> > map(const F & functor) {
-	return tempfactory<bits::map_temp_t<F>, F >(functor);
+pipe_middle<tfactory<bits::map_temp_t, Args<F>, F> > map(const F & functor) {
+	return {functor};
 }
 
 template <typename F>
-pipe_end<termfactory<bits::map_sink_t<F>, F> > map_sink(const F & functor) {
-	return termfactory<bits::map_sink_t<F>, F >(functor);
+pipe_end<tfactory<bits::map_sink_t, Args<F>, F> > map_sink(const F & functor) {
+	return {functor};
 }
 
 template <typename F>
-pullpipe_middle<tempfactory<bits::pull_map_t<F>, F>> pull_map(const F & functor) {
-	return tempfactory<bits::pull_map_t<F>, F >(functor);
+pullpipe_middle<tfactory<bits::pull_map_t, Args<F>, F>> pull_map(const F & functor) {
+	return {functor};
 }
 
 } //namespace terrastream::pipelining

@@ -97,45 +97,37 @@ private:
 };
 
 
-template <typename F>
-class lambda_t {
+template <typename dest_t, typename F>
+class lambda_t: public node {
 public:
-	template <typename dest_t>
-	class type: public node {
-	public:
-		typedef typename F::argument_type item_type;
+	typedef typename F::argument_type item_type;
 		
-		type(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
-		}
-		
-		void push(const item_type & item) {
-			dest.push(f(item));
-		}
-	private:
-		F f;
-		dest_t dest;
-	};
+	lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
+	}
+	
+	void push(const item_type & item) {
+		dest.push(f(item));
+	}
+private:
+	F f;
+	dest_t dest;
 };
 
-template <typename F>
-class exclude_lambda_t {
+template <typename dest_t, typename F>
+class exclude_lambda_t: public node {
 public:
-	template <typename dest_t>
-	class type: public node {
-	public:
-		typedef typename F::argument_type item_type;
+	typedef typename F::argument_type item_type;
 		
-		type(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
-		}
-		
-		void push(const item_type & item) {
-			typename F::result_type t=f(item);
-			if (t.second) dest.push(t.first);
-		}
-	private:
-		F f;
-		dest_t dest;
-	};
+	exclude_lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
+	}
+	
+	void push(const item_type & item) {
+		typename F::result_type t=f(item);
+		if (t.second) dest.push(t.first);
+	}
+private:
+	F f;
+	dest_t dest;
 };
 
 
@@ -171,7 +163,7 @@ pullpipe_begin<termfactory<bits::pull_input_vector_t<T, A>, const std::vector<T,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename A>
 inline pipe_end<termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &> > output_vector(std::vector<T, A> & output) {
-	return termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &>(output);
+	return {output};
 }
 template <typename T, typename A>
 pipe_end<termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &> > output_vector(std::vector<T, A> && output) = delete;
@@ -183,8 +175,8 @@ pipe_end<termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &> > output_
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-inline pipe_middle<tempfactory<bits::lambda_t<F>, F> > lambda(const F & f) {
-	return tempfactory<bits::lambda_t<F>, F>(f);
+inline pipe_middle<tfactory<bits::lambda_t, Args<F>, F> > lambda(const F & f) {
+	return {f};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -197,8 +189,8 @@ inline pipe_middle<tempfactory<bits::lambda_t<F>, F> > lambda(const F & f) {
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-inline pipe_middle<tempfactory<bits::exclude_lambda_t<F>, F> > exclude_lambda(const F & f) {
-	return tempfactory<bits::exclude_lambda_t<F>, F>(f);
+inline pipe_middle<tfactory<bits::exclude_lambda_t, Args<F>, F> > exclude_lambda(const F & f) {
+	return {f};
 }
 
 } // namespace tpie:: pipelining

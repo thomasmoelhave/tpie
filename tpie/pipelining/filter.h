@@ -29,28 +29,25 @@
 namespace tpie::pipelining {
 namespace bits {
 
-template <typename F>
-class filter_t {
+template <typename dest_t, typename F>
+class filter_t: public node {
+private:
+	F functor;
+	dest_t dest;
 public:
-	template <typename dest_t>
-	class type: public node {
-	private:
-		F functor;
-		dest_t dest;
-	public:
-		typedef typename std::decay<typename unary_traits<F>::argument_type>::type funct_arg_type;
-		typedef typename push_type<dest_t, funct_arg_type>::type item_type;
-		type(dest_t dest, const F & functor):
-			functor(functor), dest(std::move(dest)) {
-			set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
-		}
-		
-		void push(const item_type & item) {
-			if (functor(item))
-				dest.push(item);
-		}
-	};
+	typedef typename std::decay<typename unary_traits<F>::argument_type>::type funct_arg_type;
+	typedef typename push_type<dest_t, funct_arg_type>::type item_type;
+	filter_t(dest_t dest, const F & functor):
+		functor(functor), dest(std::move(dest)) {
+		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
+	}
+	
+	void push(const item_type & item) {
+		if (functor(item))
+			dest.push(item);
+	}
 };
+
 
 } //namespace bits
 
@@ -60,8 +57,8 @@ public:
 /// \param functor The filter to use
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
-pipe_middle<tempfactory<bits::filter_t<F>, F> > filter(const F & functor) {
-	return tempfactory<bits::filter_t<F>, F >(functor);
+pipe_middle<tfactory<bits::filter_t, Args<F>, F> > filter(const F & functor) {
+	return {functor};
 }
 
 } //namespace terrastream::pipelining

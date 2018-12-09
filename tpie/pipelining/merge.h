@@ -34,29 +34,24 @@ namespace bits {
 /// Currently, it is not very well defined what constitutes a merge.
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename fact_t>
-class merge_t {
+template <typename dest_t, typename fact_t>
+class merge_t: public node {
 public:
 	typedef typename fact_t::constructed_type pull_t;
-
-	template <typename dest_t>
-	class type : public node {
-	public:
-		typedef typename push_type<dest_t>::type item_type;
-
-		type(dest_t dest, fact_t fact) : dest(std::move(dest)), with(fact.construct()) {
-			add_push_destination(this->dest);
-			add_pull_source(with);
-		}
-
-		inline void push(const item_type & item) {
-			dest.push(item);
-			dest.push(with.pull());
-		}
-
-		dest_t dest;
-		pull_t with;
-	};
+	typedef typename push_type<dest_t>::type item_type;
+	
+	merge_t(dest_t dest, fact_t fact) : dest(std::move(dest)), with(fact.construct()) {
+		add_push_destination(this->dest);
+		add_pull_source(with);
+	}
+	
+	void push(const item_type & item) {
+		dest.push(item);
+		dest.push(with.pull());
+	}
+	
+	dest_t dest;
+	pull_t with;
 };
 
 } // namespace bits
@@ -66,7 +61,7 @@ public:
 /// for each item pushed to it.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename pull_t>
-inline pipe_middle<factory<bits::merge_t<pull_t>::template type, pull_t> >
+inline pipe_middle<tfactory<bits::merge_t, Args<pull_t>, pull_t> >
 merge(pullpipe_begin<pull_t> with) {
 	return {std::move(with.factory)};
 }
