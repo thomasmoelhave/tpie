@@ -51,11 +51,11 @@ public:
 		set_minimum_resource_usage(FILES, 1);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		set_steps(rd->size());
 	}
 
-	virtual void go() override {
+	void go() override {
 		item_type x;
 		stream_size_type bytesRead = 0;
 		while (rd->can_read()) {
@@ -359,7 +359,7 @@ public:
 		set_plot_options(PLOT_BUFFERED);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		file = fetch<tpie::maybe<tpie::temp_file> *>("__sbuf_file");
 		if (!file->is_constructed())
 			throw tpie::exception("No one created my file");

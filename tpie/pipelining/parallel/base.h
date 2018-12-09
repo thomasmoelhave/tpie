@@ -445,7 +445,7 @@ public:
 		if (*m_cons != 0) throw tpie::exception("Expected nullptr");
 	}
 
-	virtual void set_consumer(node * cons) override {
+	void set_consumer(node * cons) override {
 		this->add_push_destination(*cons);
 	}
 
@@ -470,7 +470,7 @@ public:
 		m_buffer->m_outputBuffer[m_buffer->m_outputSize++] = item;
 	}
 
-	virtual void end() override {
+	void end() override {
 		flush_buffer_impl(true);
 		m_buffer.reset();
 	}
@@ -478,7 +478,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief  Invoked by before::worker (in worker thread context).
 	///////////////////////////////////////////////////////////////////////////
-	virtual void worker_initialize() override {
+	void worker_initialize() override {
 		m_buffer.reset(new parallel_output_buffer<T>(st.opts));
 		m_outputBuffers[parId] = m_buffer.get();
 	}
@@ -487,7 +487,7 @@ public:
 	/// \brief  Invoked by before::push_all when all input items have been
 	/// pushed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void flush_buffer() override {
+	void flush_buffer() override {
 		flush_buffer_impl(true);
 	}
 
@@ -602,7 +602,7 @@ protected:
 public:
 	typedef T item_type;
 
-	virtual void begin() override {
+	void begin() override {
 		node::begin();
 		std::thread t(run_worker, this);
 		m_worker.swap(t);
@@ -765,7 +765,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Push all items from output buffer to the rest of the pipeline.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void consume(array_view<item_type> a) override {
+	void consume(array_view<item_type> a) override {
 		for (size_t i = 0; i < a.size(); ++i) {
 			dest.push(a[i]);
 		}
@@ -1026,7 +1026,7 @@ public:
 		}
 	}
 
-	virtual void begin() override {
+	void begin() override {
 		inputBuffer.resize(st->opts.bufSize);
 
 		state_base::lock_t lock(st->mutex);
@@ -1120,7 +1120,7 @@ private:
 	}
 
 public:
-	virtual void end() override {
+	void end() override {
 		state_base::lock_t lock(st->mutex);
 
 		flush_steps();

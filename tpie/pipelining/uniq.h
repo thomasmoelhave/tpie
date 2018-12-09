@@ -34,19 +34,19 @@ public:
 	typedef uint64_t count_t;
 	typedef typename push_type<dest_t>::type::first_type item_type;
 
-	inline count_consecutive_t(dest_t dest)
+	count_consecutive_t(dest_t dest)
 		: dest(std::move(dest))
 		, current_count(0)
 	{
 		add_push_destination(this->dest);
 	}
 
-	virtual void end() override {
+	void end() override {
 		node::end();
 		flush();
 	}
 
-	inline void push(const item_type & item) {
+	void push(const item_type & item) {
 		if (current_count && item == item_buffer) {
 			++current_count;
 		} else {
@@ -56,7 +56,7 @@ public:
 		}
 	}
 private:
-	inline void flush() {
+	void flush() {
 		if (!current_count) return;
 		dest.push(std::make_pair(item_buffer, current_count));
 		current_count = 0;
@@ -69,9 +69,9 @@ private:
 class any_type {
 public:
 	template <typename T>
-	inline any_type(const T &) {}
+	any_type(const T &) {}
 	template <typename T>
-	inline any_type & operator=(const T &) {return *this;}
+	any_type & operator=(const T &) {return *this;}
 };
 
 template <typename dest_t>
@@ -79,11 +79,11 @@ class extract_first_t : public node {
 public:
 	typedef std::pair<typename push_type<dest_t>::type, any_type> item_type;
 
-	inline extract_first_t(dest_t dest) : dest(std::move(dest)) {
+	extract_first_t(dest_t dest) : dest(std::move(dest)) {
 		add_push_destination(this->dest);
 	}
 
-	inline void push(const item_type & item) {
+	void push(const item_type & item) {
 		dest.push(item.first);
 	}
 private:

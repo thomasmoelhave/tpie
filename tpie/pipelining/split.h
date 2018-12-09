@@ -66,11 +66,11 @@ public:
 
 		source_impl(source_impl &&) = default;
 
-		virtual void prepare() override {
+		void prepare() override {
 			the_sources.push_back(this);
 		};
 
-		virtual void push(const T & v) override {
+		void push(const T & v) override {
 			dest.push(v);
 		}
 

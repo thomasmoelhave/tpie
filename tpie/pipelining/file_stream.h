@@ -56,7 +56,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		if (options & STREAM_RESET) fs.seek(0);
 		
 		if (fs.is_open()) {
@@ -67,7 +67,7 @@ public:
 		}
 	}
 
-	virtual void go() override {
+	void go() override {
 		if (fs.is_open()) {
 			while (fs.can_read()) {
 				dest.push(fs.read());
@@ -76,7 +76,7 @@ public:
 		}
 	}
 
-	virtual void end() override {
+	void end() override {
 		if (options & STREAM_CLOSE) fs.close();
 	}
 
@@ -102,14 +102,14 @@ public:
 		set_minimum_memory(file_stream<item_type>::memory_usage());
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		fs.construct();
 		fs->open(path, access_read);
 		forward("items", fs->size());
 		set_steps(fs->size());
 	}
 
-	virtual void go() override {
+	void go() override {
 		while (fs->can_read()) {
 			dest.push(fs->read());
 			step();
@@ -138,7 +138,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		if (options & STREAM_RESET) fs.seek(0);
 		forward("items", fs.size()-fs.offset());
 		set_steps(fs.size()-fs.offset());
@@ -153,7 +153,7 @@ public:
 		return fs.can_read();
 	}
 
-	virtual void end() override {
+	void end() override {
 		if (options & STREAM_CLOSE) fs.close();
 	}
 
@@ -177,22 +177,22 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		if (options & STREAM_RESET) fs.seek(0, file_stream<T>::end);
 		forward("items", fs.offset());
 		set_steps(fs.offset());
 	}
 
-	inline T pull() {
+	T pull() {
 		step();
 		return fs.read_back();
 	}
 
-	inline bool can_pull() {
+	bool can_pull() {
 		return fs.can_read_back();
 	}
 
-	virtual void end() override {
+	void end() override {
 		if (options & STREAM_CLOSE) fs.close();
 	}
 
@@ -216,7 +216,7 @@ public:
 		set_minimum_memory(file_stream<T>::memory_usage());
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		fs.construct();
 		fs->open(path, access_read);
 		forward("items", fs->size());
@@ -314,7 +314,7 @@ public:
 		set_minimum_memory(fs.memory_usage());
 	}
 
-	virtual void go() override {
+	void go() override {
 		source.begin();
 		while (source.can_pull()) {
 			fs.write(source.pull());

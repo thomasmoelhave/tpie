@@ -338,26 +338,26 @@ public:
 	}
 
 	// Use for the advanced case when a node_token is allocated before the node
-	inline node_token()
+	node_token()
 		: m_tokens(bits::node_map::create())
 		, m_id(m_tokens->add_token(0))
 		, m_free(true)
 	{
 	}
 
-	inline id_t id() const { return m_id; }
+	id_t id() const { return m_id; }
 
-	inline bits::node_map::ptr map_union(const node_token & with) {
+	bits::node_map::ptr map_union(const node_token & with) {
 		if (m_tokens != with.m_tokens)
 			m_tokens->union_set(with.m_tokens);
 		return m_tokens = m_tokens->find_authority();
 	}
 
-	inline bits::node_map::ptr get_map() const {
+	bits::node_map::ptr get_map() const {
 		return m_tokens;
 	}
 
-	inline val_t get() const {
+	val_t get() const {
 		return m_tokens->get(m_id);
 	}
 

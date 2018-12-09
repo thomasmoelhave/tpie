@@ -33,11 +33,11 @@ class linear_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline linear_t(dest_t dest, item_type factor, item_type term) : factor(factor), term(term), dest(std::move(dest)) {
+	linear_t(dest_t dest, item_type factor, item_type term) : factor(factor), term(term), dest(std::move(dest)) {
 		add_push_destination(this->dest);
 		set_name("Linear transform", PRIORITY_INSIGNIFICANT);
 	}
-	inline void push(const item_type & item) {
+	void push(const item_type & item) {
 		dest.push(item*factor+term);
 	}
 private:
@@ -58,7 +58,7 @@ public:
 		forward("items", items);
 	}
 	
-	virtual void go() override {
+	void go() override {
 		for (item_type i=from; i < to; i += increment) {
 			dest.push(i);
 			step(1);

@@ -43,11 +43,11 @@ public:
 		, m_store(store) {
 	}
 
-	inline bool can_pull() {
+	bool can_pull() {
 		return !pq.empty();
 	}
 
- 	inline store_type pull() {
+	store_type pull() {
 		tp_assert(can_pull(), "pull() while !can_pull()");
 		store_type el = std::move(pq.top().first);
 		size_t i = pq.top().second;
@@ -64,7 +64,7 @@ public:
 		return std::move(el);
 	}
 
-	inline void reset() {
+	void reset() {
 		in.resize(0);
 		pq.resize(0);
 		itemsRead.resize(0);

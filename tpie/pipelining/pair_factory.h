@@ -51,11 +51,11 @@ public:
 		swap(m_maps, other.m_maps);
 	}
 
-	inline double memory() const noexcept {
+	double memory() const noexcept {
 		return self().fact1.memory() + self().fact2.memory();
 	}
 
-	inline void name(const std::string & n, priority_type) {
+	void name(const std::string & n, priority_type) {
 		push_breadcrumb(n);
 	}
 
@@ -129,8 +129,8 @@ public:
 	}
 
 private:
-	inline child_t & self() {return *static_cast<child_t*>(this);}
-	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
+	child_t & self() {return *static_cast<child_t*>(this);}
+	const child_t & self() const {return *static_cast<const child_t*>(this);}
 
 	boost::scoped_array<node_map::ptr> m_maps;
 	bool m_final;

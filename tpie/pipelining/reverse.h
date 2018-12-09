@@ -37,7 +37,7 @@ class reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline reverser_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
+	reverser_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
 		: node(token), m_output(output)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
@@ -74,7 +74,7 @@ class internal_reverser_input_t: public node {
 public:
 	typedef T item_type;
 
-	inline internal_reverser_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
+	internal_reverser_input_t(const node_token & token, std::shared_ptr<node> output=std::shared_ptr<node>())
 		: node(token), m_output(output)
 	{
 		set_name("Store items", PRIORITY_SIGNIFICANT);
@@ -82,7 +82,7 @@ public:
 		set_plot_options(PLOT_BUFFERED | PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_stack = tpie_new<std::stack<item_type> >();
 		forward("stack", m_stack, 1);
 	}
@@ -158,20 +158,20 @@ public:
 		set_plot_options(PLOT_BUFFERED);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_stack = fetch<std::stack<item_type> *>("stack");
 		forward("items", m_stack->size());
 		set_steps(m_stack->size());
 	}
 
-	virtual void go() override {
+	void go() override {
 		while (!m_stack->empty()) {
 			dest.push(m_stack->pop());
 			step();
 		}
 	}
 
-	virtual void end() override {
+	void end() override {
 		tpie_delete(m_stack);
 	}
 private:
@@ -237,7 +237,7 @@ public:
 		set_plot_options(PLOT_BUFFERED);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_stack = fetch<std::stack<item_type> *>("stack");
 		forward("items", m_stack->size());
 	}
@@ -258,7 +258,7 @@ public:
 		return r;
 	}
 
-	virtual void end() override {
+	void end() override {
 		tpie_delete(m_stack);
 	}
 private:
@@ -285,25 +285,25 @@ private:
 public:
 	passive_reverser() {}
 
-	inline input_t raw_input() {
+	input_t raw_input() {
 		return input_t(input_token);
 	}
 
-	inline output_t raw_output() {
+	output_t raw_output() {
 		return output_t(input_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Returns a termfactory for the input nodes
 	///////////////////////////////////////////////////////////////////////////////
-	inline inputpipe_t input() {
+	inputpipe_t input() {
 		return inputfact_t(input_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Returns a termfactory for the output nodes
 	///////////////////////////////////////////////////////////////////////////////
-	inline outputpipe_t output() {
+	outputpipe_t output() {
 		return outputfact_t(input_token);
 	}
 private:
@@ -332,25 +332,25 @@ private:
 public:
 	internal_passive_reverser() {}
 
-	inline input_t raw_input() {
+	input_t raw_input() {
 		return input_t(input_token);
 	}
 
-	inline output_t raw_output() {
+	output_t raw_output() {
 		return output_t(input_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Returns a termfactory for the input nodes
 	///////////////////////////////////////////////////////////////////////////////
-	inline inputpipe_t input() {
+	inputpipe_t input() {
 		return inputfact_t(input_token);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Returns a termfactory for the output nodes
 	///////////////////////////////////////////////////////////////////////////////
-	inline outputpipe_t output() {
+	outputpipe_t output() {
 		return outputfact_t(input_token);
 	}
 private:

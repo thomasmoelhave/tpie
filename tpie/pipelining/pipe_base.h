@@ -70,7 +70,7 @@ public:
 	/// \sa memory(double)
 	/// \sa factory_base::memory()
 	///////////////////////////////////////////////////////////////////////////
-	inline double memory() const {
+	double memory() const {
 		return self().factory.memory();
 	}
 
@@ -159,8 +159,8 @@ public:
 	}
 
 protected:
-	inline child_t & self() {return *static_cast<child_t*>(this);}
-	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
+	child_t & self() {return *static_cast<child_t*>(this);}
+	const child_t & self() const {return *static_cast<const child_t*>(this);}
 };
 
 // The derived class has to pass its factory type to us as a template argument.
@@ -222,7 +222,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pipe_end(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
+	pipe_end(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	fact_t factory;
 };
@@ -394,7 +394,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pullpipe_end(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
+	pullpipe_end(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	fact_t factory;
 };

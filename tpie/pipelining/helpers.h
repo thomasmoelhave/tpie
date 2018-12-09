@@ -35,19 +35,19 @@ class ostream_logger_t : public node {
 public:
 	typedef typename push_type<dest_t>::type item_type;
 
-	inline ostream_logger_t(dest_t dest, std::ostream & log) : dest(std::move(dest)), log(log), begun(false), ended(false) {
+	ostream_logger_t(dest_t dest, std::ostream & log) : dest(std::move(dest)), log(log), begun(false), ended(false) {
 		add_push_destination(this->dest);
 		set_name("Log", PRIORITY_INSIGNIFICANT);
 	}
-	virtual void begin() override {
+	void begin() override {
 		node::begin();
 		begun = true;
 	}
-	virtual void end() override {
+	void end() override {
 		node::end();
 		ended = true;
 	}
-	inline void push(const item_type & item) {
+	void push(const item_type & item) {
 		if (!begun) {
 			log << "WARNING: push() called before begin(). Calling begin on rest of pipeline." << std::endl;
 			begin();
@@ -76,7 +76,7 @@ public:
 		set_plot_options(PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtual void begin() override {
+	void begin() override {
 		could_pull = source.can_pull();
 		if (could_pull) item=source.pull();
 	}

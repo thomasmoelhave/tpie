@@ -44,7 +44,7 @@ public:
 		// Memory is accouted for by the input node
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_queue = fetch<internal_queue<T> *>("queue");
 	}
 
@@ -58,7 +58,7 @@ public:
 		return item;
 	}
 
-	virtual void end() override {
+	void end() override {
 		tpie_delete(m_queue);
 		m_queue=NULL;
 	}
@@ -76,7 +76,7 @@ public:
 		set_plot_options(PLOT_SIMPLIFIED_HIDE);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_queue = tpie::tpie_new<internal_queue<item_type> >(size);
 		forward("queue", m_queue, 1);
 	}

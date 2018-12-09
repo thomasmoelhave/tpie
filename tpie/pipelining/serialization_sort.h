@@ -128,11 +128,11 @@ public:
 		this->set_memory_fraction(1.0);
 	}
 
-	inline bool can_pull() const {
+	bool can_pull() const {
 		return this->m_sorter->can_pull();
 	}
 
-	inline item_type pull() {
+	item_type pull() {
 		this->step();
 		return this->m_sorter->pull();
 	}

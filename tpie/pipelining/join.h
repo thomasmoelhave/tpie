@@ -66,7 +66,7 @@ public:
 
 		source_impl(source_impl &&) = default;
 
-		virtual void prepare() override {
+		void prepare() override {
 			if (*the_source != NULL && *the_source != this) {
 				// If join.source() is used twice, the second construction of node()
 				// should fail since the node_token is already used.
@@ -76,7 +76,7 @@ public:
 			*the_source = this;
 		};
 
-		virtual void push(const T & v) override {
+		void push(const T & v) override {
 			dest.push(v);
 		}
 
@@ -100,7 +100,7 @@ public:
 			add_push_destination(source_token);
 		}
 
-		virtual void begin() override {
+		void begin() override {
 			the_source_cache = *the_source;
 		}
 

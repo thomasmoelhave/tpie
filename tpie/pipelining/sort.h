@@ -247,7 +247,7 @@ public:
 		m_propagate_called = false;
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		set_steps(1000);
 		m_propagate_called = true;
 	}

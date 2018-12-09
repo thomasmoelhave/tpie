@@ -117,11 +117,11 @@ class ami_output_t : public node {
 public:
 	typedef T item_type;
 
-	inline ami_output_t(tpie::ami::stream<T> & stream) : stream(stream) {
+	ami_output_t(tpie::ami::stream<T> & stream) : stream(stream) {
 		set_name("Write", PRIORITY_INSIGNIFICANT);
 	}
 
-	inline void push(const T & item) {
+	void push(const T & item) {
 		stream.write_item(item);
 	}
 private:

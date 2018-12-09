@@ -26,14 +26,14 @@ namespace tpie {
 
 class merge_sort_not_ready : public exception {
 public:
-	inline merge_sort_not_ready() : tpie::exception("Merge sort did not have memory assigned") {}
+	merge_sort_not_ready() : tpie::exception("Merge sort did not have memory assigned") {}
 };
 
 namespace pipelining {
 
 class not_initiator_node : public tpie::exception {
 public:
-	inline not_initiator_node() : tpie::exception("Not an initiator node") {}
+	not_initiator_node() : tpie::exception("Not an initiator node") {}
 };
 
 class no_initiator_node : public tpie::exception {
@@ -43,22 +43,22 @@ public:
 
 class virtual_chunk_not_ready : public tpie::exception {
 public:
-	inline virtual_chunk_not_ready() : tpie::exception("Virtual receiver is missing a destination") {}
+	virtual_chunk_not_ready() : tpie::exception("Virtual receiver is missing a destination") {}
 };
 
 class virtual_chunk_missing_begin : public tpie::exception {
 public:
-	inline virtual_chunk_missing_begin() : tpie::exception("Virtual begin chunk contains no pipes") {}
+	virtual_chunk_missing_begin() : tpie::exception("Virtual begin chunk contains no pipes") {}
 };
 
 class virtual_chunk_missing_middle : public tpie::exception {
 public:
-	inline virtual_chunk_missing_middle() : tpie::exception("Virtual middle chunk contains no pipes, and input type is not output type") {}
+	virtual_chunk_missing_middle() : tpie::exception("Virtual middle chunk contains no pipes, and input type is not output type") {}
 };
 
 class virtual_chunk_missing_end : public tpie::exception {
 public:
-	inline virtual_chunk_missing_end() : tpie::exception("Virtual end chunk contains no pipes") {}
+	virtual_chunk_missing_end() : tpie::exception("Virtual end chunk contains no pipes") {}
 };
 
 class non_authoritative_node_map : public tpie::exception {

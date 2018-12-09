@@ -41,7 +41,7 @@ class proxy_progress_indicator : public tpie::progress_indicator_base {
 public:
 	proxy_progress_indicator(node & s);
 
-	virtual void refresh() override;
+	void refresh() override;
 };
 
 } // namespace bits
@@ -110,7 +110,7 @@ public:
 	/// \brief Get the minimum amount of the resource declared by this node.
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_minimum_resource_usage(resource_type type) const {
+	memory_size_type get_minimum_resource_usage(resource_type type) const {
 		return m_parameters.resource_parameters[type].minimum;
 	}
 
@@ -118,21 +118,21 @@ public:
 	/// \brief Get the maximum amount of the resource declared by this node.
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_maximum_resource_usage(resource_type type) const {
+	memory_size_type get_maximum_resource_usage(resource_type type) const {
 		return m_parameters.resource_parameters[type].maximum;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the priority for the specific resource of this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline double get_resource_fraction(resource_type type) const {
+	double get_resource_fraction(resource_type type) const {
 		return m_parameters.resource_parameters[type].fraction;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of the specific resource assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_available_of_resource(resource_type type) const {
+	memory_size_type get_available_of_resource(resource_type type) const {
 		return m_parameters.resource_parameters[type].available;
 	}
 
@@ -172,7 +172,7 @@ public:
 	/// \brief Get the minimum amount of memory declared by this node.
 	/// Defaults to zero when no minimum has been set.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_minimum_memory() const {
+	memory_size_type get_minimum_memory() const {
 		return get_minimum_resource_usage(MEMORY);
 	}
 
@@ -180,21 +180,21 @@ public:
 	/// \brief Get the maximum amount of memory declared by this node.
 	/// Defaults to maxint when no maximum has been set.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_maximum_memory() const {
+	memory_size_type get_maximum_memory() const {
 		return get_maximum_resource_usage(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the memory priority of this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline double get_memory_fraction() const {
+	double get_memory_fraction() const {
 		return get_resource_fraction(MEMORY);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of memory assigned to this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_available_memory() const {
+	memory_size_type get_available_memory() const {
 		return get_available_of_resource(MEMORY);
 	}
 
@@ -234,7 +234,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the amount of memory currently used by this node.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type get_used_memory() const {
+	memory_size_type get_used_memory() const {
 		memory_size_type ans=0;
 		for (const auto & p: m_buckets)
 			if (p) ans += p->count;
@@ -245,7 +245,7 @@ public:
 	/// \brief Get the local node map, mapping node IDs to node
 	/// pointers for all the nodes reachable from this one.
 	///////////////////////////////////////////////////////////////////////////
-	inline bits::node_map::ptr get_node_map() const {
+	bits::node_map::ptr get_node_map() const {
 		return token.get_map();
 	}
 
@@ -253,7 +253,7 @@ public:
 	/// \brief Get the internal node ID of this node (mainly
 	/// for debugging purposes).
 	///////////////////////////////////////////////////////////////////////////
-	inline node_token::id_t get_id() const {
+	node_token::id_t get_id() const {
 		return token.id();
 	}
 
@@ -363,7 +363,7 @@ public:
 	/// \brief Get the priority of this node's pdane name. For purposes of
 	/// pipeline debugging and phase naming for progress indicator breadcrumbs.
 	///////////////////////////////////////////////////////////////////////////
-	inline priority_type get_phase_name_priority() {
+	priority_type get_phase_name_priority() {
 		return m_parameters.phaseNamePriority;
 	}
 
@@ -383,7 +383,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally when a pair_factory has a name set.
 	///////////////////////////////////////////////////////////////////////////
-	inline void set_breadcrumb(const std::string & breadcrumb) {
+	void set_breadcrumb(const std::string & breadcrumb) {
 		m_parameters.name = m_parameters.name.empty() ? breadcrumb : (breadcrumb + " | " + m_parameters.name);
 	}
 
@@ -391,7 +391,7 @@ public:
 	/// \brief Used internally for progress indication. Get the number of times
 	/// the node expects to call step() at most.
 	///////////////////////////////////////////////////////////////////////////
-	inline stream_size_type get_steps() {
+	stream_size_type get_steps() {
 		return m_parameters.stepsTotal;
 	}
 
@@ -402,7 +402,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Used internally. Set the progress indicator to use.
 	///////////////////////////////////////////////////////////////////////////
-	inline void set_progress_indicator(progress_indicator_base * pi) {
+	void set_progress_indicator(progress_indicator_base * pi) {
 		m_pi = pi;
 	}
 

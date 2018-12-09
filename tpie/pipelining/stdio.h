@@ -33,11 +33,11 @@ class scanf_ints_t : public node {
 public:
 	typedef int item_type;
 
-	inline scanf_ints_t(dest_t dest) : dest(std::move(dest)) {
+	scanf_ints_t(dest_t dest) : dest(std::move(dest)) {
 		add_push_destination(this->dest);
 	}
 
-	virtual void go() override {
+	void go() override {
 		int in;
 		while (scanf("%d", &in) == 1) {
 			dest.push(in);
@@ -52,10 +52,10 @@ class printf_ints_t : public node {
 public:
 	typedef int item_type;
 
-	inline printf_ints_t() {
+	printf_ints_t() {
 	}
 
-	inline void push(item_type i) {
+	void push(item_type i) {
 		printf("%d\n", i);
 	}
 };

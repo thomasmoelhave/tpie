@@ -50,7 +50,7 @@ public:
 		set_plot_options(PLOT_BUFFERED);
 	}
 
-	virtual void propagate() override {
+	void propagate() override {
 		m_queue_ptr = fetch<tpie::maybe<file_stream<T> > *>("queue");
 		m_queue = &**m_queue_ptr;
 		m_queue->seek(0);
@@ -175,19 +175,19 @@ public:
 
 	passive_buffer() {}
 
-	inline input_t raw_input() {
+	input_t raw_input() {
 		return input_t(input_token);
 	}
 
-	inline output_t raw_output() {
+	output_t raw_output() {
 		return output_t(input_token);
 	}
 
-	inline inputpipe_t input() {
+	inputpipe_t input() {
 		return inputfact_t(input_token);
 	}
 
-	inline outputpipe_t output() {
+	outputpipe_t output() {
 		return outputfact_t(input_token);
 	}
 
