@@ -1345,11 +1345,6 @@ template <typename T>
 pipe_middle<tfactory<bits::vfork_node, Args<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
 	return {out};
 }
-
-template <typename T>
-pipe_end<termfactory<bits::devirtualize_end_node<T>, virtual_chunk_end<T> > > push_to_virtual(const virtual_chunk_end<T> & out) {
-	return {out};
-}
 	
 template <typename T>
 virtual_chunk<T> vfork(const virtual_chunk_end<T> & out) {
