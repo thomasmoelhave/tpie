@@ -416,7 +416,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pullpipe_middle(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
+	pullpipe_middle(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	template <typename fact2_t>
 	pullpipe_middle<bits::pair_factory<fact2_t, fact_t> >
@@ -454,7 +454,7 @@ public:
 	/// the factory
 	///////////////////////////////////////////////////////////////////////////////
 	template <typename ... T_ARGS>
-	inline pullpipe_begin(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
+	pullpipe_begin(T_ARGS && ... args) : factory(std::forward<T_ARGS>(args)...) {}
 
 	template <typename fact2_t>
 	pullpipe_begin<bits::termpair_factory<fact2_t, fact_t> >
