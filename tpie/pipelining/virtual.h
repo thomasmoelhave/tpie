@@ -371,7 +371,7 @@ class access {
 	friend class pipelining::virtual_chunk_pull;
 	template <typename>
 	friend class pipelining::virtual_chunk_pull_begin;
-	template <typename>
+	template <typename, typename>
 	friend class vfork_node;
 	template <typename>
 	friend class devirtualize_end_node;
@@ -1063,38 +1063,32 @@ virtpullsrc<Output> * access::get_output(const virtual_chunk_pull_begin<Output> 
 	return chunk.get_output();
 }
 
-template <typename T>
-class vfork_node {
+template <typename dest_t, typename T>
+class vfork_node : public node {
 public:
-	template <typename dest_t>
-	class type : public node {
-	public:
-		typedef T item_type;
+	typedef T item_type;
 
-		type(dest_t && dest, virtual_chunk_end<T> out)
-			: vnode(out.get_node())
-			, dest2(bits::access::get_input(out))
-			, dest(std::move(dest))
-		{
-			add_push_destination(this->dest);
-			if (dest2) add_push_destination(*dest2);
-		}
-
-		void push(T v) {
-			dest.push(v);
-			if (dest2) dest2->push(v);
-		}
-
-	private:
-		// This counted reference ensures dest2 is not deleted prematurely.
-		virt_node::ptr vnode;
-
-		virtsrc<T> * dest2;
-
-		dest_t dest;
-	};
+	vfork_node(dest_t && dest, virtual_chunk_end<T> out)
+		: vnode(out.get_node())
+		, dest2(bits::access::get_input(out))
+		, dest(std::move(dest))	{
+		add_push_destination(this->dest);
+		if (dest2) add_push_destination(*dest2);
+	}
+	
+	void push(T v) {
+		dest.push(v);
+		if (dest2) dest2->push(v);
+	}
+	
+private:
+	// This counted reference ensures dest2 is not deleted prematurely.
+	virt_node::ptr vnode;
+	
+	virtsrc<T> * dest2;
+	
+	dest_t dest;
 };
-
 
 template <typename T>
 class devirtualize_end_node : public node {
@@ -1348,7 +1342,7 @@ pullpipe_middle<bits::devirtualization_pull_factory<Input, Output>> devirtualize
 }
 	
 template <typename T>
-pipe_middle<tempfactory<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
+pipe_middle<tfactory<bits::vfork_node, Args<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
 	return {out};
 }
 

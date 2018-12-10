@@ -261,34 +261,29 @@ bool internal_reverse_test() {
 /// \brief Sums the two components of the input pair
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename factory_type>
-class add_pairs_type {
+template <typename dest_t, typename factory_type>
+class add_pairs_type : public tpie::pipelining::node {
 public:
-	template <typename dest_t>
-	class type : public tpie::pipelining::node {
-	public:
-		dest_t dest;
-		typename factory_type::constructed_type pullSource;
-		typedef uint64_t item_type;
-
-		type(dest_t dest, factory_type && factory)
+	dest_t dest;
+	typename factory_type::constructed_type pullSource;
+	typedef uint64_t item_type;
+	
+	add_pairs_type(dest_t dest, factory_type factory)
 		: dest(std::move(dest))
-		, pullSource(factory.construct())
-		{
-			add_push_destination(dest);
-			add_pull_source(pullSource);
-		}
-
-		void push(const item_type &item) {
-			dest.push(item + pullSource.pull());
-		}
-	};
+		, pullSource(factory.construct()) {
+		add_push_destination(dest);
+		add_pull_source(pullSource);
+	}
+	
+	void push(const item_type &item) {
+		dest.push(item + pullSource.pull());
+	}
 };
 
 template <typename pipe_type>
-tpie::pipelining::pipe_middle<tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type &&> >
-add_pairs(pipe_type && pipe) {
-	return tpie::pipelining::tempfactory<add_pairs_type<typename pipe_type::factory_type>, typename pipe_type::factory_type &&>(std::move(pipe.factory));
+tpie::pipelining::pipe_middle<tpie::pipelining::tfactory<add_pairs_type, tpie::pipelining::Args<pipe_type>, pipe_type> >
+add_pairs(pipe_type pipe) {
+	return {std::move(pipe)};
 }
 
 ///////////////////////////////////////////////////////////////////////////////

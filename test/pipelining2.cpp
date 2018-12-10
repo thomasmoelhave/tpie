@@ -36,37 +36,31 @@ using namespace tpie;
 using namespace tpie::pipelining;
 using namespace std;
 
-template <typename src_pipe_t>
-class add_t {
+template <typename dest_t, typename src_pipe_t>
+class add_t: public node {
 	typedef typename src_pipe_t::factory_type src_fact_t;
 	typedef typename src_fact_t::constructed_type src_t;
-
+	dest_t dest;
+	src_t src;
 public:
-	template <typename dest_t>
-	class type : public node {
-		dest_t dest;
-		src_t src;
-	public:
-		typedef int item_type;
-
-		type(dest_t dest, src_pipe_t srcpipe)
-			: dest(std::move(dest))
-			, src(srcpipe.factory.construct())
-		{
-			add_push_destination(dest);
-			add_pull_source(src);
-		}
-
-		void push(int i) {
-			dest.push(i+src.pull());
-		}
-	};
+	typedef int item_type;
+	
+	add_t(dest_t dest, src_pipe_t srcpipe)
+		: dest(std::move(dest))
+		, src(srcpipe.construct()) {
+		add_push_destination(dest);
+		add_pull_source(src);
+	}
+	
+	void push(int i) {
+		dest.push(i+src.pull());
+	}
 };
 
 template <typename src_pipe_t>
-pipe_middle<tempfactory<add_t<src_pipe_t>, src_pipe_t> >
-add(src_pipe_t && srcpipe) {
-	return tempfactory<add_t<src_pipe_t>, src_pipe_t>(std::forward<src_pipe_t>(srcpipe));
+pipe_middle<tfactory<add_t, Args<src_pipe_t>, src_pipe_t> >
+add(src_pipe_t srcpipe) {
+	return {std::move(srcpipe)};
 }
 
 void go() {

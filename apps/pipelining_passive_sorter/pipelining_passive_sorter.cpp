@@ -79,43 +79,38 @@ private:
 typedef pipe_middle<factory<AddOne> > addOne;
 
 
-template <typename source_t>
-class AddPairwise {
+template <typename dest_t, typename source_t>
+class AddPairwise: public node {
 public:
-	template <typename dest_t>
-	class type : public node {
-	public:
-		typedef int item_type;
-
-		type(dest_t dest, source_t src)
-			: dest(std::move(dest))
-			, puller(src.construct())
-		{
-			add_push_destination(dest);
-			add_pull_source(puller);
-			set_name("AddPairwise");
+	typedef int item_type;
+	
+	AddPairwise(dest_t dest, source_t src)
+		: dest(std::move(dest))
+		, puller(src.construct()) {
+		add_push_destination(dest);
+		add_pull_source(puller);
+		set_name("AddPairwise");
+	}
+	
+	void go() override {
+		while (puller.can_pull()) {
+			// Pull two numbers a,b and push a+b to dest.
+			int a = puller.pull();
+			if (!puller.can_pull())
+				throw std::logic_error("Not an even number of items in the stream.");
+			int b = puller.pull();
+			dest.push(a+b);
 		}
-
-		virtual void go() override {
-			while (puller.can_pull()) {
-				// Pull two numbers a,b and push a+b to dest.
-				int a = puller.pull();
-				if (!puller.can_pull())
-					throw std::logic_error("Not an even number of items in the stream.");
-				int b = puller.pull();
-				dest.push(a+b);
-			}
-		}
-
-	private:
-		dest_t dest;
-		typedef typename source_t::constructed_type puller_t;
-		puller_t puller;
-	};
+	}
+	
+private:
+	dest_t dest;
+	typedef typename source_t::constructed_type puller_t;
+	puller_t puller;
 };
 
 template <typename source_t>
-inline pipe_begin<tempfactory<AddPairwise<source_t>, source_t> > addPairwise(source_t source) {
+inline pipe_begin<tfactory<AddPairwise, Args<source_t>, source_t> > addPairwise(source_t source) {
 	return {std::move(source)};
 }
 

@@ -161,7 +161,7 @@ pipe_middle<tfactory<bits::map_temp_t, Args<F>, F> > map(const F & functor) {
 }
 
 template <typename F>
-pipe_end<tfactory<bits::map_sink_t, Args<F>, F> > map_sink(const F & functor) {
+pipe_end<termfactory<bits::map_sink_t<F>, F> > map_sink(const F & functor) {
 	return {functor};
 }
 
