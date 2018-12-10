@@ -69,46 +69,6 @@ private:
 	container<T...> cont;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \class tempfactory
-/// Node factory for variadic argument templated generators.
-///////////////////////////////////////////////////////////////////////////////
-template <typename Holder, typename... T>
-class tempfactory : public factory_base {
-public:
-	tempfactory(const tempfactory & o) = delete;
-	tempfactory(tempfactory && o) = default;
-	tempfactory & operator=(const tempfactory & o) = delete;
-	tempfactory & operator=(tempfactory && o) = default;
-
-	template <typename... Args>
-	tempfactory(Args && ... v) : cont(std::forward<Args>(v)...) {}
-
-	template <typename dest_t>
-	using constructed_type = typename Holder::template type<typename bits::remove<dest_t>::type>;
-
-	template <typename dest_t>
-	constructed_type<dest_t> construct(dest_t && dest) {
-		node_token tok = dest.get_token();
-		constructed_type<dest_t> r = container_construct<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
-		this->init_node(r);
-		this->add_default_edge(r, tok);
-		this->add_node_set_edges(r);
-		return r;
-	}
-
-	template <typename dest_t>
-	constructed_type<dest_t> construct_copy(dest_t && dest) {
-		node_token tok = dest.get_token();
-		constructed_type<dest_t> r = container_construct_copy<constructed_type<dest_t>>(cont, std::forward<dest_t>(dest));
-		this->init_node(r);
-		this->add_default_edge(r, tok);
-		this->add_node_set_edges(r);
-		return r;
-	}
-private:
-	container<T...> cont;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class termfactory
