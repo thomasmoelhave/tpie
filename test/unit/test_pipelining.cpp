@@ -981,7 +981,7 @@ public:
 		add_push_destination(dest);
 	}
 
-	virtual void go() /*override*/ {
+	virtual void go() override {
 		dest.push(*static_cast<ptr_type>(0));
 	}
 };
@@ -996,6 +996,71 @@ bool virtual_test() {
 	p.plot(log_info());
 	p();
 	return check_test_vectors();
+}
+
+
+template <typename src_t>
+struct pull_end_test_t: public node {
+	pull_end_test_t(src_t src, size_t * ans): ans(ans), src(std::move(src)) {}
+
+	void go() final {
+		*ans = 0;
+		while (src.can_pull())
+			*ans += src.pull();
+	}
+
+	size_t * ans;
+	src_t src;
+};
+typedef pullpipe_end<factory<pull_end_test_t, size_t *>> pull_end_test;
+
+template <typename src_t>
+struct pull_mid_test_t: public node {
+	pull_mid_test_t(src_t src): src(std::move(src)) {}
+
+	bool can_pull() {return src.can_pull();}
+
+	size_t pull() {return 2*src.pull();}
+	src_t src;
+};
+typedef pullpipe_middle<factory<pull_mid_test_t>> pull_mid_test;
+
+
+struct pull_begin_test_t: public node {
+	pull_begin_test_t(): idx(0) {}
+	bool can_pull() {return idx < 8;}
+	size_t pull() {return ++idx;}
+	size_t idx;
+};
+typedef pullpipe_begin<termfactory<pull_begin_test_t>> pull_begin_test;
+
+bool pull_test() {
+	size_t ans = 0;
+	pipeline p = pull_begin_test() | pull_mid_test() | pull_end_test(&ans);
+	p.plot(log_info());
+	p();
+	return ans == 72;
+}
+
+bool virtual_pull_test() {
+	size_t ans = 0;
+	pipeline p = (virtual_chunk_pull_begin<size_t>(pull_begin_test()) | virtual_chunk_pull<size_t, size_t>(pull_mid_test()))
+		| (virtual_chunk_pull<size_t, size_t>(pull_mid_test()) | virtual_chunk_pull<size_t, size_t>(pull_mid_test()))
+		| (virtual_chunk_pull<size_t, size_t>(pull_mid_test()) | virtual_chunk_pull_end<size_t>(pull_end_test(&ans)));
+	p.plot(log_info());
+	p();
+	return ans == 36*2*2*2*2;
+}
+
+
+bool devirtualize_pull_test() {
+	size_t ans = 0;
+	pipeline p = devirtualize(virtual_chunk_pull_begin<size_t>(pull_begin_test()))
+		| devirtualize(virtual_chunk_pull<size_t>(pull_mid_test()))
+		| devirtualize(virtual_chunk_pull_end<size_t>(pull_end_test(&ans)));
+	p.plot(log_info());
+	p();
+	return ans == 36*2;
 }
 
 bool virtual_fork_test() {
@@ -2509,6 +2574,57 @@ bool subpipeline_exception_test2() {
 	return false;
 }
 
+template <typename dest_t>
+class a_t: public node {
+public:
+	a_t(dest_t dest): dest(std::move(dest)) {}
+
+	void go() override {
+		dest.push(1);
+		dest.push(5);
+	}
+	
+	dest_t dest;
+};
+using a = pipe_begin<factory<a_t>>;
+
+template <typename dest_t>
+class b_t: public node {
+public:
+	b_t(dest_t dest): dest(std::move(dest)) {}
+
+	void push(int v) {
+		dest.push(v*2);
+		dest.push(v*2+1);
+	}
+	
+	dest_t dest;
+};
+using b = pipe_middle<factory<b_t>>;
+
+
+class c_t: public node {
+public:
+	int * acc;
+	c_t(int * acc): acc(acc) {}
+	
+	void push(int v) {
+		*acc += v;
+	}
+};
+
+using c = pipe_end<termfactory<c_t, int*>>;
+
+bool devirtualize_test() {
+	int acc = 0;
+	pipeline p = devirtualize(virtual_chunk_begin<int>(a()))
+		| devirtualize(virtual_chunk<int>(b()))
+		| devirtualize(virtual_chunk_end<int>(c(&acc)));
+	p();
+	p.plot(log_info());
+	return acc == 26;
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -2516,6 +2632,7 @@ int main(int argc, char ** argv) {
 	.test(file_stream_test, "filestream", "n", static_cast<stream_size_type>(3))
 	.test(file_stream_pull_test, "fspull")
 		//.test(file_stream_alt_push_test, "fsaltpush")
+	.test(pull_test, "pull")
 	.test(merge_test, "merge")
 	.test(reverse_test, "reverse")
 	.test(internal_reverse_test, "internal_reverse")
@@ -2535,6 +2652,7 @@ int main(int argc, char ** argv) {
 	.test(forward_multiple_pipelines_test, "forward_multiple_pipelines")
 	.test(pipe_base_forward_test, "pipe_base_forward")
 	.test(virtual_test, "virtual")
+	.test(virtual_pull_test, "virtual_pull")
 	.test(virtual_fork_test, "virtual_fork")
 	.test(virtual_cref_item_type_test, "virtual_cref_item_type")
 	.test(prepare_test, "prepare")
@@ -2563,5 +2681,7 @@ int main(int argc, char ** argv) {
 	.test(exception_test, "exception")
 	.test(subpipeline_exception_test, "subpipeline_exception")
 	.test(subpipeline_exception_test2, "subpipeline_exception2")
+	.test(devirtualize_test, "devirtualize")
+	.test(devirtualize_pull_test, "devirtualize_pull")
 	;
 }
