@@ -1192,7 +1192,6 @@ public:
 
 	template <typename dest_t>
 	bits::devirtualize_end_node<Input> construct(dest_t && dest) {
-		node_token tok = dest.get_token();
 		auto destnode = std::make_unique<bits::devirtualize_begin_node<dest_t, Output>>(std::move(dest), chunk);
 		this->init_sub_node(*destnode);
 		bits::devirtualize_end_node<Input> r(chunk, std::move(destnode));
@@ -1221,7 +1220,7 @@ public:
 	bool can_pull() {return src->can_pull();}
 	item_type pull() {return src->pull();}
 private:
-	// This counted reference ensures dest is not deleted prematurely.
+	// This counted reference ensures src is not deleted prematurely.
 	virt_node::ptr vnode;
 	std::unique_ptr<node> tail;
 	virtpullsrc<T> * src;
@@ -1292,7 +1291,6 @@ public:
 
 	template <typename src_t>
 	bits::devirtualize_pull_begin_node<Input> construct(src_t && src) {
-		node_token tok = src.get_token();
 		auto srcnode = std::make_unique<bits::devirtualize_pull_end_node<src_t, Input>>(std::move(src), chunk);
 		this->init_sub_node(*srcnode);
 		bits::devirtualize_pull_begin_node<Output> r(chunk, std::move(srcnode));
@@ -1312,7 +1310,7 @@ public:
  */
 template <typename Input>
 pipe_end<termfactory<bits::devirtualize_end_node<Input>, virtual_chunk_end<Input>>> devirtualize(const virtual_chunk_end<Input> & out) {
-	return out;
+	return {out};
 }
 
 /**
@@ -1320,7 +1318,7 @@ pipe_end<termfactory<bits::devirtualize_end_node<Input>, virtual_chunk_end<Input
  */
 template <typename Output>
 pipe_begin<tfactory<bits::devirtualize_begin_node, Args<Output>, virtual_chunk_begin<Output>>> devirtualize(const virtual_chunk_begin<Output> & in) {
-	return in;
+	return {in};
 }
 
 /**
@@ -1336,7 +1334,7 @@ pipe_middle<bits::devirtualization_factory<Input, Output>> devirtualize(const vi
  */
 template <typename Input>
 pullpipe_begin<termfactory<bits::devirtualize_pull_begin_node<Input>, virtual_chunk_pull_begin<Input>>> devirtualize(const virtual_chunk_pull_begin<Input> & out) {
-	return out;
+	return {out};
 }
 
 /*
@@ -1344,7 +1342,7 @@ pullpipe_begin<termfactory<bits::devirtualize_pull_begin_node<Input>, virtual_ch
  */
 template <typename Input>
 pullpipe_end<tfactory<bits::devirtualize_pull_end_node, Args<Input>, virtual_chunk_pull_end<Input>>> devirtualize(const virtual_chunk_pull_end<Input> & in) {
-	return in;
+	return {in};
 }
 
 /*
@@ -1357,12 +1355,12 @@ pullpipe_middle<bits::devirtualization_pull_factory<Input, Output>> devirtualize
 	
 template <typename T>
 pipe_middle<tempfactory<bits::vfork_node<T>, virtual_chunk_end<T> > > fork_to_virtual(const virtual_chunk_end<T> & out) {
-	return out;
+	return {out};
 }
 
 template <typename T>
 pipe_end<termfactory<bits::devirtualize_end_node<T>, virtual_chunk_end<T> > > push_to_virtual(const virtual_chunk_end<T> & out) {
-	return out;
+	return {out};
 }
 	
 template <typename T>
