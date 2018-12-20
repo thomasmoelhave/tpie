@@ -25,6 +25,7 @@
 #include <tpie/util.h>
 #include <stdexcept>
 #include <cstdio>
+#include <sstream>
 #ifndef WIN32
 #include <tpie/tpie_log.h>
 #include <tpie/file_accessor/posix.h>
