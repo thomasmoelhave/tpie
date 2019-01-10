@@ -119,20 +119,20 @@ void memory_manager::complain_about_unfreed_memory() {
 			log_error() << "The following types were either leaked or deleted with delete instead of tpie_delete" << std::endl << std::endl;
 			first = false;
 		}
-		log_error() << p.first->name() << ": " << p.second.count << " of " << p.second.bytes << " bytes" << std::endl;
+		log_error() << p.first.name() << ": " << p.second.count << " of " << p.second.bytes << " bytes" << std::endl;
 	}
 }
 
 void memory_manager::register_typed_allocation(size_t bytes, const std::type_info & t) {
 	shared_spin_lock l(m_mutex);
-	auto it = m_allocations.find(&t);
+	auto it = m_allocations.find(std::type_index(t));
 	if (it == m_allocations.end()) {
 		l.release();
 		{
 			unique_spin_lock l2(m_mutex);
-			it = m_allocations.find(&t);
+			it = m_allocations.find(std::type_index(t));
 			if (it == m_allocations.end())
-				it = m_allocations.emplace(&t, type_allocations()).first;
+				it = m_allocations.emplace(std::type_index(t), type_allocations()).first;
 		}
 		l.acquire();
 	}
@@ -142,19 +142,23 @@ void memory_manager::register_typed_allocation(size_t bytes, const std::type_inf
 
 void memory_manager::register_typed_deallocation(size_t bytes, const std::type_info & t) {
 	shared_spin_lock l(m_mutex);
-	auto it = m_allocations.find(&t);
-	it->second.count--;
-	it->second.bytes -= bytes;
+	auto it = m_allocations.find(std::type_index(t));
+	if (it == m_allocations.end()) {
+		log_error() << "Tried to unregister unknown type " << t.name() << std::endl;
+	} else {
+		it->second.count--;
+		it->second.bytes -= bytes;
+	}
 }
 
 
-std::unordered_map<const std::type_info *, memory_digest_item> memory_manager::memory_digest() {
-	std::unordered_map<const std::type_info *, memory_digest_item> res;
+std::unordered_map<std::type_index, memory_digest_item> memory_manager::memory_digest() {
+	std::unordered_map<std::type_index, memory_digest_item> res;
 	shared_spin_lock lock(m_mutex);
 	for(const auto & p: m_allocations) {
 		if (p.second.bytes < 1024*512) continue;
 		memory_digest_item mdi;
-		mdi.name = p.first->name();
+		mdi.name = p.first.name();
 #ifndef WIN32
 		{
 			int x;

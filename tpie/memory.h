@@ -34,6 +34,7 @@
 #include <utility>
 #include <memory>
 #include <atomic>
+#include <typeindex>
 
 namespace tpie {
 
@@ -97,12 +98,12 @@ public:
 	}
 
 	void complain_about_unfreed_memory();
-	std::unordered_map<const std::type_info * , memory_digest_item> memory_digest();
+	std::unordered_map<std::type_index, memory_digest_item> memory_digest();
 protected:
 	void throw_out_of_resource_error(const std::string & s) override;
 
 	std::atomic_size_t m_mutex;
-	std::unordered_map<const std::type_info *, type_allocations> m_allocations;
+	std::unordered_map<std::type_index, type_allocations> m_allocations;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
