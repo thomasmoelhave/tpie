@@ -233,6 +233,7 @@ else()
 endif()
 target_link_libraries(tpie ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
+set_property(TARGET tpie PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(TPIE_HAS_SNAPPY)
 	target_link_libraries(tpie ${Snappy_LIBRARY})
