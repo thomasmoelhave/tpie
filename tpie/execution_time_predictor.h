@@ -16,14 +16,13 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#include <tpie/portability.h>
+#ifndef __TPIE_EXECUTION_TIME_PREDICTOR_H__
+#define __TPIE_EXECUTION_TIME_PREDICTOR_H__
 
+#include <tpie/portability.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 #include <tpie/util.h>
-#include <tpie/prime.h>
-#ifndef __TPIE_EXECUTION_TIME_PREDICTOR_H__
-#define __TPIE_EXECUTION_TIME_PREDICTOR_H__
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \file execution_time_predictor.h Execution time predictor used by
@@ -85,7 +84,7 @@ public:
 	//TPIE_OS_OFFSET m_aux1;
 	//double m_aux2;
 private:
-	hash_type m_id;
+	size_t m_id;
 	boost::posix_time::ptime m_start_time;
 	time_type m_estimate;
 	double m_confidence;

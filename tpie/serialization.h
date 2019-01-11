@@ -25,7 +25,6 @@
 
 #include <tpie/config.h>
 #include <tpie/portability.h>
-#include <tpie/hash_map.h>
 #include <vector>
 #include <utility>
 #include <typeinfo>
@@ -36,6 +35,7 @@
 #include <ostream>
 #include <cstring>
 #include <sstream>
+#include <functional>
 
 namespace tpie {
 
@@ -101,8 +101,7 @@ private:
 	template <typename T>
 	void write_type() {
 		if (m_typesafe) {
-			hash<const char *> h;
-			m_out << (uint8_t)(h(typeid(T).name()) % 256);
+			m_out << (uint8_t)(std::hash<std::string>()(typeid(T).name()) % 256);
 		}
 	}
 		
@@ -200,8 +199,7 @@ private:
 	template <typename T>
 	void check_type() {
 		if (!m_typesafe) return;
-		hash<const char *> h;
-		uint8_t hash = h(typeid(T).name()) % 256;
+		uint8_t hash = (uint8_t)(std::hash<std::string>()(typeid(T).name()) % 256);
 		uint8_t s_hash;
 		m_in >> s_hash;
 		if (s_hash == hash) return;

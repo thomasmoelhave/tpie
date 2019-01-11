@@ -29,8 +29,6 @@
 #include <tpie/pipelining.h>
 #include <limits>
 
-#include <tpie/prime.h> // next_prime
-
 // Progress indicators
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/fractional_progress.h>

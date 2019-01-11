@@ -17,7 +17,7 @@ set (HEADERS
 		btree/serialized_store.h
 		btree/node.h
 		btree/btree.h
-        btree/btree_builder.h
+		btree/btree_builder.h
 		cache_hint.h
 		comparator.h
 		compressed/buffer.h
@@ -163,9 +163,6 @@ set (HEADERS
 		packed_array.h
 		array_view_base.h
 		array_view.h
-		hash_map.h
-		hash.h
-		prime.h
 		concepts.h
 		concept_doc.h
 		tpie.h
@@ -203,13 +200,11 @@ set (SOURCES
 	pipelining/tokens.cpp
 	pipelining/factory_base.cpp
 	portability.cpp
-	prime.cpp
 	progress_indicator_base.cpp
 	progress_indicator_subindicator.cpp
 	resource_manager.cpp
 	resources.cpp
 	serialization_stream.cpp
-	hash.cpp
 	jsonprint.cpp
 	tempname.cpp
 	tpie.cpp

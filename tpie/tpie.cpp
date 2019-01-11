@@ -21,12 +21,10 @@
 #include <tpie/fractional_progress.h>
 #include <tpie/execution_time_predictor.h>
 #include <tpie/tpie_log.h>
-#include <tpie/prime.h>
 #include <tpie/memory.h>
 #include <tpie/job.h>
 #include <tpie/compressed/thread.h>
 #include <tpie/compressed/buffer.h>
-#include <tpie/hash.h>
 #include <tpie/tempname.h>
 
 namespace {
@@ -45,9 +43,6 @@ void tpie_init(flags<subsystem> subsystems) {
 	if (subsystems & DEFAULT_LOGGING)
 		init_default_log();
 
-	if (subsystems & PRIMEDB)
-		init_prime();
-
 	if (subsystems & CAPTURE_FRACTIONS) {
 		init_fraction_db(true);
 		init_execution_time_db();
@@ -63,9 +58,6 @@ void tpie_init(flags<subsystem> subsystems) {
 		init_stream_buffer_pool();
 		init_compressor();
 	}
-
-	if (subsystems & HASH)
-		init_hash();
 }
 
 void tpie_finish(flags<subsystem> subsystems) {
@@ -81,9 +73,6 @@ void tpie_finish(flags<subsystem> subsystems) {
 		finish_execution_time_db();
 		finish_fraction_db();
 	}
-
-	if (subsystems & PRIMEDB)
-		finish_prime();
 
 	if (subsystems & DEFAULT_LOGGING)
 		finish_default_log();

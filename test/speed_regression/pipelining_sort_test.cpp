@@ -21,7 +21,6 @@
 
 #include <tpie/tpie.h>
 #include <tpie/pipelining/sort.h>
-#include <tpie/prime.h>
 #include <vector>
 #include "stat.h"
 #include "testinfo.h"

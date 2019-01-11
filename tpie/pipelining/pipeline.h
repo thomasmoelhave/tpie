@@ -25,6 +25,7 @@
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_null.h>
 #include <tpie/file_manager.h>
+#include <tpie/memory.h>
 #include <unordered_set>
 #include <mutex>
 

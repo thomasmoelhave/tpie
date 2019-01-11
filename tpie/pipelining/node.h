@@ -29,6 +29,7 @@
 #include <tpie/pipelining/node_name.h>
 #include <tpie/pipelining/node_traits.h>
 #include <tpie/flags.h>
+#include <tpie/memory.h>
 #include <limits>
 #include <tpie/resources.h>
 

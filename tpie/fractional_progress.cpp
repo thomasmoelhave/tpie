@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "fractional_progress.h"
+#include <tpie/memory.h>
 #include <tpie/backtrace.h>
-#include <tpie/prime.h>
 #include <tpie/tempname.h>
 #include <tpie/util.h>
 #include <map>

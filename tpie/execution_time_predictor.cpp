@@ -18,10 +18,10 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "execution_time_predictor.h"
 #include <boost/filesystem.hpp>
+#include <functional>
 #include "serialization.h"
 #include <map>
 #include <algorithm>
-#include <tpie/prime.h>
 #include <iostream>
 #include <iomanip>
 #include <fcntl.h>
@@ -87,7 +87,7 @@ struct entry {
 
 class time_estimator_database {
 public:
-	typedef std::map<hash_type, entry> db_type;
+	typedef std::map<size_t, entry> db_type;
 	db_type db;
 	std::string dir_name;
 	std::string file_name;
@@ -124,7 +124,7 @@ public:
 				size_t c;
 				u >> c;
 				for(size_t i=0; i < c; ++i) {
-					hash_type id;
+					size_t id;
 					size_t cnt;
 					u >> id >> cnt;
 					entry & e=db[id];
@@ -156,7 +156,7 @@ public:
 			s << "TPIE time execution database";
 			s << (size_t)db.size();
 			for(db_type::iterator i=db.begin(); i != db.end(); ++i) {
-				s << (hash_type)i->first << (size_t)i->second.count;
+				s << (size_t)i->first << (size_t)i->second.count;
 				for (p_t * j=i->second.begin(); j != i->second.end(); ++j)
 					s << (stream_size_type)j->first << (time_type)j->second;
 			}
@@ -169,7 +169,7 @@ public:
 		}
 	}
 	
-	time_type estimate(hash_type id, stream_size_type n, double & confidence) {
+	time_type estimate(size_t id, stream_size_type n, double & confidence) {
 		db_type::iterator i=db.find(id);
 		if (i == db.end()) {
 			confidence=0.0;
@@ -225,7 +225,7 @@ void finish_execution_time_db() {
 }
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
-	m_id(prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
+	m_id(std::hash<std::string>()(id)), m_start_time(boost::posix_time::not_a_date_time), 
 	m_estimate(-1), m_confidence(1), m_pause_time_at_start(0)
 #ifndef TPIE_NDEBUG
 	,m_name(id)
@@ -236,7 +236,7 @@ execution_time_predictor::~execution_time_predictor() {
 }
 
 time_type execution_time_predictor::estimate_execution_time(stream_size_type n, double & confidence) {
-	if (m_id == prime_hash(std::string())) {
+	if (m_id == std::hash<std::string>()("")) {
 		confidence=0.0;
 		return -1;
 	}
@@ -256,7 +256,7 @@ void execution_time_predictor::start_execution(stream_size_type n) {
 }
 
 time_type execution_time_predictor::end_execution() {
-	if (m_id == prime_hash(std::string()) || !s_store_times || std::uncaught_exceptions()) return 0;
+	if (m_id == std::hash<std::string>()("") || !s_store_times || std::uncaught_exceptions()) return 0;
 	time_type t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = db->db[m_id];

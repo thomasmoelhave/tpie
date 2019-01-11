@@ -44,23 +44,19 @@ enum subsystem {
     DEFAULT_LOGGING=2,
 	/** \brief Progress tracking. Needed for the fraction database. */
     PROGRESS=4,
-	/** \brief Prime number database, for \ref prime.h. */
-	PRIMEDB=8,
 	/** \brief Job manager, for \ref job.h and the parallel quick sort. */
 	JOB_MANAGER=16,
 	/** \brief Capture fractions. */
 	CAPTURE_FRACTIONS=32,
 	/** \brief Enable support for streams. */
 	STREAMS=64,
-	/** \brief Generate random hashcodes for tabulation hashing*/
-	HASH=128,
 	/** \brief Generate temporary files */
 	TEMPFILE=256,
 	/** \brief Needed for working with files and implicitly by all
 	 * TPIE algorithm and data structure implementations. */
 	FILE_MANAGER=512,
 	/** \brief Alias for all default subsystems. */
-    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER | STREAMS | HASH | TEMPFILE | FILE_MANAGER
+    ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | JOB_MANAGER | STREAMS | TEMPFILE | FILE_MANAGER
 };
 
 TPIE_DECLARE_OPERATORS_FOR_FLAGS(subsystem)

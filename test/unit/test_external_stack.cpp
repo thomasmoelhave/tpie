@@ -22,7 +22,6 @@
 #include <tpie/util.h>
 #include <tpie/stack.h>
 #include <tpie/stream.h>
-#include <tpie/prime.h>
 #include <tpie/tempname.h>
 #include "common.h"
 #include <boost/filesystem.hpp>
