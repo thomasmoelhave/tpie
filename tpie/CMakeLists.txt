@@ -168,7 +168,6 @@ set (HEADERS
 		unittest.h
 		maybe.h
 		tiny.h
-		reflect.h
 		)
 
 set (SOURCES
