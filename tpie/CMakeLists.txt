@@ -204,7 +204,6 @@ set (SOURCES
 	resource_manager.cpp
 	resources.cpp
 	serialization_stream.cpp
-	jsonprint.cpp
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
