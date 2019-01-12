@@ -20,7 +20,6 @@
 #include <tpie/tpie.h>
 #include <tpie/memory.h>
 #include <tpie/serialization2.h>
-#include <tpie/serialization.h>
 #include <tpie/btree.h>
 #include <iomanip>
 
@@ -178,7 +177,7 @@ void unserialize(S & src, simple_field_t & f) {
 		break;
 	}
 	default:
-		throw tpie::serialization_error("Bad shape io type");
+		throw std::runtime_error("Bad shape io type");
 	}
 }
 
@@ -443,7 +442,7 @@ void unserialize(S & src, std::shared_ptr<vector_item> & p) {
 		unserialize(src, *static_cast<bezierpolygon_3d_vector_item*>(p.get()));
 		break;
 	default:
-		throw tpie::serialization_error("Bad geometry type");
+		throw std::runtime_error("Bad geometry type");
 	}
 	p->type=static_cast<GeometryType>(type);
 }

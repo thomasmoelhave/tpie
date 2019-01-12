@@ -133,7 +133,6 @@ set (HEADERS
 		queue.h
 		resource_manager.h
 		resources.h
-		serialization.h
 		serialization2.h
 		serialization_stream.h
 		serialization_sorter.h

@@ -18,8 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "execution_time_predictor.h"
 #include <boost/filesystem.hpp>
+#include <tpie/serialization2.h>
 #include <functional>
-#include "serialization.h"
 #include <map>
 #include <algorithm>
 #include <iostream>
@@ -118,24 +118,25 @@ public:
 		std::string full_name = dir_name+file_name;
 		f.open(full_name.c_str(), ifstream::binary | ifstream::in);
 		if (f.is_open()) {
-			try {
-				tpie::unserializer u(f);
-				u << "TPIE time execution database";
-				size_t c;
-				u >> c;
-				for(size_t i=0; i < c; ++i) {
-					size_t id;
-					size_t cnt;
-					u >> id >> cnt;
-					entry & e=db[id];
-					for (size_t j=0; j < cnt; ++j) {
-						stream_size_type n;
-						time_type time;
-						u >> n >> time;
-						e.add_point(p_t(n, time));
-					}
+			using tpie::unserialize;
+			uint64_t magic;
+			unserialize(f, magic);
+			if (magic != 0x2767e5399eada7d4ull) return;
+			size_t c;
+			unserialize(f, c);
+			for(size_t i=0; i < c; ++i) {
+				size_t id;
+				size_t cnt;
+				unserialize(f, id);
+				unserialize(f, cnt);
+				entry & e=db[id];
+				for (size_t j=0; j < cnt; ++j) {
+					stream_size_type n;
+					time_type time;
+					unserialize(f, n);
+					unserialize(f, time);
+					e.add_point(p_t(n, time));
 				}
-			} catch(tpie::serialization_error &) {
 			}
 		}
 	}
@@ -152,13 +153,16 @@ public:
 		}
 		
 		{
-			tpie::serializer s(f);
-			s << "TPIE time execution database";
-			s << (size_t)db.size();
+			using tpie::serialize;
+			serialize(f, (uint64_t)0x2767e5399eada7d4ull);
+			serialize(f, (size_t)db.size());
 			for(db_type::iterator i=db.begin(); i != db.end(); ++i) {
-				s << (size_t)i->first << (size_t)i->second.count;
-				for (p_t * j=i->second.begin(); j != i->second.end(); ++j)
-					s << (stream_size_type)j->first << (time_type)j->second;
+				serialize(f, (size_t)i->first);
+				serialize(f, (size_t)i->second.count);
+				for (p_t * j=i->second.begin(); j != i->second.end(); ++j) {
+					serialize(f, (stream_size_type)j->first);
+					serialize(f, (time_type)j->second);
+				}
 			}
 		}
 		f.close();

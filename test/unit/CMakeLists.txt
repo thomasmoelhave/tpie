@@ -131,7 +131,7 @@ add_unittest(merge_sort
 	)
 add_unittest(packed_array basic1 basic2 basic4)
 add_unittest(parallel_sort basic1 basic2 general equal_elements bad_case)
-add_unittest(serialization unsafe safe serialization2 stream stream_dtor stream_reopen stream_reverse stream_temp)
+add_unittest(serialization serialization2 stream stream_dtor stream_reopen stream_reverse stream_temp)
 add_unittest(serialization_sort
 	empty_input
 	internal_report

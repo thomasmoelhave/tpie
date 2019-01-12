@@ -35,7 +35,7 @@ void usage(const char app[]) {
 
 class tpie_initer {
 	tpie::flags<tpie::subsystem> subsystems() {
-		return (tpie::ALL & ~(tpie::DEFAULT_LOGGING | tpie::PRIMEDB | tpie::JOB_MANAGER))
+		return (tpie::ALL & ~(tpie::DEFAULT_LOGGING | tpie::JOB_MANAGER))
 			| tpie::CAPTURE_FRACTIONS;
 	}
 public:

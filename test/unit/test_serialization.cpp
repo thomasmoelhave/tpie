@@ -18,7 +18,6 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
-#include <tpie/serialization.h>
 #include <tpie/serialization2.h>
 #include <tpie/serialization_stream.h>
 #include <map>
@@ -130,50 +129,6 @@ bool testSer2() {
 	return true;
 }
 
-
-bool testSer(bool safe) {
-	std::stringstream ss;
-	std::vector<int> v, empty;
-	v.push_back(88);
-	v.push_back(74);
-	{
-		tpie::serializer ser(ss, safe);
-		ser << (size_t)454 << (uint8_t)42 << "Hello world" << std::string("monster") << make_pair(std::string("hello"), (float)3.3) << v << empty;
-	}
-
-	{	
-		ss.seekg(0);
-		tpie::unserializer ser(ss);
-
-		size_t a;
-		uint8_t b;
-		std::string c;
-		std::string d;
-		std::pair<std::string, float> e;
-		std::vector<int> f, empty_out;
-		try {
-			ser >> a >> b >> c >> d >> e >> f >> empty_out;
-		} catch(const serialization_error & e) {
-			tpie::log_info() << e.what() << std::endl;
-			return false;
-		}
-		if (a != 454 ||
-			b != 42 ||
-			c != "Hello world" ||
-			d != "monster" ||
-			e.first != "hello" ||
-			(e.second - 3.3) > 1e-9 ||
-			f != v ||
-			empty_out.size() != 0) {
-			tpie::log_info() << "Unserzation failed" << std::endl;
-				return false;		
-		}
-	}
-	return true;
-}
-
-bool safe_test() { return testSer(true); }
-bool unsafe_test() { return testSer(false); }
 
 bool stream_test() {
 	bool result = true;
@@ -382,8 +337,6 @@ bool stream_temp_test() {
 
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
-		.test(safe_test, "safe")
-		.test(unsafe_test, "unsafe")
 		.test(testSer2, "serialization2")
 		.test(stream_test, "stream")
 		.test(stream_dtor_test, "stream_dtor")

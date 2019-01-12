@@ -24,7 +24,6 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_base.h>
 #include <tpie/serialization_sorter.h>
-#include <tpie/serialization.h>
 
 namespace tpie::pipelining {
 
