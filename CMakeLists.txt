@@ -3,29 +3,9 @@ cmake_minimum_required(VERSION 3.1)
 
 project(tpie)
 
-if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-
-set(CMAKE_C_FLAGS_EXTRADEBUG "${CMAKE_C_FLAGS_DEBUG}")
-set(CMAKE_CXX_FLAGS_EXTRADEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-if (CMAKE_BUILD_TYPE STREQUAL "ExtraDebug")
-	add_definitions("-D_GLIBCXX_DEBUG")
-endif()
-
-include_directories(.)
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 #### CONFIG.H Checks:
 include(CheckIncludeFiles)
-
-if(NOT WIN32) 
-	add_definitions("-Wall -Wextra")
-endif(NOT WIN32)
-
-if(WIN32)
-	add_definitions("-DWIN32_LEAN_AND_MEAN -DNOGDI /bigobj")
-endif(WIN32)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 #### Dependencies
@@ -36,8 +16,6 @@ if(WIN32)
 	set(Boost_USE_STATIC_LIBS    ON)
 endif(WIN32)
 find_package(Boost COMPONENTS date_time filesystem system REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories( ${Boost_LIBRARY_DIRS} )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -60,7 +38,6 @@ if(TPIE_USE_SNAPPY)
 	find_package(Snappy)
 	if(${Snappy_FOUND})
 		set(TPIE_HAS_SNAPPY ON)
-		include_directories(${Snappy_INCLUDE_DIR})
 	else(${Snappy_FOUND})
 		set(TPIE_HAS_SNAPPY OFF)
 	endif(${Snappy_FOUND})
@@ -72,7 +49,6 @@ if(TPIE_USE_LZ4)
 	find_package(LZ4)
 	if(${LZ4_FOUND})
 		set(TPIE_HAS_LZ4 ON)
-		include_directories(${LZ4_INCLUDE_DIR})
 	else(${LZ4_FOUND})
 		set(TPIE_HAS_LZ4 OFF)
 	endif(${LZ4_FOUND})
@@ -85,7 +61,6 @@ if(TPIE_USE_ZSTD)
 	find_package(ZSTD)
 	if(${ZSTD_FOUND})
 		set(TPIE_HAS_ZSTD ON)
-		include_directories(${ZSTD_INCLUDE_DIR})
 	else(${ZSTD_FOUND})
 		set(TPIE_HAS_ZSTD OFF)
 	endif(${ZSTD_FOUND})
@@ -110,8 +85,6 @@ set(INSTALL_TARGETS_DEFAULT_ARGS
 	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
 	ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 )
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (CMAKE_BUILD_TYPE) 
   string(TOUPPER ${CMAKE_BUILD_TYPE} bt)

@@ -213,31 +213,44 @@ set (SOURCES
 	)
 
 if (WIN32)
-set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
-else(WIN32)
-set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
-endif(WIN32)
+	set(HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
+else()
+	set(HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
+endif()
 
 if (TPIE_SHARED)
   add_library(tpie SHARED ${HEADERS} ${SOURCES})
 else()
   add_library(tpie STATIC ${HEADERS} ${SOURCES})
 endif()
-target_link_libraries(tpie ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(tpie PUBLIC Boost::date_time Boost::filesystem Boost::system Boost::boost Threads::Threads)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 set_property(TARGET tpie PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET tpie PROPERTY CXX_STANDARD 14)
+target_compile_definitions(tpie PUBLIC -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
+
+#TODO this is quite bad we inject everything into the include path
+target_include_directories(tpie PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+if(NOT WIN32)
+	target_compile_options(tpie PUBLIC -Wall -Wextra)
+endif()
+
+if(WIN32)
+	target_compile_options(tpie PUBLIC -DWIN32_LEAN_AND_MEAN -DNOGDI /bigobj)
+endif()
 
 if(TPIE_HAS_SNAPPY)
-	target_link_libraries(tpie ${Snappy_LIBRARY})
-endif(TPIE_HAS_SNAPPY)
+	target_link_libraries(tpie PRIVATE Snappy::Snappy)
+endif()
 
 if(TPIE_HAS_LZ4)
-	target_link_libraries(tpie ${LZ4_LIBRARY})
-endif(TPIE_HAS_LZ4)
+	target_link_libraries(tpie PRIVATE lz4::lz4)
+endif()
 
 if(TPIE_HAS_ZSTD)
-	target_link_libraries(tpie ${ZSTD_LIBRARY})
-endif(TPIE_HAS_ZSTD)
+	target_link_libraries(tpie PRIVATE zstd::zstd)
+endif()
 
 install(TARGETS tpie
 	LIBRARY DESTINATION lib

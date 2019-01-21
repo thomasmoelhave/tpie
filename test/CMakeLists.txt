@@ -10,11 +10,12 @@ set (COMMON_DEPS
 
 add_library(test_common ${COMMON_DEPS})
 set_target_properties(test_common PROPERTIES FOLDER tpie/test)
+target_link_libraries(test_common tpie)
 
 macro(add_tpie_test NAME)
 	add_executable(${NAME} ${NAME}.cpp) 
 	set_target_properties(${NAME} PROPERTIES FOLDER tpie/test)
-	target_link_libraries(${NAME} tpie test_common )
+	target_link_libraries(${NAME} test_common )
 endmacro(add_tpie_test)
 
 add_tpie_test(test_ami_stack)
