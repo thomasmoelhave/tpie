@@ -241,15 +241,15 @@ if(WIN32)
 endif()
 
 if(TPIE_HAS_SNAPPY)
-	target_link_libraries(tpie PRIVATE Snappy::Snappy)
+	target_link_libraries(tpie PUBLIC Snappy::Snappy)
 endif()
 
 if(TPIE_HAS_LZ4)
-	target_link_libraries(tpie PRIVATE lz4::lz4)
+	target_link_libraries(tpie PUBLIC lz4::lz4)
 endif()
 
 if(TPIE_HAS_ZSTD)
-	target_link_libraries(tpie PRIVATE zstd::zstd)
+	target_link_libraries(tpie PUBLIC zstd::zstd)
 endif()
 
 install(TARGETS tpie
