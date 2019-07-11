@@ -71,15 +71,14 @@ inline void posix::give_advice() {
 }
 
 inline void posix::read_i(void * data, memory_size_type size) {
-	memory_offset_type bytesRead = ::read(m_fd, data, size);
-	if (bytesRead == -1)
-		throw_errno();
-	if (bytesRead != static_cast<memory_offset_type>(size)) {
-		std::stringstream ss;
-		ss << "Wrong number of bytes read: Expected " << size << " but got " << bytesRead;
-		throw io_exception(ss.str());
-	}
-	increment_bytes_read(size);
+	do {
+		memory_offset_type bytesRead = ::read(m_fd, data, size);
+		if (bytesRead == -1)
+			throw_errno();
+		data = static_cast<char *>(data) + bytesRead;
+		size -= bytesRead;
+		increment_bytes_read(bytesRead);
+	} while (size != 0);
 }
 
 inline void posix::write_i(const void * data, memory_size_type size) {
