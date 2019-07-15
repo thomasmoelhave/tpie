@@ -61,7 +61,7 @@ public:
 		if (!can_pull()) {
 			reset();
 		}
-		return std::move(el);
+		return el;
 	}
 
 	void reset() {

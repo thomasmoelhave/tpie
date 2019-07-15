@@ -409,7 +409,7 @@ public:
 		this->init_sub_node(calc);
 		sort_input_t<item_type, pred_t, store_t> input(std::move(calc));
 		this->init_sub_node(input);
-		return std::move(input);
+		return input;
 	}
 
 	sort_factory(const pred_t & pred, store_t store): m_pred(pred), m_store(store) {}
