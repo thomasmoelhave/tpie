@@ -408,7 +408,7 @@ public:
 		this->init_node(calc);
 		input_t input(std::move(calc));
 		this->init_node(input);
-		return std::move(input);
+		return input;
 	}
 
 private:
@@ -435,7 +435,7 @@ public:
 		constructed_type res(std::move(m_sorter));
 		res.add_calc_dependency(m_calc_token);
 		init_node(res);
-		return std::move(res);
+		return res;
 	}
 
 private:

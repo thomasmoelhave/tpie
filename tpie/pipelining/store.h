@@ -149,8 +149,8 @@ struct explicit_tpie_unique_pointer_store {
 			return outer_type(tpie_new<element_type>(e));
 		}
 		static const element_type & store_as_element(const store_type & e) {return *e;}
-		store_type outer_to_store(outer_type e) {return std::move(e);}
-		outer_type store_to_outer(store_type e) {return std::move(e);}
+		store_type outer_to_store(outer_type e) {return e;}
+		outer_type store_to_outer(store_type e) {return e;}
 	};
 
 	template <typename element_t>
