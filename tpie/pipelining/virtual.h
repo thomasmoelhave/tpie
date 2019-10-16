@@ -359,31 +359,7 @@ struct assert_types_equal_and_return<T, T, Result> {
 
 
 class access {
-	template <typename>
-	friend class pipelining::virtual_chunk_end;
-	template <typename, typename>
-	friend class pipelining::virtual_chunk;
-	template <typename>
-	friend class pipelining::virtual_chunk_begin;
-	template <typename>
-	friend class pipelining::virtual_chunk_pull_end;
-	template <typename, typename>
-	friend class pipelining::virtual_chunk_pull;
-	template <typename>
-	friend class pipelining::virtual_chunk_pull_begin;
-	template <typename, typename>
-	friend class vfork_node;
-	template <typename>
-	friend class devirtualize_end_node;
-	template <typename, typename>
-	friend class devirtualize_begin_node;
-	template <typename>
-	friend class devirtualize_pull_begin_node;
-	template <typename, typename>
-	friend class devirtualize_pull_end_node;
-	template <typename>
-	friend class subpipeline_virt_impl;
-
+public:
 	template <typename Input>
 	static virtsrc<Input> * get_input(const virtual_chunk_end<Input> &);
 	template <typename Input, typename Output>
