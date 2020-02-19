@@ -24,6 +24,7 @@
 /// \file compressed/thread.h  Interface to the compressor thread.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 #include <thread>
 #include <mutex>
 #include <memory>
@@ -35,7 +36,7 @@
 
 namespace tpie {
 
-class compressor_thread {
+class TPIE_EXPORT compressor_thread {
 	class impl;
 	impl * pimpl;
 
@@ -63,7 +64,7 @@ public:
 	void set_preferred_compression(compressor_thread_lock &, compression_scheme::type);
 };
 
-class compressor_thread_lock {
+class TPIE_EXPORT compressor_thread_lock {
 public:
 	typedef std::unique_lock<compressor_thread::mutex_t> lock_t;
 

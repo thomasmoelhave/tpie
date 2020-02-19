@@ -24,6 +24,7 @@
 /// \file compressed/stream.h  Compressed stream public API.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 #include <tpie/array.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/tempname.h>
@@ -75,7 +76,7 @@ class compressed_stream_base_p;
 /// \brief  Base class containing the implementation details that are
 /// independent of the item type.
 ///////////////////////////////////////////////////////////////////////////////
-class compressed_stream_base {
+class TPIE_EXPORT compressed_stream_base {
 public:
 	friend class compressed_stream_base_p;
 

@@ -24,6 +24,7 @@
 /// logstream class used by definitions in \ref tpie_log.h.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 #include <tpie/config.h>
 #include <tpie/loglevel.h>
 #include <streambuf>
@@ -44,11 +45,11 @@ struct log_target {
 	virtual void end_group() {};
 };
 
-void add_log_target(log_target * t);
-void remove_log_target(log_target * t);
+TPIE_EXPORT void add_log_target(log_target * t);
+TPIE_EXPORT void remove_log_target(log_target * t);
 
-void begin_log_group(const std::string & name);
-void end_log_group();
+TPIE_EXPORT void begin_log_group(const std::string & name);
+TPIE_EXPORT void end_log_group();
 
 class log_stream_buf: public std::basic_streambuf<char, std::char_traits<char> >  {
 private:
@@ -116,7 +117,7 @@ inline log_level_manip setlevel(log_level p) { return log_level_manip(p); }
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief RAII-style management for log groups
 ///////////////////////////////////////////////////////////////////////////////
-class log_group {
+class TPIE_EXPORT log_group {
 public:
 	log_group(const std::string & name);
 	~log_group();

@@ -24,12 +24,13 @@
 #ifndef __TPIE_FILE_STREAM_BASE_H__
 #define __TPIE_FILE_STREAM_BASE_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/file_base_crtp.h>
 #include <tpie/stream_crtp.h>
 #include <algorithm>
 namespace tpie {
 
-class file_stream_base: public file_base_crtp<file_stream_base>, public stream_crtp<file_stream_base> {
+class TPIE_EXPORT file_stream_base: public file_base_crtp<file_stream_base>, public stream_crtp<file_stream_base> {
 public:
 	typedef file_base_crtp<file_stream_base> p_t;
 	typedef stream_crtp<file_stream_base> s_t;

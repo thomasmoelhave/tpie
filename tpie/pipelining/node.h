@@ -20,6 +20,7 @@
 #ifndef __TPIE_PIPELINING_NODE_H__
 #define __TPIE_PIPELINING_NODE_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/progress_indicator_base.h>
@@ -36,7 +37,7 @@
 namespace tpie::pipelining {
 namespace bits {
 
-class proxy_progress_indicator : public tpie::progress_indicator_base {
+class TPIE_EXPORT proxy_progress_indicator : public tpie::progress_indicator_base {
 	node & m_node;
 
 public:
@@ -73,7 +74,7 @@ struct node_parameters {
 /// and implement methods begin(), push() and end(), if it is not a source
 /// node.
 ///////////////////////////////////////////////////////////////////////////////
-class node {
+class TPIE_EXPORT node {
 public:
 	typedef boost::optional<any_noncopyable &> maybeany_t;
 

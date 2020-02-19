@@ -19,11 +19,13 @@
 
 // http://stackoverflow.com/a/4318642
 
+#include <tpie/tpie_export.h>
+
 namespace tpie {
 
 #define GIT_COMMIT "@GIT_COMMIT@"
 #define GIT_REFSPEC "@GIT_REFSPEC@"
-const char * git_commit = GIT_COMMIT;
-const char * git_refspec = GIT_REFSPEC;
+TPIE_EXPORT const char * git_commit = GIT_COMMIT;
+TPIE_EXPORT const char * git_refspec = GIT_REFSPEC;
 
 }

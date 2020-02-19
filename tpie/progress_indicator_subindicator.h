@@ -24,6 +24,8 @@
 
 #ifndef __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
 #define __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
+
+#include <tpie/tpie_export.h>
 #include <tpie/portability.h>
 #include <tpie/util.h>
 #include <tpie/progress_indicator_base.h>
@@ -37,7 +39,7 @@ struct log_group_mode {
 	};
 };
 
-class progress_indicator_subindicator: public progress_indicator_base {
+class TPIE_EXPORT progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
 	virtual void push_breadcrumb(const char * crumb, description_importance importance);

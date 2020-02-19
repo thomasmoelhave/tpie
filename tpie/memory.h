@@ -25,6 +25,7 @@
 #ifndef __TPIE_MEMORY_H__
 #define __TPIE_MEMORY_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/config.h>
 #include <tpie/util.h>
 #include <tpie/resource_manager.h>
@@ -58,7 +59,7 @@ struct type_allocations {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Memory management object used to track memory usage.
 ///////////////////////////////////////////////////////////////////////////////
-class memory_manager final : public resource_manager {
+class TPIE_EXPORT memory_manager final : public resource_manager {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
@@ -121,7 +122,7 @@ void finish_memory_manager();
 /// May only be called when init_memory_manager has been called.
 /// See \ref tpie_init().
 ///////////////////////////////////////////////////////////////////////////////
-memory_manager & get_memory_manager();
+TPIE_EXPORT memory_manager & get_memory_manager();
 
 #ifndef DOXYGEN
 ///////////////////////////////////////////////////////////////////////////////
@@ -424,7 +425,7 @@ public:
 /// \brief Find the largest amount of memory that can be allocated as a single
 /// chunk.
 ///////////////////////////////////////////////////////////////////////////////
-size_t consecutive_memory_available(size_t granularity=5*1024*1024);
+TPIE_EXPORT size_t consecutive_memory_available(size_t granularity=5*1024*1024);
 
 } //namespace tpie
 

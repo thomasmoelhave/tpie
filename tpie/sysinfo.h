@@ -24,6 +24,7 @@
 #ifndef __TPIE_SYSINFO__
 #define __TPIE_SYSINFO__
 
+#include <tpie/tpie_export.h>
 #include <iostream>
 #include <iomanip>
 #include <boost/asio/ip/host_name.hpp>
@@ -35,11 +36,11 @@ namespace tpie {
 
 /** \brief The Git commit hash (40 hexadecimal characters) that TPIE was built
  * from. */
-extern const char * git_commit;
+TPIE_EXPORT extern const char * git_commit;
 
 /** The Git refspec that TPIE was built from. Usually of the form
  * \c "refs/heads/"+branch, for instance \c "refs/heads/master". */
-extern const char * git_refspec;
+TPIE_EXPORT extern const char * git_refspec;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Class providing system and platform info.

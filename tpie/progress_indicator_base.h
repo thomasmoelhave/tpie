@@ -24,6 +24,7 @@
 #ifndef _TPIE_PROGRESS_INDICATOR_BASE_H
 #define _TPIE_PROGRESS_INDICATOR_BASE_H
 
+#include <tpie/tpie_export.h>
 #include <tpie/portability.h>
 #include <algorithm>
 #include <tpie/execution_time_predictor.h>
@@ -58,7 +59,7 @@ enum description_importance {
 /// status will be advanced by stepValue units. 
 ///////////////////////////////////////////////////////////////////////////////
 
-class progress_indicator_base {
+class TPIE_EXPORT progress_indicator_base {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Initializes the indicator.

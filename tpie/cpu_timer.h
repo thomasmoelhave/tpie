@@ -25,9 +25,9 @@
 /// Timer measuring user time, system time and wall clock time.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
-
 #include <iostream>
 #include <time.h>
 #include <boost/date_time.hpp>
@@ -49,7 +49,7 @@ typedef boost::posix_time::ptime tms;
 #else
 using ::tms;
 #endif
-class cpu_timer {
+class TPIE_EXPORT cpu_timer {
 
 private:
 	long        clock_tick_;
@@ -162,7 +162,7 @@ public:
 /// output the elapsed real time in seconds. On Linux, output user, system and
 /// wall clock time in seconds.
 ///////////////////////////////////////////////////////////////////////////////
-std::ostream &operator<<(std::ostream &s, cpu_timer &ct);
+TPIE_EXPORT std::ostream &operator<<(std::ostream &s, cpu_timer &ct);
 
 }
 

@@ -71,6 +71,7 @@
 #ifndef __TPIE_PIPELINING_TOKENS_H__
 #define __TPIE_PIPELINING_TOKENS_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/exception.h>
 #include <tpie/pipelining/exception.h>
 #include <tpie/pipelining/predeclare.h>
@@ -96,7 +97,7 @@ enum node_relation {
 	memory_share_depends
 };
 
-class node_map {
+class TPIE_EXPORT node_map {
 public:
 	typedef uint64_t id_t;
 	typedef node * val_t;
@@ -288,7 +289,7 @@ private:
 
 } // namespace bits
 
-class node_token {
+class TPIE_EXPORT node_token {
 public:
 	typedef bits::node_map::id_t id_t;
 	typedef bits::node_map::val_t val_t;

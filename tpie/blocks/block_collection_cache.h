@@ -24,6 +24,7 @@
 #ifndef _TPIE_BLOCKS_BLOCK_COLLECTION_CACHE_H
 #define _TPIE_BLOCKS_BLOCK_COLLECTION_CACHE_H
 
+#include <tpie/tpie_export.h>
 #include <tpie/tpie.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/file_accessor/file_accessor.h>
@@ -40,7 +41,7 @@ namespace blocks {
  * \brief A class to manage writing and reading of block to disk. 
  * Blocks are stored in an internal cache with a static size.
  */
-class block_collection_cache {
+class TPIE_EXPORT block_collection_cache {
 private:
 	struct position_comparator {
 		bool operator()(const block_handle & a, const block_handle & b) const {

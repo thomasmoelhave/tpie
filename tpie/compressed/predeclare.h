@@ -20,6 +20,8 @@
 #ifndef TPIE_COMPRESSED_PREDECLARE_H
 #define TPIE_COMPRESSED_PREDECLARE_H
 
+#include <tpie/tpie_export.h>
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \file compressed/predeclare.h  Useful compressed stream predeclarations.
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +35,7 @@ class compressor_thread_lock;
 // thread.cpp
 void init_compressor();
 void finish_compressor();
-compressor_thread & the_compressor_thread();
+TPIE_EXPORT compressor_thread & the_compressor_thread();
 
 // buffer.h
 class compressor_buffer;

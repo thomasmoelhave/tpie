@@ -25,6 +25,7 @@
 #ifndef __TPIE_FRACTIONAL_PROGRESS__
 #define __TPIE_FRACTIONAL_PROGRESS__
 
+#include <tpie/tpie_export.h>
 #include <tpie/portability.h>
 #include <tpie/util.h>
 #include <tpie/progress_indicator_subindicator.h>
@@ -53,7 +54,7 @@ class fractional_progress;
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Subindicator for fractional progress reporting.
 ///////////////////////////////////////////////////////////////////////////////
-class fractional_subindicator: public progress_indicator_subindicator {
+class TPIE_EXPORT fractional_subindicator: public progress_indicator_subindicator {
 public:
 	fractional_subindicator(fractional_progress & fp);
 	
@@ -104,7 +105,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Fractional progress reporter.
 ///////////////////////////////////////////////////////////////////////////////
-class fractional_progress {
+class TPIE_EXPORT fractional_progress {
 public:
 	fractional_progress(progress_indicator_base * pi);
 	~fractional_progress();
@@ -156,9 +157,9 @@ private:
 	friend class fractional_subindicator;
 };
 
-void update_fractions(const char * name, float frac, stream_size_type n);
-void load_fractions(const std::string & path);
-void save_fractions(const std::string & path, bool force = false);
+TPIE_EXPORT void update_fractions(const char * name, float frac, stream_size_type n);
+TPIE_EXPORT void load_fractions(const std::string & path);
+TPIE_EXPORT void save_fractions(const std::string & path, bool force = false);
 
 }
 #endif //__TPIE_FRACTIONAL_PROGRESS__

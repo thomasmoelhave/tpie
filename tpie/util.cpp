@@ -35,7 +35,7 @@
 
 namespace tpie {
 
-void atomic_rename(const std::string & src, const std::string & dst) {
+TPIE_EXPORT void atomic_rename(const std::string & src, const std::string & dst) {
 	//Note according to posix rename is atomic..
 	//On windows it is probably not
 #ifndef _WIN32
@@ -51,7 +51,7 @@ void atomic_rename(const std::string & src, const std::string & dst) {
 }
 
 #ifdef _WIN32
-void throw_getlasterror() {
+TPIE_EXPORT void throw_getlasterror() {
 	char buffer[1024];
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, buffer, 1023, 0);
 	switch (GetLastError()) {
@@ -68,7 +68,7 @@ void throw_getlasterror() {
 #endif
 
 
-std::string pretty_print_size(stream_size_type size) {
+TPIE_EXPORT std::string pretty_print_size(stream_size_type size) {
 	static std::string units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
 	stream_size_type i = 0;
 	while(size > 1024 && i < 8) {

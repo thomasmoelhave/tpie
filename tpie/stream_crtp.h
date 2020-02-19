@@ -24,6 +24,7 @@
 #ifndef __TPIE_STREAM_CRTP_H__
 #define __TPIE_STREAM_CRTP_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/types.h>
 #include <tpie/exception.h>
 #include <limits>
@@ -32,7 +33,7 @@
 namespace tpie {
 
 template <typename child_t>
-class stream_crtp {
+class TPIE_EXPORT stream_crtp {
 public:
 	/** Type describing how we should interpret the offset supplied to seek. */
 	enum offset_type {

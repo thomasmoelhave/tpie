@@ -23,6 +23,8 @@
 
 #ifndef _TPIE_STATS_H
 #define _TPIE_STATS_H
+
+#include <tpie/tpie_export.h>
 #include <tpie/types.h>
 #include <chrono>
 
@@ -31,38 +33,38 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the number of bytes currently being used by temporary files.
 	///////////////////////////////////////////////////////////////////////////
-	stream_size_type get_temp_file_usage();
+	TPIE_EXPORT stream_size_type get_temp_file_usage();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Increment (possibly by a negative amount) the number of bytes being
     /// used by temporary files
 	///////////////////////////////////////////////////////////////////////////
-	void increment_temp_file_usage(stream_offset_type delta);
+	TPIE_EXPORT void increment_temp_file_usage(stream_offset_type delta);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the number of bytes read from disk since program start.
 	///////////////////////////////////////////////////////////////////////////
-	stream_size_type get_bytes_read();
+	TPIE_EXPORT stream_size_type get_bytes_read();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the number of bytes written to disk since program start.
 	///////////////////////////////////////////////////////////////////////////
-	stream_size_type get_bytes_written();
+	TPIE_EXPORT stream_size_type get_bytes_written();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Inform that stats module that an additional delta bytes have
 	/// been read from disk.
 	///////////////////////////////////////////////////////////////////////////
-	void increment_bytes_read(stream_size_type delta);
+	TPIE_EXPORT void increment_bytes_read(stream_size_type delta);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Inform the stats module that an additional delta bytes have
 	/// been written to disk.
 	///////////////////////////////////////////////////////////////////////////
-	void increment_bytes_written(stream_size_type delta);
+	TPIE_EXPORT void increment_bytes_written(stream_size_type delta);
 
-	stream_size_type get_user(size_t i);
-	void increment_user(size_t i, stream_size_type delta);
+	TPIE_EXPORT stream_size_type get_user(size_t i);
+	TPIE_EXPORT void increment_user(size_t i, stream_size_type delta);
 
 class ptime {
 private:

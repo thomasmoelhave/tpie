@@ -19,6 +19,7 @@
 #ifndef __TPIE_PIPELINING_SUBPIPELINE_H__
 #define __TPIE_PIPELINING_SUBPIPELINE_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/pipelining/pipeline.h>
 #include <tpie/pipelining/runtime.h>
 #include <tpie/pipelining/virtual.h>
@@ -26,7 +27,7 @@
 namespace tpie::pipelining {
 namespace bits {
 
-class subpipeline_base: public pipeline_base_base {
+class TPIE_EXPORT subpipeline_base: public pipeline_base_base {
 public:
 	void begin(stream_size_type items, progress_indicator_base & pi,
 			memory_size_type filesAvailable, memory_size_type mem,

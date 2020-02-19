@@ -24,13 +24,14 @@
 /// \file job.h Job class for job manager.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 #include <stddef.h>
 #include <condition_variable>
 #include <tpie/types.h>
 
 namespace tpie {
 
-class job {
+class TPIE_EXPORT job {
 
 	enum job_state { job_idle, job_enqueued, job_running };
 
@@ -117,7 +118,7 @@ private:
 /// is four or greater, the job framework spares one core for the user
 /// interface.
 ///////////////////////////////////////////////////////////////////////////////
-memory_size_type default_worker_count();
+TPIE_EXPORT memory_size_type default_worker_count();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the job subsystem.

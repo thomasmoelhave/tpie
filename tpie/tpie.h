@@ -19,6 +19,7 @@
 #ifndef __TPIE_TPIE_H__
 #define __TPIE_TPIE_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/config.h>
 #include <tpie/types.h>
 #include <tpie/flags.h>
@@ -65,7 +66,7 @@ TPIE_DECLARE_OPERATORS_FOR_FLAGS(subsystem)
 /// \brief Initialize the given subsystems of TPIE.
 /// \param subsystems Logical OR of \ref subsystem entries.
 ///////////////////////////////////////////////////////////////////////////////
-void tpie_init(flags<subsystem> subsystems=ALL);
+TPIE_EXPORT void tpie_init(flags<subsystem> subsystems=ALL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Deinitialize the given subsystems of TPIE.
@@ -73,7 +74,7 @@ void tpie_init(flags<subsystem> subsystems=ALL);
 /// tpie_init.
 /// \param subsystems Logical OR of \ref subsystem entries.
 ///////////////////////////////////////////////////////////////////////////////
-void tpie_finish(flags<subsystem> subsystems=ALL);
+TPIE_EXPORT void tpie_finish(flags<subsystem> subsystems=ALL);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Get the TPIE block size.
@@ -82,14 +83,14 @@ void tpie_finish(flags<subsystem> subsystems=ALL);
 ///
 /// The default is 2 MiB (2**21 bytes).
 ///////////////////////////////////////////////////////////////////////////////
-memory_size_type get_block_size();
+TPIE_EXPORT memory_size_type get_block_size();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Set the TPIE block size.
 ///
 /// It is not safe to change the block size when any streams are open.
 ///////////////////////////////////////////////////////////////////////////////
-void set_block_size(memory_size_type block_size);
+TPIE_EXPORT void set_block_size(memory_size_type block_size);
 
 } //namespace tpie
 

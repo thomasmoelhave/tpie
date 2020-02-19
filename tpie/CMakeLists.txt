@@ -223,12 +223,14 @@ if (TPIE_SHARED)
 else()
   add_library(tpie STATIC ${HEADERS} ${SOURCES})
 endif()
+generate_export_header(tpie DEFINE_NO_DEPRECATED)
+set_target_properties(tpie PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_property(TARGET tpie PROPERTY CXX_STANDARD 17)
+set_property(TARGET tpie PROPERTY CXX_STANDARD_REQUIRED ON)
 target_link_libraries(tpie PUBLIC Boost::date_time Boost::filesystem Boost::system Boost::boost Threads::Threads)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 set_property(TARGET tpie PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_property(TARGET tpie PROPERTY CXX_STANDARD 14)
 target_compile_definitions(tpie PUBLIC -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
-
 #TODO this is quite bad we inject everything into the include path
 target_include_directories(tpie PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/..)
 

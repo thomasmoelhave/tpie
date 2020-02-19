@@ -20,6 +20,7 @@
 #ifndef TPIE_PIPELINING_NODE_NAME_H
 #define TPIE_PIPELINING_NODE_NAME_H
 
+#include <tpie/tpie_export.h>
 #include <string>
 
 namespace tpie::pipelining::bits {
@@ -27,12 +28,12 @@ namespace tpie::pipelining::bits {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Extract the class name from a mangled typeid name.
 ///////////////////////////////////////////////////////////////////////////////
-std::string extract_pipe_class_name(std::string mangled);
+TPIE_EXPORT std::string extract_pipe_class_name(std::string mangled);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Extract a sensible default name for a node given its typeid name.
 ///////////////////////////////////////////////////////////////////////////////
-std::string extract_pipe_name(std::string mangled);
+TPIE_EXPORT std::string extract_pipe_name(std::string mangled);
 
 } // namespace tpie::pipelining::bits
 

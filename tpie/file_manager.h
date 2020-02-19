@@ -25,6 +25,7 @@
 #ifndef __TPIE_FILE_MANAGER_H__
 #define __TPIE_FILE_MANAGER_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/config.h>
 #include <tpie/util.h>
 #include <tpie/resource_manager.h>
@@ -34,7 +35,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief File management object used to track file usage.
 ///////////////////////////////////////////////////////////////////////////////
-class file_manager final : public resource_manager {
+class TPIE_EXPORT file_manager final : public resource_manager {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \internal
@@ -71,7 +72,7 @@ void finish_file_manager();
 /// May only be called when init_file_manager has been called.
 /// See \ref tpie_init().
 ///////////////////////////////////////////////////////////////////////////////
-file_manager & get_file_manager();
+TPIE_EXPORT file_manager & get_file_manager();
 
 } //namespace tpie
 

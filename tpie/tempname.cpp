@@ -302,11 +302,11 @@ void temp_file_inner::update_recorded_size(stream_size_type size) {
 	m_recordedSize=size;
 }
 
-void intrusive_ptr_add_ref(temp_file_inner * p) {
+TPIE_EXPORT void intrusive_ptr_add_ref(temp_file_inner *p) {
 	++p->m_count;
 }
 
-void intrusive_ptr_release(temp_file_inner * p) {
+TPIE_EXPORT void intrusive_ptr_release(temp_file_inner *p) {
 	if(--p->m_count == 0)
 		delete p;
 }

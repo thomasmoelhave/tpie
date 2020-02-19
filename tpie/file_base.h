@@ -23,6 +23,8 @@
 
 #ifndef __TPIE_FILE_BASE_H__
 #define __TPIE_FILE_BASE_H__
+
+#include <tpie/tpie_export.h>
 #include <tpie/file_base_crtp.h>
 #include <tpie/stream_crtp.h>
 #include <tpie/exception.h>
@@ -43,7 +45,7 @@
 
 namespace tpie {
 
-class file_base: public file_base_crtp<file_base> {
+class TPIE_EXPORT file_base: public file_base_crtp<file_base> {
 	typedef file_base_crtp<file_base> p_t;
 protected:
 	///////////////////////////////////////////////////////////////////////////

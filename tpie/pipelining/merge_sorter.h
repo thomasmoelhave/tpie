@@ -20,6 +20,7 @@
 #ifndef __TPIE_PIPELINING_MERGE_SORTER_H__
 #define __TPIE_PIPELINING_MERGE_SORTER_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/compressed/stream.h>
 #include <tpie/pipelining/sort_parameters.h>
 #include <tpie/pipelining/merger.h>
@@ -58,7 +59,7 @@ namespace bits {
 /// runNumber = 0. get_position may be called with mergeLevel = d-2 and any
 /// runNumber in any order.
 ///////////////////////////////////////////////////////////////////////////////
-class run_positions {
+class TPIE_EXPORT run_positions {
 public:
 	run_positions();
 	~run_positions();
@@ -134,7 +135,7 @@ private:
 
 } // namespace bits
 
-class merge_sorter_base {
+class TPIE_EXPORT merge_sorter_base {
 public:
 	merge_sorter_base(
 		linear_memory_usage fanout_memory_usage,

@@ -24,6 +24,7 @@
 #ifndef _TPIE_BLOCKS_BLOCK_COLLECTION_H
 #define _TPIE_BLOCKS_BLOCK_COLLECTION_H
 
+#include <tpie/tpie_export.h>
 #include <tpie/tpie.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/blocks/block.h>
@@ -36,7 +37,7 @@ namespace blocks {
 /**
  * \brief A class to manage writing and reading of block to disk.
  */
-class block_collection {
+class TPIE_EXPORT block_collection {
 public:
 	/**
 	 * \brief Create a block collection

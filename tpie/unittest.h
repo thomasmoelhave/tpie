@@ -20,6 +20,7 @@
 #ifndef __TPIE_UNITTEST_H__
 #define __TPIE_UNITTEST_H__
 
+#include <tpie/tpie_export.h>
 #include <iostream>
 #include <tpie/types.h>
 #include <tpie/logstream.h>
@@ -43,7 +44,7 @@ inline double test_secs(const test_time & from, const test_time & to) {
 	return std::chrono::duration_cast<std::chrono::duration<double>>(to-from).count();
 }			
 	
-class teststream_buf: public std::basic_streambuf<char, std::char_traits<char> > {
+class TPIE_EXPORT teststream_buf: public std::basic_streambuf<char, std::char_traits<char> > {
 private:
 	const static size_t line_size = 2048;
 	char m_line[line_size];
@@ -55,7 +56,7 @@ public:
 	virtual int sync();
 };
 
-class teststream: public std::ostream  {
+class TPIE_EXPORT teststream: public std::ostream  {
 private:
 	teststream_buf m_buff;
 	size_t failed;
@@ -80,9 +81,9 @@ public:
 	}
 };
 
-testmanip<bool> result(bool success);
-testmanip<bool> success();
-testmanip<bool> failure();
+TPIE_EXPORT testmanip<bool> result(bool success);
+TPIE_EXPORT testmanip<bool> success();
+TPIE_EXPORT testmanip<bool> failure();
 
 #define TEST_ENSURE(cond, message) {									\
 		if (! (cond) ) {												\
@@ -113,7 +114,7 @@ testmanip<bool> failure();
 class tests;
 
 namespace bits {
-	class test_runner {
+	class TPIE_EXPORT test_runner {
 		tests * t;
 		bool result;
 		test_time m_time;
@@ -127,7 +128,7 @@ namespace bits {
 	};
 } // namespace bits
 
-class tests {
+class TPIE_EXPORT tests {
 public:
 	static const size_t lineLength = 79;
 

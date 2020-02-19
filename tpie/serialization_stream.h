@@ -24,6 +24,7 @@
 /// \file serialization_stream.h  Stream of serializable items.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 #include <tpie/serialization2.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <memory>
@@ -36,7 +37,7 @@ namespace tpie {
 
 namespace bits {
 
-class serialization_writer_base {
+class TPIE_EXPORT serialization_writer_base {
 public:
 	static memory_size_type block_size() {
 		return 2*1024*1024;
@@ -80,7 +81,7 @@ public:
 
 } // namespace bits
 
-class serialization_writer : public bits::serialization_writer_base {
+class TPIE_EXPORT serialization_writer : public bits::serialization_writer_base {
 private:
 	typedef bits::serialization_writer_base p_t;
 
@@ -153,7 +154,7 @@ public:
 	}
 };
 
-class serialization_reverse_writer : public bits::serialization_writer_base {
+class TPIE_EXPORT serialization_reverse_writer : public bits::serialization_writer_base {
 	typedef bits::serialization_writer_base p_t;
 
 	tpie::array<char> m_block;
@@ -249,7 +250,7 @@ public:
 
 namespace bits {
 
-class serialization_reader_base {
+class TPIE_EXPORT serialization_reader_base {
 public:
 	static memory_size_type block_size() {
 		return serialization_writer_base::block_size();
@@ -354,7 +355,7 @@ public:
 
 } // namespace bits
 
-class serialization_reader : public bits::serialization_reader_base {
+class TPIE_EXPORT serialization_reader : public bits::serialization_reader_base {
 	typedef bits::serialization_reader_base p_t;
 	stream_size_type m_blockNumber;
 
@@ -381,7 +382,7 @@ public:
 	stream_size_type offset();
 };
 
-class serialization_reverse_reader : public bits::serialization_reader_base {
+class TPIE_EXPORT serialization_reverse_reader : public bits::serialization_reader_base {
 	typedef bits::serialization_reader_base p_t;
 	stream_size_type m_blockNumber;
 

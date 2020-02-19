@@ -23,6 +23,8 @@
 
 #ifndef __TPIE_PIPELINING_FACTORY_BASE_H__
 #define __TPIE_PIPELINING_FACTORY_BASE_H__
+
+#include <tpie/tpie_export.h>
 #include <tpie/pipelining/node_set.h>
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/tokens.h>
@@ -68,7 +70,7 @@ struct destination_kind {
 /// should call the \c factory_base::init_sub_node method for each of the
 /// \c nodes. For example see \c sort_factory_base in tpie/pipelining/sort.h.
 ///////////////////////////////////////////////////////////////////////////////
-class factory_base {
+class TPIE_EXPORT factory_base {
 public:
 	factory_base() = default;
 	factory_base(const factory_base & other) = delete;

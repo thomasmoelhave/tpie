@@ -23,7 +23,7 @@
 
 #ifndef __TPIE_UTIL_H__
 #define __TPIE_UTIL_H__
-
+#include <tpie/tpie_export.h>
 #include <tpie/config.h>
 #include <tpie/types.h>
 #include <cmath>
@@ -200,13 +200,13 @@ struct binary_argument_swap {
 /////////////////////////////////////////////////////////
 /// \brief atomicly rename a src to dst
 /////////////////////////////////////////////////////////
-void atomic_rename(const std::string & src, const std::string & dst);
+TPIE_EXPORT void atomic_rename(const std::string & src, const std::string & dst);
 
 
 /////////////////////////////////////////////////////////
 /// \brief pretty print a size
 /////////////////////////////////////////////////////////
-std::string pretty_print_size(stream_size_type size);
+TPIE_EXPORT std::string pretty_print_size(stream_size_type size);
 
 /////////////////////////////////////////////////////////
 /// Free the memory assosiated with a stl or tpie structure
@@ -220,7 +220,7 @@ inline void free_structure_memory(T & v) {
 }
 
 #ifdef _WIN32
-void throw_getlasterror();
+TPIE_EXPORT void throw_getlasterror();
 #endif
 
 } //namespace tpie

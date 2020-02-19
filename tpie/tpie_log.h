@@ -24,6 +24,7 @@
 /// Logging functionality and log_level codes for different priorities of log messages.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <tpie/tpie_export.h>
 #include <vector>
 #include <stack>
 #include <memory>
@@ -34,7 +35,7 @@
 namespace tpie {
 
 /** A simple logger that writes messages to a tpie temporary file */
-class file_log_target: public log_target {
+class TPIE_EXPORT file_log_target: public log_target {
 private:
 	std::stack<std::string> groups;
 public:
@@ -68,7 +69,7 @@ private:
 };
 
 /** A simple logger that writes messages to stderr */
-class stderr_log_target: public log_target {
+class TPIE_EXPORT stderr_log_target: public log_target {
 private:
 	std::stack<std::string> groups;
 public:
@@ -121,11 +122,11 @@ void finish_default_log();
 
 namespace log_bits {
 
-extern std::vector<std::shared_ptr<logstream> > log_instances;
+TPIE_EXPORT extern std::vector<std::shared_ptr<logstream> > log_instances;
 
-void initiate_log_level(log_level level);
+TPIE_EXPORT void initiate_log_level(log_level level);
 
-void flush_logs();
+TPIE_EXPORT void flush_logs();
 
 }
 
@@ -192,7 +193,7 @@ public:
 
 namespace log_bits {
 
-class log_selector {
+class TPIE_EXPORT log_selector {
 private:
 	static bool s_init;
 	static log_level s_level;

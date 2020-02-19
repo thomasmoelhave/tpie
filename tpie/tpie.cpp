@@ -33,7 +33,7 @@ static tpie::memory_size_type the_block_size=0;
 
 namespace tpie {
 
-void tpie_init(flags<subsystem> subsystems) {
+TPIE_EXPORT void tpie_init(flags<subsystem> subsystems) {
 	if (subsystems & FILE_MANAGER)
 	 	init_file_manager();
 
@@ -60,7 +60,7 @@ void tpie_init(flags<subsystem> subsystems) {
 	}
 }
 
-void tpie_finish(flags<subsystem> subsystems) {
+TPIE_EXPORT void tpie_finish(flags<subsystem> subsystems) {
 	if (subsystems & STREAMS) {
 		finish_compressor();
 		finish_stream_buffer_pool();
@@ -87,7 +87,7 @@ void tpie_finish(flags<subsystem> subsystems) {
 		finish_tempfile();
 }
 
-memory_size_type get_block_size() {
+TPIE_EXPORT memory_size_type get_block_size() {
 	if (the_block_size == 0) {
 		const char * v = getenv("TPIE_BLOCK_SIZE");
 		if (v != NULL) the_block_size = atol(v);
@@ -96,7 +96,7 @@ memory_size_type get_block_size() {
 	return the_block_size;
 }
 
-void set_block_size(memory_size_type block_size) {
+TPIE_EXPORT void set_block_size(memory_size_type block_size) {
 	the_block_size=block_size;
 }
 

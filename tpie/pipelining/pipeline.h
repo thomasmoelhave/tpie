@@ -20,6 +20,7 @@
 #ifndef __TPIE_PIPELINING_PIPELINE_H__
 #define __TPIE_PIPELINING_PIPELINE_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/types.h>
 #include <iostream>
 #include <tpie/pipelining/tokens.h>
@@ -37,7 +38,7 @@ namespace bits {
 /// \class pipeline_base
 /// Virtual superclass for pipelines and subpipelines
 ///////////////////////////////////////////////////////////////////////////////
-class pipeline_base_base {
+class TPIE_EXPORT pipeline_base_base {
 public:
 	pipeline_base_base();
 	pipeline_base_base(const pipeline_base_base &) = default;
@@ -105,7 +106,7 @@ private:
 /// \class pipeline_base
 /// Virtual superclass for pipelines implementing the function call operator.
 ///////////////////////////////////////////////////////////////////////////////
-class pipeline_base: public pipeline_base_base {
+class TPIE_EXPORT pipeline_base: public pipeline_base_base {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Invoke the pipeline.
@@ -168,8 +169,8 @@ public:
 } // namespace bits
 
 
-extern std::unordered_set<bits::pipeline_base_base *> current_pipelines;
-extern std::mutex current_pipelines_mutex;
+TPIE_EXPORT extern std::unordered_set<bits::pipeline_base_base *> current_pipelines;
+TPIE_EXPORT extern std::mutex current_pipelines_mutex;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline
@@ -177,7 +178,7 @@ extern std::mutex current_pipelines_mutex;
 /// This class is used to avoid writing the template argument in the
 /// pipeline_impl type.
 ///////////////////////////////////////////////////////////////////////////////
-class pipeline {
+class TPIE_EXPORT pipeline {
 public:
 	pipeline() {}
 	pipeline(pipeline &&) = default;

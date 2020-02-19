@@ -24,7 +24,7 @@
 
 #ifndef __TPIE_RESOURCE_MANAGER_H__
 #define __TPIE_RESOURCE_MANAGER_H__
-
+#include <tpie/tpie_export.h>
 #include <tpie/config.h>
 #include <tpie/resources.h>
 #include <atomic>
@@ -35,7 +35,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Resource management object used to track resource usage.
 ///////////////////////////////////////////////////////////////////////////////
-class resource_manager {
+class TPIE_EXPORT resource_manager {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Memory limit enforcement policies.

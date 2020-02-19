@@ -19,6 +19,7 @@
 #ifndef __TPIE_EXECUTION_TIME_PREDICTOR_H__
 #define __TPIE_EXECUTION_TIME_PREDICTOR_H__
 
+#include <tpie/tpie_export.h>
 #include <tpie/portability.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
@@ -62,7 +63,7 @@ private:
 };
 
 
-class execution_time_predictor {
+class TPIE_EXPORT execution_time_predictor {
 public:
 	execution_time_predictor(const std::string & id=std::string());
 	~execution_time_predictor();

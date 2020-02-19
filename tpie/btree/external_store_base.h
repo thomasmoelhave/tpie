@@ -20,6 +20,7 @@
 #ifndef _TPIE_BTREE_EXTERNAL_STORE_BASE_H_
 #define _TPIE_BTREE_EXTERNAL_STORE_BASE_H_
 
+#include <tpie/tpie_export.h>
 #include <tpie/portability.h>
 #include <tpie/btree/base.h>
 #include <tpie/tpie_assert.h>
@@ -30,7 +31,7 @@
 namespace tpie {
 namespace bbits {
 
-class external_store_base {
+class TPIE_EXPORT external_store_base {
 public:
 
 	/**

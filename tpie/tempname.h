@@ -25,6 +25,7 @@
 #define _TPIE_TEMPNAM_H
 
 // Get definitions for working with Unix and Windows
+#include <tpie/tpie_export.h>
 #include <tpie/types.h>
 #include <stdexcept>
 #include <boost/intrusive_ptr.hpp>
@@ -46,7 +47,7 @@ namespace tpie {
 	/// \brief Static methods for generating temporary file names and finding
 	/// temporary file directories.
 	///////////////////////////////////////////////////////////////////////////
-	class tempname {
+	class TPIE_EXPORT tempname {
 	public:
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Generate path for a new temporary file.
@@ -155,7 +156,7 @@ namespace tpie {
 
 	namespace bits {
 	
-	class temp_file_inner {
+	class TPIE_EXPORT temp_file_inner {
 	public:
 		temp_file_inner();
 		temp_file_inner(const temp_file_inner & o) = delete;
@@ -177,8 +178,8 @@ namespace tpie {
 			m_persist = p;
 		}
 
-		friend void intrusive_ptr_add_ref(temp_file_inner * p);
-		friend void intrusive_ptr_release(temp_file_inner * p);
+		TPIE_EXPORT friend void intrusive_ptr_add_ref(temp_file_inner *p);
+		TPIE_EXPORT friend void intrusive_ptr_release(temp_file_inner *p);
 
 	private:
 		std::string m_path;
@@ -187,8 +188,8 @@ namespace tpie {
 		memory_size_type m_count;			
 	};
 
-	void intrusive_ptr_add_ref(temp_file_inner * p);
-	void intrusive_ptr_release(temp_file_inner * p);
+	TPIE_EXPORT void intrusive_ptr_add_ref(temp_file_inner * p);
+	TPIE_EXPORT void intrusive_ptr_release(temp_file_inner * p);
 
 	} // namespace bits
 
