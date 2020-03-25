@@ -53,6 +53,7 @@ public:
 		inline void decrement() {--elm;}
 		inline void advance(size_t n) {elm += n;}
 		inline ptrdiff_t distance_to(iterator const & o) const {return o.elm - elm;}
+		T & operator[](ptrdiff_t n) const noexcept {return *(elm + n);}
 		T * elm;
 	public:
 		iterator(): elm(0) {};

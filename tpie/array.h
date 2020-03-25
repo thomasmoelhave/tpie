@@ -62,6 +62,11 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	array_iter_base(): elm(0) {};
 
+
+	TT & operator[](ptrdiff_t n) const noexcept {
+		return *(forward?elm+n:elm-n);
+	}
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Copy constructor.
 	/// We use boost::enable_if to allow copying an iterator with a more
