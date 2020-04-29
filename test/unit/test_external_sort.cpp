@@ -33,7 +33,7 @@ uint64_t primes[] = {2ull, 3ull, 3ull, 5ull, 7ull, 11ull, 13ull, 17ull, 23ull, 3
 
 
 size_t next_prime(size_t s) {
-	return *std::upper_bound(primes, primes + sizeof(primes), s);
+	return *std::upper_bound(primes, primes + sizeof(primes)/sizeof(uint64_t), s);
 }
 
 class primeit {
