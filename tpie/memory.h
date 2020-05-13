@@ -379,6 +379,16 @@ public:
 	allocator(const allocator & o) noexcept : bucket(o.bucket) {}
 	template <typename T2>
 	allocator(const allocator<T2> & o) noexcept : bucket(o.bucket) {}
+	allocator(allocator && o) noexcept : bucket(std::move(o.bucket)) {}
+	template <typename T2>
+	allocator(allocator<T2> && o) noexcept : bucket(std::move(o.bucket)) {}
+
+	allocator & operator=(const allocator & o) noexcept {bucket = o.bucket; return *this;}
+	template <typename T2>
+	allocator & operator=(const allocator<T2> & o) noexcept {bucket = o.bucket; return *this;}
+	allocator & operator=(allocator && o) noexcept {bucket = std::move(o.bucket); return *this;}
+	template <typename T2>
+	allocator & operator=(allocator<T2> && o) noexcept {bucket = std::move(o.bucket); return *this;}
 
     template <class U> struct rebind {typedef allocator<U> other;};
 
