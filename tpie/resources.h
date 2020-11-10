@@ -27,6 +27,7 @@
 #define __TPIE_RESOURCES_H__
 
 #include <iosfwd>
+#include <tpie/tpie_export.h>
 
 namespace tpie {
 
@@ -41,7 +42,7 @@ enum resource_type {
 	NO_RESOURCE
 };
 
-std::ostream & operator<<(std::ostream & os, const resource_type t);
+TPIE_EXPORT std::ostream & operator<<(std::ostream & os, const resource_type t);
 
 } //namespace tpie
 
