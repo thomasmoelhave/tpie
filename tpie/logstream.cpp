@@ -38,6 +38,13 @@ log_stream_buf::log_stream_buf(log_level level) : m_level(level) {
 
 log_stream_buf::~log_stream_buf() {flush();}
 
+
+void log_to_targets(log_level level, const char * data, size_t size) {
+	if (!logging_disabled)
+		for(size_t i = 0; i < log_targets.size(); ++i)
+				log_targets[i]->log(level, data, size);
+}
+
 void log_stream_buf::flush() {
 	if (pptr() == m_buff) return;
 	if (!logging_disabled) {

@@ -47,6 +47,7 @@ struct log_target {
 
 TPIE_EXPORT void add_log_target(log_target * t);
 TPIE_EXPORT void remove_log_target(log_target * t);
+TPIE_EXPORT void log_to_targets(log_level level, const char * data, size_t size);
 
 TPIE_EXPORT void begin_log_group(const std::string & name);
 TPIE_EXPORT void end_log_group();
