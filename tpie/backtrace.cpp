@@ -301,9 +301,10 @@ void backtrace(std::ostream & out, int depth) {
 
 namespace tpie {
 void __softassert(const char * expr, const char * file, int line) {
-	log_error() << "Soft assertion error: " << expr << std::endl
+	auto l = log_error();
+	l << "Soft assertion error: " << expr << std::endl
 				<< file << ":" << line << std::endl;
-	backtrace(log_error());
+	backtrace(l);
 }
 
 

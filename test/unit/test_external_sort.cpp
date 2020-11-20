@@ -242,14 +242,16 @@ bool test2(uint64_t size) {
 }
 
 bool large_test(size_t n) {
-	progress_indicator_arrow pi("Sort", n, tpie::log_info());
+	auto l = tpie::log_info();
+	progress_indicator_arrow pi("Sort", n, l);
 	return sort_test(n, pi);
 }
 
 bool tall_test(size_t n) {
 	const size_t mem = 22*1024*1024;
 	tpie::get_memory_manager().set_limit(mem);
-	progress_indicator_arrow pi("Sort", n, tpie::log_info());
+	auto l =  tpie::log_info();
+	progress_indicator_arrow pi("Sort", n, l);
 	return sort_test(n, pi);
 }
 

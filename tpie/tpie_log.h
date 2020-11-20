@@ -24,15 +24,75 @@
 /// Logging functionality and log_level codes for different priorities of log messages.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <fstream>
+#include <memory>
+#include <ostream>
+#include <sstream>
+#include <stack>
+#include <streambuf>
+#include <string_view>
+#include <tpie/config.h>
+#include <tpie/loglevel.h>
+#include <tpie/logstream.h>
 #include <tpie/tpie_export.h>
 #include <vector>
-#include <stack>
-#include <memory>
-#include <tpie/config.h>
-#include <tpie/logstream.h>
-#include <fstream>
 
 namespace tpie {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief TPIE logging levels, from higest priority to lowest.
+///////////////////////////////////////////////////////////////////////////////
+enum log_level {
+	/** LOG_FATAL is the highest error level and is used for all kinds of errors
+	 *  that would normally impair subsequent computations; LOG_FATAL errors are
+	 *  always logged */
+	LOG_FATAL = 0,
+
+	/** LOG_ERROR is used for none fatal errors. */
+	LOG_ERROR,
+
+	/** LOG_WARNING  is used for warnings. */
+	LOG_WARNING,
+
+	/** LOG_INFORMATIONAL is used for informational messagse. */
+	LOG_INFORMATIONAL,
+
+	/** LOG_APP_DEBUG can be used by applications built on top of TPIE, for
+	 * logging debugging information. */
+	LOG_APP_DEBUG,
+
+	/** LOG_DEBUG is the lowest level and is used by the TPIE library for
+	 * logging debugging information. */
+	LOG_DEBUG,
+
+	/** Logging level for warnings concerning memory allocation and deallocation. */
+	LOG_MEM_DEBUG,
+
+	LOG_PIPE_DEBUG,
+
+	/** Logging levels to be further defined by user applications. */
+	LOG_USER1,
+	LOG_USER2,
+	LOG_USER3
+};
+
+struct log_target {
+	virtual void log(log_level level, std::string_view message) = 0;
+	virtual ~log_target() { }
+	virtual void begin_group(std::string_view) {};
+	virtual void end_group() {};
+};
+
+TPIE_EXPORT void add_log_target(log_target * t);
+TPIE_EXPORT void remove_log_target(log_target * t);
+
+TPIE_EXPORT void begin_log_group(std::string_view name);
+TPIE_EXPORT void end_log_group();
+
+TPIE_EXPORT void log_to_targets(log_level level, std::string_view message);
+TPIE_EXPORT bool get_log_enabled();
+TPIE_EXPORT void set_log_enabled(bool enabled);
+
 
 /** A simple logger that writes messages to a tpie temporary file */
 class TPIE_EXPORT file_log_target: public log_target {
@@ -42,8 +102,8 @@ public:
 	std::ofstream m_out;
 	std::string m_path;
 	log_level m_threshold;
-	
-    /** Construct a new file logger
+
+	/** Construct a new file logger
 	 * \param threshold record messages at or above this severity threshold
 	 * */
 	file_log_target(log_level threshold);
@@ -52,13 +112,13 @@ public:
 	 * \param level severity of message
 	 * \param message content of message
 	 * */
-	void log(log_level level, const char * message, size_t);
+	void log(log_level level, std::string_view message);
 
 	///////////////////////////////////////////////////////////////////////////////
-	/// \brief Creates a new logging group. All console output that occurs after 
+	/// \brief Creates a new logging group. All console output that occurs after
 	/// this will appear in the same visual group.
 	///////////////////////////////////////////////////////////////////////////////
-	void begin_group(const std::string & name);
+	void begin_group(std::string_view name);
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Closes the most recently created logging group.
@@ -79,30 +139,27 @@ public:
 	 * \param threshold record messages at or above this severity threshold
 	 * */
 	stderr_log_target(log_level threshold);
-	
+
 	/** Implement \ref log_target virtual method to record message
 	 * \param level severity of message
 	 * \param message content of message
 	 * \param size lenght of message array
 	 * */
-	void log(log_level level, const char * message, size_t size);
+	void log(log_level level, std::string_view message);
 
 	///////////////////////////////////////////////////////////////////////////////
-	/// \brief Creates a new logging group. All console output that occurs after 
+	/// \brief Creates a new logging group. All console output that occurs after
 	/// this will appear in the same visual group.
 	///////////////////////////////////////////////////////////////////////////////
-	void begin_group(const std::string & name);
+	void begin_group(std::string_view name);
 
 	///////////////////////////////////////////////////////////////////////////////
 	/// \brief Closes the most recently created logging group.
 	///////////////////////////////////////////////////////////////////////////////
 	void end_group();
 private:
-	std::string build_prefix(size_t length);	
+	std::string build_prefix(size_t length);
 };
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Returns the file name of the log stream.
@@ -120,152 +177,84 @@ void init_default_log();
 ///////////////////////////////////////////////////////////////////////////////
 void finish_default_log();
 
-namespace log_bits {
+class LogObj: public std::ostream {
+private:
+	std::stringbuf buff;
+	log_level level;
 
-TPIE_EXPORT extern std::vector<std::shared_ptr<logstream> > log_instances;
+	void do_flush() {
+		log_to_targets(level, buff.str());
+		buff.str("");
+	}
+public:
+	LogObj(log_level level=LOG_INFORMATIONAL): std::ostream(&buff), level(level) {}
+	LogObj(LogObj&& o): std::ostream(&buff), buff(std::move(o.buff)), level(o.level) {}
+	~LogObj() {do_flush();}
 
-TPIE_EXPORT void initiate_log_level(log_level level);
+	LogObj & operator=(LogObj &&) = delete;
+	LogObj(const LogObj&) = delete;
+	LogObj & operator=(const LogObj &) = delete;
 
-TPIE_EXPORT void flush_logs();
 
-}
+	[[deprecated]] void flush() {do_flush();}
+	[[deprecated]] void set_level(log_level level) {
+		do_flush();
+		this->level = level;
+	}
+	[[deprecated]] void add_target(log_target * t) { add_log_target(t); }
+	[[deprecated]] void remove_target(log_target * t) { remove_log_target(t); }
+};
 
-inline logstream & get_log_by_level(log_level level) {
-	using namespace log_bits;
-	if (log_instances.size() <= level || log_instances[level].get() == 0)
-		initiate_log_level(level);
-	return *log_instances[level];
-}
+inline LogObj get_log_by_level(log_level level) {return LogObj(level);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing fatal log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_fatal() {return get_log_by_level(LOG_FATAL);}
+inline LogObj log_fatal() {return LogObj(LOG_FATAL);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing error log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_error() {return get_log_by_level(LOG_ERROR);}
+inline LogObj log_error() {return LogObj(LOG_ERROR);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing info log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_info() {return get_log_by_level(LOG_INFORMATIONAL);}
+inline LogObj log_info() {return LogObj(LOG_INFORMATIONAL);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing warning log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_warning() {return get_log_by_level(LOG_WARNING);}
+inline LogObj log_warning() {return LogObj(LOG_WARNING);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing app_debug log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_app_debug() {return get_log_by_level(LOG_APP_DEBUG);}
+inline LogObj log_app_debug() {return LogObj(LOG_APP_DEBUG);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing debug log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_debug() {return get_log_by_level(LOG_DEBUG);}
+inline LogObj log_debug() noexcept {return LogObj(LOG_DEBUG);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing mem_debug log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_mem_debug() {return get_log_by_level(LOG_MEM_DEBUG);}
+inline LogObj log_mem_debug() {return LogObj(LOG_MEM_DEBUG);}
 
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Return logstream for writing pipe_debug log messages.
-///////////////////////////////////////////////////////////////////////////////
-inline logstream & log_pipe_debug() {return get_log_by_level(LOG_PIPE_DEBUG);}
+inline LogObj log_pipe_debug() {return LogObj(LOG_PIPE_DEBUG);}
 
 class scoped_log_enabler {
 private:
 	bool m_orig;
 public:
-	inline bool get_orig() {return m_orig;}
-	inline scoped_log_enabler(bool e) {
-		m_orig = log_bits::logging_disabled;
-		log_bits::logging_disabled = !e;
+	bool get_orig() const noexcept {return m_orig;}
+	scoped_log_enabler(bool e) noexcept {
+		m_orig = get_log_enabled();
+		set_log_enabled(e);
 	}
-	inline ~scoped_log_enabler() {
-		log_bits::logging_disabled = m_orig;
+	~scoped_log_enabler() noexcept {
+		set_log_enabled(m_orig);
 	}
 };
 
-namespace log_bits {
-
-class TPIE_EXPORT log_selector {
-private:
-	static bool s_init;
-	static log_level s_level;
-
-	logstream & get_log() {
-		if (!s_init) {
-			s_init = true;
-			s_level = LOG_INFORMATIONAL;
-		}
-		switch (s_level) {
-		case LOG_FATAL:
-			return log_fatal();
-		case LOG_ERROR:
-			return log_error();
-		case LOG_INFORMATIONAL:
-			return log_info();
-		case LOG_WARNING:
-			return log_warning();
-		case LOG_APP_DEBUG:
-			return log_app_debug();
-		case LOG_DEBUG:
-			return log_debug();
-		case LOG_MEM_DEBUG:
-			return log_mem_debug();
-		case LOG_PIPE_DEBUG:
-			return log_pipe_debug();
-		case LOG_USER1:
-		case LOG_USER2:
-		case LOG_USER3:
-			break;
-		}
-		return log_info();
-	}
-
-public:
-	log_selector & operator<<(log_level_manip mi) {
-		set_level(mi.get_level());
-		return *this;
-	}
-
-	template <typename T>
-	logstream & operator<<(const T & x) {
-		logstream & res = get_log();
-		res << x;
-		return res;
-	}
-
-	void flush() {
-		get_log().flush();
-	}
-
-	void set_level(log_level level) {
-		s_init = true;
-		s_level = level;
-	}
-
-	void add_target(log_target * t) { add_log_target(t); }
-
-	void remove_target(log_target * t) { remove_log_target(t); }
-};
-
-} // namespace log_bits
 
 ///////////////////////////////////////////////////////////////////////////
-/// \brief Returns the only logstream object. 
+/// \brief Returns the only logstream object.
 ///////////////////////////////////////////////////////////////////////////
-inline log_bits::log_selector get_log() {return log_bits::log_selector();}
+[[deprecated]] inline LogObj get_log() {return LogObj(LOG_INFORMATIONAL);}
 
-#if TPL_LOGGING		
+#if TPL_LOGGING	
 /// \def TP_LOG_FLUSH_LOG  \deprecated Use \ref get_log().flush() instead.
 #define TP_LOG_FLUSH_LOG tpie::get_log().flush()
-    
+
 /// \def TP_LOG_FATAL \deprecated Use \ref log_fatal() instead.
 #define TP_LOG_FATAL(msg) tpie::log_fatal() << msg
 /// \def TP_LOG_WARNING \deprecated Use \ref log_warning() instead.

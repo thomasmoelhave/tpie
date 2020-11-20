@@ -744,9 +744,9 @@ private:
 		m_params.tempDir = tempname::tpie_dir_name();
 		m_files.set_temp_dir(m_params.tempDir);
 
-		log_debug() << "Calculated serialization_sorter parameters.\n";
-		m_params.dump(log_debug());
-		log_debug() << std::flush;
+		auto l = log_debug();
+		l << "Calculated serialization_sorter parameters.\n";
+		m_params.dump(l);
 
 		m_parametersSet = true;
 	}

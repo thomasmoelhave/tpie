@@ -280,18 +280,18 @@ private:
 			os << " " << n << " ms" << std::flush;
 		}
 			
-		void log(log_level level, const char * buf, size_t n) {
-			if (!n) return;
+		void log(log_level level, std::string_view message) {
+			if (message.empty()) return;
 			if (level <= bufferThreshold) {
 				std::string prefix = LOG_DEBUG > bufferThreshold ? "" : (build_prefix(groups.size()) + " ");
-				std::string msg =  prefix + std::string(buf, n);
+				std::string msg =  prefix + std::string(message);
 				buffer << msg;
 			}
 			if (level > threshold) return;
 			if (m_onNameLine) os << '\n';
 
 			std::string prefix = LOG_DEBUG > threshold ? "" : (build_prefix(groups.size()) + " ");
-			std::string msg = prefix + std::string(buf, n);
+			std::string msg = prefix + std::string(message);
 	
 			os << msg;
 			m_onNameLine = false;
@@ -307,9 +307,9 @@ private:
 			bufferThreshold = level;
 		}
 
-		void begin_group(const std::string & name) {
-			groups.push(name);
-			std::string msg = build_prefix(groups.size()-1) + "> " + "Entering " + name + '\n';
+		void begin_group(std::string_view name) {
+			groups.push(std::string(name));
+			std::string msg = build_prefix(groups.size()-1) + "> " + "Entering " + std::string(name) + '\n';
 
 			if (LOG_DEBUG <= bufferThreshold) buffer << msg;
 			if (LOG_DEBUG > threshold) return;

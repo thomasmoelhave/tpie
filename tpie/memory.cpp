@@ -37,26 +37,8 @@ memory_manager * mm = 0;
 
 memory_manager::memory_manager(): resource_manager(MEMORY), m_mutex(0) {}
 
-///////////////////////////////////////////////////////////////////////////////
-/// \internal \brief Buffers messages to the debug log.
-/// TPIE logging might use the memory manager. We don't allow memory
-/// allocation/deallocation while doing an allocation/deallocation, so messages
-/// stored in the log_flusher aren't sent to the TPIE log until we are done
-/// allocating/deallocating.
-///////////////////////////////////////////////////////////////////////////////
-struct log_flusher {
-	std::stringstream buf;
-	~log_flusher() {
-		std::string msg = buf.str();
-		if(!msg.empty()) {
-			tpie::log_debug() << msg;
-			tpie::log_debug().flush();
-		}
-	}
-};
-
 std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper_bound, size_t granularity) {
-	log_flusher lf;
+	auto lf = log_debug();
 
 	size_t high=available()/granularity;
 	if (upper_bound != 0) 
@@ -71,9 +53,9 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 		register_allocation(high*granularity, typeid(uint8_t));
 		return std::make_pair(res, high*granularity);
 	} catch (std::bad_alloc &) {
-		lf.buf << "Failed to get " << (high*granularity)/(1024*1024) << " megabytes of memory. "
-		 	   << "Performing binary search to find largest amount "
-			   << "of memory available. This might take a few moments.\n";
+		lf << "Failed to get " << (high*granularity)/(1024*1024) << " megabytes of memory. "
+		   << "Performing binary search to find largest amount "
+		   << "of memory available. This might take a few moments.\n";
 	}
 
 	//perform a binary search in [low,high] for highest possible 
@@ -82,7 +64,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	do {
 		size_t mid = static_cast<size_t>((static_cast<uint64_t>(low)+high)/2);
 
-		lf.buf << "Search area is  [" << low*granularity << "," << high*granularity << "]"
+		lf << "Search area is  [" << low*granularity << "," << high*granularity << "]"
 			   << " query amount is: " << mid*granularity << ":\n";
 
 		//try to allocate "mid" bytes of memory
@@ -94,10 +76,10 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 			delete[] mem;
 		} catch (std::bad_alloc &) {
 			high = mid-1;
-			lf.buf << "   failed.\n";
+			lf << "   failed.\n";
 		}
 	} while (high >= low);
-	lf.buf << "- - - - - - - END MEMORY SEARCH - - - - - -\n";	
+	lf << "- - - - - - - END MEMORY SEARCH - - - - - -\n";
 
 	res = new uint8_t[best];
 	register_allocation(best, typeid(uint8_t));

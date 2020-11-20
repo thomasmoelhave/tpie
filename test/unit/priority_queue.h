@@ -27,7 +27,8 @@
 
 template <typename T>
 bool cyclic_pq_test(T & pq, uint64_t size, uint64_t iterations) {
-	tpie::progress_indicator_arrow progress("Running test", iterations, tpie::log_info());
+	auto l = tpie::log_info();
+	tpie::progress_indicator_arrow progress("Running test", iterations, l);
 	std::priority_queue<uint64_t, std::vector<uint64_t>, bit_pertume_compare<std::less<uint64_t> > > pq2;
 	std::default_random_engine rnd;
 	std::uniform_real_distribution<> urnd;

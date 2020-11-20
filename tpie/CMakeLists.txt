@@ -188,7 +188,6 @@ set (SOURCES
 	execution_time_predictor.cpp
 	fractional_progress.cpp
 	job.cpp
-	logstream.cpp
 	memory.cpp
 	pipelining/merge_sorter.cpp
 	pipelining/node.cpp
@@ -226,8 +225,7 @@ endif()
 include(GenerateExportHeader)
 generate_export_header(tpie DEFINE_NO_DEPRECATED)
 set_target_properties(tpie PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_property(TARGET tpie PROPERTY CXX_STANDARD 17)
-set_property(TARGET tpie PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(tpie PUBLIC cxx_std_17)
 target_link_libraries(tpie PUBLIC Boost::date_time Boost::filesystem Boost::system Boost::boost Threads::Threads)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 set_property(TARGET tpie PROPERTY POSITION_INDEPENDENT_CODE ON)

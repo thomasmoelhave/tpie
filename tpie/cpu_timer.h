@@ -162,7 +162,7 @@ public:
 /// output the elapsed real time in seconds. On Linux, output user, system and
 /// wall clock time in seconds.
 ///////////////////////////////////////////////////////////////////////////////
-TPIE_EXPORT std::ostream &operator<<(std::ostream &s, cpu_timer &ct);
+TPIE_EXPORT std::ostream &operator<<(std::ostream &s, const cpu_timer &ct);
 
 }
 

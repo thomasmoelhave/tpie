@@ -18,52 +18,5 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef TPIE_LOGPRIORITY_H
 #define TPIE_LOGPRIORITY_H
-
-///////////////////////////////////////////////////////////////////////////////
-/// \file loglevel.h
-/// \brief Logging levels.
-///////////////////////////////////////////////////////////////////////////////
-
-#include <tpie/config.h>
-namespace tpie {
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief TPIE logging levels, from higest priority to lowest.
-///////////////////////////////////////////////////////////////////////////////
-enum log_level {
-	/** LOG_FATAL is the highest error level and is used for all kinds of errors
-	 *  that would normally impair subsequent computations; LOG_FATAL errors are
-	 *  always logged */
-	LOG_FATAL = 0,	
-	
-	/** LOG_ERROR is used for none fatal errors. */
-	LOG_ERROR,
-	
-	/** LOG_WARNING  is used for warnings. */
-	LOG_WARNING,	
-	
-	/** LOG_INFORMATIONAL is used for informational messagse. */
-	LOG_INFORMATIONAL,
-	
-	/** LOG_APP_DEBUG can be used by applications built on top of TPIE, for 
-	 * logging debugging information. */ 
-	LOG_APP_DEBUG,     
-	
-	/** LOG_DEBUG is the lowest level and is used by the TPIE library for 
-	 * logging debugging information. */ 
-	LOG_DEBUG,
-	
-	/** Logging level for warnings concerning memory allocation and deallocation. */
-	LOG_MEM_DEBUG,
-
-	LOG_PIPE_DEBUG,
-	
-	/** Logging levels to be further defined by user applications. */
-	LOG_USER1,
-	LOG_USER2,
-	LOG_USER3
-};
-
-} //namespace tpie
-
+#include <tpie/tpie_log.h>
 #endif //TPIE_LOGPRIORITY_H

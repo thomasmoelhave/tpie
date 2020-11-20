@@ -70,7 +70,7 @@ void resource_manager::register_increased_usage(size_t amount) {
 			m_maxExceeded = usage - m_limit;
 			if (m_maxExceeded >= m_nextWarning) {
 				m_nextWarning = m_maxExceeded + m_maxExceeded/8;
-				std::ostream & os = (m_enforce == ENFORCE_DEBUG) ? log_debug() : log_warning();
+				auto os = (m_enforce == ENFORCE_DEBUG) ? log_debug() : log_warning();
 				print_resource_complaint(os, amount, usage);
 				os << std::endl;
 			}

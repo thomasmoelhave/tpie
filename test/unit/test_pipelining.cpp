@@ -103,7 +103,7 @@ bool check_test_vectors() {
 
 bool vector_multiply_test() {
 	pipeline p = input_vector(inputvector) | multiply(3) | multiply(2) | output_vector(outputvector);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return check_test_vectors();
 }
@@ -125,7 +125,7 @@ bool file_stream_test(stream_size_type items) {
 		out.open(output_file.path());
 		// p is actually an input_t<multiply_t<multiply_t<output_t<test_t> > > >
 		pipeline p = (input(in) | multiply(3) | multiply(2) | output(out));
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 	}
 	{
@@ -154,8 +154,9 @@ bool file_stream_pull_test() {
 		file_stream<test_t> out;
 		out.open(output_file.path());
 		pipeline p = (pull_input(in) | pull_output(out));
-		p.get_node_map()->dump(log_info());
-		p.plot(log_info());
+		auto l = log_info();
+		p.get_node_map()->dump(l);
+		p.plot(l);
 		p();
 	}
 	{
@@ -184,7 +185,7 @@ bool file_stream_alt_push_test() {
 		file_stream<test_t> out;
 		out.open(output_file.path());
 		pipeline p = (input(in) | output(out));
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 	}
 	{
@@ -204,7 +205,7 @@ bool merge_test() {
 		file_stream<test_t> in;
 		in.open(input_file.path());
 		pipeline p = input_vector(inputvector) | output(in);
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 	}
 	expectvector.resize(2*inputvector.size());
@@ -219,14 +220,14 @@ bool merge_test() {
 		out.open(output_file.path());
 		std::vector<test_t> inputvector2 = inputvector;
 		pipeline p = input_vector(inputvector) | merge(pull_input(in)) | output(out);
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 	}
 	{
 		file_stream<test_t> in;
 		in.open(output_file.path());
 		pipeline p = input(in) | output_vector(outputvector);
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 	}
 	return check_test_vectors();
@@ -234,7 +235,7 @@ bool merge_test() {
 
 bool reverse_test() {
 	pipeline p1 = input_vector(inputvector) | reverser() | output_vector(outputvector);
-	p1.plot_full(log_info());
+	{auto l = log_info(); p1.plot_full(l);}
 	p1();
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
@@ -414,7 +415,7 @@ bool sort_test(size_t elements) {
 	pipeline p = sequence_generator(elements, true)
 		| sort().name("Test")
 		| sequence_verifier(elements, &result);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return result;
 }
@@ -442,7 +443,7 @@ bool operator_test() {
 	expectvector = inputvector;
 	std::reverse(inputvector.begin(), inputvector.end());
 	pipeline p = input_vector(inputvector) | ((sort() | sort()) | output_vector(outputvector));
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return check_test_vectors();
 }
@@ -459,7 +460,7 @@ bool uniq_test() {
 		expectvector[i] = i;
 	}
 	pipeline p = input_vector(inputvector) | pipeuniq() | output_vector(outputvector);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return check_test_vectors();
 }
@@ -757,7 +758,7 @@ bool fetch_forward_test() {
 		| make_pipe_middle<FF2>()
 		| make_pipe_end<FF3>()
 		;
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p.forward<int>("test", 42);
 	p();
 	if (!fetch_forward_result) return false;
@@ -832,7 +833,7 @@ bool bound_fetch_forward_test() {
 		| make_pipe_middle<FFB2>()
 		| make_pipe_end<FFB3>()
 		;
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p.forward<int>("test", 7);
 	p();
 	if (!bound_fetch_forward_result) return false;
@@ -878,7 +879,7 @@ bool forward_unique_ptr_test() {
 	std::unique_ptr<int> ptr(new int(1337));
 	pipeline p = make_pipe_begin<FUP1>()
 		| make_pipe_end<FUP2>();
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p.forward("ptr", std::move(ptr));
 	p();
 	if (!forward_unique_ptr_result) return false;
@@ -988,7 +989,7 @@ bool virtual_test() {
 		| virtual_chunk<test_t, test_t>(multiply(3) | multiply(2))
 		| virtual_chunk<test_t, test_t>()
 		| virtual_chunk_end<test_t>(output_vector(outputvector));
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return check_test_vectors();
 }
@@ -1032,7 +1033,7 @@ typedef pullpipe_begin<termfactory<pull_begin_test_t>> pull_begin_test;
 bool pull_test() {
 	size_t ans = 0;
 	pipeline p = pull_begin_test() | pull_mid_test() | pull_end_test(&ans);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return ans == 72;
 }
@@ -1042,7 +1043,7 @@ bool virtual_pull_test() {
 	pipeline p = (virtual_chunk_pull_begin<size_t>(pull_begin_test()) | virtual_chunk_pull<size_t, size_t>(pull_mid_test()))
 		| (virtual_chunk_pull<size_t, size_t>(pull_mid_test()) | virtual_chunk_pull<size_t, size_t>(pull_mid_test()))
 		| (virtual_chunk_pull<size_t, size_t>(pull_mid_test()) | virtual_chunk_pull_end<size_t>(pull_end_test(&ans)));
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return ans == 36*2*2*2*2;
 }
@@ -1053,7 +1054,7 @@ bool devirtualize_pull_test() {
 	pipeline p = devirtualize(virtual_chunk_pull_begin<size_t>(pull_begin_test()))
 		| devirtualize(virtual_chunk_pull<size_t>(pull_mid_test()))
 		| devirtualize(virtual_chunk_pull_end<size_t>(pull_end_test(&ans)));
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return ans == 36*2;
 }
@@ -1062,7 +1063,7 @@ bool virtual_fork_test() {
 	pipeline p = virtual_chunk_begin<test_t>(input_vector(inputvector))
 		| vfork(virtual_chunk_end<test_t>(output_vector(outputvector)))
 		| virtual_chunk_end<test_t>(output_vector(outputvector));
-	p.plot_full(log_info());
+	{auto l = log_info(); p.plot_full(l);}
 	p();
 	expectvector.resize(inputvector.size() * 2);
 	for (size_t i = 0; i < inputvector.size(); ++i) {
@@ -1304,7 +1305,7 @@ struct result {
 	size_t end1;
 	size_t end2;
 
-	friend std::ostream & operator<<(std::ostream & os, result & r) {
+	friend std::ostream & operator<<(std::ostream & os, const result & r) {
 		return os
 			<< "end1 = " << r.end1 << '\n'
 			<< "end2 = " << r.end2 << '\n'
@@ -1352,7 +1353,7 @@ bool test() {
 	result r;
 	r.t = 0;
 	pipeline p = begin(r) | end(r);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	log_debug() << r;
 	TEST_ENSURE(r.end2 == 0, "End 2 time wrong");
@@ -1369,7 +1370,7 @@ bool pull_iterator_test() {
 	pipeline p =
 		pull_input_iterator(inputvector.begin(), inputvector.end())
 		| pull_output_iterator(outputvector.begin());
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return check_test_vectors();
 }
@@ -1380,7 +1381,7 @@ bool push_iterator_test() {
 	pipeline p =
 		push_input_iterator(inputvector.begin(), inputvector.end())
 		| push_output_iterator(outputvector.begin());
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	return check_test_vectors();
 }
@@ -1417,7 +1418,7 @@ bool parallel_test(size_t modulo) {
 		| parallel(multiplicative_inverter(modulo))
 		| sort()
 		| sequence_verifier(modulo-1, &result);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	tpie::progress_indicator_arrow pi("Parallel", 1);
 	p(modulo-1, pi, TPIE_FSI);
 	return result;
@@ -1428,7 +1429,7 @@ bool parallel_ordered_test(size_t modulo) {
 	pipeline p = sequence_generator(modulo-1, false)
 		| parallel(multiplicative_inverter(modulo) | multiplicative_inverter(modulo), maintain_order)
 		| sequence_verifier(modulo-1, &result);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	tpie::progress_indicator_arrow pi("Parallel", 1);
 	p(modulo-1, pi, TPIE_FSI);
 	return result;
@@ -1628,7 +1629,7 @@ bool parallel_push_in_end_test() {
 		noop_initiator()
 		| parallel(push_in_end(), arbitrary_order, 1, 10)
 		| summer(sumOutput);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	p();
 	if (sumOutput != 100) {
 		log_error() << "Wrong result, expected 100, got " << sumOutput << std::endl;
@@ -1807,7 +1808,7 @@ bool node_map_test(size_t nodes, bool acyclic, const std::string & edges) {
 	node_map_tester_factory fact(nodes, edges);
 	pipeline p =
 		tpie::pipelining::bits::pipeline_impl<node_map_tester_factory>(fact);
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	try {
 		p();
 	} catch (const exception &) {
@@ -1868,7 +1869,7 @@ bool join_test() {
 	pipeline p2 = input_vector(i) | j.sink();
 	pipeline p3 = j.source() | output_vector(o);
 
-	p3.plot(log_info());
+	{auto l = log_info(); p3.plot(l);}
 	p3();
 
 	if (o.size() != 20) {
@@ -1897,7 +1898,7 @@ bool split_test() {
 	pipeline p2 = j.source() | output_vector(o1);
 	pipeline p3 = j.source() | output_vector(o2);
 
-	p3.plot(log_info());
+	{auto l = log_info(); p3.plot(l);}
 	p3();
 
 	if (o1.size() != 10 || o2.size() != 10) {
@@ -2616,7 +2617,7 @@ bool devirtualize_test() {
 		| devirtualize(virtual_chunk<int>(b()))
 		| devirtualize(virtual_chunk_end<int>(c(&acc)));
 	p();
-	p.plot(log_info());
+	{auto l = log_info(); p.plot(l);}
 	return acc == 26;
 }
 

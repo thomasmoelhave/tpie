@@ -61,7 +61,7 @@ bool basic_test() {
 		serialization_writer wr;
 		wr.open(f_out.path());
 		pipeline p = serialization_input(rd) | serialization_output<std::string>(wr);
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 		wr.close();
 	}
@@ -103,7 +103,7 @@ bool reverse_test() {
 		serialization_writer wr;
 		wr.open(f_out.path());
 		pipeline p = serialization_input(rd) | serialization_reverser() | serialization_output<std::string>(wr);
-		p.plot(log_info());
+		{auto l = log_info(); p.plot(l);}
 		p();
 		wr.close();
 	}

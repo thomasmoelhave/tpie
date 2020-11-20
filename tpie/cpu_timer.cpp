@@ -118,17 +118,15 @@ double cpu_timer::wall_time() {
     return double(elapsed_real_) / double(clock_tick_);
 }
 
-std::ostream& operator<<(std::ostream &s, cpu_timer &wt) {
-    if (wt.running()) {
-        wt.sync();
-    }
-    
+std::ostream& operator<<(std::ostream &s, const cpu_timer &wt) {
+    cpu_timer w = wt;
+    w.sync();
 #ifdef _WIN32	
-    return s << double(wt.elapsed_real()) / double(wt.clock_tick()); 
+    return s << double(w.elapsed_real()) / double(w.clock_tick());
 #else
-	return s << double(wt.elapsed().tms_utime) / double(wt.clock_tick()) << "u "
-	         << double(wt.elapsed().tms_stime) / double(wt.clock_tick()) << "s "
-	         << double(wt.elapsed_real()) / double(wt.clock_tick());	
+	return s << double(w.elapsed().tms_utime) / double(w.clock_tick()) << "u "
+	         << double(w.elapsed().tms_stime) / double(w.clock_tick()) << "s "
+	         << double(w.elapsed_real()) / double(w.clock_tick());	
 #endif
 }
 

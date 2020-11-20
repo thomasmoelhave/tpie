@@ -204,7 +204,7 @@ bool satisfiable_helper_helper(size_t maxSatisfiable,
 	const std::set<size_t> & nodes = g.get_node_set();
 
 	g.topological_order(order, strategy);
-	print_vector(log_debug(), order, strategy_name + " ordering");
+	{auto l = log_debug(); print_vector(l, order, strategy_name + " ordering");}
 	if (order.size() != nodes.size() || std::set<size_t>(order.begin(), order.end()) != nodes) {
 		log_error() << strategy_name + " solution didn't contain every node" << std::endl;
 		bad = true;
@@ -236,7 +236,7 @@ void satisfiable_helper(teststream & ts,
 		g.add_node(v);
 	}
 
-	g.plot(log_debug());
+	{auto l = log_debug(); g.plot(l);}
 
 	bool bad = false;
 	bad |= satisfiable_helper_helper(maxSatisfiable, g, "Bruteforce order", g.BRUTEFORCE_ORDER);
@@ -329,7 +329,7 @@ void optimal_satisfiable_ordering_test(teststream & ts) {
 			g.add_edge(i, 1, j++ < M);
 		}
 
-		g.plot(log_debug());
+		{auto l = log_debug(); g.plot(l);}
 
 		auto start = test_now();
 		bool bad = satisfiable_helper_helper(2, std::move(g), "Bruteforce order timing", satisfiable_graph::strategy_t::BRUTEFORCE_SATISFIABLE);
@@ -456,14 +456,14 @@ void evacuate_phase_graph_test(teststream & ts,
 		size_t i = revNodes[phase[0]];
 		phaseOrder.push_back(i);
 	}
-	print_vector(log_info(), phaseOrder, "Phase order");
+	{auto l = log_info(); print_vector(l, phaseOrder, "Phase order");}
 
 	std::unordered_set<size_t> evacuatedNodes;
 	for (auto id : evacuateWhenDone) {
 		size_t i = revNodes[nodeMap->get(id)];
 		evacuatedNodes.insert(i);
 	}
-	print_vector(log_info(), phaseOrder, "Evacuated nodes");
+	{auto l = log_info(); print_vector(l, phaseOrder, "Evacuated nodes");}
 
 	if (should_fail) {
 		ts << result(false);

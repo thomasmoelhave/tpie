@@ -229,7 +229,8 @@ void merge_sorter_base::set_items(stream_size_type n) {
 	if (m_maxItems < p.runLength) {
 		memory_size_type newRunLength =
 			std::max(memory_size_type(m_maxItems), p.internalReportThreshold);
-		log_pipe_debug() << "Decreasing run length from " << p.runLength
+		auto l = log_pipe_debug();
+		l << "Decreasing run length from " << p.runLength
 						 << " to " << newRunLength
 						 << " since at most " << m_maxItems << " items will be pushed,"
 						 << " and the internal report threshold is "
@@ -242,8 +243,8 @@ void merge_sorter_base::set_items(stream_size_type n) {
 		// upper bound, leading to unacceptable performance in practice;
 		// thus, internalReportThreshold is used as a stopgap/failsafe.
 		p.runLength = newRunLength;
-		p.dump(log_pipe_debug());
-		log_pipe_debug() << std::endl;
+		p.dump(l);
+		l << std::endl;
 	}
 }
 
@@ -290,27 +291,28 @@ void merge_sorter_base::calculate_parameters() {
 	// We must set aside memory for temp_files in m_runFiles.
 	// m_runFiles contains fanout*2 temp_files, so calculate fanout before run length.
 	
+	auto l = log_pipe_debug();
 	// Phase 2 (merge):
 	// Run length: unbounded
 	// Fanout: determined by the size of our merge heap and the stream memory usage.
-	log_pipe_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
+	l << "Phase 2: " << p.memoryPhase2 << " b available memory\n";
 	p.fanout = calculate_fanout(p.memoryPhase2, p.filesPhase2);
 	if (m_fanout_memory_usage(p.fanout) > p.memoryPhase2) {
-		log_pipe_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << m_fanout_memory_usage(p.fanout) << ")\n";
+		l << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase2 << " < " << m_fanout_memory_usage(p.fanout) << ")\n";
 		p.memoryPhase2 = m_fanout_memory_usage(p.fanout);
 	}
 	
 	// Phase 3 (final merge & report):
 	// Run length: unbounded
 	// Fanout: determined by the stream memory usage.
-	log_pipe_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
+	l << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
 	p.finalFanout = calculate_fanout(p.memoryPhase3, p.filesPhase3);
 	
 	if (p.finalFanout > p.fanout)
 		p.finalFanout = p.fanout;
 	
 	if (m_fanout_memory_usage(p.finalFanout) > p.memoryPhase3) {
-		log_pipe_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase3 << " < " << m_fanout_memory_usage(p.finalFanout) << ")\n";
+		l << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase3 << " < " << m_fanout_memory_usage(p.finalFanout) << ")\n";
 		p.memoryPhase3 = m_fanout_memory_usage(p.finalFanout);
 	}
 	
@@ -321,7 +323,7 @@ void merge_sorter_base::calculate_parameters() {
 	memory_size_type streamMemory = m_element_file_stream_memory_usage;
 	memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 	
-	log_pipe_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
+	l << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
 	memory_size_type min_m1 = 128*1024 / m_item_size + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
 	if (p.memoryPhase1 < min_m1) {
 		log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
@@ -340,12 +342,12 @@ void merge_sorter_base::calculate_parameters() {
 	
 	set_items(m_maxItems);
 	
-	log_pipe_debug() << "Calculated merge sort parameters\n";
-	p.dump(log_pipe_debug());
-	log_pipe_debug() << std::endl;
+	l << "Calculated merge sort parameters\n";
+	p.dump(l);
+	l << std::endl;
 	
 	auto phase_1_mem = phase_1_memory(p);
-	log_pipe_debug() << "Merge sort phase 1: "
+	l << "Merge sort phase 1: "
 					 << p.memoryPhase1 << " b available, "
 					 <<  phase_1_mem << " b expected" << std::endl;
 	if (phase_1_mem > p.memoryPhase1) {
@@ -353,13 +355,13 @@ void merge_sorter_base::calculate_parameters() {
 					  << p.memoryPhase1 << " b available, but "
 					  << phase_1_mem << " b expected" << std::endl;
 	}
-	log_pipe_debug() << "Merge sort phase 2: "
+	l << "Merge sort phase 2: "
 					 << p.memoryPhase2 << " b available, " << phase_2_memory(p) << " b expected" << std::endl;
 	if (phase_2_memory(p) > p.memoryPhase2) {
 		log_warning() << "Merge sort phase 2 exceeds the alloted memory usage: "
 					  << p.memoryPhase2 << " b available, but " << phase_2_memory(p) << " b expected" << std::endl;
 	}
-	log_pipe_debug() << "Merge sort phase 3: "
+	l << "Merge sort phase 3: "
 					 << p.memoryPhase3 << " b available, " << phase_3_memory(p) << " b expected" << std::endl;
 	if (phase_3_memory(p) > p.memoryPhase3) {
 		log_warning() << "Merge sort phase 3 exceeds the alloted memory usage: "
