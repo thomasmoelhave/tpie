@@ -36,6 +36,7 @@
 #include <tpie/is_simple_iterator.h>
 #include <tpie/tuple_utils.h>
 #include <array>
+#include <tpie/array.h>
 
 namespace tpie {
 
@@ -252,6 +253,28 @@ void serialize(D & dst, const std::vector<T, alloc_t> & v) {
 template <typename S, typename T, typename alloc_t>
 void unserialize(S & src, std::vector<T, alloc_t> & v) {
 	typename std::vector<T>::size_type s;
+	using tpie::unserialize;
+	unserialize(src, s);
+	v.resize(s);
+	unserialize(src, v.begin(), v.end());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::serialize for tpie::arrays of serializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename D, typename T>
+void serialize(D & dst, const tpie::array<T> & v) {
+	using tpie::serialize;
+	serialize(dst, v.size());
+	serialize(dst, v.begin(), v.end());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief tpie::unserialize for tpie::arrays of unserializable items.
+///////////////////////////////////////////////////////////////////////////////
+template <typename S, typename T>
+void unserialize(S & src, tpie::array<T> & v) {
+	size_type s;
 	using tpie::unserialize;
 	unserialize(src, s);
 	v.resize(s);
