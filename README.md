@@ -15,4 +15,6 @@ The [API documentation](http://www.madalgo.au.dk/tpie/doc/) is also hosted there
 
 Project status, Releases and stability
 ======================================
-This project does not see much development, but it is use hevily in production. We have not done releases for a long time, but the master branch is very stable and is unlikely to see major braking changes.
+
+As of 2021, this project does not see much development, but it is used heavily in production.
+There has not been a TPIE release for a long time, but the master branch is very stable and is unlikely to see major breaking changes.
