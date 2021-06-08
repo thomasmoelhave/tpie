@@ -47,8 +47,16 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: make apidocs
 
-    # Doxygen
+    # Upload artifact if it not a push to master
     - uses: actions/upload-artifact@v2
+      if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/master' }}
       with:
         name: documentation
         path: ${{github.workspace}}/build/doc/html/
+
+    # Deploy on GitHub Pages if pushed to master
+    - uses: JamesIves/github-pages-deploy-action@4.1.4
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      with:
+        branch: gh-pages
+        folder: ${{github.workspace}}/build/doc/html/
