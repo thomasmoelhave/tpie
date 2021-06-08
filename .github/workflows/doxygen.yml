@@ -33,7 +33,7 @@ jobs:
       run: sudo apt install libboost-all-dev
 
     - name: Install Doxygen and TeXLive
-      run: sudo apt install doxygen texlive doxygen-latex
+      run: sudo apt install doxygen
 
     # CMake build and create docs
     - name: CMake build
