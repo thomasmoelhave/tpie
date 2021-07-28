@@ -164,6 +164,15 @@ inline T * __allocate() {
 }
 
 template <typename T>
+inline void __deallocate(T * p) {
+	uint8_t * pp = ptr_cast<uint8_t *>(p);
+	if(!std::is_polymorphic<T>::value)
+		delete[] pp;
+	else if (pp != nullptr)
+		delete[] (pp - sizeof(size_t));
+}
+
+template <typename T>
 inline size_t tpie_size(T * p) {
 	if(!std::is_polymorphic<T>::value) return sizeof(T);
 	uint8_t * x = ptr_cast<uint8_t *>(p);
@@ -226,7 +235,7 @@ struct allocation_scope_magic {
 	}
 	
 	~allocation_scope_magic() {
-		delete[] reinterpret_cast<uint8_t*>(data);
+		__deallocate(data);
 		if (deregister) get_memory_manager().register_deallocation(deregister, typeid(T));
 	}
 };
@@ -271,12 +280,8 @@ template <typename T>
 inline void tpie_delete(T * p) throw() {
 	if (p == 0) return;
 	get_memory_manager().register_deallocation(tpie_size(p), typeid(*p));
-	uint8_t * pp = ptr_cast<uint8_t *>(p);
 	p->~T();
-	if(!std::is_polymorphic<T>::value) 
-		delete[] pp;
-	else
-		delete[] (pp - sizeof(size_t));
+	__deallocate(p);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
