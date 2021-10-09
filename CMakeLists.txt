@@ -1,8 +1,13 @@
 # doc/CMakeLists.txt uses configure_file behavior from CMake 2.8
 cmake_minimum_required(VERSION 3.1)
 
-project(tpie)
+if(DEFINED PROJECT_NAME)
+  set(MAIN_PROJECT OFF)
+else()
+  set(MAIN_PROJECT ON)
+endif()
 
+project(tpie)
 
 #### CONFIG.H Checks:
 include(CheckIncludeFiles)
@@ -104,7 +109,7 @@ add_subdirectory(tpie)
 
 add_subdirectory(doc)
 
-option(COMPILE_TEST "Compile test programs" ON)
+option(COMPILE_TEST "Compile test programs" ${MAIN_PROJECT})
 option(TPL_LOGGING "Enable tpie logging." ON)
 option(TPIE_DEPRECATED_WARNINGS "Enable warnings for deprecated classes, methods and typedefs" OFF)
 option(TPIE_PARALLEL_SORT "Enable parallel quick sort implementation" ON)
