@@ -136,9 +136,10 @@ jobs:
           - { cc: gcc,   v: 10, cxx: g++, xcode: latest }
 
           # Clang Compiler
-          - { cc: clang, cxx: clang++, xcode: 10.0 }
-          - { cc: clang, cxx: clang++, xcode: 11.0 }
-          - { cc: clang, cxx: clang++, xcode: 12.0 } # newest
+          - { cc: clang, cxx: clang++, xcode: 11.7 } # oldest
+          - { cc: clang, cxx: clang++, xcode: 12.4 }
+          - { cc: clang, cxx: clang++, xcode: 13.1 }
+          - { cc: clang, cxx: clang++, xcode: 13.2 } # newest
 
     steps:
     # Git repo set up
