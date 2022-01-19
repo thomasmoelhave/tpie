@@ -39,7 +39,7 @@
 // using different comparison types
 #include <cmath> //for log, ceil, etc.
 #include <string>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <tpie/progress_indicator_base.h>
 

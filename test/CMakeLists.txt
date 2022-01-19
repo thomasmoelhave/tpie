@@ -1,7 +1,7 @@
 set (COMMON_DEPS
 		app_config.h
 		app_config.cpp
-		getopts.cpp 
+		getopts.cpp
 		getopts.h
 		parse_args.cpp
 		parse_args.h
@@ -56,4 +56,4 @@ target_link_libraries(test_job_overhead tpie)
 
 add_executable(atomic_stats test_atomic_stats.cpp)
 set_target_properties(atomic_stats PROPERTIES FOLDER tpie/test)
-target_link_libraries(atomic_stats tpie ${Boost_LIBRARIES})
+target_link_libraries(atomic_stats tpie Boost::boost)

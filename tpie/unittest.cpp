@@ -25,6 +25,7 @@
 #include <sstream>
 #include <tpie/sysinfo.h>
 #include <atomic>
+#include <tpie/exception.h>
 
 namespace tpie {
 
@@ -244,7 +245,7 @@ void tests::end_test(bool result, size_t time) {
 void tests::build_information(std::ostream & o) {
 	sysinfo si;
 	o << si << std::flush;
-}	
+}
 
 void tests::show_usage(std::ostream & o) {
 	o << "Usage: " << exe_name << " [TEST_NAME] [OPTION]..." << std::endl;

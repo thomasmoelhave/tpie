@@ -21,9 +21,9 @@
 
 #include <tpie/tpie_export.h>
 #include <tpie/portability.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 #include <tpie/util.h>
+#include <chrono>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \file execution_time_predictor.h Execution time predictor used by
@@ -86,7 +86,7 @@ public:
 	//double m_aux2;
 private:
 	size_t m_id;
-	boost::posix_time::ptime m_start_time;
+	std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 	time_type m_estimate;
 	double m_confidence;
 
@@ -100,7 +100,7 @@ private:
 #endif
 
 	static time_type s_pause_time;
-	static boost::posix_time::ptime s_start_pause_time;
+	static std::chrono::time_point<std::chrono::steady_clock> s_start_pause_time;
 	static bool s_store_times;
 };
 

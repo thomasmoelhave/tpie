@@ -17,17 +17,26 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <boost/progress.hpp>
-#include <boost/serialization/strong_typedef.hpp>
 #include <sstream>
 #include <tpie/array.h>
 #include <tpie/tpie.h>
 #include <vector>
+#include <iostream>
+#include <chrono>
 
 size_t copy_constructed;
 size_t blah_constructed;
 size_t std_constructed;
 size_t assigned;
+
+struct progress_timer {
+	std::chrono::time_point<std::chrono::steady_clock> start;
+	progress_timer(): start(std::chrono::steady_clock::now()) {}
+	~progress_timer() {
+		std::chrono::duration<double> duration = std::chrono::steady_clock::now() - start;
+		std::cout << "Ellapsed " << duration.count() << "s" << std::endl;
+	}
+};
 
 struct strong_size_t {
 	typedef size_t T;
@@ -70,7 +79,7 @@ void test(size_t mb, size_t repeats) {
 	std::cout << "tpie::array" << std::endl;
 	blah_constructed = copy_constructed = std_constructed = assigned = 0;
 	{
-		boost::progress_timer _;
+		progress_timer _;
 		test_t res(0);
 		for (size_t j = 0; j < repeats; ++j) {
 			tpie::array<test_t> a(sz, res);
@@ -88,7 +97,7 @@ void test(size_t mb, size_t repeats) {
 	std::cout << "tpie_new_array" << std::endl;
 	blah_constructed = copy_constructed = std_constructed = assigned = 0;
 	{
-		boost::progress_timer _;
+		progress_timer _;
 		test_t res(0);
 		for (size_t j = 0; j < repeats; ++j) {
 			test_t * a = tpie_new_array<test_t>(sz);
@@ -107,7 +116,7 @@ void test(size_t mb, size_t repeats) {
 	std::cout << "std::vector" << std::endl;
 	blah_constructed = copy_constructed = std_constructed = assigned = 0;
 	{
-		boost::progress_timer _;
+		progress_timer _;
 		test_t res(0);
 		for (size_t j = 0; j < repeats; ++j) {
 			std::vector<test_t> a(sz);

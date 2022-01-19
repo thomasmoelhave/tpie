@@ -17,12 +17,12 @@
 
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
-	set(Boost_USE_STATIC_LIBS    ON)
+	set(Boost_USE_STATIC_LIBS ON)
 endif(WIN32)
-find_package(Boost COMPONENTS date_time thread filesystem system regex)
+find_package(Boost)
 
 find_path(TPIE_INCLUDE_DIR NAMES tpie/config.h)
 find_library(TPIE_LIBRARIES tpie)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(TPIE DEFAULT_MSG TPIE_LIBRARIES TPIE_INCLUDE_DIR)
-list(APPEND TPIE_LIBRARIES ${Boost_LIBRARIES})
+list(APPEND TPIE_LIBRARIES Boost::boost)

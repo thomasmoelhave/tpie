@@ -25,7 +25,7 @@
 #include <fstream>
 #include <sstream>
 #include <locale>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <regex>
 #include <boost/lexical_cast.hpp>
 

@@ -27,13 +27,13 @@
 #include <string>
 #include <sstream>
 #include <tpie/portability.h>
-#include <boost/filesystem.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <filesystem>
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/exception.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <stack>
+#include <random>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -94,7 +94,7 @@ std::string _get_system_path() {
 	// If all fails just default to boost
 #endif
 
-	auto p = boost::filesystem::temp_directory_path();
+	auto p = std::filesystem::temp_directory_path();
 	return p.string();
 }
 
@@ -111,12 +111,10 @@ std::string tempname::get_system_path() {
 namespace {
 
 std::string get_timestamp() {
-	std::stringstream ss;
-	ss << boost::posix_time::second_clock::local_time();
-	std::string name = ss.str();
-	std::replace(name.begin(), name.end(), ':', '-');
-	std::replace(name.begin(), name.end(), ' ', '_');
-	return name;
+	std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	char buf[64];
+	std::strftime(buf, 64, "%Y-%b-%d_%H-%M-%S", std::localtime(&now));
+	return buf;
 }
 
 std::string construct_name(std::string post_base, std::string timestamp, std::string suffix) {
@@ -126,18 +124,40 @@ std::string construct_name(std::string post_base, std::string timestamp, std::st
 		ss << post_base << "_";
 	if(!timestamp.empty())
 		ss << timestamp << "_";
-	ss << "%%%%-%%%%-%%%%-%%%%" << suffix;
-
-	auto p = boost::filesystem::unique_path(ss.str());
-
-	return p.string();
+	char ran[] = "0123456789abcdef";
+	std::random_device rd;
+	unsigned int r1 = rd();
+	unsigned int r2 = rd();
+	unsigned int r3 = rd();
+	unsigned int r4 = rd();
+	ss << ran[(r1 >> 0)&0xF]
+		<< ran[(r1 >> 4)&0xF]
+		<< ran[(r1 >> 8)&0xF]
+		<< ran[(r1 >> 12)&0xF]
+		<< '-'
+		<< ran[(r2 >> 0)&0xF]
+		<< ran[(r2 >> 4)&0xF]
+		<< ran[(r2 >> 8)&0xF]
+		<< ran[(r2 >> 12)&0xF]
+		<< '-'
+		<< ran[(r3 >> 0)&0xF]
+		<< ran[(r3 >> 4)&0xF]
+		<< ran[(r3 >> 8)&0xF]
+		<< ran[(r3 >> 12)&0xF]
+		<< '-'
+		<< ran[(r4 >> 0)&0xF]
+		<< ran[(r4 >> 4)&0xF]
+		<< ran[(r4 >> 8)&0xF]
+		<< ran[(r4 >> 12)&0xF]
+		<< suffix;
+	return ss.str();
 }
 
 void create_subdir() {
-	boost::filesystem::path base_dir = tempname::get_actual_path();
-	boost::filesystem::path p;
+	std::filesystem::path base_dir = tempname::get_actual_path();
+	std::filesystem::path p;
 	p = base_dir / construct_name("", get_timestamp(), "");
-	if ( !boost::filesystem::exists(p) && boost::filesystem::create_directory(p)) {
+	if ( !std::filesystem::exists(p) && std::filesystem::create_directory(p)) {
 		std::string path = p.string();
 		if (!subdirs.empty() && subdirs.top().empty())
 			subdirs.pop();
@@ -149,9 +169,9 @@ void create_subdir() {
 
 std::string gen_temp(const std::string& post_base, const std::string& dir, const std::string& suffix) {
 	if (!dir.empty()) {
-		boost::filesystem::path p;
+		std::filesystem::path p;
 		p = dir; p /= construct_name(post_base, get_timestamp(), suffix);
-		if ( !boost::filesystem::exists(p) ) {
+		if ( !std::filesystem::exists(p) ) {
 			return p.string();
 		}
 		throw tempfile_error("Unable to find free name for temporary file");
@@ -159,7 +179,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 	else {
 		if (subdirs.empty() || subdirs.top().empty()) create_subdir();
 
-		boost::filesystem::path p = subdirs.top();
+		std::filesystem::path p = subdirs.top();
 		p /= construct_name(post_base, "", suffix);
 
 		return p.string();
@@ -172,9 +192,9 @@ namespace tpie {
 	void finish_tempfile() {
 		while (!subdirs.empty()) {
 			if (!subdirs.top().empty()) {
-				boost::system::error_code c;
-				boost::filesystem::remove_all(subdirs.top(), c);
-			}	
+				std::error_code c;
+				std::filesystem::remove_all(subdirs.top(), c);
+			}
 			subdirs.pop();
 		}
 	}
@@ -205,11 +225,11 @@ std::string tempname::get_actual_path() {
 }
 
 bool tempname::try_directory(const std::string& path) {
-	boost::filesystem::path p = path;
-	if (!boost::filesystem::is_directory(p))
+	std::filesystem::path p = path;
+	if (!std::filesystem::is_directory(p))
 		return false;
-	boost::filesystem::path f = p / construct_name("", get_timestamp(), "");
-	if(boost::filesystem::exists(f))
+	std::filesystem::path f = p / construct_name("", get_timestamp(), "");
+	if(std::filesystem::exists(f))
 		return false;
 
 	std::string file_path = f.string();
@@ -220,11 +240,11 @@ bool tempname::try_directory(const std::string& path) {
 			int i = 0xbadf00d;
 			accessor.write_i(static_cast<const void*>(&i), sizeof(i));
 		}
-		boost::filesystem::remove(file_path);
+		std::filesystem::remove(file_path);
 		return true;
 	}
 	catch (tpie::exception &) {}
-	catch (boost::filesystem::filesystem_error &) {}
+	catch (std::filesystem::filesystem_error &) {}
 
 	return false;
 }
@@ -235,13 +255,13 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 		subdirs.push(""); // signals that the current global subdirectory has not been created yet
 		return;
 	}
-	boost::filesystem::path p = path;
+	std::filesystem::path p = path;
 	p = p / subdir;
 	try {
-		if (!boost::filesystem::exists(p)) {
-			boost::filesystem::create_directory(p);
+		if (!std::filesystem::exists(p)) {
+			std::filesystem::create_directory(p);
 		}
-		if (!boost::filesystem::is_directory(p)) {	
+		if (!std::filesystem::is_directory(p)) {	
 			default_path = path;
 			subdirs.push(""); // signals that the current global subdirectory has not been created yet
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
@@ -249,7 +269,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 
 		default_path = p.string();
 		subdirs.push(""); // signals that the current global subdirectory has not been created yet
-	} catch (boost::filesystem::filesystem_error &) {
+	} catch (std::filesystem::filesystem_error &) {
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
 	}	
@@ -280,10 +300,10 @@ namespace tpie {
 namespace bits {
 
 temp_file_inner::~temp_file_inner() {
-	if (m_path.empty() || m_persist || !boost::filesystem::exists(m_path)) 
+	if (m_path.empty() || m_persist || !std::filesystem::exists(m_path))
 		return;
 
-	boost::filesystem::remove(m_path);
+	std::filesystem::remove(m_path);
 	update_recorded_size(0);
 }
 

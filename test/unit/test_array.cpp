@@ -23,7 +23,6 @@
 #include <tpie/array_view.h>
 #include <tpie/bit_array.h>
 #include <tpie/array.h>
-#include <tpie/concepts.h>
 #include <tpie/util.h>
 using namespace tpie;
 
@@ -466,14 +465,6 @@ bool assign_test() {
 }
 
 int main(int argc, char **argv) {
-	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
-	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
-	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_reverse_iterator>));
-	BOOST_CONCEPT_ASSERT((boost::Mutable_RandomAccessIterator<array<int>::iterator>));
-	BOOST_CONCEPT_ASSERT((boost::Mutable_RandomAccessIterator<array<int>::reverse_iterator>));
-	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<bit_array >));
-	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_iterator>));
-	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_reverse_iterator>));
 
 	return tpie::tests(argc, argv, 128)
 		.test(basic_test, "basic")

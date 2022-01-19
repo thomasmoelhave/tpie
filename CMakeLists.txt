@@ -10,17 +10,16 @@ include(CheckIncludeFiles)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 #### Dependencies
 ## Boost
-set(Boost_ADDITIONAL_VERSIONS "1.40.0" "1.40" "1.41" "1.41.0" "1.42" "1.42.0" "1.43" "1.43.0" "1.44" "1.44.0" "1.45" "1.45.0")
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
-	set(Boost_USE_STATIC_LIBS    ON)
+	set(Boost_USE_STATIC_LIBS ON)
 endif(WIN32)
-find_package(Boost COMPONENTS date_time filesystem system REQUIRED)
+find_package(Boost REQUIRED)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-if(TPIE_FRACTIONDB_DIR_INL) 
+if(TPIE_FRACTIONDB_DIR_INL)
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
 endif(TPIE_FRACTIONDB_DIR_INL)
 
@@ -88,7 +87,7 @@ set(INSTALL_TARGETS_DEFAULT_ARGS
 	ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 )
 
-if (CMAKE_BUILD_TYPE) 
+if (CMAKE_BUILD_TYPE)
   string(TOUPPER ${CMAKE_BUILD_TYPE} bt)
   string(REGEX MATCH " -DNDEBUG " TPIE_NDEBUG " ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${bt}} ")
 else()

@@ -20,43 +20,12 @@
 #include "progress_indicator_base.h"
 #include <tpie/tpie_assert.h>
 
-namespace {
-
-class ptime {
-public:
-	ptime()
-		: m_ptime(boost::posix_time::not_a_date_time)
-	{
-	}
-
-	static ptime now() {
-		return ptime(boost::posix_time::microsec_clock::universal_time());
-	}
-
-	static double seconds(const ptime & t1, const ptime & t2) {
-		if (t1.m_ptime.is_special() || t2.m_ptime.is_special()) {
-			return 0.0;
-		}
-		return (t2.m_ptime - t1.m_ptime).total_microseconds() / 1000000.0;
-	}
-
-private:
-	boost::posix_time::ptime m_ptime;
-
-	ptime(boost::posix_time::ptime ptime)
-		: m_ptime(ptime)
-	{
-	}
-};
-
-} // unnamed namespace
-
 namespace tpie {
 
 struct progress_indicator_base::refresh_impl {
 	/**  The approximate frequency of calls to refresh in hz */
 	static const unsigned int FREQUENCY = 5;
-	ptime m_firstSample;
+	std::chrono::time_point<std::chrono::steady_clock> m_firstSample;
 };
 
 progress_indicator_base::progress_indicator_base(stream_size_type range)
@@ -93,14 +62,14 @@ progress_indicator_base & progress_indicator_base::operator=(progress_indicator_
 void progress_indicator_base::call_refresh() {
 	refresh_impl * const impl = this->m_refreshImpl;
 	if (m_current == 0) {
-		impl->m_firstSample = ptime::now();
+		impl->m_firstSample = std::chrono::steady_clock::now();
 		this->m_remainingSteps = 1;
 		this->refresh();
 		return;
 	}
 
 	// Time since beginning
-	const double t = std::max(0.000001, ptime::seconds(impl->m_firstSample, ptime::now()));
+	const double t = std::max(0.000001, std::chrono::duration<double>(std::chrono::steady_clock::now() -impl->m_firstSample).count());
 
 	// From t0 (target time between calls to refresh)
 	// and f (measured step frequency),

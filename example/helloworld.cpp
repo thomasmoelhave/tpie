@@ -28,7 +28,7 @@
 #include <tpie/file_stream.h>
 #include <tpie/sort.h>
 
-#include <boost/filesystem.hpp> // boost::filesystem::remove
+#include <filesystem> // std::filesystem::remove
 #include <tpie/prime.h> // next_prime
 
 // Progress indicators
@@ -44,7 +44,7 @@ const char * filename = "helloworld.tpie";
 size_t elements = 16*1024*1024;
 
 void cleanup() {
-	boost::filesystem::remove(filename);
+	std::filesystem::remove(filename);
 }
 
 /* Write a permutation of the integers from 0 to s */

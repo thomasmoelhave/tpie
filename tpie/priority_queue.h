@@ -41,7 +41,7 @@
 #include <tpie/err.h>
 #include <tpie/stream.h>
 #include <tpie/array.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace tpie {
 

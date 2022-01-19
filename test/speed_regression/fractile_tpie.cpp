@@ -29,7 +29,7 @@ public:
 		tpie::file_stream<item_type> fs;
 		fs.open(path, tpie::access_read);
 		std::string sortedPath = path + ".sorted";
-		boost::filesystem::remove(sortedPath);
+		std::filesystem::remove(sortedPath);
 		sorted.open(sortedPath);
 		sorted.truncate(0);
 		tpie::sort(fs, sorted);

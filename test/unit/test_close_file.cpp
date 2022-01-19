@@ -23,7 +23,7 @@
 #include <sys/file.h>
 #endif
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <tpie/tempname.h>
 #include <tpie/serialization_stream.h>
 #include <tpie/config.h>
@@ -34,13 +34,13 @@
 class open_file_monitor {
 public:
 	bool ensure_closed_and_delete(std::string fileName) {
-		if (!boost::filesystem::exists(fileName)) {
+		if (!std::filesystem::exists(fileName)) {
 			tpie::log_error() << "ensure_closed_and_delete: File doesn't exist" << std::endl;
 			return true;
 		}
 		try {
-			boost::filesystem::remove(fileName);
-		} catch (const boost::filesystem::filesystem_error & e) {
+			std::filesystem::remove(fileName);
+		} catch (const std::filesystem::filesystem_error & e) {
 			tpie::log_debug() << "Caught filesystem_error: " << e.what() << std::endl;
 			// Already open?
 			return false;
@@ -92,11 +92,11 @@ public:
 bool test_test() {
 	std::string fileName = tpie::tempname::tpie_name();
 	tpie::log_debug() << "Temporary file is " << fileName << std::endl;
-	boost::filesystem::remove(fileName);
+	std::filesystem::remove(fileName);
 	open_file_monitor m;
 	tpie::file_accessor::raw_file_accessor fa;
 	fa.open_wo(fileName);
-	TEST_ENSURE(boost::filesystem::exists(fileName),
+	TEST_ENSURE(std::filesystem::exists(fileName),
 				"fopen did not create file");
 	TEST_ENSURE(!m.ensure_closed_and_delete(fileName),
 				"ensure_closed_and_delete is wrong");

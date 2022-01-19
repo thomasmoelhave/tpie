@@ -66,7 +66,7 @@ else (DOXYGEN)
 endif(DOXYGEN)
 
 add_executable(doccode code/code.cpp)
-target_link_libraries(doccode tpie ${Boost_LIBRARIES})
+target_link_libraries(doccode tpie Boost::boost)
 
 configure_file(madalgo-doxygen.css html/madalgo-doxygen.css COPYONLY)
 configure_file(printstyle.css html/printstyle.css COPYONLY)

@@ -24,6 +24,7 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/runtime.h>
 #include <boost/functional/hash.hpp>
+#include <iomanip>
 
 namespace tpie {
 

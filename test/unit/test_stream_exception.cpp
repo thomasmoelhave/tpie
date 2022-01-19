@@ -20,7 +20,7 @@
 #include <tpie/tpie.h>
 #include <tpie/file_stream.h>
 #include "common.h"
-#include <boost/filesystem/operations.hpp>
+#include <filesystem>
 #include <iostream>
 
 using namespace tpie;
