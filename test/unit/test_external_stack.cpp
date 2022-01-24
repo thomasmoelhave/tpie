@@ -24,7 +24,7 @@
 #include <tpie/stream.h>
 #include <tpie/tempname.h>
 #include "common.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 using namespace tpie;
 

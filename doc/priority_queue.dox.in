@@ -31,6 +31,6 @@ the correct order.
 Place the code file in your \c tpie project folder, and on Linux, compile with:
 \code
 $ g++ -I. -Ibuild -c pq.cpp -Wall -Wextra -O3
-$ g++ pq.o -o pq build/tpie/libtpie.a -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt 
+$ g++ pq.o -o pq build/tpie/libtpie.a
 \endcode
 */

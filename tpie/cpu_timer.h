@@ -30,9 +30,8 @@
 #include <tpie/portability.h>
 #include <iostream>
 #include <time.h>
-#include <boost/date_time.hpp>
 #ifndef _WIN32
-#include <sys/times.h>				
+#include <sys/times.h>
 #include <sys/resource.h>
 #endif
 

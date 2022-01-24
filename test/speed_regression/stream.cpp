@@ -25,7 +25,7 @@
 #include <iostream>
 #include "testtime.h"
 #include "stat.h"
-#include <boost/filesystem/operations.hpp>
+#include <filesystem>
 #include "testinfo.h"
 
 using namespace tpie;

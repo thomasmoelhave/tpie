@@ -18,7 +18,6 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/cpu_timer.h>
-#include <boost/date_time.hpp>
 
 namespace tpie {
 

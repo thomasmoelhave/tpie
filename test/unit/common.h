@@ -29,6 +29,7 @@
 #include <tpie/exception.h>
 #include <tpie/unittest.h>
 #include <tpie/tpie_log.h>
+#include <iomanip>
 
 struct bit_permute {
 	uint64_t operator()(uint64_t i) const{

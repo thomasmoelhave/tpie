@@ -25,6 +25,7 @@
 #include <random>
 #include <tpie/job.h>
 #include <tpie/cpu_timer.h>
+#include <tpie/tempname.h>
 
 struct mtest {
 	size_t & r;

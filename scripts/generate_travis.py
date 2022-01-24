@@ -7,9 +7,6 @@ linux_gcc_versions = ['5', '6', '7']
 linux_clang_versions = ['3.9', '4.0', '5.0']
 linux_sources = ['boost-latest', 'ubuntu-toolchain-r-test']
 linux_packages = [
-	'libboost-date-time1.55-dev',
-	'libboost-filesystem1.55-dev',
-	'libboost-system1.55-dev',
 	'libsnappy-dev',
 	'liblz4-dev'
 ]

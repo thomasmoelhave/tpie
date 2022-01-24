@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "execution_time_predictor.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <tpie/serialization2.h>
 #include <functional>
 #include <map>
@@ -229,7 +229,7 @@ void finish_execution_time_db() {
 }
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
-	m_id(std::hash<std::string>()(id)), m_start_time(boost::posix_time::not_a_date_time), 
+	m_id(std::hash<std::string>()(id)),
 	m_estimate(-1), m_confidence(1), m_pause_time_at_start(0)
 #ifndef TPIE_NDEBUG
 	,m_name(id)
@@ -255,22 +255,22 @@ time_type execution_time_predictor::estimate_execution_time(stream_size_type n, 
 void execution_time_predictor::start_execution(stream_size_type n) {
     m_n = n;
     m_estimate = estimate_execution_time(n, m_confidence);
-    m_start_time = boost::posix_time::microsec_clock::local_time();
+    m_start_time = std::chrono::steady_clock::now();
 	m_pause_time_at_start = s_pause_time;
 }
 
 time_type execution_time_predictor::end_execution() {
 	if (m_id == std::hash<std::string>()("") || !s_store_times || std::uncaught_exceptions()) return 0;
-	time_type t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
+	time_type t = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = db->db[m_id];
 	e.add_point( p_t(m_n, t) );
-	m_start_time = boost::posix_time::not_a_date_time;
+	m_start_time = std::chrono::time_point<std::chrono::steady_clock>();
 	return t;
 }
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
-    double time = static_cast<double>((boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds());
+	double time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count();
 	time -= static_cast<double>(s_pause_time - m_pause_time_at_start);
 
 	double a = m_confidence * (1.0 - progress);
@@ -279,37 +279,37 @@ std::string execution_time_predictor::estimate_remaining_time(double progress) {
 	double t2 = (progress < 0.00001)?0:time/progress;
 	if (m_confidence * a + progress * b < 0.2) return "Estimating";
 	double estimate = static_cast<double>(m_estimate) * a  + t2 * b;
-	
+
 	double remaining = estimate * (1.0-progress);
 
-    stringstream s;
+	stringstream s;
 	remaining /= 1000;
-    if (remaining < 60*10) {
+	if (remaining < 60*10) {
 		s << (int)remaining << " sec";
 		return s.str();
-    }
-    remaining /= 60;
-    if (remaining < 60*10) {
+	}
+	remaining /= 60;
+	if (remaining < 60*10) {
 		s << (int)remaining << " min";
 		return s.str();
-    }
-    remaining /= 60;
-    if (remaining < 24*10) {
+	}
+	remaining /= 60;
+	if (remaining < 24*10) {
 		s << (int)remaining << " hrs";
 		return s.str();
-    }
-    remaining /= 24;
-    s << (int)remaining << " days";
-    return s.str();
+	}
+	remaining /= 24;
+	s << (int)remaining << " days";
+	return s.str();
 }
 
 void execution_time_predictor::start_pause() {
-	s_start_pause_time = boost::posix_time::microsec_clock::local_time();
+	s_start_pause_time = std::chrono::steady_clock::now();
 }
 
 void execution_time_predictor::end_pause() {
 	s_pause_time += static_cast<memory_size_type>(
-		(boost::posix_time::microsec_clock::local_time() - s_start_pause_time).total_milliseconds());
+		std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - s_start_pause_time).count());
 }
 
 void execution_time_predictor::disable_time_storing() {
@@ -317,7 +317,7 @@ void execution_time_predictor::disable_time_storing() {
 }
 
 time_type execution_time_predictor::s_pause_time = 0;
-boost::posix_time::ptime execution_time_predictor::s_start_pause_time;
+std::chrono::time_point<std::chrono::steady_clock> execution_time_predictor::s_start_pause_time;
 bool execution_time_predictor::s_store_times = true;
 
 };

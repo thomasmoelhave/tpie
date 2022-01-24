@@ -25,7 +25,7 @@
 #include <set>
 #include <map>
 #include <numeric>
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 #include "tpie_test_paths.h"
 
 #ifdef TPIE_HAS_LZ4

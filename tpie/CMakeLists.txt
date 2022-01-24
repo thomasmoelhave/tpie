@@ -162,7 +162,6 @@ set (HEADERS
 		packed_array.h
 		array_view_base.h
 		array_view.h
-		concepts.h
 		concept_doc.h
 		tpie.h
 		unittest.h
@@ -209,6 +208,7 @@ set (SOURCES
 	stats.cpp
 	util.cpp
 	unittest.cpp
+	sysinfo2.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
@@ -228,7 +228,8 @@ generate_export_header(tpie DEFINE_NO_DEPRECATED)
 set_target_properties(tpie PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_property(TARGET tpie PROPERTY CXX_STANDARD 17)
 set_property(TARGET tpie PROPERTY CXX_STANDARD_REQUIRED ON)
-target_link_libraries(tpie PUBLIC Boost::date_time Boost::filesystem Boost::system Boost::boost Threads::Threads)
+target_link_libraries(tpie PUBLIC Boost::boost Threads::Threads)
+target_compile_features(tpie PUBLIC cxx_std_17)
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 set_property(TARGET tpie PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(tpie PUBLIC -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)

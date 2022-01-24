@@ -22,6 +22,7 @@
 #include <random>
 #include <tpie/tiny.h>
 #include <set>
+#include <iomanip>
 
 bool sort_test() {
 	{

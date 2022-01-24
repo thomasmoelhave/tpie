@@ -23,7 +23,7 @@
 #include <tpie/pipelining.h>
 #include <iostream>
 #include "testtime.h"
-#include <boost/filesystem/operations.hpp>
+#include <filesystem>
 
 using namespace tpie;
 using namespace tpie::pipelining;

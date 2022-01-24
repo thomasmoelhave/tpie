@@ -20,7 +20,7 @@
 // file_stream memory usage test
 
 #include "common.h"
-#include <boost/filesystem/operations.hpp>
+#include <filesystem>
 #include <tpie/file_stream.h>
 
 using namespace tpie;

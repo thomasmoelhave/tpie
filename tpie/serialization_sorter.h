@@ -21,7 +21,7 @@
 #define TPIE_SERIALIZATION_SORTER_H
 
 #include <queue>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <tpie/array.h>
 #include <tpie/array_view.h>
@@ -379,7 +379,7 @@ public:
 		for (size_t i = 0; i < m_readersOpen; ++i) {
 			decrease_usage(m_fileOffset + i, m_readers[i].file_size());
 			m_readers[i].close();
-			boost::filesystem::remove(run_file(m_fileOffset + i));
+			std::filesystem::remove(run_file(m_fileOffset + i));
 		}
 		m_fileOffset += m_readersOpen;
 		m_readersOpen = 0;
@@ -408,7 +408,7 @@ public:
 			rd.open(runFile);
 			decrease_usage(i, rd.file_size());
 			rd.close();
-			boost::filesystem::remove(runFile);
+			std::filesystem::remove(runFile);
 		}
 		m_fileOffset = m_nextLevelFileOffset = m_nextFileOffset = 0;
 	}
@@ -764,7 +764,7 @@ public:
 		m_sorter.begin(m_params.memoryPhase1 - serialization_writer::memory_usage());
 		log_debug() << "After internal sorter begin; mem usage = "
 			<< get_memory_manager().used() << std::endl;
-		boost::filesystem::create_directory(m_params.tempDir);
+		std::filesystem::create_directory(m_params.tempDir);
 	}
 
 	void push(const T & item) {

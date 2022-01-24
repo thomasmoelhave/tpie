@@ -22,6 +22,6 @@ Example \c sorting.cpp:
 Place in your \c tpie project folder, and on Linux, compile with:
 \code
 $ g++ -I. -Ibuild -c sorting.cpp -Wall -Wextra -O3
-$ g++ sorting.o -o sorting build/tpie/libtpie.a -lboost_date_time-mt -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt 
+$ g++ sorting.o -o sorting build/tpie/libtpie.a
 \endcode
 */

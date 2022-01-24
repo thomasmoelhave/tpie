@@ -20,7 +20,7 @@
 #include <set>
 #include <iostream>
 #include <tpie/tpie.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <tpie/fractional_progress.h>
 
 namespace {
@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
 
 	std::set<std::string> filenames;
 	for (int i = 1; i != argc; ++i) {
-		if (!boost::filesystem::exists(argv[i])) {
+		if (!std::filesystem::exists(argv[i])) {
 			std::cout << argv[i] << ": No such file or directory" << std::endl;
 			return 1;
 		}

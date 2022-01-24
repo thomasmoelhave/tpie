@@ -25,12 +25,9 @@
 #define __TPIE_SYSINFO__
 
 #include <tpie/tpie_export.h>
-#include <iostream>
-#include <iomanip>
-#include <boost/asio/ip/host_name.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <tpie/file.h> // for block size
-#include <tpie/tpie_log.h>
+#include <tpie/types.h>
+#include <iosfwd>
+#include <string>
 
 namespace tpie {
 
@@ -45,11 +42,11 @@ TPIE_EXPORT extern const char * git_refspec;
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Class providing system and platform info.
 ///////////////////////////////////////////////////////////////////////////////
-struct sysinfo {
+struct TPIE_EXPORT sysinfo {
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Default constructor.
 	///////////////////////////////////////////////////////////////////////////
-	inline sysinfo()
+	sysinfo()
 		: m_platform(calc_platform())
 		, m_hostname(calc_hostname())
 		, m_blocksize(calc_blocksize())
@@ -61,38 +58,37 @@ struct sysinfo {
 	/// \brief Git commit hash.
 	/// \sa tpie::git_commit
 	///////////////////////////////////////////////////////////////////////////
-	inline std::string commit()    const { return git_commit; }
+	std::string commit()    const { return git_commit; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Git refspec.
 	/// \sa tpie::git_refspec
 	///////////////////////////////////////////////////////////////////////////
-	inline std::string refspec()   const { return git_refspec; }
+	std::string refspec()   const { return git_refspec; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Platform description. Currently \c "Windows" or \c "Linux"
 	/// followed by \c "32-bit" or \c "64-bit" depending on the \c WIN32
 	/// compile-time define and \c sizeof(size_t).
 	///////////////////////////////////////////////////////////////////////////
-	inline std::string platform()  const { return m_platform; }
+	std::string platform()  const { return m_platform; }
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief System hostname as reported by Boost ASIO.
+	/// \brief System hostname
 	///////////////////////////////////////////////////////////////////////////
-	inline std::string hostname()  const { return m_hostname; }
+	std::string hostname()  const { return m_hostname; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Block size used by \ref tpie::ami::stream.
 	///////////////////////////////////////////////////////////////////////////
-	inline std::string blocksize() const { return m_blocksize; }
+	std::string blocksize() const { return m_blocksize; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Local date and time in a human-readable format.
 	///////////////////////////////////////////////////////////////////////////
-	inline std::string localtime() const {
-		boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
-		return to_simple_string(now);
-	}
+	std::string localtime() const;
+
+	static memory_size_type blocksize_bytes();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Helper function to make a custom key-value line.
@@ -119,26 +115,16 @@ struct sysinfo {
 	/// \param value Text to display in right column. Should be at most 63
 	/// characters.
 	///////////////////////////////////////////////////////////////////////////
-	template <typename V>
-	inline std::string custominfo(std::string key, const V & value) {
-		std::stringstream builder;
-		if (key != "") key += ':';
-		builder.flags(std::ios::left);
-		builder << std::setw(16) << key << value;
-		return builder.str();
-	}
+	static std::string custominfo(std::string key, long value);
+	static std::string custominfo(std::string key, const std::string & value);
+	static std::string custominfo(std::string key, const char * value);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Print custom info to std::cout.
 	///////////////////////////////////////////////////////////////////////////
-	template <typename V>
-	inline void printinfo(std::string key, const V & value) {
-		std::cout << custominfo(key, value) << std::endl;
-	}
-
-	static inline memory_size_type blocksize_bytes() {
-		return get_block_size();
-	}
+	static void printinfo(std::string key, long value);
+	static void printinfo(std::string key, const std::string & value);
+	static void printinfo(std::string key, const char * value);
 
 private:
 	static const char * m_commit;
@@ -147,63 +133,19 @@ private:
 	const std::string m_hostname;
 	const std::string m_blocksize;
 
-	static inline std::string calc_platform() {
-		std::stringstream p;
-#ifdef WIN32
-		p << "Windows ";
-#else
-		p << "Linux ";
-#endif
-		p << (8*sizeof(size_t)) << "-bit";
-		return p.str();
-	}
+	static std::string calc_platform();
 
-	static inline std::string calc_hostname() {
-		try {
-			return boost::asio::ip::host_name();
-		} catch (boost::system::system_error & e) {
-			log_debug() << "boost::system::system_error thrown while getting hostname. e.what() == " << e.what() << std::endl;
-			return "Exception";
-		}
-	}
+	static std::string calc_hostname();
 
-	static inline std::string calc_blocksize() {
-		std::stringstream ss;
-		ss << blocksize_bytes() / 1024
-		   << " KiB";
-		return ss.str();
-	}
+	static std::string calc_blocksize();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Report default system info to the specified \c ostream.
 /// \sa sysinfo::printinfo
 ///////////////////////////////////////////////////////////////////////////////
-inline std::ostream & operator<<(std::ostream & s, const sysinfo & info) {
-	return s
-		<< "Hostname:       " << info.hostname() << '\n'
-		<< "Platform:       " << info.platform() << '\n'
-		<< "Git branch:     " << info.refspec() << '\n'
-		<< "Git commit:     " << info.commit() << '\n'
-		<< "Local time:     " << info.localtime() << '\n'
-		<< "Block size:     " << info.blocksize() << '\n'
-		<< "Parallel sort:  "
-#ifdef TPIE_PARALLEL_SORT
-		<< "Enabled"
-#else
-		<< "Disabled"
-#endif
-		<< '\n'
-		<< "Snappy:         "
-#ifdef TPIE_HAS_SNAPPY
-		<< "Enabled"
-#else
-		<< "Disabled"
-#endif
-		<< '\n'
-		;
-}
+TPIE_EXPORT std::ostream & operator<<(std::ostream & s, const sysinfo & info);
 
-}
+} // namespace tpie
 
 #endif // __TPIE_SYSINFO__

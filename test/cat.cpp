@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <vector>
 #include <fcntl.h>
+#include <iomanip>
 
 static void usage(int exitcode = -1) {
 	std::cerr
