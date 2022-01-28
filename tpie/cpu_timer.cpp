@@ -34,7 +34,11 @@ void cpu_timer::set_clock_tick() {
 }
 
 cpu_timer::cpu_timer() :
-    clock_tick_(0), last_sync_(), elapsed_(), last_sync_real_(0), elapsed_real_(0),
+    clock_tick_(0),
+#ifndef _WIN32
+    last_sync_(), elapsed_(),
+#endif
+    last_sync_real_(0), elapsed_real_(0),
     running_(false) {
 	set_clock_tick();
 }
@@ -42,7 +46,6 @@ cpu_timer::cpu_timer() :
 void cpu_timer::sync() {
     tms current_;
 #ifdef _WIN32
-    current_ = boost::posix_time::second_clock::local_time();
     clock_t current_real_ = clock();
 #else
     clock_t current_real_ = times(&current_);
@@ -56,8 +59,10 @@ void cpu_timer::sync() {
 #endif
     
     elapsed_real_ += current_real_ - last_sync_real_;
-    
+
+#ifndef WIN32
     last_sync_ = current_;
+#endif
     last_sync_real_ = current_real_;
 }
 

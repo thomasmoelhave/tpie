@@ -44,7 +44,7 @@ namespace tpie {
 /// \internal
 ///////////////////////////////////////////////////////////////////////////
 #ifdef _WIN32
-typedef boost::posix_time::ptime tms;
+typedef int tms;
 #else
 using ::tms;
 #endif
@@ -53,8 +53,10 @@ class TPIE_EXPORT cpu_timer {
 private:
 	long        clock_tick_;
 
+#ifndef _WIN32
 	tms last_sync_;
 	tms elapsed_;
+#endif
 
 	clock_t     last_sync_real_;
 	clock_t     elapsed_real_;
@@ -130,14 +132,22 @@ public:
 	/// Return the timestamp of last sync.
 	///////////////////////////////////////////////////////////////////////////
 	inline tms last_sync() const {
+		#ifdef _WIN32
+		return 0;
+		#else
 		return last_sync_;
+		#endif
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the timestamp indicating the elapsed time. Only useful on Linux.
 	///////////////////////////////////////////////////////////////////////////
 	inline tms elapsed() const {
+		#ifdef _WIN32
+		return 0;
+		#else
 		return elapsed_;
+		#endif
 	}
 
 	///////////////////////////////////////////////////////////////////////////
