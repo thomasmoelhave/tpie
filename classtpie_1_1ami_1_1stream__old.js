@@ -1,0 +1,28 @@
+var classtpie_1_1ami_1_1stream__old =
+[
+    [ "item_type", "classtpie_1_1ami_1_1stream__old.html#a6c9e2cf66d389abf3940a4008735e926", null ],
+    [ "stream_old", "classtpie_1_1ami_1_1stream__old.html#a1a6294c31a368b600836b305ce961654", null ],
+    [ "stream_old", "classtpie_1_1ami_1_1stream__old.html#a3156c5bc16b0589b180254f9408a96d5", null ],
+    [ "available_streams", "classtpie_1_1ami_1_1stream__old.html#a9e4ed48e5a4478975be37d0343b78b77", null ],
+    [ "chunk_size", "classtpie_1_1ami_1_1stream__old.html#adb1326536f71077e59e134dd9aa86f74", null ],
+    [ "is_valid", "classtpie_1_1ami_1_1stream__old.html#adc2e29c6e7e512a60495dea72e2f8767", null ],
+    [ "main_memory_usage", "classtpie_1_1ami_1_1stream__old.html#af2346302f31e3d33dced3e85f215dd20", null ],
+    [ "memory_usage", "classtpie_1_1ami_1_1stream__old.html#a9bce3d9d7f4b0da8de219ebfebcbb765", null ],
+    [ "name", "classtpie_1_1ami_1_1stream__old.html#a64c6fe505e8e67736b0b3502cd85def9", null ],
+    [ "new_substream", "classtpie_1_1ami_1_1stream__old.html#a72bfce7b95f6505b16d2048bc47a1908", null ],
+    [ "operator!", "classtpie_1_1ami_1_1stream__old.html#aa73c3e3e7462c460d3cfb236f93abaa4", null ],
+    [ "persist", "classtpie_1_1ami_1_1stream__old.html#a0a69e8140633263a83a402fe41beaa30", null ],
+    [ "persist", "classtpie_1_1ami_1_1stream__old.html#aa82f8c489e48d3c92374a03f490ebe89", null ],
+    [ "read_array", "classtpie_1_1ami_1_1stream__old.html#a705df06965dcb5202abd2975d3a75cf9", null ],
+    [ "read_array", "classtpie_1_1ami_1_1stream__old.html#affef14b90891c64f51d6d71a07773248", null ],
+    [ "read_item", "classtpie_1_1ami_1_1stream__old.html#aa7443c4ecf72a034fc76ebab6f061ff9", null ],
+    [ "seek", "classtpie_1_1ami_1_1stream__old.html#ad55513dd420843a5c238da9d5149c479", null ],
+    [ "sprint", "classtpie_1_1ami_1_1stream__old.html#a36eed63cbc6e692f30a2b2dbed73b2a5", null ],
+    [ "status", "classtpie_1_1ami_1_1stream__old.html#adf5f60bd0292c16763506d6c5e53f63e", null ],
+    [ "stream_len", "classtpie_1_1ami_1_1stream__old.html#a26eb981c457daca769e0f07a51b73187", null ],
+    [ "tell", "classtpie_1_1ami_1_1stream__old.html#a10d62ab9634f4780add09444a8c21828", null ],
+    [ "truncate", "classtpie_1_1ami_1_1stream__old.html#af42dd2530ad470c989299293524eda91", null ],
+    [ "underlying_stream", "classtpie_1_1ami_1_1stream__old.html#a65e14251603e6698cdba170345414089", null ],
+    [ "write_array", "classtpie_1_1ami_1_1stream__old.html#afea17d64d01b64dce5181cdd1ca46161", null ],
+    [ "write_item", "classtpie_1_1ami_1_1stream__old.html#a76908366f5e3c28ca6e6df454f992406", null ]
+];

@@ -1,0 +1,28 @@
+var classtpie_1_1file__accessor_1_1stream__accessor =
+[
+    [ "align_to_boundary", "classtpie_1_1file__accessor_1_1stream__accessor.html#a2a7fc5f8cfa4b9a547dc2947c308597f", null ],
+    [ "block_items", "classtpie_1_1file__accessor_1_1stream__accessor.html#a62d718a729ee569d691392669802d491", null ],
+    [ "block_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#afcf9856b170b4fe8da1bdf80ee79e914", null ],
+    [ "boundary", "classtpie_1_1file__accessor_1_1stream__accessor.html#a983e03ed1ef158eeabff66a95c71a180", null ],
+    [ "byte_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#ae537314efc314512f3cc932174196f71", null ],
+    [ "close", "classtpie_1_1file__accessor_1_1stream__accessor.html#a92917aff71721912f0af6d47ad507330", null ],
+    [ "get_compressed", "classtpie_1_1file__accessor_1_1stream__accessor.html#a8d6657f4e840a5bfb5fbbb3441e91e0c", null ],
+    [ "get_compression_flags", "classtpie_1_1file__accessor_1_1stream__accessor.html#a232dd51ccfcda9b5f760543b04c7cb19", null ],
+    [ "get_last_block_read_offset", "classtpie_1_1file__accessor_1_1stream__accessor.html#ae238ba0fc433f14e9721f06fe0fefb3e", null ],
+    [ "header_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#a773d625f2410f82b86b65a6d443209a1", null ],
+    [ "item_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#a057c58a498508bbcefce864ff4888206", null ],
+    [ "max_user_data_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#a59238cb393009f28d6aa71b1d38d8c45", null ],
+    [ "memory_usage", "classtpie_1_1file__accessor_1_1stream__accessor.html#aaa7b2605fcfc9f7155aa211fb4cd1ed6", null ],
+    [ "open", "classtpie_1_1file__accessor_1_1stream__accessor.html#ae4c28d6460764b665afe5042cc2d40de", null ],
+    [ "path", "classtpie_1_1file__accessor_1_1stream__accessor.html#a7b44603772905aa4a8fb4426855a1683", null ],
+    [ "read_block", "classtpie_1_1file__accessor_1_1stream__accessor.html#aac948f0cb84c9add12e6ba852801062a", null ],
+    [ "read_user_data", "classtpie_1_1file__accessor_1_1stream__accessor.html#a37503f1de6ed7a51c7aa6eb03754513d", null ],
+    [ "set_last_block_read_offset", "classtpie_1_1file__accessor_1_1stream__accessor.html#a569aed4a4fd36dbe9ccc389a72c4aa35", null ],
+    [ "set_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#a642439c052c84d3a4d07b57f23ab4f22", null ],
+    [ "size", "classtpie_1_1file__accessor_1_1stream__accessor.html#accb4ef24d76931157339633b8faf80df", null ],
+    [ "truncate", "classtpie_1_1file__accessor_1_1stream__accessor.html#acdf1acdac6739d6b73b1171ef5dab956", null ],
+    [ "user_data_size", "classtpie_1_1file__accessor_1_1stream__accessor.html#a5c2f8f2fbb5367c0febcece55a1dce69", null ],
+    [ "write_block", "classtpie_1_1file__accessor_1_1stream__accessor.html#a4def2537688f61c3d9f2f6ce5759bc32", null ],
+    [ "write_user_data", "classtpie_1_1file__accessor_1_1stream__accessor.html#a7c563dfebbf79f3e1aea2586bc05f84e", null ],
+    [ "m_fileAccessor", "classtpie_1_1file__accessor_1_1stream__accessor.html#a7f85acc181cee9c3d61dd65038f37523", null ]
+];
