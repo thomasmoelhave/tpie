@@ -1,0 +1,68 @@
+name: documentation
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  skip_duplicate:
+    name: 'Check whether to skip job'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          paths: '["tpie/", "doc/"]'
+
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+
+  create_docs:
+    name: 'Create documentation'
+    runs-on: ubuntu-latest
+
+    needs: skip_duplicate
+    if: ${{ needs.skip_duplicate.outputs.should_skip != 'true' }}
+
+    steps:
+    # Git repo set up
+    - name: Checkout commit
+      uses: actions/checkout@v2
+
+    - name: Install C++ project dependencies
+      run: sudo apt install libboost-all-dev
+
+    - name: Install Doxygen and TeXLive
+      run: sudo apt install doxygen
+
+    # CMake build and create docs
+    - name: CMake build
+      working-directory: ${{github.workspace}}
+      run: |
+        cmake -E make_directory ${{github.workspace}}/build
+        cd ${{github.workspace}}/build
+        cmake -D CMAKE_BUILD_TYPE="Release" -D CMAKE_CXX_STANDARD=14 ..
+
+    - name: Make apidocs
+      working-directory: ${{github.workspace}}/build
+      run: make apidocs
+
+    # Upload artifact if it is pull request to master
+    - uses: actions/upload-artifact@v2
+      if: ${{ github.event_name == 'pull_request' }}
+      with:
+        name: documentation
+        path: ${{github.workspace}}/build/doc/html/
+
+    # Deploy on GitHub Pages if pushed to master
+    - uses: JamesIves/github-pages-deploy-action@4.1.4
+      if: ${{ github.event_name == 'push' }}
+      with:
+        branch: gh-pages
+        folder: ${{github.workspace}}/build/doc/html/

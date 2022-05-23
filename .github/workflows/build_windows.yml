@@ -1,0 +1,63 @@
+name: build (windows)
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  skip_duplicate:
+    name: 'Check whether to skip job'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          paths: '["tpie/"]'
+
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+
+  build:
+    name: 'Build (Windows, ${{matrix.build_type}})'
+    runs-on: windows-latest
+
+    needs: skip_duplicate
+    if: ${{ needs.skip_duplicate.outputs.should_skip != 'true' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug, ExtraDebug]
+
+    steps:
+    # Git repo set up
+    - name: Checkout commit
+      uses: actions/checkout@v2
+
+    # Install dependencies
+    - name: Set up Developer Command Prompt (p1)
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Install dependencies
+      run: |
+        echo "================================"
+        echo "Boost"
+        choco install boost-msvc-14.2
+
+    - name: CMake + MSBuild
+      working-directory: ${{runner.workspace}}
+      run: |
+        cmake -E make_directory ${{github.workspace}}\build
+        cd ${{github.workspace}}\build
+        SET CXXFLAGS="%CXXFLAGS% -D_HAS_AUTO_PTR_ETC=1"
+        cmake -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=17 ..
+
+        msbuild ALL_BUILD.vcxproj
