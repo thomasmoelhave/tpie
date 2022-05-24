@@ -257,17 +257,14 @@ public:
 		return m_reportInternal || m_finishedRuns <= p.fanout;
 	}
 
-	
 	memory_size_type minimum_memory_phase_1() noexcept {
-		// Our *absolute minimum* memory requirements are a single item and
-		// twice as many temp_files as the fanout.
-		// However, our fanout calculation does not take the memory available
-		// in this phase (run formation) into account.
-		// Thus, we assume the largest fanout, meaning we might overshoot.
-		// If we do overshoot, we will just spend the extra bytes on a run length
-		// longer than 1, which is probably what the user wants anyway.
+		// Our fanout calculation cannot take the memory available in this phase
+		// (run formation) into account. Thus, we assume the largest fanout, meaning
+		// we might overshoot. If we do overshoot, we will just spend the extra
+		// bytes on a run length longer than 1, which is probably what the user
+		// wants anyway.
 		sort_parameters tmp_p((sort_parameters()));
-		tmp_p.runLength = 1;
+		tmp_p.runLength = std::max<memory_size_type>(128*1024 / m_item_size + 1, 16);
 		tmp_p.fanout = calculate_fanout(std::numeric_limits<memory_size_type>::max(), 0);
 		return phase_1_memory(tmp_p);
 	}
