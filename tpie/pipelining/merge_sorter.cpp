@@ -259,8 +259,20 @@ void merge_sorter_base::set_owner(tpie::pipelining::node * n) {
 }
 
 	
-static memory_size_type clamp(memory_size_type lo, memory_size_type val, memory_size_type hi) {
+static memory_size_type clamp(const memory_size_type lo, const memory_size_type val, const memory_size_type hi) {
 	return std::max(lo, std::min(val, hi));
+}
+
+static memory_size_type temp_file_memory(const memory_size_type fanout) {
+	return 2 * fanout * sizeof(temp_file);
+}
+
+static memory_size_type runlength_phase1(const memory_size_type memory_phase1,
+										 const memory_size_type item_size,
+										 const memory_size_type stream_memory,
+										 const memory_size_type temp_file_memory) {
+	const memory_size_type memory_for_run = memory_phase1 - bits::run_positions::memory_usage() - stream_memory - temp_file_memory;
+	return memory_for_run / item_size;
 }
 
 void merge_sorter_base::calculate_parameters() {
@@ -317,17 +329,18 @@ void merge_sorter_base::calculate_parameters() {
 	// Phase 1 (run formation):
 	// Run length: determined by the number of items we can hold in memory.
 	// Fanout: unbounded
-	
-	memory_size_type streamMemory = m_element_file_stream_memory_usage;
-	memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
-	
-	log_pipe_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-	memory_size_type min_m1 = 128*1024 / m_item_size + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
+	const memory_size_type tempFileMemory = temp_file_memory(p.fanout);
+
+	log_pipe_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; "
+					 << m_element_file_stream_memory_usage << " b for a single stream; "
+					 << tempFileMemory << " b for temp_files\n";
+
+	const memory_size_type min_m1 = min_memory_phase1(m_item_size, m_element_file_stream_memory_usage, tempFileMemory);
 	if (p.memoryPhase1 < min_m1) {
 		log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
 		p.memoryPhase1 = min_m1;
 	}
-	p.runLength = (p.memoryPhase1 - bits::run_positions::memory_usage() - streamMemory - tempFileMemory)/m_item_size;
+	p.runLength = runlength_phase1(p.memoryPhase1, m_item_size, m_element_file_stream_memory_usage, tempFileMemory);
 	
 	p.internalReportThreshold = (std::min(p.memoryPhase1,
 										  std::min(p.memoryPhase2,
@@ -381,6 +394,23 @@ memory_size_type merge_sorter_base::calculate_fanout(
 			}
 	}
 	return fanout_lo;
-}	
+}
+
+/*static*/ memory_size_type merge_sorter_base::min_memory_phase1(const memory_size_type itemSize,
+																 const memory_size_type streamMemory,
+																 const memory_size_type tempMemory) noexcept {
+	constexpr memory_size_type min_runlength = 128*1024;
+	return min_runlength / itemSize + bits::run_positions::memory_usage() + streamMemory + tempMemory;
+}
+
+/*static*/ memory_size_type merge_sorter_base::min_memory_phase1(const memory_size_type itemSize, const memory_size_type streamMemory) noexcept {
+    // Smallest value of 'fanout_lo' as in 'calculate_fanout'
+    const memory_size_type fanout = 2;
+
+	// value of 'tempMemory' as computed in 'calculate_parameters()'.
+	const memory_size_type tempMemory = temp_file_memory(fanout);
+
+	return min_memory_phase1(itemSize, streamMemory, tempMemory);
+}
 
 } // namespace tpie

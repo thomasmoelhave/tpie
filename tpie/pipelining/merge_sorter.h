@@ -303,9 +303,20 @@ public:
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
 	memory_size_type calculate_fanout(memory_size_type availableMemory, memory_size_type availableFiles) noexcept;
-	
-protected:
 
+private:
+	///////////////////////////////////////////////////////////////////////////
+	/// calculate_parameters helper.
+	///////////////////////////////////////////////////////////////////////////
+	static memory_size_type min_memory_phase1(memory_size_type itemSize, memory_size_type streamMemory, memory_size_type tempMemory) noexcept;
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	/// calculate_parameters helper (hiding the 'tempMemory' computation).
+	///////////////////////////////////////////////////////////////////////////
+	static memory_size_type min_memory_phase1(memory_size_type itemSize, memory_size_type streamMemory) noexcept;
+
+protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate parameters from given memory amount.
 	///////////////////////////////////////////////////////////////////////////
@@ -402,13 +413,14 @@ private:
 	typedef typename specific_store_t::element_type element_type;	//Should be the same as TT
 	typedef outer_type item_type;
 	static const size_t item_size = specific_store_t::item_size;
+	static const memory_size_type stream_memory = file_stream<element_type>::memory_usage();
 public:
 
 	typedef std::shared_ptr<merge_sorter> ptr;
 	typedef progress_types<UseProgress> Progress;
 	
 	merge_sorter(pred_t pred = pred_t(), store_t store = store_t())
-		: merge_sorter_base(fanout_memory_usage(), specific_store_t::item_size, file_stream<element_type>::memory_usage())
+		: merge_sorter_base(fanout_memory_usage(), item_size, stream_memory)
 		, m_store(store.template get_specific<element_type>())
 		, m_merger(pred, m_store, m_bucket)
 		, m_currentRunItems(m_bucket)
@@ -417,6 +429,13 @@ public:
 	
 
 public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Minimum memory needed to open maintain enough files.
+	///////////////////////////////////////////////////////////////////////////
+	static memory_size_type min_available_memory() {
+		return merge_sorter_base::min_memory_phase1(item_size, stream_memory);
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initiate phase 1: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
