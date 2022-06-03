@@ -29,6 +29,7 @@
 #include <tpie/config.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/file_manager.h>
+#include <boost/system/system_error.hpp>
 
 #ifdef WIN32
 class open_file_monitor {
