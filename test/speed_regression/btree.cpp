@@ -19,7 +19,10 @@
 #include "../app_config.h"
 
 #include "blocksize_2MB.h"
+
 #include <algorithm>
+#include <random>
+
 #include <tpie/array.h>
 #include <tpie/tpie.h>
 #include <tpie/btree/btree.h>
@@ -51,6 +54,9 @@ void test(size_t times, size_t size) {
 	test_realtime_t start;
 	test_realtime_t end;
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
 	for (size_t i = 0; i < times; ++i) {
 		/*btree_internal_store<int> store;
 		btree<btree_internal_store<int> > tree(store);*/
@@ -62,7 +68,7 @@ void test(size_t times, size_t size) {
 		std::vector<int> x(count);
 		for(size_t i = 0; i < count; ++i)
 			x[i] = i;
-		std::random_shuffle(x.begin(), x.end());
+		std::shuffle(x.begin(), x.end(), gen);
 
 		// insertion
 		getTestRealtime(start);
@@ -81,7 +87,7 @@ void test(size_t times, size_t size) {
 		s(testRealtimeDiff(start,end));
 
 		// deletion
-		std::random_shuffle(x.begin(), x.end());
+		std::shuffle(x.begin(), x.end(), gen);
 
 		getTestRealtime(start);
 		for(size_t i = 0; i < count; ++i) {

@@ -44,13 +44,38 @@ memory_size_type random(memory_size_type seed, memory_size_type min, memory_size
 	return (seed * 1009) % (max - min) + min;
 }
 
-int random_generator(int i) {
-	return 10007 % i;
-}
+class unrandom_generator
+{
+public:
+	typedef unsigned int result_type;
+
+	unrandom_generator() = default;
+	unrandom_generator(size_t /*n*/) { }
+
+private:
+	result_type mod = 0;
+	static constexpr result_type val = 10007;
+
+public:
+	constexpr static result_type min()
+	{ return 0u; }
+
+	constexpr static result_type max()
+	{ return val; }
+
+	result_type g()
+	{
+		if (++mod == val) { mod = 1; }
+		return val % mod;
+	}
+
+	result_type operator()()
+	{ return g(); }
+};
 
 bool alloc_test(memory_size_type size, memory_size_type block_size) {
 	typedef std::vector<block_handle> handles_t;
-	temp_file file; 
+	temp_file file;
 	freespace_collection collection(file.path(), block_size);
 	handles_t handles;
 
@@ -87,7 +112,7 @@ bool size_test(memory_size_type size, memory_size_type block_size) {
 
 	for(memory_size_type i = 0; i < size; ++i) {
 		TEST_ENSURE(collection.size() >= minimum_size, "The space used is too small.");
-		
+
 		minimum_size += block_size;
 
 		block_handle handle = collection.alloc();
@@ -96,8 +121,11 @@ bool size_test(memory_size_type size, memory_size_type block_size) {
 	}
 
 	//  the two arrays are shuffled the same way
-	std::random_shuffle(handles.begin(), handles.end(), random_generator);
-	std::random_shuffle(sizes.begin(), sizes.end(), random_generator);
+	unrandom_generator g1;
+	std::shuffle(handles.begin(), handles.end(), g1);
+
+	unrandom_generator g2;
+	std::shuffle(sizes.begin(), sizes.end(), g2);
 
 	for(memory_size_type i = 0; i < size; ++i) {
 		TEST_ENSURE(collection.size() >= minimum_size, "The space used is too small.");
