@@ -29,7 +29,9 @@
 #include <tpie/config.h>
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/file_manager.h>
+
 #include <boost/system/system_error.hpp>
+#include <system_error>
 
 #ifdef WIN32
 class open_file_monitor {
@@ -45,8 +47,12 @@ public:
 			tpie::log_debug() << "Caught filesystem_error: " << e.what() << std::endl;
 			// Already open?
 			return false;
+		} catch (const std::system_error & e) {
+			tpie::log_debug() << "Caught (std) system_error: " << e.what() << std::endl;
+			// Already open?
+			return false;
 		} catch (const boost::system::system_error & e) {
-			tpie::log_debug() << "Caught system_error: " << e.what() << std::endl;
+			tpie::log_debug() << "Caught (Boost) system_error: " << e.what() << std::endl;
 			// Already open?
 			return false;
 		}
