@@ -1,12 +1,6 @@
 name: build (windows)
 
-on:
-  push:
-    branches:
-    - master
-  pull_request:
-    branches:
-    - master
+on: [push, pull_request]
 
 jobs:
   skip_duplicate:
@@ -21,7 +15,7 @@ jobs:
           paths: '["tpie/"]'
 
     outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      should_skip: 'false'
 
   build:
     name: 'Build (Windows, ${{matrix.build_type}})'
