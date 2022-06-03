@@ -242,6 +242,7 @@ endif()
 
 if(WIN32)
 	target_compile_options(tpie PUBLIC -DWIN32_LEAN_AND_MEAN -DNOGDI /bigobj)
+	target_link_libraries(tpie PRIVATE wsock32 ws2_32)
 endif()
 
 if(TPIE_HAS_SNAPPY)
