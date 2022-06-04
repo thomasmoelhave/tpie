@@ -46,18 +46,30 @@ jobs:
       with:
         arch: x64
 
-    - name: Install dependencies
-      run: |
-        echo "================================"
-        echo "Boost"
-        choco install boost-msvc-14.2
+    - name: Install Boost
+      uses: MarkusJx/install-boost@v2.3.0
+      id: install-boost
+      with:
+        # List of all versions here:
+        # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+        boost_version: 1.79.0
+        platform_version: 2019
+        toolset: msvc
 
-    - name: CMake + MSBuild
+    # Build
+    - name: Configure CMake + NMake all
       working-directory: ${{runner.workspace}}
       run: |
         cmake -E make_directory ${{github.workspace}}\build
         cd ${{github.workspace}}\build
         SET CXXFLAGS="%CXXFLAGS% -D_HAS_AUTO_PTR_ETC=1"
-        cmake -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=17 ..
+        cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=17 -D Boost_INCLUDE_DIR=${{steps.install-boost.outputs.BOOST_ROOT}}/include -D Boost_LIBRARY_DIRS=${{steps.install-boost.outputs.BOOST_ROOT}}/lib ..
+        nmake
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
 
-        msbuild ALL_BUILD.vcxproj
+    # Run unit tests
+    - name: NMake test
+      run: |
+        cd ${{github.workspace}}\build
+        nmake test
