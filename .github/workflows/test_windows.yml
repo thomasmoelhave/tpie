@@ -1,4 +1,4 @@
-name: build (windows)
+name: test (Windows)
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   skip_duplicate:
-    name: 'Check whether to skip job'
+    name: 'Skip job? (Windows)'
     continue-on-error: true
     runs-on: ubuntu-latest
 
@@ -18,13 +18,13 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
         with:
-          paths: '["tpie/"]'
+          paths: '["tpie/", "test/"]'
 
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
 
-  build:
-    name: 'Build (Windows, ${{matrix.build_type}})'
+  build_test:
+    name: 'Build + Test (Windows, ${{matrix.build_type}})'
     runs-on: windows-latest
 
     needs: skip_duplicate
@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: [Release, Debug, ExtraDebug]
+        build_type: [Release, Debug]
 
     steps:
     # Git repo set up
@@ -69,7 +69,7 @@ jobs:
         BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
 
     # Run unit tests
-    - name: NMake test
+    - name: CTest run
       run: |
         cd ${{github.workspace}}\build
         ctest

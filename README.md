@@ -1,7 +1,9 @@
 # TPIE - The Templated Portable I/O Environment
 
 [![LGPL-3.0 License](https://img.shields.io/badge/license-LGPL%203.0-blue.svg)](COPYING.md)
-[![unit tests](https://github.com/thomasmoelhave/tpie/actions/workflows/unit_test.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/unit_test.yml)
+[![test (Linux)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_linux.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_linux.yml)
+[![test (Mac OS)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_macos.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_macos.yml)
+[![test (Windows)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_windows.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_windows.yml)
 [![documentation](https://github.com/thomasmoelhave/tpie/actions/workflows/doxygen.yml/badge.svg)](https://thomasmoelhave.github.io/tpie)
 
 The TPIE (Templated Portable I/O Environment) library is a tool box providing
