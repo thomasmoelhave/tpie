@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2011, 2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -60,7 +60,7 @@ template <typename T, typename A>
 class pull_input_vector_t : public node {
 public:
 	typedef T item_type;
-	
+
 	pull_input_vector_t(const std::vector<T, A> & input) : input(input) {}
 
 	pull_input_vector_t(std::vector<T, A> && input) = delete;
@@ -73,7 +73,7 @@ public:
 	bool can_pull() const {return idx < input.size();}
 	const T & peek() const {return input[idx];}
 	const T & pull() {return input[idx++];}
-	
+
 private:
 	size_t idx;
 	const std::vector<T, A> & input;
@@ -101,10 +101,10 @@ template <typename dest_t, typename F>
 class lambda_t: public node {
 public:
 	typedef typename F::argument_type item_type;
-		
+
 	lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
 	}
-	
+
 	void push(const item_type & item) {
 		dest.push(f(item));
 	}
@@ -117,10 +117,9 @@ template <typename dest_t, typename F>
 class exclude_lambda_t: public node {
 public:
 	typedef typename F::argument_type item_type;
-		
-	exclude_lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
-	}
-	
+
+	exclude_lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) { }
+
 	void push(const item_type & item) {
 		typename F::result_type t=f(item);
 		if (t.second) dest.push(t.first);
