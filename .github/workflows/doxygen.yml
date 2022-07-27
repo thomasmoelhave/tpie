@@ -38,8 +38,8 @@ jobs:
     - name: Install C++ project dependencies
       run: sudo apt install libboost-all-dev
 
-    - name: Install Doxygen and TeXLive
-      run: sudo apt install doxygen
+    - name: Install Doxygen, DOT and TeXLive
+      run: sudo apt install doxygen graphviz
 
     # CMake build and create docs
     - name: CMake build
