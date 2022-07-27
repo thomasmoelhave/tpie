@@ -17,6 +17,12 @@ By default, \ref tpie::file_stream reads and writes blocks of size 2 MB at a
 time. You can change this by passing a block factor to the constructor of
 file_stream.
 
+TPIE file streams keep track of whether files have been closed \em cleanly, i.e.
+that a file_stream with write access to a file has been given the opportunity to
+close it properly. If a file is not closed properly, e.g. your program crashes
+while still having the stream open, then you will have to manually delete the
+stream files.
+
 \subsection file_stream_complete Complete Examplary Program
 
 Below is a complete C++ program in which the above example of a copy function is
