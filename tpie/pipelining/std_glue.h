@@ -25,6 +25,7 @@
 #include <tpie/pipelining/node.h>
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
+#include <tpie/pipelining/map.h>
 
 namespace tpie::pipelining {
 namespace bits {
@@ -96,22 +97,8 @@ private:
 	std::vector<item_type, A> & output;
 };
 
-
 template <typename dest_t, typename F>
-class lambda_t: public node {
-public:
-	typedef typename F::argument_type item_type;
-
-	lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) {
-	}
-
-	void push(const item_type & item) {
-		dest.push(f(item));
-	}
-private:
-	F f;
-	dest_t dest;
-};
+using lambda_t [[deprecated("Use 'map_t' in 'tpie/pipelining/map.h'.")]] = map_t<dest_t, F>;
 
 template <typename dest_t, typename F>
 class exclude_lambda_t: public node {
@@ -174,6 +161,7 @@ pipe_end<termfactory<bits::output_vector_t<T, A>, std::vector<T, A> &> > output_
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
+[[deprecated("Use 'map' in 'tpie/pipelining/map.h'.")]]
 inline pipe_middle<tfactory<bits::lambda_t, Args<F>, F> > lambda(const F & f) {
 	return {f};
 }
