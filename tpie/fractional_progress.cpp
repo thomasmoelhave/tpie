@@ -258,7 +258,7 @@ void fractional_subindicator::done() {
 
 fractional_subindicator::~fractional_subindicator() {
 #ifndef TPIE_NDEBUG
-	if (!m_init_called && m_fraction > 0.00001 && !std::uncaught_exception()) {
+	if (!m_init_called && m_fraction > 0.00001 && !std::uncaught_exceptions()) {
 		std::stringstream s;
 		if (!m_stat.empty()) {
 			s << "A fractional_subindicator for ``" << m_stat << "'' was assigned a non-zero fraction but never initialized." << std::endl;
@@ -323,7 +323,7 @@ void fractional_progress::done() {
 
 fractional_progress::~fractional_progress() {
 #ifndef TPIE_NDEBUG
-	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
+	if (m_init_called && !m_done_called && !std::uncaught_exceptions()) {
 		std::stringstream s;
 		s << "A fractional_progress was destructed without done being called." << std::endl;
 		TP_LOG_FATAL(s.str());
