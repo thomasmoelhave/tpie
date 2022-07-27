@@ -510,7 +510,19 @@ public:
 		for (IT i = a; i != b; ++i) *i = read_back();
 	}
 
-	// TODO: peek_back
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Peeks the previous item from stream if can_read_back() == true.
+	///
+	/// \exception end_of_stream_exception If can_read_back() == false. The
+	/// stream is left in the state it was in before the call to read_back()
+	/// that threw an exception.
+	///
+	/// \remark Blocks to take the compressor lock.
+	///////////////////////////////////////////////////////////////////////////
+	const T & peek_back() {
+		if (m_seekState != seek_state::none || m_nextItem == m_bufferBegin) read_back_unlikely();
+		return *reinterpret_cast<const T*>(m_nextItem - sizeof(T));
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Skips nextprevious item from stream if can_read_back() == true.
