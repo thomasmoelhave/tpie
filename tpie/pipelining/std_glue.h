@@ -157,8 +157,8 @@ inline pipe_middle<tfactory<bits::lambda_t, Args<F>, F> > lambda(const F & f) {
 /// \brief Pipelining nodes that applies to given functor to items in
 /// the stream. The functor should have a typedef named argument_type
 /// that is the type of the argument given to the call operator. It is required
-/// that the functor returns a pair. The first item should be a boolean
-/// indicating whether the item should be pushed to the next node. The second
+/// that the functor returns a pair. The second item should be a boolean
+/// indicating whether the item should be pushed to the next node. The first
 /// should be the value itself.
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
