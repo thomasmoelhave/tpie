@@ -499,7 +499,16 @@ public:
 		return *reinterpret_cast<const T *>(m_nextItem);
 	}
 
-	// TODO: read_back iterator
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Reads min(b-a, size()-offset()) items into the range [a, b). If
+	/// less than b-a items are read, throws an end_of_stream_exception.
+	///
+	/// \pre is_open().
+	///////////////////////////////////////////////////////////////////////////
+	template <typename IT>
+	void read_back(IT const a, IT const b) {
+		for (IT i = a; i != b; ++i) *i = read_back();
+	}
 
 	// TODO: peek_back
 
