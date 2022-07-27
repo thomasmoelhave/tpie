@@ -108,7 +108,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	void cache_read_writes();
 
-	void peak_unlikely();
+	void peek_unlikely();
 	
 	void read_back_unlikely();
 	
@@ -424,7 +424,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	const T & read() {
 		if (m_cachedReads == 0) {
-			peak_unlikely();
+			peek_unlikely();
 			const T & res = *reinterpret_cast<const T*>(m_nextItem);
 			++m_offset;
 			m_nextItem += sizeof(T);
@@ -449,7 +449,7 @@ public:
 	/// in before the call to peek().
 	///////////////////////////////////////////////////////////////////////////
 	const T & peek() {
-		if (m_cachedReads == 0) peak_unlikely();
+		if (m_cachedReads == 0) peek_unlikely();
 		return *reinterpret_cast<const T*>(m_nextItem);
 	}
 
