@@ -26,6 +26,7 @@
 #include <tpie/pipelining/pipe_base.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/map.h>
+#include <tpie/pipelining/filter_map.h>
 
 namespace tpie::pipelining {
 namespace bits {
@@ -101,21 +102,7 @@ template <typename dest_t, typename F>
 using lambda_t [[deprecated("Use 'map_t' in 'tpie/pipelining/map.h'.")]] = map_t<dest_t, F>;
 
 template <typename dest_t, typename F>
-class exclude_lambda_t: public node {
-public:
-	typedef typename F::argument_type item_type;
-
-	exclude_lambda_t(dest_t dest, const F & f): f(f), dest(std::move(dest)) { }
-
-	void push(const item_type & item) {
-		typename F::result_type t=f(item);
-		if (t.second) dest.push(t.first);
-	}
-private:
-	F f;
-	dest_t dest;
-};
-
+using exclude_lambda_t [[deprecated("Use 'filter_map_t' in 'tpie/pipelining/map.h'.")]] = filter_map_t<dest_t, F>;
 
 } // namespace bits
 
@@ -176,6 +163,7 @@ inline pipe_middle<tfactory<bits::lambda_t, Args<F>, F> > lambda(const F & f) {
 /// \param f The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
 template <typename F>
+[[deprecated("Use 'filter_map' in 'tpie/pipelining/filter_map.h'.")]]
 inline pipe_middle<tfactory<bits::exclude_lambda_t, Args<F>, F> > exclude_lambda(const F & f) {
 	return {f};
 }
