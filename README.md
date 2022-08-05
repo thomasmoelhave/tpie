@@ -30,7 +30,7 @@ branch is very stable and is unlikely to see major breaking changes.
 For help, installation, usage and documentation, visit the
 [TPIE homepage](http://www.madalgo.au.dk/tpie/); the API documentation is also
 hosted [there](http://www.madalgo.au.dk/tpie/doc/) and on
-[GitHub pages](thomasmoelhave.github.io/tpie).
+[GitHub pages](http://www.thomasmoelhave.github.io/tpie).
 
 ## Dependencies
 
