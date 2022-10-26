@@ -1,5 +1,6 @@
 # doc/CMakeLists.txt uses configure_file behavior from CMake 2.8
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3)
+cmake_policy(SET CMP0063 NEW)
 
 project(tpie)
 
@@ -55,7 +56,6 @@ if(TPIE_USE_LZ4)
 	endif(${LZ4_FOUND})
 endif(TPIE_USE_LZ4)
 
-
 ## ZSTD
 option(TPIE_USE_ZSTD "Use ZSTD, Compression algorithm" ON)
 if(TPIE_USE_ZSTD)
@@ -66,7 +66,6 @@ if(TPIE_USE_ZSTD)
 		set(TPIE_HAS_ZSTD OFF)
 	endif(${ZSTD_FOUND})
 endif(TPIE_USE_ZSTD)
-
 
 option(TPIE_SHARED "Build tpie as a shared library" OFF)
 
