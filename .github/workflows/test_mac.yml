@@ -39,12 +39,13 @@ jobs:
           # GNU Compiler
           - { cc: gcc,   v: 7,  cxx: g++, xcode: latest }
           - { cc: gcc,   v: 10, cxx: g++, xcode: latest }
+          - { cc: gcc,   v: 12, cxx: g++, xcode: latest }
 
           # Clang Compiler
-          - { cc: clang, cxx: clang++, xcode: 11.7 } # oldest
-          - { cc: clang, cxx: clang++, xcode: 12.4 }
-          - { cc: clang, cxx: clang++, xcode: 13.1 }
-          - { cc: clang, cxx: clang++, xcode: 13.2 } # newest
+          - { cc: clang, cxx: clang++, xcode: 13.1 } # oldest
+          - { cc: clang, cxx: clang++, xcode: 13.4 }
+          - { cc: clang, cxx: clang++, xcode: 14.0 }
+          - { cc: clang, cxx: clang++, xcode: 14.2 } # newest
 
     steps:
     # Git repo set up

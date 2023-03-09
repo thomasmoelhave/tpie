@@ -37,13 +37,14 @@ jobs:
         build_type: [Release, Debug]
         cc:
           # GNU Compiler
-          - { cc: gcc,   v: 7,  cxx: g++ } # oldest possible
-          - { cc: gcc,   v: 9,  cxx: g++ } # default
-          - { cc: gcc,   v: 10, cxx: g++ } # newest
+          - { cc: gcc,   v: 10, cxx: g++ } # oldest possible
+          - { cc: gcc,   v: 11, cxx: g++ } # default
+          - { cc: gcc,   v: 12, cxx: g++ } # newest
 
           # Clang Compiler
-          - { cc: clang, v: 7,  cxx: clang++ } # oldest possible
-          - { cc: clang, v: 11, cxx: clang++ } # newst possible
+          - { cc: clang, v: 11, cxx: clang++ } # oldest possible
+          - { cc: clang, v: 14, cxx: clang++ } # default
+          - { cc: clang, v: 15, cxx: clang++ } # newst possible
 
     env:
       cc: ${{matrix.cc.cc}}-${{matrix.cc.v}}
