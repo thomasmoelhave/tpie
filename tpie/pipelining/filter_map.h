@@ -44,7 +44,7 @@ public:
 	}
 
 	void push(const item_type & item) {
-		typename F::result_type t=f(item);
+		const auto t=f(item);
 		if (t.second) dest.push(t.first);
 	}
 };
