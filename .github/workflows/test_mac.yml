@@ -100,7 +100,7 @@ jobs:
 
         cmake -E make_directory ${{github.workspace}}/build
         cd ${{github.workspace}}/build
-        cmake -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=14 ..
+        cmake -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=17 ..
 
         make -j2
 

@@ -102,7 +102,7 @@ jobs:
 
         cmake -E make_directory ${{github.workspace}}/build
         cd ${{github.workspace}}/build
-        cmake -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=14 -D CMAKE_C_FLAGS="$MACRO_FLAGS" -D CMAKE_CXX_FLAGS="$MACRO_FLAGS" ..
+        cmake -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=17 -D CMAKE_C_FLAGS="$MACRO_FLAGS" -D CMAKE_CXX_FLAGS="$MACRO_FLAGS" ..
 
         make -j2
 
