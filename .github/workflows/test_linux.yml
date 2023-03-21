@@ -9,7 +9,7 @@ on:
     - master
 
 jobs:
-  skip_duplicate:
+  check_skip:
     name: 'Skip job? (Linux)'
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -23,12 +23,12 @@ jobs:
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
 
-  build_test:
+  build_and_test:
     name: 'Build + Test (Linux, ${{matrix.cc.cc}}-${{matrix.cc.v}}, ${{matrix.build_type}})'
     runs-on: ${{ matrix.os }}
 
-    needs: skip_duplicate
-    if: ${{ needs.skip_duplicate.outputs.should_skip != 'true' }}
+    needs: check_skip
+    if: ${{ needs.check_skip.outputs.should_skip != 'true' }}
 
     strategy:
       fail-fast: false
@@ -117,3 +117,31 @@ jobs:
         sudo apt install python3 python3-pip
         pip install cmakeast
         python3 scripts/check_missing_ctests.py
+
+  skip:
+    name: 'Build + Test (Linux, ${{matrix.cc.cc}}-${{matrix.cc.v}}, ${{matrix.build_type}})'
+    runs-on: ubuntu-latest
+
+    needs: check_skip
+    if: ${{ needs.check_skip.outputs.should_skip == 'true' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release, Debug]
+        cc:
+          # GNU Compiler
+          - { cc: gcc,   v: 10, cxx: g++ } # oldest possible
+          - { cc: gcc,   v: 11, cxx: g++ } # default
+          - { cc: gcc,   v: 12, cxx: g++ } # newest
+
+          # Clang Compiler
+          - { cc: clang, v: 11, cxx: clang++ } # oldest possible
+          - { cc: clang, v: 14, cxx: clang++ } # default
+          - { cc: clang, v: 15, cxx: clang++ } # newst possible
+
+    steps:
+    - name: Echo skip
+      run: |
+        echo "Running unit tests is skipped"
