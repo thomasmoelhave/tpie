@@ -148,7 +148,7 @@ public:
 		ofstream f;
 		f.open(tmp.c_str(), ifstream::binary | ifstream::out);
 		if (!f.is_open()) {
-			log_error() << "Failed to store time estimation database: Could not create temporary file" << std::endl;
+			log_error() << "Failed to store time estimation database: Could not create temporary file ``" << tmp.c_str() << "''" << std::endl;
 			return;
 		}
 		
