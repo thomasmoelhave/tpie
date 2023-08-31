@@ -6,6 +6,7 @@
 
 #cmakedefine TPIE_DEPRECATED_WARNINGS
 #cmakedefine TPIE_PARALLEL_SORT
+#cmakedefine TPIE_EXECUTION_TIME_PREDICTOR
 
 #if defined (TPIE_HAVE_UNISTD_H)
 #include <unistd.h>

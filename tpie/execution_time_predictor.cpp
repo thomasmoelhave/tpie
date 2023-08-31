@@ -40,6 +40,7 @@
 using namespace std;
 using namespace tpie;
 
+#ifdef TPIE_EXECUTION_TIME_PREDICTOR
 namespace {
 
 typedef std::pair<stream_size_type, time_type> p_t;
@@ -212,20 +213,24 @@ public:
 static time_estimator_database * db = 0;
 
 } //annonymous namespace
-
+#endif //TPIE_EXECUTION_TIME_PREDICTOR
 namespace tpie {
 
 void init_execution_time_db() {
+	#ifdef TPIE_EXECUTION_TIME_PREDICTOR
 	if (db) return;
 	db = new time_estimator_database();
 	db->load();
+	#endif
 }
 
 void finish_execution_time_db() {
+	#ifdef TPIE_EXECUTION_TIME_PREDICTOR
 	if (!db) return;
 	db->save();
 	delete db;
 	db = 0;
+	#endif
 }
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
@@ -240,6 +245,10 @@ execution_time_predictor::~execution_time_predictor() {
 }
 
 time_type execution_time_predictor::estimate_execution_time(stream_size_type n, double & confidence) {
+#ifndef TPIE_EXECUTION_TIME_PREDICTOR
+		confidence=0.0;
+		return -1;
+#else
 	if (m_id == std::hash<std::string>()("")) {
 		confidence=0.0;
 		return -1;
@@ -250,6 +259,7 @@ time_type execution_time_predictor::estimate_execution_time(stream_size_type n, 
 		log_debug() << "No database entry for " << m_name << " (" << m_id << ")" << std::endl;
 #endif
 	return v;
+#endif
 }
 
 void execution_time_predictor::start_execution(stream_size_type n) {
@@ -263,13 +273,16 @@ time_type execution_time_predictor::end_execution() {
 	if (m_id == std::hash<std::string>()("") || !s_store_times || std::uncaught_exceptions()) return 0;
 	time_type t = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count();
 	t -= (s_pause_time - m_pause_time_at_start);
+	#ifdef TPIE_EXECUTION_TIME_PREDICTOR
 	entry & e = db->db[m_id];
 	e.add_point( p_t(m_n, t) );
+	#endif
 	m_start_time = std::chrono::time_point<std::chrono::steady_clock>();
 	return t;
 }
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
+	#ifdef TPIE_EXECUTION_TIME_PREDICTOR
 	double time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count();
 	time -= static_cast<double>(s_pause_time - m_pause_time_at_start);
 
@@ -301,6 +314,9 @@ std::string execution_time_predictor::estimate_remaining_time(double progress) {
 	remaining /= 24;
 	s << (int)remaining << " days";
 	return s.str();
+	#else
+	return "No estimation";
+	#endif
 }
 
 void execution_time_predictor::start_pause() {
