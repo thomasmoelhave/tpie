@@ -68,6 +68,7 @@ if(TPIE_USE_ZSTD)
 endif(TPIE_USE_ZSTD)
 
 option(TPIE_SHARED "Build tpie as a shared library" OFF)
+option(TPIE_EXECUTION_TIME_PREDICTOR "Enable execution time predictor" OFF)
 
 #### Installation paths
 #Default paths
