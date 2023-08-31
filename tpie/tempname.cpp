@@ -171,6 +171,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 	if (!dir.empty()) {
 		std::filesystem::path p;
 		p = dir; p /= construct_name(post_base, get_timestamp(), suffix);
+		log_info() << "Gen temp " << p << std::endl;
 		if ( !std::filesystem::exists(p) ) {
 			return p.string();
 		}
@@ -181,7 +182,7 @@ std::string gen_temp(const std::string& post_base, const std::string& dir, const
 
 		std::filesystem::path p = subdirs.top();
 		p /= construct_name(post_base, "", suffix);
-
+		log_info() << "Gen temp " << p << std::endl;
 		return p.string();
 	}
 }
