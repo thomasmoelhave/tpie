@@ -318,6 +318,15 @@ private:
 		{ }
 	};
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \internal
+	///
+	/// Added in `c9d7154f0` (10th of May, 2011) as a quick fix in Visual
+	/// Studio. Given the date, this was version 10.0 or earlier. This
+	/// workaround is not necessary anymore with Visual Studio 2019+ and hence
+	/// can be reverted (at the cost of slightly breaking backwards
+	/// compatibility).
+	///////////////////////////////////////////////////////////////////////////
 	typedef T vssucks;
 
 	///////////////////////////////////////////////////////////////////////////
