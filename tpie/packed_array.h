@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_PACKED_ARRAY_H__
@@ -147,11 +147,11 @@ private:
 	public:
 		template <typename, int> friend class packed_array;
 		operator T() const {return static_cast<T>((elms[high(index)] >> low(index))&mask());}
-	 	iter_return_type & operator=(const T b) {
+		iter_return_type & operator=(const T b) {
 			storage_type * p = elms+high(index);
 			size_t i = low(index);
 			*p = (*p & ~(mask()<<i)) | ((b & mask()) << i);
-	 		return *this;
+			return *this;
 		}
 	};
 
@@ -163,8 +163,8 @@ private:
 	template <bool forward>
 	class iter_base: public packed_array_iter_facade<iter_base<forward>, forward, iter_return_type> {
 	private:
-		iter_return_type elm;		
-		
+		iter_return_type elm;
+
 		friend class const_iter_base<forward>;
 		friend class packed_array;
 		template <typename, bool, typename> friend class packed_array_iter_facade;
@@ -176,13 +176,13 @@ private:
 		typedef iter_return_type value_type;
 		typedef iter_return_type & reference;
 		typedef iter_return_type * pointer;
-		
+
 		iter_return_type & operator*() {return elm;}
 		iter_return_type * operator->() {return &elm;}
 		iter_base & operator=(const iter_base & o) {elm.index = o.elm.index; elm.elms=o.elm.elms; return *this;}
 		iter_base(iter_base const &o): elm(o.elm) {};
 	};
-	
+
 	typedef T vssucks;
 	/////////////////////////////////////////////////////////
 	/// \internal
@@ -194,7 +194,7 @@ private:
 	private:
 		const storage_type * elms;
 		size_t idx;
-		
+
 		friend class packed_array;
 		friend class boost::iterator_core_access;
 		template <typename, bool, typename> friend class packed_array_iter_facade;
@@ -211,7 +211,7 @@ private:
 		vssucks operator*() const {return static_cast<T>(elms[high(idx)] >> low(idx) & mask());}
 		const_iter_base(const_iter_base const& o): elms(o.elms), idx(o.idx) {}
 		const_iter_base(iter_base<forward> const& o): elms(o.elm.elms), idx(o.elm.index) {}
-	};		
+	};
 
 
 	/////////////////////////////////////////////////////////
@@ -222,29 +222,29 @@ private:
 	struct return_type{
 	private:
 		storage_type * p;
-	 	size_t i;
+		size_t i;
 		return_type(storage_type * p_, size_t i_): p(p_), i(i_) {}
 		friend class packed_array;
 	public:
-	 	operator T() const {return static_cast<T>((*p >> i) & mask());}
-	 	return_type & operator=(const T b) {
+		operator T() const {return static_cast<T>((*p >> i) & mask());}
+		return_type & operator=(const T b) {
 			*p = (*p & ~(mask()<<i)) | ((static_cast<const storage_type>(b) & mask()) << i);
-	 		return *this;
+			return *this;
 		}
-	 	return_type & operator=(const return_type & t){
-	 		*this = (T) t;
-	 		return *this;
-	 	}
+		return_type & operator=(const return_type & t){
+			*this = (T) t;
+			return *this;
+		}
 	};
 
 	storage_type * m_elements;
 	size_t m_size;
-public:		
+public:
 	/////////////////////////////////////////////////////////
 	/// \brief Type of values containd in the array
 	/////////////////////////////////////////////////////////
 	typedef T value_type;
-	
+
 	/////////////////////////////////////////////////////////
 	/// \brief Iterator over a const array
 	/////////////////////////////////////////////////////////
@@ -272,14 +272,14 @@ public:
 	static double memory_coefficient(){
 		return B/8.0;
 	}
-	
+
 	/////////////////////////////////////////////////////////
 	/// \copybrief linear_memory_structure_doc::memory_overhead()
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return (double)sizeof(packed_array)+(double)sizeof(storage_type);
-	}	
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -311,7 +311,7 @@ public:
 		a.m_elements = nullptr;
 		a.m_size = 0;
 	}
-	
+
 	/////////////////////////////////////////////////////////
 	/// \brief Free up all memory used by the array
 	/////////////////////////////////////////////////////////
@@ -364,13 +364,13 @@ public:
 	/////////////////////////////////////////////////////////
 	void fill(T value) {
 		storage_type x=0;
-		for (size_t i=0; i < perword(); ++i) 
+		for (size_t i=0; i < perword(); ++i)
 			x = (x << B) + ((storage_type)value & mask());
 		for (size_t i=0; i < words(m_size); ++i)
-			m_elements[i] = x;		
+			m_elements[i] = x;
 	}
-	
-	
+
+
 	/////////////////////////////////////////////////////////
 	/// \brief Change the size of the array
 	///
@@ -407,8 +407,8 @@ public:
 	T operator[](size_t i)const {
 		assert(i < m_size);
 		return static_cast<T>((m_elements[high(i)] >> low(i))&mask());
-	}	
-	
+	}
+
 	/////////////////////////////////////////////////////////
 	/// \brief Return a object behaving like a reference to an array entry
 	///
