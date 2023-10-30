@@ -18,7 +18,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
         with:
-          paths: '["tpie/", "doc/"]'
+          paths: '["tpie/**", "doc/**"]'
 
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
@@ -38,8 +38,8 @@ jobs:
     - name: Install C++ project dependencies
       run: sudo apt install libboost-all-dev
 
-    - name: Install Doxygen and TeXLive
-      run: sudo apt install doxygen
+    - name: Install Doxygen, DOT and TeXLive
+      run: sudo apt install doxygen graphviz
 
     # CMake build and create docs
     - name: CMake build
