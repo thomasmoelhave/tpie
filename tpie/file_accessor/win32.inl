@@ -89,7 +89,7 @@ void win32::set_cache_hint(cache_hint cacheHint) {
 }
 
 void win32::_open(const std::string & path, DWORD access, DWORD create_mode) {
-	m_fd = CreateFile(path.c_str(), access, shared_flags, 0, create_mode, m_creationFlag, 0);
+	m_fd = CreateFileA(path.c_str(), access, shared_flags, 0, create_mode, m_creationFlag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) return;
 
 	get_file_manager().increment_open_file_count();
