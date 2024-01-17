@@ -59,7 +59,7 @@ endif(TPIE_USE_LZ4)
 ## ZSTD
 option(TPIE_USE_ZSTD "Use ZSTD, Compression algorithm" ON)
 if(TPIE_USE_ZSTD)
-	find_package(ZSTD)
+	find_package(Zstd)
 	if(${ZSTD_FOUND})
 		set(TPIE_HAS_ZSTD ON)
 	else(${ZSTD_FOUND})
