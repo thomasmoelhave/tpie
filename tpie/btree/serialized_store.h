@@ -398,8 +398,9 @@ private:
 			metadata_size = h.metadata_size;
 
             set_flags(h.flags);
-
-			if (m_height == 1) {
+			if (m_height == 0) {
+				root_leaf = leaf_type(0);
+			} else if (m_height == 1) {
 				root_leaf = leaf_type(h.root);
 				f->seekg(h.root);
 				unserialize(*f, *root_leaf);
