@@ -1,0 +1,92 @@
+name: test (Windows)
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  check_skip:
+    name: 'Skip job? (Windows)'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          paths: '["tpie/**", "test/**"]'
+
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+
+  build_and_test:
+    name: 'Build + Test (Windows, ${{matrix.build_type}})'
+    runs-on: windows-latest
+
+    needs: check_skip
+    if: ${{ needs.check_skip.outputs.should_skip != 'true' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+
+    steps:
+    # Git repo set up
+    - name: Checkout commit
+      uses: actions/checkout@v2
+
+    # Install dependencies
+    - name: Set up Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1.12.1
+      with:
+        arch: x64
+
+    - name: Install Boost
+      uses: MarkusJx/install-boost@v2.3.0
+      id: install-boost
+      with:
+        # List of all versions here:
+        # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+        boost_version: 1.79.0
+        platform_version: 2019
+        toolset: msvc
+
+    # Build
+    - name: Configure CMake + NMake all
+      working-directory: ${{runner.workspace}}
+      run: |
+        cmake -E make_directory ${{github.workspace}}\build
+        cd ${{github.workspace}}\build
+        SET CXXFLAGS="%CXXFLAGS% -D_HAS_AUTO_PTR_ETC=1"
+        cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE="${{matrix.build_type}}" -D CMAKE_CXX_STANDARD=17 -D Boost_INCLUDE_DIR=${{env.BOOST_ROOT}}/include -D Boost_LIBRARY_DIRS=${{env.BOOST_ROOT}}/lib ..
+        nmake
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+
+    # Run unit tests
+    - name: CTest run
+      run: |
+        cd ${{github.workspace}}\build
+        ctest
+
+  skip:
+    name: 'Build + Test (Windows, ${{matrix.build_type}})'
+    runs-on: ubuntu-latest
+
+    needs: check_skip
+    if: ${{ needs.check_skip.outputs.should_skip == 'true' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+
+    steps:
+    - name: Echo skip
+      run: |
+        echo "Running unit tests is skipped"

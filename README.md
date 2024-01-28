@@ -1,7 +1,9 @@
 # TPIE - The Templated Portable I/O Environment
 
 [![LGPL-3.0 License](https://img.shields.io/badge/license-LGPL%203.0-blue.svg)](COPYING.md)
-[![unit tests](https://github.com/thomasmoelhave/tpie/actions/workflows/unit_test.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/unit_test.yml)
+[![test (Linux)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_linux.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_linux.yml)
+[![test (Mac OS)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_macos.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_macos.yml)
+[![test (Windows)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_windows.yml/badge.svg)](https://github.com/thomasmoelhave/tpie/actions/workflows/test_windows.yml)
 [![documentation](https://github.com/thomasmoelhave/tpie/actions/workflows/doxygen.yml/badge.svg)](https://thomasmoelhave.github.io/tpie)
 
 The TPIE (Templated Portable I/O Environment) library is a tool box providing
@@ -35,7 +37,7 @@ hosted [there](http://www.madalgo.au.dk/tpie/doc/) and on
 ## Dependencies
 
 TPIE has a mandatory dependency on the _Boost_ library and requires a C++
-compiler that supports the _14_ standard (e.g. GNU 7+ and Clang 10+).
+compiler that supports the _17_ standard (e.g. GNU 7+ and Clang 10+).
 Furthermore, optionally TPIE can use the _Snappy_, _LZ4_, and _ZSTD_
 compression algorithms, if available.
 
@@ -56,7 +58,7 @@ TPIE is then linked to each target executable of choice.
 ```cmake
 add_executable(<target> <source>)
 target_link_libraries(<target> tpie)
-set_target_properties(<target> PROPERTIES CXX_STANDARD 14)
+set_target_properties(<target> PROPERTIES CXX_STANDARD 17)
 ```
 
 Then build your project with CMake. For other ways to install TPIE, see
@@ -72,7 +74,7 @@ commands.
 # Compile entire TPIE project
 mkdir build
 cd build
-cmake -D CXX_STANDARD 14 ..
+cmake -D CXX_STANDARD 17 ..
 
 # Compile tests
 make
@@ -93,7 +95,7 @@ CMake enabled examples in _apps_ execute the following commands
 # CMake
 mkdir build
 cd build
-cmake -D CXX_STANDARD 14 ..
+cmake -D CXX_STANDARD 17 ..
 
 # Compile
 cd apps/<app>/
