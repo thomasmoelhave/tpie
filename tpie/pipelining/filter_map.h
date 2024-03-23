@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2015 The TPIE development team
+// Copyright 2022 The TPIE development team
 //
 // This file is part of TPIE.
 //
@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_FILTER_H__
-#define __TPIE_PIPELINING_FILTER_H__
+#ifndef __TPIE_PIPELINING_FILTER_MAP_H__
+#define __TPIE_PIPELINING_FILTER_MAP_H__
 
 #include <tpie/pipelining/map.h>
 #include <tpie/pipelining/node.h>
@@ -30,37 +30,41 @@ namespace tpie::pipelining {
 namespace bits {
 
 template <typename dest_t, typename F>
-class filter_t: public node {
+class filter_map_t: public node {
 private:
 	F functor;
 	dest_t dest;
+
 public:
-	typedef typename std::decay<typename unary_traits<F>::argument_type>::type funct_arg_type;
-	typedef typename push_type<dest_t, funct_arg_type>::type item_type;
-	filter_t(dest_t dest, const F & functor):
-		functor(functor), dest(std::move(dest)) {
+	typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
+
+	filter_map_t(dest_t dest, const F & functor):
+    functor(functor), dest(std::move(dest)) {
 		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 	}
 
 	void push(const item_type & item) {
-		if (functor(item))
-			dest.push(item);
+		const auto t=f(item);
+		if (t.second) dest.push(t.first);
 	}
 };
-
 
 } //namespace bits
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief A pipelining node that keeps only elements where functor evaluates
-/// to true.
-/// \param functor The filter to use
+/// \brief A pipelining node that applies a functor to items and only keeps
+/// some of them based on the functor's result.
+/// \details The result of the functor must be a pair, e.g.
+/// <tt>std::pair<T,bool></tt>: the second item is a boolean indiciating whether
+/// item should be pushed to the next node while the first one carries the value
+/// itself that is to be pushed.
+/// \param functor The functor that should be applied to items
 ///////////////////////////////////////////////////////////////////////////////
-template <typename F>
-pipe_middle<tfactory<bits::filter_t, Args<F>, F> > filter(const F & functor) {
-	return {functor};
+template <typename F, typename = typename std::enable_if<bits::has_argument_type<F>::value>::type>
+pipe_middle<tfactory<bits::filter_map_t, Args<F>, F> > filter_map(const F & functor) {
+  return {functor};
 }
 
 } //namespace terrastream::pipelining
 
-#endif //__TPIE_PIPELINING_FILTER_H__
+#endif //__TPIE_PIPELINING_FILTER_MAP_H__

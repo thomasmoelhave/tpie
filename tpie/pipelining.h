@@ -52,6 +52,8 @@
 #include <tpie/pipelining/stdio.h>
 #include <tpie/pipelining/uniq.h>
 #include <tpie/pipelining/parallel.h>
+
+// Pipelining nodes
 #include <tpie/pipelining/map.h>
 
 #endif
