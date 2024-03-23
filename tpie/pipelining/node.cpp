@@ -207,8 +207,8 @@ void node::forward_any(std::string key, any_noncopyable value, memory_size_type 
 		case STATE_AFTER_END:
 			// Allowed since forward() is allowed in end()
 			break;
-		default:
-			log_debug() << "forward in unknown state " << get_state() << std::endl;
+		case STATE_IN_GO:
+			// Allowed since forward() is allowed in go()
 			break;
 	}
 
