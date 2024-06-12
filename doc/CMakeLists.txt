@@ -35,6 +35,9 @@ configure_file(Doxyfile.in ${DOXYFILE} @ONLY)
 file(READ code/file_stream.inl DOCCODE_FILE_STREAM)
 configure_file(file_stream.dox.in file_stream.dox @ONLY)
 
+file(READ code/file_stream_complete.inl DOCCODE_FILE_STREAM_COMPLETE)
+configure_file(file_stream.dox.in file_stream.dox @ONLY)
+
 file(READ code/fractiondb.inl DOCCODE_FRACTIONDB)
 configure_file(fractiondb.dox.in fractiondb.dox @ONLY)
 
