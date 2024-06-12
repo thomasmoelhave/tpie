@@ -82,18 +82,20 @@ public:
 	static constexpr float default_blocksize = 0.0625; 
 	
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Constructor.
+	/// \brief Constructor with fractional amount of internal memory to use.
 	///
 	/// \param f Factor of memory that the priority queue is allowed to use.
 	/// \param b Block factor
 	///////////////////////////////////////////////////////////////////////////
 	priority_queue(double f=1.0, float b=default_blocksize, stream_size_type n = std::numeric_limits<stream_size_type>::max());
 
-#ifndef DOXYGEN
-	// \param mmavail Number of bytes the priority queue is allowed to use.
-	// \param b Block factor
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Constructor with absolute amount of internal memory to use.
+	///
+	/// \param mmavail Number of bytes the priority queue is allowed to use.
+	/// \param b Block factor
+	///////////////////////////////////////////////////////////////////////////
 	priority_queue(memory_size_type mm_avail, float b=default_blocksize, stream_size_type n = std::numeric_limits<stream_size_type>::max());
-#endif
 
 	/////////////////////////////////////////////////////////
     ///
