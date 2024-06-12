@@ -169,7 +169,7 @@ std::unordered_map<std::type_index, memory_digest_item> memory_manager::memory_d
 #endif
 		mdi.count = p.second.count;
 		mdi.bytes = p.second.bytes;
-		res.emplace(p.first, std::move(mdi)).first;
+		res.emplace(p.first, std::move(mdi));
 	}
 	return res;
 }
