@@ -27,10 +27,17 @@ endif(TPIE_FRACTIONDB_DIR_INL)
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 
-# Ryan Pavlik's Git revision description helper
-# http://stackoverflow.com/a/4318642
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
+
+option(TPIE_USE_GIT_COMMIT "Use git commit" ON)
+if(TPIE_USE_GIT_COMMIT)
+	# Ryan Pavlik's Git revision description helper
+	# http://stackoverflow.com/a/4318642
+	include(GetGitRevisionDescription)	
+	get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
+else(TPIE_USE_GIT_COMMIT)
+	set(GIT_REFSPEC "no_git_ref")
+	set(GIT_COMMIT "no_git_commit")
+endif()
 
 ## Snappy
 option(TPIE_USE_SNAPPY "Use Snappy, a fast compressor/decompressor" ON)
