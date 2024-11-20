@@ -32,19 +32,17 @@
 #include <iomanip>
 
 struct bit_permute {
-	uint64_t operator()(uint64_t i) const{
+	constexpr uint64_t operator()(uint64_t i) const noexcept {
 		return (i & 0xAAAAAAAAAAAAAAAALL) >> 1 | (i & 0x5555555555555555LL) << 1;
 	}
 };
 
 template <typename T=std::less<uint64_t> >
-struct bit_pertume_compare: std::binary_function<uint64_t, uint64_t, bool> {
+struct bit_pertume_compare {
 	bit_permute bp;
 	T c;
-	typedef uint64_t first_argument_type;
-	typedef uint64_t second_argument_type;
 
-	bool operator()(uint64_t a, uint64_t b) const {
+	constexpr bool operator()(uint64_t a, uint64_t b) const noexcept {
 		return c(bp(a), bp(b));
 	}
 };

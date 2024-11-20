@@ -27,6 +27,7 @@
 #include <numeric>
 #include <filesystem>
 #include "tpie_test_paths.h"
+#include <random>
 
 #ifdef TPIE_HAS_LZ4
 #define SKIP_IF_NO_LZ4 {}
@@ -94,7 +95,8 @@ bool basic_test(TA<TT...>, A && ... a) {
 
 	std::vector<int> x(12); //34);
 	std::iota(x.begin(), x.end(), 0);
-	std::random_shuffle(x.begin(), x.end());
+	std::mt19937 rng(42);
+	std::shuffle(x.begin(), x.end(), rng);
 
 	for (size_t v: x) {
 		tree.insert(v);
@@ -103,7 +105,7 @@ bool basic_test(TA<TT...>, A && ... a) {
 		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during insert stage.");
 	}
 
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), rng);
 	for (size_t v: x) {
 		tree.erase(v);
 		tree2.erase(v);
@@ -156,7 +158,8 @@ bool dynamic_iterator_test(TA<TT...> ta, A && ... a) {
     for (int i=0; i < 1234; ++i) {
         x.push_back(i);
 	}
-	std::random_shuffle(x.begin(), x.end());
+	std::mt19937 rng(42);
+	std::shuffle(x.begin(), x.end(), rng);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
@@ -225,10 +228,11 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 		it.key.value = i;
         x.push_back(it);
 	}
-	std::random_shuffle(x.begin(), x.end());
+	std::mt19937 rng(42);
+	std::shuffle(x.begin(), x.end(), rng);
     for (size_t i=0; i < x.size(); ++i)
 		x[i].value = i;
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), rng);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
@@ -245,7 +249,7 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 		++i2;
 	}
 
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), rng);
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.erase(x[i].key);
 	}
@@ -363,7 +367,8 @@ bool augment_test(TA<TT...> ta, A && ... a) {
 	auto tree = get_btree(ta, c, au, std::forward<A>(a)...);
 	std::vector<int> x;
     for (int i=0; i < 1234; ++i) x.push_back(i);
-	std::random_shuffle(x.begin(), x.end());
+	std::mt19937 rng(42);
+	std::shuffle(x.begin(), x.end(), rng);
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
 		auto n=tree.root();
@@ -379,7 +384,7 @@ bool augment_test(TA<TT...> ta, A && ... a) {
 	}
 
 	size_t e=x.size()/2;
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), rng);
 	for (size_t i=e; i < x.size(); ++i)
 		tree.erase(x[i]);
 	x.resize(e);
@@ -448,7 +453,8 @@ bool bound_test(TA<TT...>, A && ... a) {
     for (int i=0; i < 1234; ++i) {
         x.push_back(i);
 	}
-	std::random_shuffle(x.begin(), x.end());
+	std::mt19937 rng(42);
+	std::shuffle(x.begin(), x.end(), rng);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
@@ -464,7 +470,7 @@ bool bound_test(TA<TT...>, A && ... a) {
 		TEST_ENSURE(tree.upper_bound(r2) == tree.end() || *tree.upper_bound(r2) ==  *tree2.upper_bound(r2), "Upper bound compare failed during insert stage.");
 	}
 
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), rng);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.erase(x[i]);

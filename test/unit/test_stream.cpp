@@ -621,7 +621,7 @@ static bool user_data_test() {
 movable_file_stream openstream(tpie::temp_file & file) {
 	tpie::uncompressed_stream<uint64_t> fs;
 	fs.open(file.path());
-	return fs;
+	return movable_file_stream(fs);
 }
 
 bool swap_test() {

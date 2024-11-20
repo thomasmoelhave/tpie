@@ -24,6 +24,7 @@
 #include <set>
 #include <tpie/tempname.h>
 #include <tpie/blocks/freespace_collection.h>
+#include <random>
 
 using namespace tpie;
 using namespace tpie::blocks;
@@ -42,10 +43,6 @@ bool overlaps(block_handle a, block_handle b) {
 // random an integer in the range [min; max)
 memory_size_type random(memory_size_type seed, memory_size_type min, memory_size_type max) {
 	return (seed * 1009) % (max - min) + min;
-}
-
-int random_generator(int i) {
-	return 10007 % i;
 }
 
 bool alloc_test(memory_size_type size, memory_size_type block_size) {
@@ -96,8 +93,10 @@ bool size_test(memory_size_type size, memory_size_type block_size) {
 	}
 
 	//  the two arrays are shuffled the same way
-	std::random_shuffle(handles.begin(), handles.end(), random_generator);
-	std::random_shuffle(sizes.begin(), sizes.end(), random_generator);
+	std::mt19937 rng1(42);
+	std::shuffle(handles.begin(), handles.end(), rng1);
+	std::mt19937 rng2(42);
+	std::shuffle(sizes.begin(), sizes.end(), rng2);
 
 	for(memory_size_type i = 0; i < size; ++i) {
 		TEST_ENSURE(collection.size() >= minimum_size, "The space used is too small.");
