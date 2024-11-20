@@ -22,6 +22,7 @@
 #include <tpie/btree.h>
 #include <tpie/tempname.h>
 #include <algorithm>
+#include <random>
 #include <set>
 #include <map>
 #include <numeric>
@@ -94,7 +95,11 @@ bool basic_test(TA<TT...>, A && ... a) {
 
 	std::vector<int> x(12); //34);
 	std::iota(x.begin(), x.end(), 0);
-	std::random_shuffle(x.begin(), x.end());
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+	std::shuffle(x.begin(), x.end(), gen);
 
 	for (size_t v: x) {
 		tree.insert(v);
@@ -103,7 +108,7 @@ bool basic_test(TA<TT...>, A && ... a) {
 		TEST_ENSURE_EQUALITY(tree2.size(), tree.size(), "The tree has the wrong size during insert stage.");
 	}
 
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), gen);
 	for (size_t v: x) {
 		tree.erase(v);
 		tree2.erase(v);
@@ -156,7 +161,10 @@ bool dynamic_iterator_test(TA<TT...> ta, A && ... a) {
     for (int i=0; i < 1234; ++i) {
         x.push_back(i);
 	}
-	std::random_shuffle(x.begin(), x.end());
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::shuffle(x.begin(), x.end(), gen);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
@@ -219,16 +227,22 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 		TT...> tree(std::forward<A>(a)..., comp);
 	std::map<uncomparable<int>, int, comparator<std::greater<int> > > tree2(comp);
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
 	std::vector<item> x;
     for (int i=0; i < 1234; ++i) {
 		item it;
 		it.key.value = i;
         x.push_back(it);
 	}
-	std::random_shuffle(x.begin(), x.end());
+
+	std::shuffle(x.begin(), x.end(), gen);
+
     for (size_t i=0; i < x.size(); ++i)
 		x[i].value = i;
-	std::random_shuffle(x.begin(), x.end());
+
+	std::shuffle(x.begin(), x.end(), gen);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
@@ -245,10 +259,12 @@ bool key_and_comparator_test(TA<TT...>, A && ... a) {
 		++i2;
 	}
 
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), gen);
+
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.erase(x[i].key);
 	}
+
 	return tree.empty();
 }
 
@@ -361,9 +377,15 @@ bool augment_test(TA<TT...> ta, A && ... a) {
 	default_comp c;
 	ss_augmenter au;
 	auto tree = get_btree(ta, c, au, std::forward<A>(a)...);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
 	std::vector<int> x;
     for (int i=0; i < 1234; ++i) x.push_back(i);
-	std::random_shuffle(x.begin(), x.end());
+
+	std::shuffle(x.begin(), x.end(), gen);
+
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
 		auto n=tree.root();
@@ -379,7 +401,9 @@ bool augment_test(TA<TT...> ta, A && ... a) {
 	}
 
 	size_t e=x.size()/2;
-	std::random_shuffle(x.begin(), x.end());
+
+	std::shuffle(x.begin(), x.end(), gen);
+
 	for (size_t i=e; i < x.size(); ++i)
 		tree.erase(x[i]);
 	x.resize(e);
@@ -444,11 +468,15 @@ bool bound_test(TA<TT...>, A && ... a) {
 	btree<int, TT...>  tree(std::forward<A>(a)...);
 	set<int> tree2;
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
 	std::vector<int> x;
     for (int i=0; i < 1234; ++i) {
         x.push_back(i);
 	}
-	std::random_shuffle(x.begin(), x.end());
+
+	std::shuffle(x.begin(), x.end(), gen);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.insert(x[i]);
@@ -464,7 +492,7 @@ bool bound_test(TA<TT...>, A && ... a) {
 		TEST_ENSURE(tree.upper_bound(r2) == tree.end() || *tree.upper_bound(r2) ==  *tree2.upper_bound(r2), "Upper bound compare failed during insert stage.");
 	}
 
-	std::random_shuffle(x.begin(), x.end());
+	std::shuffle(x.begin(), x.end(), gen);
 
 	for (size_t i=0; i < x.size(); ++i) {
 		tree.erase(x[i]);

@@ -317,12 +317,14 @@ void merge_sorter_base::calculate_parameters() {
 	// Phase 1 (run formation):
 	// Run length: determined by the number of items we can hold in memory.
 	// Fanout: unbounded
-	
-	memory_size_type streamMemory = m_element_file_stream_memory_usage;
-	memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
+
+	const memory_size_type streamMemory = m_element_file_stream_memory_usage;
+	const memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 	
 	log_pipe_debug() << "Phase 1: " << p.memoryPhase1 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
-	memory_size_type min_m1 = std::max<memory_size_type>(128*1024UL, 16*m_item_size) + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
+	const memory_size_type minRunLength = std::max<memory_size_type>(128*1024UL, 16*m_item_size);
+	const memory_size_type min_m1 = minRunLength + bits::run_positions::memory_usage() + streamMemory + tempFileMemory;
+
 	if (p.memoryPhase1 < min_m1) {
 		log_warning() << "Not enough phase 1 memory for 128 KB items and an open stream! (" << p.memoryPhase1 << " < " << min_m1 << ")\n";
 		p.memoryPhase1 = min_m1;

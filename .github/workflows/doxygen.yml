@@ -10,7 +10,7 @@ on:
 
 jobs:
   skip_duplicate:
-    name: 'Check whether to skip job'
+    name: 'Skip job?'
     continue-on-error: true
     runs-on: ubuntu-latest
 
