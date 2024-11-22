@@ -246,8 +246,9 @@ execution_time_predictor::~execution_time_predictor() {
 
 time_type execution_time_predictor::estimate_execution_time(stream_size_type n, double & confidence) {
 #ifndef TPIE_EXECUTION_TIME_PREDICTOR
-		confidence=0.0;
-		return -1;
+	unused(n);
+	confidence=0.0;
+	return -1;
 #else
 	if (m_id == std::hash<std::string>()("")) {
 		confidence=0.0;
@@ -315,6 +316,7 @@ std::string execution_time_predictor::estimate_remaining_time(double progress) {
 	s << (int)remaining << " days";
 	return s.str();
 	#else
+	unused(progress);
 	return "No estimation";
 	#endif
 }

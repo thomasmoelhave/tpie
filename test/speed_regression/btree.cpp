@@ -28,6 +28,7 @@
 #include "testtime.h"
 #include "testinfo.h"
 #include "stat.h"
+#include <random>
 
 using namespace tpie;
 using namespace tpie::test;
@@ -51,6 +52,8 @@ void test(size_t times, size_t size) {
 	test_realtime_t start;
 	test_realtime_t end;
 
+	std::mt19937 rng(42);
+
 	for (size_t i = 0; i < times; ++i) {
 		/*btree_internal_store<int> store;
 		btree<btree_internal_store<int> > tree(store);*/
@@ -62,7 +65,7 @@ void test(size_t times, size_t size) {
 		std::vector<int> x(count);
 		for(size_t i = 0; i < count; ++i)
 			x[i] = i;
-		std::random_shuffle(x.begin(), x.end());
+		std::shuffle(x.begin(), x.end(), rng);
 
 		// insertion
 		getTestRealtime(start);
@@ -81,7 +84,7 @@ void test(size_t times, size_t size) {
 		s(testRealtimeDiff(start,end));
 
 		// deletion
-		std::random_shuffle(x.begin(), x.end());
+		std::shuffle(x.begin(), x.end(), rng);
 
 		getTestRealtime(start);
 		for(size_t i = 0; i < count; ++i) {

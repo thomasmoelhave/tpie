@@ -295,15 +295,14 @@ public:
 
 private:
     typedef tpie::allocator<T> a_t;
+    typedef std::allocator_traits<a_t> at_t;
     a_t a;
 public:
-    typedef typename a_t::size_type size_type;
-    typedef typename a_t::difference_type difference_type;
-	typedef typename a_t::pointer pointer;
-	typedef typename a_t::const_pointer const_pointer;
-	typedef typename a_t::reference reference;
-	typedef typename a_t::const_reference const_reference;
-    typedef typename a_t::value_type value_type;
+	typedef typename at_t::size_type size_type;
+	typedef typename at_t::difference_type difference_type;
+	typedef typename at_t::pointer pointer;
+	typedef typename at_t::const_pointer const_pointer;
+	typedef typename at_t::value_type value_type;
 
 	test_allocator() throw() {}
 	test_allocator(const test_allocator & a) throw() {unused(a);}
@@ -312,42 +311,28 @@ public:
 
     template <class U> struct rebind {typedef test_allocator<U> other;};
 
-    inline T * allocate(size_t size, const void * hint=0) {
+    T * allocate(size_t size) {
 		allocated += size;
-		return a.allocate(size, hint);
+		return a.allocate(size);
     }
 
-    inline void deallocate(T * p, size_t n) {
+    void deallocate(T * p, size_t n) {
 		if (p == 0) return;
 		deallocated += n;
 		a.deallocate(p, n);
     }
 
-    inline size_t max_size() const {return a.max_size();}
+	size_t max_size() const {return a.max_size();}
 
-#ifdef TPIE_CPP_RVALUE_REFERENCE
-#ifdef TPIE_CPP_VARIADIC_TEMPLATES
-	template <typename ...TT>
-	inline void construct(T * p, TT &&...x) {a.construct(p, x...);}
-#else
-	template <typename TT>
-	inline void construct(T * p, TT && val) {a.construct(p, val);}
-#endif
-#endif
-	inline void construct(T * p) {
-#ifdef WIN32
-#pragma warning( push )
-#pragma warning(disable: 4345)
-#endif
-		new(p) T();
-#ifdef WIN32
-#pragma warning( pop )
-#endif
+	template <typename U, typename ...TT>
+	void construct(U * p, TT &&...x) {
+		at_t::construct(a, p, std::forward<TT>(x)...);
 	}
-    inline void construct(T * p, const T& val) {a.construct(p, val);}
-    inline void destroy(T * p) {a.destroy(p);}
-	inline pointer address(reference x) const {return &x;}
-	inline const_pointer address(const_reference x) const {return &x;}
+
+	template <typename U>
+ 	void destroy(U * p) {
+		at_t::destroy(a, p);
+	}
 };
 
 template <typename T> size_t test_allocator<T>::allocated;

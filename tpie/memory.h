@@ -363,17 +363,16 @@ template <class T>
 class allocator {
 private:
     typedef std::allocator<T> a_t;
+    typedef std::allocator_traits<a_t> at_t;
     a_t a;
 public:
 	memory_bucket_ref bucket;
 
-    typedef typename a_t::size_type size_type;
-    typedef typename a_t::difference_type difference_type;
-	typedef typename a_t::pointer pointer;
-	typedef typename a_t::const_pointer const_pointer;
-	typedef typename a_t::reference reference;
-	typedef typename a_t::const_reference const_reference;
-    typedef typename a_t::value_type value_type;
+	typedef typename at_t::size_type size_type;
+	typedef typename at_t::difference_type difference_type;
+	typedef typename at_t::pointer pointer;
+	typedef typename at_t::const_pointer const_pointer;
+	typedef typename at_t::value_type value_type;
 
 	typedef std::true_type propagate_on_container_copy_assignment;
 	typedef std::true_type propagate_on_container_move_assignment;
@@ -397,10 +396,10 @@ public:
 
     template <class U> struct rebind {typedef allocator<U> other;};
 
-    T * allocate(size_t size, const void * hint=0) {
+    T * allocate(size_t size) {
 		get_memory_manager().register_allocation(size * sizeof(T), typeid(T));
 		if (bucket) bucket->count += size * sizeof(T);
-		T * res = a.allocate(size, hint);
+		T * res = a.allocate(size);
 		return res;
     }
 
@@ -410,22 +409,18 @@ public:
 		get_memory_manager().register_deallocation(n * sizeof(T), typeid(T));
 		return a.deallocate(p, n);
     }
-    size_t max_size() const noexcept {return a.max_size();}
+    size_t max_size() const noexcept {return at_t::max_size(a);}
 
 	template <typename U, typename ...TT>
-	void construct(U * p, TT &&...x) {a.construct(p, std::forward<TT>(x)...);}
+	void construct(U * p, TT &&...x) {
+		at_t::construct(a, p, std::forward<TT>(x)...);
+	}
 
-	// void construct(T * p) {
-	// 	new(p) T();
-	// }
-    // void construct(T * p, const T& val) {a.construct(p, val);}
+
 	template <typename U>
     void destroy(U * p) {
-        p->~U();
-    }
-	pointer address(reference x) const noexcept {return &x;}
-	const_pointer address(const_reference x) const noexcept {return &x;}
-
+		at_t::destroy(a, p);
+	}
 
 	friend bool operator==(const allocator & l, const allocator & r) noexcept {return l.bucket == r.bucket;}
 	friend bool operator!=(const allocator & l, const allocator & r) noexcept {return l.bucket != r.bucket;}
