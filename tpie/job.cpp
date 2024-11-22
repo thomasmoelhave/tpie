@@ -47,6 +47,7 @@ public:
 	/// \brief Initialize the thread pool.
 	///////////////////////////////////////////////////////////////////////////
 	void init_pool(size_t threads) {
+		m_kill_job_pool = false;
 		m_thread_pool.resize(threads);
 		for (size_t i = 0; i < threads; ++i) {
 			std::function<void()> f(worker);
@@ -69,6 +70,9 @@ public:
 		}
 	}
 
+	size_t worker_count() const noexcept {
+		return m_thread_pool.size();
+	}
 private:
 
 	tpie::internal_queue<tpie::job *> m_jobs;
@@ -123,6 +127,13 @@ void finish_job() {
 	the_job_manager->shutdown_pool();
 	tpie_delete(the_job_manager);
 	the_job_manager = 0;
+}
+
+void set_worker_count(memory_size_type workers) {
+	if (the_job_manager->worker_count() != workers) {
+		the_job_manager->shutdown_pool();
+		the_job_manager->init_pool(workers);
+	}
 }
 
 job::job()
