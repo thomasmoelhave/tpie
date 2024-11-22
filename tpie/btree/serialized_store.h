@@ -366,6 +366,7 @@ private:
 		if ((flags & btree_flags::read) == 0) {
 			if ((flags & btree_flags::write) == 0)
 				throw invalid_file_exception("Either read or write must be supplied to serialized store");
+			f->rdbuf()->pubsetbuf(buffer, bufsize);
 			f->open(path, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 			if (!f->is_open())
 				throw invalid_file_exception("Open failed");
@@ -613,6 +614,8 @@ private:
 	
 	std::string path;
 	std::unique_ptr<std::fstream> f;
+	static constexpr size_t bufsize = 128 * 1024;
+	char buffer[bufsize];
 	internal_type current_internal, root_internal;
 	leaf_type current_leaf, root_leaf;
 
