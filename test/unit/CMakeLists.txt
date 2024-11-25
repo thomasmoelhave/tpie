@@ -163,6 +163,8 @@ add_unittest(stream
 	user_data_file
 	peek_skip_1
 	peek_skip_2
+	peek_back_skip
+	peek_back_throw
 	backwards_compressed
 	extend_compressed
 	truncate_compressed

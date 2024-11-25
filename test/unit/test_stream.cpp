@@ -769,6 +769,54 @@ bool peek_skip_test_2() {
 	return true;
 }
 
+bool peek_back_skip_test() {
+	tpie::file_stream<size_t> s;
+	s.open();
+	for (size_t i = 0; i < 1000000; ++i) s.write(i);
+
+	s.seek(42);
+	TEST_ENSURE(s.peek_back() == 41, "peek_back() wrong");
+
+	s.seek(100);
+	TEST_ENSURE(s.peek_back() == 99, "peek_back() wrong");
+
+	s.seek(10000);
+	TEST_ENSURE(s.peek_back() == 9999, "peek_back() wrong");
+	s.skip();
+	TEST_ENSURE(s.peek_back() == 10000, "peek_back() wrong");
+	s.skip_back();
+	TEST_ENSURE(s.peek_back() == 9999, "peek_back() wrong");
+
+	s.seek(1000000);
+	TEST_ENSURE(s.peek_back() == 999999, "peek_back() wrong");
+
+	s.skip_back();
+	TEST_ENSURE(s.peek_back() == 999998, "peek_back() wrong");
+
+	s.seek(100000);
+	s.skip();
+	TEST_ENSURE(s.peek_back() == 100000, "peek_back() wrong");
+
+	return true;
+}
+
+bool peek_back_throw_test() {
+	tpie::file_stream<size_t> s;
+	s.open();
+	for (size_t i = 0; i < 1000; ++i) s.write(i);
+
+	bool threw = false;
+	s.seek(0);
+	try {
+		s.peek_back();
+	} catch (tpie::end_of_stream_exception &) {
+		threw = true;
+	}
+	TEST_ENSURE(threw, "peek_back() did throw");
+
+	return true;
+}
+
 bool reopen() {
 	tpie::temp_file tf;
 
@@ -818,5 +866,7 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file")
 		.test(peek_skip_test_1, "peek_skip_1")
 		.test(peek_skip_test_2, "peek_skip_2")
+		.test(peek_back_skip_test, "peek_back_skip")
+		.test(peek_back_throw_test, "peek_back_throw")
 		;
 }

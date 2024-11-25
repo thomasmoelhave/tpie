@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2013, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -108,14 +108,14 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	void cache_read_writes();
 
-	void peak_unlikely();
-	
+	void read_unlikely();
+
 	void read_back_unlikely();
-	
+
 	void write_unlikely(const char * item);
 
 	static memory_size_type memory_usage(double blockFactor=1.0) noexcept;
-	
+
 public:
 	bool is_readable() const noexcept;
 
@@ -264,55 +264,60 @@ public:
 	void close();
 
 	bool is_open() const noexcept;
-	
+
 	stream_size_type offset() const;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  For debugging: Describe the internal stream state in a string.
+	/// \internal
+	///
+	/// \brief For debugging: Describe the internal stream state in a string.
 	///////////////////////////////////////////////////////////////////////////
 	void describe(std::ostream & out);
-	
+
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  For debugging: Describe the internal stream state in a string.
+	/// \internal
+	///
+	/// \brief For debugging: Describe the internal stream state in a string.
 	///////////////////////////////////////////////////////////////////////////
 	std::string describe();
 
 
 	///////////////////////////////////////////////////////////////////////////
-	/// Precondition: is_open()
-	/// Precondition: offset == 0
+	/// \pre is_open()
+	/// \pre offset == 0
 	///////////////////////////////////////////////////////////////////////////
 	void seek(stream_offset_type offset, offset_type whence=beginning);
-	
+
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Truncate to given size.
+	/// \brief Truncate to given size.
 	///
-	/// Precondition: compression is disabled or offset is size() or 0.
-	/// Blocks to take the compressor lock.
+	/// \pre compression is disabled or offset is size() or 0.
+    ///
+	/// \remark Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type offset);
-	
+
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Truncate to given stream position.
+	/// \brief Truncate to given stream position.
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(const stream_position & pos);
-	
+
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Store the current stream position such that it may be found
+	/// \brief Store the current stream position such that it may be found
 	/// later on.
 	///
-	/// The stream_position object is violated if the stream is eventually
-	/// truncated to before the current position.
+	/// \details The stream_position object is violated if the stream is
+	/// eventually truncated to before the current position.
 	///
 	/// The stream_position objects are plain old data, so they may themselves
 	/// be written to streams.
 	///
-	/// Blocks to take the compressor lock.
+	/// \remark Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	stream_position get_position();
-	
+
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Seek to a position that was previously recalled with
+	/// \brief Seek to a position that was previously recalled with
 	/// \c get_position.
 	///////////////////////////////////////////////////////////////////////////
 	void set_position(const stream_position & pos);
@@ -321,17 +326,16 @@ public:
 
 	stream_size_type file_size() const { return size(); }
 
-	
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Check if the next call to read() will succeed or not.
+	/// \brief Check if the next call to read() will succeed or not.
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read() {
-		if (m_cachedReads > 0)	return true;
+		if (m_cachedReads > 0) return true;
 		return offset() < size();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief  Check if the next call to read_back() will succeed or not.
+	/// \brief Check if the next call to read_back() will succeed or not.
 	///////////////////////////////////////////////////////////////////////////
 	bool can_read_back() {
 		return offset() > 0;
@@ -341,13 +345,13 @@ protected:
 	memory_size_type m_cachedReads;
 	/** Number of cheap, unchecked writes we can do next. */
 	memory_size_type m_cachedWrites;
-	
+
 	/** Number of logical items in the stream. */
 	stream_size_type m_size;
 	/** Buffer manager for this entire stream. */
-	
+
 	seek_state::type m_seekState;
-	
+
 	/** Offset of next item to read/write, relative to beginning of stream.
 	 * Invariants:
 	 *
@@ -368,7 +372,7 @@ protected:
 
 /** Only when m_buffer.get() != 0: End of writable buffer. */
 	char * m_bufferEnd;
-		
+
 	/** Next item in buffer to read/write. */
 	char * m_nextItem;
 
@@ -399,32 +403,34 @@ protected:
 /// precondition (for instance by passing an invalid parameter).
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class file_stream : public compressed_stream_base {
+class file_stream : public compressed_stream_base
+{
 	static_assert(is_stream_writable<T>::value, "file_stream item type must be trivially copyable");
+
 public:
 	typedef T item_type;
-	
+
 	file_stream(double blockFactor=1.0)
-		: compressed_stream_base(sizeof(T), blockFactor) {}
-	
+		: compressed_stream_base(sizeof(T), blockFactor)
+	{ }
+
 	static memory_size_type memory_usage(double blockFactor=1.0) noexcept {
 		// m_buffer is included in m_buffers memory usage
 		return sizeof(file_stream) + compressed_stream_base::memory_usage(blockFactor);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// Reads next item from stream if can_read() == true.
+	/// \brief Reads next item from stream if can_read() == true.
 	///
-	/// If can_read() == false, throws an end_of_stream_exception.
+	/// \exception end_of_stream_exception If can_read() == false. The stream is
+	/// left in the state it was in before the call to read() that threw an
+	/// exception.
 	///
-	/// Blocks to take the compressor lock.
-	///
-	/// If a stream_exception is thrown, the stream is left in the state it was
-	/// in before the call to read().
+	/// \remark Blocks to take the compressor lock.
 	///////////////////////////////////////////////////////////////////////////
 	const T & read() {
 		if (m_cachedReads == 0) {
-			peak_unlikely();
+			read_unlikely();
 			const T & res = *reinterpret_cast<const T*>(m_nextItem);
 			++m_offset;
 			m_nextItem += sizeof(T);
@@ -437,41 +443,54 @@ public:
 		m_nextItem += sizeof(T);
 		return res;
 	}
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// Peeks next item from stream if can_read() == true.
-	///
-	/// If can_read() == false, throws an end_of_stream_exception.
-	///
-	/// Blocks to take the compressor lock.
-	///
-	/// If a stream_exception is thrown, the stream is left in the state it was
-	/// in before the call to peek().
-	///////////////////////////////////////////////////////////////////////////
-	const T & peek() {
-		if (m_cachedReads == 0) peak_unlikely();
-		return *reinterpret_cast<const T*>(m_nextItem);
-	}
-
-	void skip() {
-		read();
-	}
-
-	void skip_back() {
-		read_back();
-	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// Precondition: is_open().
+	/// \brief Reads min(b-a, size()-offset()) items into the range [a, b). If
+	/// less than b-a items are read, throws an end_of_stream_exception.
 	///
-	/// Reads min(b-a, size()-offset()) items into the range [a, b).
-	/// If less than b-a items are read, throws an end_of_stream_exception.
+	/// \pre is_open().
 	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void read(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) *i = read();
 	}
-	
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Peeks next item from stream if can_read() == true.
+	///
+	/// \exception end_of_stream_exception If can_read() == false. The stream is
+	/// left in the state it was in before the call to peek() that threw an
+	/// exception.
+	///
+	/// \remark Blocks to take the compressor lock.
+	///////////////////////////////////////////////////////////////////////////
+	const T & peek() {
+		if (m_cachedReads == 0) read_unlikely();
+		return *reinterpret_cast<const T*>(m_nextItem);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Skips next item from stream if can_read() == true.
+	///
+	/// \exception end_of_stream_exception If can_read() == false. The stream is
+	/// left in the state it was in before the call to skip() that threw an
+	/// exception.
+	///
+	/// \remark Blocks to take the compressor lock.
+	///////////////////////////////////////////////////////////////////////////
+	void skip() {
+		read();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Reads previous item from stream if can_read_back() == true.
+	///
+	/// \exception end_of_stream_exception If can_read_back() == false. The
+	/// stream is left in the state it was in before the call to read_back()
+	/// that threw an exception.
+	///
+	/// \remark Blocks to take the compressor lock.
+	///////////////////////////////////////////////////////////////////////////
 	const T & read_back() {
 		if (m_seekState != seek_state::none || m_nextItem == m_bufferBegin) read_back_unlikely();
 		++m_cachedReads;
@@ -479,7 +498,48 @@ public:
 		m_nextItem -= sizeof(T);
 		return *reinterpret_cast<const T *>(m_nextItem);
 	}
-	
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Reads min(b-a, size()-offset()) items into the range [a, b). If
+	/// less than b-a items are read, throws an end_of_stream_exception.
+	///
+	/// \pre is_open().
+	///////////////////////////////////////////////////////////////////////////
+	template <typename IT>
+	void read_back(IT const a, IT const b) {
+		for (IT i = a; i != b; ++i) *i = read_back();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Peeks the previous item from stream if can_read_back() == true.
+	///
+	/// \exception end_of_stream_exception If can_read_back() == false. The
+	/// stream is left in the state it was in before the call to read_back()
+	/// that threw an exception.
+	///
+	/// \remark Blocks to take the compressor lock.
+	///////////////////////////////////////////////////////////////////////////
+	const T & peek_back() {
+		if (m_seekState != seek_state::none || m_nextItem == m_bufferBegin) read_back_unlikely();
+		return *reinterpret_cast<const T*>(m_nextItem - sizeof(T));
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Skips nextprevious item from stream if can_read_back() == true.
+	///
+	/// \exception end_of_stream_exception If can_read_back() == false. The
+	/// stream is left in the state it was in before the call to skip_back()
+	/// that threw an exception.
+	///
+	/// \remark Blocks to take the compressor lock.
+	///////////////////////////////////////////////////////////////////////////
+	void skip_back() {
+		read_back();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Write item to next position in stream.
+	///////////////////////////////////////////////////////////////////////////
 	void write(const T & item) {
 		if (m_cachedWrites == 0) {
 			write_unlikely(reinterpret_cast<const char*>(&item));
@@ -493,6 +553,9 @@ public:
 		return;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Writes b-a items to the next immediate positions in the stream.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	void write(IT const a, IT const b) {
 		for (IT i = a; i != b; ++i) write(*i);
