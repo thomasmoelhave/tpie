@@ -1,5 +1,5 @@
 # doc/CMakeLists.txt uses configure_file behavior from CMake 2.8
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0063 NEW)
 
 project(tpie)
