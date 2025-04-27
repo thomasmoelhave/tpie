@@ -898,7 +898,7 @@ void compressed_stream_base::cache_read_writes() {
 	}
 }
 
-void compressed_stream_base::peak_unlikely() {
+void compressed_stream_base::read_unlikely() {
 	if (m_seekState != seek_state::none) m_p->perform_seek();
 	if (m_offset == m_size) throw end_of_stream_exception();
 	if (m_nextItem == m_bufferEnd) {
