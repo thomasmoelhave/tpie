@@ -71,6 +71,7 @@ set (HEADERS
 		pipelining/factory_helpers.h
 		pipelining/file_stream.h
 		pipelining/filter.h
+		pipelining/filter_map.h
 		pipelining/forwarder.h
 		pipelining/helpers.h
 		pipelining/internal_buffer.h

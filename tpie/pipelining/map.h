@@ -1,19 +1,19 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2011, 2012, The TPIE development team
-// 
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
@@ -58,14 +58,15 @@ class map_t: public node {
 private:
 	F functor;
 	dest_t dest;
+
 public:
 	typedef typename std::decay<typename unary_traits<F>::argument_type>::type item_type;
-	
+
 	map_t(dest_t dest, const F & functor):
 		functor(functor), dest(std::move(dest)) {
 		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 	}
-	
+
 	void push(const item_type & item) {
 		dest.push(functor(item));
 	}
@@ -76,12 +77,13 @@ class map_temp_t: public node {
 private:
 	F functor;
 	dest_t dest;
+
 public:
 	map_temp_t(dest_t dest, const F & functor):
 		functor(functor), dest(std::move(dest)) {
 		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 	}
-	
+
 	template <typename T>
 	void push(const T & item) {
 		dest.push(functor(item));
@@ -99,7 +101,7 @@ public:
 		functor(functor) {
 		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 	}
-	
+
 	void push(const item_type & item) {
 		functor(item);
 	}
@@ -115,16 +117,15 @@ public:
 		functor(functor), src(std::move(src)) {
 		set_name(bits::extract_pipe_name(typeid(F).name()), PRIORITY_NO_NAME);
 	}
-	
+
 	auto pull() {
 		return functor(src.pull());
 	}
-	
+
 	bool can_pull() {
 		return src.can_pull();
 	}
 };
-
 
 template <typename T>
 struct has_argument_type {
